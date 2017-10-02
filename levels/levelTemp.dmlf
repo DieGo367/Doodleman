@@ -1,0 +1,4 @@
+bgName:Box201
+spawns: [
+SolidLine:0,0,Level.width/2,Level.height/2,2,"black",2
+]

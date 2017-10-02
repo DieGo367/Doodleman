@@ -1,0 +1,17 @@
+bgName:BG-Paper
+dimensions:854x480
+zoomScale:1
+player1Spawn:20,310
+player2Spawn:834,310
+camStart:320,300
+horScrollBuffer:240
+vertScrollBuffer:125
+minZoom:0.75
+spawns: [
+PhysicsBox:Level.width*3/4,Level.height,Level.width/2,40,"black",null,true,C_INFINIMASS,false,null
+PhysicsBox:Level.width/2,Level.height-50,50,40,null,"Box201",false,C_ENT,true,2
+MovingPlatform:141,152,282,34,null,"HelloWorld",C_INFINIMASS,1,0
+PaintMinion:Level.width*3/4,40
+Door:30,Level.height,0,1
+Door:Level.width/2+20,Level.height-80,1,0
+]

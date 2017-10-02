@@ -1,0 +1,27 @@
+body {
+  background-color: black;
+  color: white;
+  font-family: Proxima Nova;
+  font-weight: 700;
+  text-align: center;
+  margin: 0px;
+  overflow: hidden;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+canvas {
+  cursor: none;
+  width: 640px;
+  height: 360px;
+}
+canvas:fullscreen, canvas:full-screen, canvas:-webkit-full-screen, canvas:-moz-full-screen {
+  max-width: 100%;
+  max-height: 100%;
+}
+#output {
+  display: none;
+  text-align: left;
+}
