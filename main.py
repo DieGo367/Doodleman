@@ -24,16 +24,23 @@ class MainHandler(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
         if user:
-            name = user.nickname().split('@')[0];
+            name = user.nickname().split('@')[0]
             log_url = users.create_logout_url('/')
         else:
             name = "Guest"
             log_url = users.create_login_url('/')
 
+        mode = self.request.get("m")
+        if mode:
+            spoopy = mode=="spoopy"
+        else:
+            spoopy = False
+
         temp_vars = {
             "user": user,
             "name": name,
-            "log_url": log_url
+            "log_url": log_url,
+            "spoopy": spoopy
         }
         temp = env.get_template("main.html")
         self.response.out.write(temp.render(temp_vars))

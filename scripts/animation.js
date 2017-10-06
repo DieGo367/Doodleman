@@ -221,7 +221,7 @@ ImageFactory.initImage("Redman","res/Redman-sprites.png");
 ImageFactory.initImage("Blueman","res/Blueman-sprites.png");
 ImageFactory.initImage("Greenman","res/Greenman-sprites.png");
 ImageFactory.initImage("Yellowman","res/Yellowman-sprites.png");
-ImageFactory.initImage("PaintMinionSprites","res/Paint Minion Spritesheet.png");
+ImageFactory.initImage("PaintMinionSprites",spoopy==false?"res/Paint Minion Spritesheet.png":"res/Skeltal Spritesheet.png");
 ImageFactory.initImage("BG-Paper","res/paper.png");
 ImageFactory.initImage("GUI-Hearts","res/GUI-HUD-Hearts new.png");
 ImageFactory.initImage("GUI-Exclaim","res/GUI-HUD-!.png");
