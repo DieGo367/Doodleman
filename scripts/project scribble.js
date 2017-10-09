@@ -1,27 +1,23 @@
 /* TODO:
-more controller stuff
-	easy switch menu
-		players can have up to 3 ctrls, listen to whichever has dominance (gp>touch>keyboard)
-		menu w/ all ctrls visible, player and null columns, 3 ctrl type rows. move to whichever is desirable
-	mapper
-		save via cookies?
-do something with login
-level loader and level system - better gui format
 spritesheet system
 	add alternate imgs.
 	carried object behavior???
 	fix discrepencies between preventAnimTick and inherited Animation.protoDraw
-	idk if there's actually any issues tho...
+		idk if there's actually any issues tho...
 finish pause menu controls
-touch controls - regular buttons
+touch controls - interections with regular gui buttons
 collision system
 	collided sides cacheing:
 		store maximum collisionType per side
 		if our a can't top that, then b outweighs a/
+			might already be implemented, at least partially
 attacks
 	Entity.attack();
 	change attack to only a few specific frames
 	down stab
+gamepad mapper
+level loader and level system - better gui format
+do something with login - save settings?
 
    NOTES:
 	Flipnote speed 6 (12fps) frame = 5 60fps game frames
@@ -53,7 +49,7 @@ var pixelDensity = 1, hudWidth = 640, hudHeight = 360;
 var paused = false, pausedBy, focused = true, fullScreen = false;
 var viewLock = false, viewAction = function() {};
 var gameMode = 0, multiplayer = false, clickSpawn = false;
-var globalKeyboard, keyboardDetector;
+var globalKeyboard;
 var selectedElement;
 var myAngle = 0;
 var hudText = 0, coords = "", keyText = "", buttonText = "";
@@ -628,7 +624,7 @@ function addPlayer(number) {
 	var sheet = [Bluesheet,Redsheet][number];
 	var button = Player.respawnButtons[number];
 	var coords = [[Level.player1SpawnX,Level.player1SpawnY],[Level.player2SpawnX,Level.player2SpawnY]][number];
-	var player = Player.create(coords[0],coords[1],19,44,38,4,multiplayer?sheet:DoodlemanSpritesheet,number,new Ctrl(Player.keyCtrls[number]));
+	var player = Player.create(coords[0],coords[1],19,44,38,4,multiplayer?sheet:DoodlemanSpritesheet,number);
 	if (multiplayer) button.hide();
 	else G$("RespawnP1Button").hide();
 }
@@ -715,7 +711,7 @@ function tick() { //GAME UPDATES//
 	//DevTools Line Maker
 	if (LineMaker.x&&(!G$("DevPencil").on||G$("DevEraser").on||!devEnabled)) LineMaker.clear();
 	//prepare keyboard for next frame
-	for (var i in Key.controlObjs) Key.controlObjs[i].justReleasedButtons = {};
+	for (var i in Key.ctrls) Key.ctrls[i].justReleasedButtons = {};
 	//begin drawing
 	if (focused) window.requestAnimationFrame(drawGame);
 }
@@ -847,7 +843,7 @@ function pauseGame(pause,player) {
 function doGlobalControls(controller) {
 	if (controller.ready("pause")) {
 		var slot = -1;
-		if (controller.type=="gamepad") slot = Player.gpIndices.indexOf(controller.gamepadIndex);
+		if (controller.type=="gamepad") slot = Player.gpIds.indexOf(controller.gamepadIndex);
 		else if (controller.type=="keyboard") {
 			slot = controller.ready("pause-p1")?0:1;
 			controller.use("pause-p"+(slot+1));
@@ -1159,13 +1155,13 @@ function addGui() {
 		callPrefixedFunction(canvas,"requestFullscreen");
 		callPrefixedFunction(canvas,"requestFullScreen");
 	}, function() {
-			callPrefixedFunction(document,"exitFullscreen");
-			callPrefixedFunction(document,"exitFullScreen");
+		callPrefixedFunction(document,"exitFullscreen");
+		callPrefixedFunction(document,"exitFullScreen");
 	},true).setIcon("GUI-Icons",2,0,42,4).show();
 	Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
 		G$("CtrlSettingsView").show();
 		G$("PauseMenu").hide();
-	}).setIcon("GUI-Icons",3,1,42,4);//.show();
+	}).setIcon("GUI-Icons",3,1,42,4).show();
 	TextElement.create("UserInfo","PauseMenu",hudWidth/2,hudHeight-30,"Logged in as "+User.name,"Proxima Nova",15,false,"white",CENTER)//.show();
 	Button.create("LoginoutButton","PauseMenu",hudWidth/2-50,hudHeight-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
 		User.useLink();
@@ -1180,7 +1176,7 @@ function addGui() {
 	TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/3,80,"Player 1","Proxima Nova",20,false,"white",CENTER,true,"gray",5,false).show();
 	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth*2/3,80,"Player 2","Proxima Nova",20,false,"white",CENTER,true,"gray",5,false).show();
 	Button.create("CtrlP1Keyboard","CtrlSettingsView",hudWidth/3-100,130,200,40,"Keyboard").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.keyCtrls[0],"keyboard");
+		this.text = getCtrlDisplayName(Player.keyMaps[0],"keyboard");
 		this.playerSlot = 0;
 	}).setOnClick(function() {
 		createControllerChooserGUI([wasd,ijkl],"keyboard",this);
@@ -1189,12 +1185,37 @@ function addGui() {
 		var globalGPCtrl = Player.globalGPCtrls[0];
 		if (globalGPCtrl) this.text = globalGPCtrl.gamepadName;
 		else this.text = "None";
+		this.playerSlot = 0;
+	}).setOnClick(function() {
+		createControllerChooserGUI(GamePad.slotsFilled(),"gamepad",this);
 	}).show();
 	Button.create("CtrlP1Touch","CtrlSettingsView",hudWidth/3-100,230,200,40,"Touch Controls").setOnViewShown(function() {
-		this.text = Player.usesTouch[0]?"Touch Controls":"None";
+		this.text = getCtrlDisplayName(Player.tapMaps[0],"touch");
+		this.playerSlot = 0;
+	}).setOnClick(function() {
+		createControllerChooserGUI([tscr],"touch",this);
 	}).show();
-
-	View.create("CtrlChooser",2,15,15,hudWidth-30,hudHeight-30,"window");
+	Button.create("CtrlP2Keyboard","CtrlSettingsView",hudWidth*2/3-100,130,200,40,"Keyboard").setOnViewShown(function() {
+		this.text = getCtrlDisplayName(Player.keyMaps[1],"keyboard");
+		this.playerSlot = 1;
+	}).setOnClick(function() {
+		createControllerChooserGUI([wasd,ijkl],"keyboard",this);
+	}).show();
+	Button.create("CtrlP2GamePad","CtrlSettingsView",hudWidth*2/3-100,180,200,40,"GamePad").setOnViewShown(function() {
+		var globalGPCtrl = Player.globalGPCtrls[1];
+		if (globalGPCtrl) this.text = globalGPCtrl.gamepadName;
+		else this.text = "None";
+		this.playerSlot = 1;
+	}).setOnClick(function() {
+		createControllerChooserGUI(GamePad.slotsFilled(),"gamepad",this);
+	}).show();
+	Button.create("CtrlP2Touch","CtrlSettingsView",hudWidth*2/3-100,230,200,40,"Touch Controls").setOnViewShown(function() {
+		this.text = getCtrlDisplayName(Player.tapMaps[1],"touch");
+		this.playerSlot = 1;
+	}).setOnClick(function() {
+		createControllerChooserGUI([tscr],"touch",this);
+	}).show();
+	View.create("CtrlChooser",2,0,0,hudWidth,hudHeight,"tint","darkBlue");
 
 	View.create("UserActionView",1,15,15,hudWidth-30,hudHeight-30,"window");
 	TextElement.create("UAVText","UserActionView",hudWidth/2,hudHeight/2,"Press any key or click the screen to continue.","Proxima Nova",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
@@ -1243,13 +1264,13 @@ function addGui() {
 }
 
 function getCtrlDisplayName(obj,type) {
-	if (obj!=null&&typeof obj=="object") {
+	if (obj!=null&&(typeof obj=="object"||typeof obj=="number")) {
 		switch(type) {
 			case "keyboard":
 				return obj.name;
 				break;
 			case "gamepad":
-				return obj.gamepad().id.split("(")[0].trim();
+				return GamePad.controllers[obj].id.split("(")[0].trim();
 				break;
 			case "touch":
 				return "Touch Controls";
@@ -1261,18 +1282,15 @@ function getCtrlDisplayName(obj,type) {
 function createControllerChooserGUI(list,type,sourceButton) {
 	var finalList = [];
 	for (var i in list) {
-		switch (type) {
-			case "keyboard":
-				if (Player.keyCtrls.indexOf(list[i])==-1 || list[i]==Player.keyCtrls[sourceButton.playerSlot]) {
-					finalList.push(list[i]);
-				}
-				break;
+		var mapSettings = [Player.keyMaps,Player.gpIds,Player.tapMaps][["keyboard","gamepad","touch"].indexOf(type)];
+		if (mapSettings.indexOf(list[i])==-1 || list[i]==mapSettings[sourceButton.playerSlot]) {
+			finalList.push(list[i]);
 		}
 	}
 	finalList.push("None");
 	G$("CtrlChooser").show();
 	for (var i in finalList) {
-		Button.create("ctrlChooser::"+i+"::"+type,"CtrlChooser",30,30+50*i,200,40,getCtrlDisplayName(finalList[i],type)).setOnClick(function() {
+		Button.create("ctrlChooser::"+i+"::"+type,"CtrlChooser",hudWidth/2-100,30+50*i,200,40,getCtrlDisplayName(finalList[i],type)).setOnClick(function() {
 			var resultCtrl = finalList[this.name.split("::")[1]];
 			var type = this.name.split("::")[2];
 			sourceButton.text = getCtrlDisplayName(resultCtrl,type);
@@ -1280,23 +1298,42 @@ function createControllerChooserGUI(list,type,sourceButton) {
 			G$("CtrlChooserClose").onClickFunction();
 		}).show();
 	}
-	Button.create("CtrlChooserClose","CtrlChooser",hudWidth-80,30,50,50).setOnClick(function() {
+	Button.create("CtrlChooserClose","CtrlChooser",hudWidth/2-100,hudHeight-70,200,40,"Cancel").setOnClick(function() {
 		var view = G$("CtrlChooser");
 		for (var i in view.children) view.children[i].remove();
 		view.children = [];
 		view.hide();
-	}).setIcon("GUI-Icons",3,0,42,4).setClose(true).show();
+	}).setClose(true).show();
 }
 
 function changeControlSlots(type,slot,ctrl) {
 	switch(type) {
 		case "keyboard":
-			Player.keyCtrls[slot] = ctrl=="None"?null:ctrl;
+			Player.keyMaps[slot] = ctrl=="None"?null:ctrl;
+			break;
+		case "gamepad":
+			if (Player.globalGPCtrls[slot]) Player.globalGPCtrls[slot].selfDestruct();
+			if (ctrl=="None") {
+				Player.gpIds[slot] = null;
+				Player.globalGPCtrls[slot] = null;
+			}
+			else {
+				Player.gpIds[slot] = ctrl;
+				if (GamePad.controllers[ctrl].mapping=="standard") {
+					Player.globalGPCtrls[slot] = new Ctrl(globalGamepadMap,ctrl);
+					Player.gpMaps[slot] = gpad;
+				}
+				else {
+					Player.globalGPCtrls[slot] = new Ctrl(globalRSamMap,ctrl);
+					Player.gpMaps[slot] = rsam;
+				}
+			}
 			break;
 		case "touch":
-			Player.usesTouch[slot] = ctrl=="None"?false:true;
+			Player.tapMaps[slot] = ctrl=="None"?null:ctrl;
 			break;
 	}
+	Player.relinkCtrls();
 }
 
 function G$(query) {
@@ -1331,7 +1368,6 @@ function initGame() {
 	addGui();
 	//some other stuff
 	globalKeyboard = new Ctrl(globalKeyboardMap);
-	keyboardDetector = new Ctrl(keyboardDetectorMap);
 	Player.respawnButtons = [G$("AddP1Button"),G$("AddP2Button"),null,null];
 	//set up physical objects
 	addPlayer(0);

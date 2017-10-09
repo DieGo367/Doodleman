@@ -274,7 +274,8 @@ var Door = class Door extends Interactable {
   	if (this.player||this.doorOpen||this.animCurrent!="closed"||linked==-1||linked.player!=null) return;
   	for (var i in this.touches) {
   		var p = this.touches[i];
-  		if (p.controller.pressed("lookUp")&&p.isGrounded&&p.held==null&&Math.abs(this.y-p.y)<2&&p.door==null) {
+      var pad = p.ctrls.mostRecent();
+  		if (pad.pressed("lookUp")&&p.isGrounded&&p.held==null&&Math.abs(this.y-p.y)<2&&p.door==null) {
   			this.player = p;
   			p.door = this;
   			p.doorEnterTick = 30;
@@ -860,18 +861,36 @@ Entity.prototype.particleColor = null;
 
 var chargeAttackReq = 40;
 var Player = class Player extends Entity {
-  constructor(x,y,width,height,duckHeight,health,sheet,slot,controller) {
+  constructor(x,y,width,height,duckHeight,health,sheet,slot) {
     super(x,y,width,height,duckHeight,health,sheet);
     this.canBeCarried = true;
     this.thrownDamage = 0;
     this.alwaysLoaded = true;
   	this.slot = slot; //new for players
   	if (slot!=null) Player.setSlot(slot,this);
-  	this.controller = controller;
   	this.attackCoolDown = 0;
   	this.attackHeld = 0;
   	this.doorEnterTick = 0;
   	this.doorWaitStep = 0;
+  }
+  static onCreate() {
+    this.ctrls = {
+      key: new Ctrl(Player.keyMaps[this.slot]),
+      gp: new Ctrl(Player.gpMaps[this.slot],Player.gpIds[this.slot]),
+      tap: new Ctrl(Player.tapMaps[this.slot]),
+      mostRecent: function() {
+        var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp];
+        var newest = Math.max(...timestamps);
+        var mostRecent = [this.key,this.gp,this.tap][timestamps.indexOf(newest)];
+        if (this.tap.type!="NullCtrl"&&mostRecent.type!="touch") Tap.active = false;
+        return mostRecent;
+      },
+      selfDestructAll: function() {
+        this.key.selfDestruct();
+        this.gp.selfDestruct();
+        this.tap.selfDestruct();
+      }
+    };
   }
   die() {
   	this.lives -= 1;
@@ -882,34 +901,12 @@ var Player = class Player extends Entity {
   	if (this.door) this.door.forgetPlayer();
   	super.breakConnections();
   }
-  ctrlSwitcher() {
-    switch(this.controller.type) {
-      case "keyboard":
-        if (GamePad.controllers[Player.gpIndices[this.slot]]) {
-          this.controller.selfDestruct();
-          this.controller = new Ctrl(Player.gpCtrls[this.slot],Player.gpIndices[this.slot]);
-        }
-        else if (Tap.active&&this.slot===0) {
-          this.controller.selfDestruct();
-          this.controller = new Ctrl(tscr);
-        }
-        break;
-      case "gamepad":
-        if (!this.controller.gamepad()) {
-          this.controller.selfDestruct();
-          this.controller = new Ctrl(this.slot?Player.keyCtrls[this.slot]:Player.keyCtrls[0]);
-        }
-        break;
-      case "touch":
-        if (!Tap.active) {
-          this.controller.selfDestruct();
-          this.controller = new Ctrl(this.slot?Player.keyCtrls[this.slot]:Player.keyCtrls[0]);
-        }
-        break;
-    }
-  }
   update() {
-  	this.ctrlSwitcher();
+    var pad = this.ctrls.mostRecent();//controller;
+    if (!pad) {
+      pad = nullController;
+      console.log("missing controller");
+    }
 
   	if (this.door) this.doorActions();
   	if (this.attackCoolDown>0) this.attackCoolDown -= 1;
@@ -920,11 +917,6 @@ var Player = class Player extends Entity {
   	if (this.inUpAttack&&(this.animCurrent!="attack-upward")) this.inUpAttack = false;
   	if (this.stun==0&&!this.door) { //if not stunned
   		//controls
-  		var pad = this.controller;
-      if (!pad) {
-        pad = nullController;
-        console.log("missing controller");
-      }
   		if (pad.pressed("moveLeft")&&!pad.pressed("moveRight")&&!this.inChargeAttack&&!this.inUpAttack) {
   			if (this.attackBox!=null&&this.direction==RIGHT) this.velX = 0;
   			else if (this.heldBy!=null) this.direction = LEFT;
@@ -1011,17 +1003,16 @@ var Player = class Player extends Entity {
   		if (this.door&&this.doorEnterTick<30) this.setAnimation("run");
   		else if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("jump");
   		else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
-  		else if (this.controller.pressed("crouch")) this.setAnimation("crouch");
+  		else if (pad.pressed("crouch")) this.setAnimation("crouch");
   		else this.setAnimation("stand");
   	}
   	else {
   		if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("carry-jump");
   		else if (this.velX!=0) this.setAnimation("carry-run");
-  		else if (this.controller.pressed("crouch")) this.setAnimation("carry-crouch");
+  		else if (pad.pressed("crouch")) this.setAnimation("carry-crouch");
   		else this.setAnimation("carry-stand");
   	}
   	//apply physics
-  	//if (this.lineGround&&(this.direction*this.lineGround.slope()>0)) this.velY += this.direction*this.lineGround.slope();
   	var tempVelX = this.velX, tempVelY = this.velY;
   	super.update();
   	if (this.held!=null) { //reposition carried objects
@@ -1110,7 +1101,7 @@ var Player = class Player extends Entity {
   	}
   }
   remove() {
-  	this.controller.selfDestruct();
+  	this.ctrls.selfDestructAll();
   	Player.clearFromSlot(this);
   	super.remove();
   }
@@ -1129,6 +1120,16 @@ var Player = class Player extends Entity {
   		else G$("RespawnP1Button").show();
   	}
   }
+  static relinkCtrls() {
+    var all = this.getAll();
+    for (var i in all) {
+      var p = all[i], slot = p.slot;
+      p.ctrls.selfDestructAll();
+      p.ctrls.key = new Ctrl(Player.keyMaps[slot]);
+      p.ctrls.gp = new Ctrl(Player.gpMaps[slot],Player.gpIds[slot]);
+      p.ctrls.tap = new Ctrl(Player.tapMaps[slot]);
+    }
+  }
 }
 initClass(Player,Entity);
 Player.prototype.drawLayer = 2;
@@ -1137,12 +1138,12 @@ Player.prototype.lives = 5;
 Player.prototype.deaths = 0;
 Player.prototype.multiJump = false;
 Player.slots = [null,null,null,null];
-Player.keyCtrls = [wasd,ijkl,null,null];
-Player.usesTouch = [true,false,false,false];
-Player.gpCtrls = [null,null,null,null];
-Player.gpIndices = [0,1,2,3];
-Player.globalGPCtrls = [null,null,null,null];
 Player.respawnButtons = [];
+Player.keyMaps = [wasd,ijkl,null,null];
+Player.gpMaps = [null,null,null,null];
+Player.gpIds = [0,1,2,3];
+Player.tapMaps = [tscr,null,null,null];
+Player.globalGPCtrls = [null,null,null,null];
 
 var Enemy = class Enemy extends Entity {
   constructor(x,y,width,height,health,sheet,duckHeight) {

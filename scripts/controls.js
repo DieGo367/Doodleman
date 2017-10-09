@@ -6,7 +6,9 @@ var Key = {
 	},
 	onKeydown: function(event) {
 		this.pressedKeys[event.keyCode] = true;
-		if (keyboardDetector.pressed("a")) Tap.active = false;
+		for (var i in this.ctrls) {
+			if (this.ctrls[i].contains(event.keyCode)) this.ctrls[i].setTimestamp();
+		}
 	},
 	onKeyup: function(event) {
 		delete this.pressedKeys[event.keyCode];
@@ -31,23 +33,23 @@ var GamePad = {
 		console.log("Connected Gamepad "+gp.index+": "+gp.id);
 		if (gp.mapping=="standard") {
 			this.ctrlMaps[gp.index] = gpad;
-			var slot = Player.gpIndices.indexOf(gp.index);
+			var slot = Player.gpIds.indexOf(gp.index);
 			Player.globalGPCtrls[slot] = new Ctrl(globalGamepadMap,gp.index);
-			Player.gpCtrls[slot] = gpad;
+			Player.gpMaps[slot] = gpad;
 		}
 		else {
 			this.ctrlMaps[gp.index] = rsam;
-			var slot = Player.gpIndices.indexOf(gp.index);
+			var slot = Player.gpIds.indexOf(gp.index);
 			Player.globalGPCtrls[slot] = new Ctrl(globalRSamMap,gp.index);
-			Player.gpCtrls[slot] = rsam;
+			Player.gpMaps[slot] = rsam;
 		}
 	},
 	disconnect: function(gp) {
 		delete this.controllers[gp.index];
 		delete this.snapshots[gp.index];
 		delete this.ctrlMaps[gp.index];
-		Player.globalGPCtrls[Player.gpIndices.indexOf(gp.index)].selfDestruct();
-		Player.globalGPCtrls[Player.gpIndices.indexOf(gp.index)] = null;
+		Player.globalGPCtrls[Player.gpIds.indexOf(gp.index)].selfDestruct();
+		Player.globalGPCtrls[Player.gpIds.indexOf(gp.index)] = null;
 		console.log("Disonnected Gamepad "+gp.index+": "+gp.id);
 	},
 	scanGamepads: function() {
@@ -85,6 +87,9 @@ var GamePad = {
 							if (j==0) hudText+=0.5;
 							if (newState) { //Pressed a button
 								buttonText = j;
+								for (var k in this.ctrls) {
+									if (this.ctrls[k].gamepadIndex&&this.ctrls[k].contains(j)) this.ctrls[k].setTimestamp();
+								}
 							}
 							else if (oldState) { //Released button
 								for (var k in this.ctrls) this.ctrls[k].clear(j);
@@ -95,6 +100,11 @@ var GamePad = {
 					for (var j in gp.axes) {
 						newState = gp.axes[j];
 						oldState = snap.axes[j];
+						if (newState!=oldState) {
+							for (var k in this.ctrls) {
+								if (this.ctrls[k].gamepadIndex&&this.ctrls[k].contains(j,true)) this.ctrls[k].setTimestamp();
+							}
+						}
 						this.snapshots[gp.index].axes[j] = newState;
 					}
 
@@ -123,6 +133,13 @@ var GamePad = {
 			case 'f':
 				return gp.axes[id];
 		}
+	},
+	slotsFilled: function() {
+		var slots = [];
+		for (var i = 0; i < 4; i++) {
+			if (this.controllers[i]) slots.push(i);
+		}
+		return slots;
 	}
 };
 var Tap = {
@@ -150,6 +167,7 @@ var Tap = {
 	handler: function(event,check) {
 		event.preventDefault();
 		this.active = true;
+		for (var i in this.ctrls) this.ctrls[i].setTimestamp();
 		var touches = event.originalEvent.touches;
 		var newTouches = [];
 		var rect = canvas.getBoundingClientRect();
@@ -325,23 +343,28 @@ var CtrlMap = function(name,type,actions,mappings) {
 };
 var Ctrl = class Ctrl {
 	constructor(ctrlMap,gamepadIndex) {
+		if (ctrlMap==null||ctrlMap=="None") return new NullCtrl();
 		this.name = ctrlMap.name;
 		this.type = ctrlMap.type;
+		if (this.type=="gamepad") {
+			if (gamepadIndex!=null) {
+				this.gamepadIndex = gamepadIndex;
+				this.gamepadName = GamePad.controllers[gamepadIndex].id.split("(")[0].trim();
+			}
+			else return new NullCtrl();
+		}
 		this.actions = ctrlMap.actions;
 		this.mappings = ctrlMap.mappings;
 		this.usedButtons = {};
 		this.justReleasedButtons = {};
 		this.usedButtonsPaused = {};
 		this.justReleasedButtonsPaused = {};
-		if (gamepadIndex!=null) {
-			this.gamepadIndex = gamepadIndex;
-			this.gamepadName = GamePad.controllers[gamepadIndex].id.split("(")[0].trim();
-		}
-		[Key,GamePad,Tap,NullCtrl][["keyboard","gamepad","touch","NullCtrl"].indexOf(ctrlMap.type)].ctrls.push(this);
+		this.timestamp = Date.now();
+		[NullCtrl,Key,GamePad,Tap][["NullCtrl","keyboard","gamepad","touch"].indexOf(ctrlMap.type)].ctrls.push(this);
 	}
 	getCtrlManager() {
-		var typeIndex = ["keyboard","gamepad","touch"].indexOf(this.type);
-		return [Key,GamePad,Tap][typeIndex];
+		var typeIndex = ["NullCtrl","keyboard","gamepad","touch"].indexOf(this.type);
+		return [NullCtrl,Key,GamePad,Tap][typeIndex];
 	}
 	id(action) {
 		var index = this.actions.indexOf(action);
@@ -440,6 +463,21 @@ var Ctrl = class Ctrl {
 			}
 		}
 	}
+	contains(mapping,checkAnalogs) {
+		if (checkAnalogs) {
+			var mappingsToCheck = ["a"+mapping+"+","a"+mapping+"-","f"+mapping,"h"+mapping+"0","h"+mapping+"1","h"+mapping+"2","h"+mapping+"3"];
+			for (var i in mappingsToCheck) if (this.contains(mappingsToCheck[i])) return true;
+		}
+		for (var i in this.mappings) {
+			if (typeof this.mappings[i]=="object") {
+				for (var j in this.mappings[i]) {
+					if (mapping==this.mappings[i][j]) return true;
+				}
+			}
+			else if (mapping==this.mappings[i]) return true;
+		}
+		return false;
+	}
 	makePausedCache() {
 		for (var property in this.usedButtons) this.usedButtonsPaused[property] = this.usedButtons[property];
 		for (var property in this.justReleasedButtons) this.justReleasedButtonsPaused[property] = this.justReleasedButtons[property];
@@ -451,6 +489,9 @@ var Ctrl = class Ctrl {
 	gamepad() {
 		if (this.type=="gamepad") return GamePad.controllers[this.gamepadIndex];
 		else return void(0);
+	}
+	setTimestamp() {
+		this.timestamp = Date.now();
 	}
 	selfDestruct() {
 		var ctrlManager = this.getCtrlManager();
@@ -467,7 +508,7 @@ var NullCtrl = class NullCtrl extends Ctrl {
 	getValue() { return false; }
 	pressed() { return false; }
 	used() { return false; }
-	ready() { return true; }
+	ready() { return false; }
 	use() {}
 	justReleased() { return false; }
 }
@@ -507,8 +548,6 @@ var pointerActions = ["pointerMoveX","pointerMoveY","click"];
 
 var globalKeyboardMap = new CtrlMap("GlobalKeyboard","keyboard",[...gameActions,...cameraActions,"snippet","pause-p1","pause-p2"],[[82,80],192,220,104,102,101,100,99,97,103,105,98,221,82,80]);
 var globalGamepadMap = new CtrlMap("GlobalGamepad","gamepad",[...gameActions,...pointerActions],[9,5,8,'f2','f3',4]);
-
-var keyboardDetectorMap = new CtrlMap("KeyBoardSwitch","keyboard",["a"],[[69,68,83,65,87,71,82,220]]);
 
 var globalRSamMap = new CtrlMap("GlobalGPAD-RedSamuraiChrome","gamepad",[...gameActions,...pointerActions],[11,7,10,'f2','f5',6]);
 
