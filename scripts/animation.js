@@ -56,7 +56,7 @@ var ImageFactory = {
 }
 
 var Animation = {
-	drawFromSheet: function(sheet,x,y,animationName,time,direction,entity) {
+	drawFromSheet: function(sheet,x,y,animationName,time,direction,entity,animPage=0) {
 		var animation = sheet.getAnimation(animationName);
 		if (animationName=="none") {
 			entity.setAnimation(sheet.defaultAnimation);
@@ -86,11 +86,11 @@ var Animation = {
 			var frameIndex = Math.floor(time*animation.framerate);
 			var frame = animation.frames[frameIndex];
 			if (frame>0) frameX += frame*sheet.spriteWidth;
-			if (frameX>sheet.img.width||frameY>sheet.img.height) {
+			if (frameX>sheet.imgs[0].width||frameY>sheet.imgs[0].height) {
 				if (sheet.defaultAnimation&&sheet.defaultAnimation!=animationName) Animation.drawFromSheet(sheet,x,y,sheet.defaultAnimation,time,direction,entity);
 				else Animation.drawMissing(entity);
 			}
-			else c.drawImage(ImageFactory.getImage(sheet.img),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.displayOffset.x,y+sheet.displayOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
+			else c.drawImage(ImageFactory.getImage(sheet.imgs[animPage]),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.displayOffset.x,y+sheet.displayOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
 		}
 		else if (sheet.defaultAnimation&&sheet.defaultAnimation!=animationName) Animation.drawFromSheet(sheet,x,y,sheet.defaultAnimation,time,direction,entity);
 		else Animation.drawMissing(entity);
@@ -100,10 +100,11 @@ var Animation = {
 		else sheet.fillStyle = "hotpink";
 		c.fillRect(entity.x-entity.halfW(),entity.y,entity.width,-entity.height);
 	},
-	createSpritesheet: function(img,spriteWidth,spriteHeight,errorColor,hasDirection,rOffsets,lOffsets,cOffsets,dispOffsets,animations,defaultAnimation) {
-		if (!img||!errorColor) return;
+	createSpritesheet: function(imgs,spriteWidth,spriteHeight,errorColor,hasDirection,rOffsets,lOffsets,cOffsets,dispOffsets,animations,defaultAnimation) {
+		if (!imgs||!imgs[0]||!errorColor) return;
 		var sheet = {
-			img: img, spriteWidth: 16, spriteHeight: 16, errorColor: errorColor,
+			imgs: imgs,
+			spriteWidth: 16, spriteHeight: 16, errorColor: errorColor,
 			hasDirection: false,
 			rightOffset: { x:0, y:0 },
 			leftOffset: { x:0, y:0 },
@@ -139,7 +140,7 @@ var Animation = {
 	},
 	protoDraw: function(preventTick) {
 		if (!this.isLoaded) return;
-		Animation.drawFromSheet(this.sheet,Math.floor(this.x),Math.floor(this.y),this.animCurrent,this.animFrame,this.direction,this);
+		Animation.drawFromSheet(this.sheet,Math.floor(this.x),Math.floor(this.y),this.animCurrent,this.animFrame,this.direction,this,this.animPage);
 		if (!paused) this.animFrame+=1;
 		//if (preventTick) this.animFrame-=1;
 		var animObj = this.sheet.getAnimation(this.animCurrent);
@@ -170,12 +171,17 @@ var Animation = {
 		}
 		return true;
 	},
+	protoSetAnimationPage: function(pageIndex) {
+		this.animPage = pageIndex;
+	},
 	applyTo: function(obj,doSoft) {
 		obj.animCurrent = "none";
 		obj.animFrame = 0;
 		obj.animLock = 0;
+		obj.animPage = 0;
 		if (!doSoft) obj.draw = Animation.protoDraw;
 		obj.setAnimation = Animation.protoSetAnimation;
+		obj.setAnimationPage = Animation.protoSetAnimationPage;
 	},
 	applyToClass: function(cl,doSoft) {
 		Animation.applyTo(cl.prototype,doSoft);
@@ -200,16 +206,16 @@ var pAnims = [...bAnims,
 	"attack-charge-air", 0, 7, [0,1,2,3], 0.2,
 	"attack-upward", 0, 8, [0,1,2,3], 0.2
 ];
-var DoodlemanSpritesheet = Animation.createSpritesheet("DoodlemanSprites",93,48,"blue",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var Redsheet = Animation.createSpritesheet("Redman",93,48,"red",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var Bluesheet = Animation.createSpritesheet("Blueman",93,48,"blue",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var Greensheet = Animation.createSpritesheet("Greenman",93,48,"green",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var Yellowsheet = Animation.createSpritesheet("Yellowman",93,48,"yellow",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var PaintMinionSpritesheet = Animation.createSpritesheet("PaintMinionSprites",57,44,"purple",true,[0,19],[228,19],[0,19],[-28,0],bAnims,"stand");
-var BackgroundGuySpritesheet = Animation.createSpritesheet("BackgroundGuySprites",93,48,"yellow",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var yellowBlockAnimations = Animation.createSpritesheet("a",null,null,"yellow");
+var DoodlemanSpritesheet = Animation.createSpritesheet(["DoodlemanSprites","Blueman","Redman","Greenman","Yellowman"],93,48,"blue",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
+var Redsheet = Animation.createSpritesheet(["Redman"],93,48,"red",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
+var Bluesheet = Animation.createSpritesheet(["Blueman"],93,48,"blue",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
+var Greensheet = Animation.createSpritesheet(["Greenman"],93,48,"green",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
+var Yellowsheet = Animation.createSpritesheet(["Yellowman"],93,48,"yellow",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
+var PaintMinionSpritesheet = Animation.createSpritesheet(["PaintMinionSprites"],57,44,"purple",true,[0,19],[228,19],[0,19],[-28,0],bAnims,"stand");
+var BackgroundGuySpritesheet = Animation.createSpritesheet(["BackgroundGuySprites"],93,48,"yellow",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
+var yellowBlockAnimations = Animation.createSpritesheet(["a"],null,null,"yellow");
 
-var doorSheet = Animation.createSpritesheet("Doors",72,59,"green",false,null,null,null,[-54,2],[
+var doorSheet = Animation.createSpritesheet(["Doors"],72,59,"green",false,null,null,null,[-54,2],[
 	"closed", 0, 0, [0], 0,
 	"open", 0, 0, [6], 0,
 	"opening", 0, 0, [0,1,2,3,4,5,6], 0.2,
