@@ -1118,8 +1118,8 @@ function addGui() {
 	}).setIcon("GUI-Icons",0,0,42,4).show();
 
 	View.create("PauseMenu",0,0,0,hudWidth,hudHeight,"tint","black");
-	TextElement.create("PauseText","PauseMenu",hudWidth/2,hudHeight/2,"Paused","Proxima Nova",60,true,"yellow",CENTER,true,"darkOrange",5,true,"orange",3,8).show();
-	TextElement.create("PauseFocusMsg","PauseMenu",hudWidth/2,hudHeight/2+55,"Click to focus","Proxima Nova",30,false,"#ff6f6b",CENTER,false,"#ad2f2b",3,true,"#ad2f2b",3,8);
+	TextElement.create("PauseText","PauseMenu",hudWidth/2,hudHeight/2,"Paused","Catamaran, sans-serif",60,true,"yellow",CENTER,true,"darkOrange",5,true,"orange",3,8).show();
+	TextElement.create("PauseFocusMsg","PauseMenu",hudWidth/2,hudHeight/2+55,"Click to focus","Catamaran, sans-serif",30,false,"#ff6f6b",CENTER,false,"#ad2f2b",3,true,"#ad2f2b",3,8);
 	Button.create("PauseClose","PauseMenu",hudWidth-60,10,50,50).setOnClick(function() {
 		pauseGame(false);
 	}).setIcon("GUI-Icons",1,0,42,4).show();
@@ -1162,19 +1162,19 @@ function addGui() {
 		G$("CtrlSettingsView").show();
 		G$("PauseMenu").hide();
 	}).setIcon("GUI-Icons",3,1,42,4).show();
-	TextElement.create("UserInfo","PauseMenu",hudWidth/2,hudHeight-30,"Logged in as "+User.name,"Proxima Nova",15,false,"white",CENTER)//.show();
+	TextElement.create("UserInfo","PauseMenu",hudWidth/2,hudHeight-30,"Logged in as "+User.name,"Catamaran, sans-serif",15,false,"white",CENTER)//.show();
 	Button.create("LoginoutButton","PauseMenu",hudWidth/2-50,hudHeight-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
 		User.useLink();
 	})//.show();
 
 	View.create("CtrlSettingsView",1,0,0,hudWidth,hudHeight,"tint","black");
-	TextElement.create("CtrlSettingsText","CtrlSettingsView",hudWidth/2,30,"Controller Settings","Proxima Nova",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("CtrlSettingsText","CtrlSettingsView",hudWidth/2,30,"Controller Settings","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 	Button.create("CtrlSettingsClose","CtrlSettingsView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("CtrlSettingsView").hide();
 		G$("PauseMenu").show();
 	}).setIcon("GUI-Icons",3,0,42,4).setClose(true).show();
-	TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/3,80,"Player 1","Proxima Nova",20,false,"white",CENTER,true,"gray",5,false).show();
-	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth*2/3,80,"Player 2","Proxima Nova",20,false,"white",CENTER,true,"gray",5,false).show();
+	TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/3,80,"Player 1","Catamaran, sans-serif",20,false,"white",CENTER,true,"gray",5,false).show();
+	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth*2/3,80,"Player 2","Catamaran, sans-serif",20,false,"white",CENTER,true,"gray",5,false).show();
 	Button.create("CtrlP1Keyboard","CtrlSettingsView",hudWidth/3-100,130,200,40,"Keyboard").setOnViewShown(function() {
 		this.text = getCtrlDisplayName(Player.keyMaps[0],"keyboard");
 		this.playerSlot = 0;
@@ -1218,11 +1218,11 @@ function addGui() {
 	View.create("CtrlChooser",2,0,0,hudWidth,hudHeight,"tint","darkBlue");
 
 	View.create("UserActionView",1,15,15,hudWidth-30,hudHeight-30,"window");
-	TextElement.create("UAVText","UserActionView",hudWidth/2,hudHeight/2,"Press any key or click the screen to continue.","Proxima Nova",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("UAVText","UserActionView",hudWidth/2,hudHeight/2,"Press any key or click the screen to continue.","Catamaran, sans-serif",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 
 	View.create("MapperView",1,15,15,hudWidth-30,hudHeight-30,"window");
 	ImgElement.create("MapperImg","MapperView",hudWidth/2,hudHeight/2,"GUI-Controller",640,360).show();
-	TextElement.create("MapperText","MapperView",hudWidth/2,hudHeight-90,"Press buttons to map.","Proxima Nova",30,false,"white",CENTER,false,null,null,true,"black",3,8).show();
+	TextElement.create("MapperText","MapperView",hudWidth/2,hudHeight-90,"Press buttons to map.","Catamaran, sans-serif",30,false,"white",CENTER,false,null,null,true,"black",3,8).show();
 	Button.create("MapperClose","MapperView",hudWidth-100,20,80,50,"Cancel").setOnClick(function() {
 		G$("MapperView").hide();
 	}).setClose(true).show();
@@ -1249,7 +1249,7 @@ function addGui() {
 		G$("LevelSelectView").hide();
 		G$("PauseMenu").show();
 	}).setIcon("GUI-Icons",3,0,42,4).setClose(true).show();
-	TextElement.create("LSText","LevelSelectView",hudWidth/2,30,"Select a level","Proxima Nova",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("LSText","LevelSelectView",hudWidth/2,30,"Select a level","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 	for (var i in LevelDir) {
 		var name = LevelDir[i];
 		var y = Math.floor(i/2);

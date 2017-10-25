@@ -1502,7 +1502,7 @@ var Button = class Button extends GuiElement {
   	ImageFactory.drawBorderedImage("GUI-Button",this.x,this.y,this.width,this.height,8,16,x,y);
   	if (this.useIcon) ImageFactory.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
   	else {
-  		c.font = this.hovered?"bold 20px Proxima Nova":"20px Proxima Nova";
+  		c.font = this.hovered?"bold 20px Catamaran, sans-serif":"20px Catamaran, sans-serif";
   		var metrics = c.measureText(this.text);
   		drawStrokedText(this.text,this.x+this.width/2-metrics.width/2,this.y+this.height/2+7,"white","black",2,8);
   	}
