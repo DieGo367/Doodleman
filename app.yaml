@@ -18,6 +18,9 @@ handlers:
 - url: /levels
   static_dir: levels
 
+- url: /animations
+  static_dir: animations
+
 - url: .*
   script: main.app
 

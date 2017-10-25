@@ -68,75 +68,51 @@ var Animation = {
 				var offset;
 				switch(direction) {
 					case LEFT:
-						offset = sheet.leftOffset;
+						offset = sheet.sheetOffsets.left;
 						break;
 					case CENTER:
-						offset = sheet.centerOffset;
+						offset = sheet.sheetOffsets.center;
 						break;
 					case RIGHT:
-						offset = sheet.rightOffset;
+						offset = sheet.sheetOffsets.right;
 				}
 				if (offset) {
 					frameX = offset.x;
 					frameY = offset.y;
 				}
 			}
-			frameX += sheet.spriteWidth*animation.x;
-			frameY += sheet.spriteHeight*animation.y;
+			frameX += sheet.spriteWidth*animation.col;
+			frameY += sheet.spriteHeight*animation.row;
 			var frameIndex = Math.floor(time*animation.framerate);
 			var frame = animation.frames[frameIndex];
 			if (frame>0) frameX += frame*sheet.spriteWidth;
-			if (frameX>sheet.imgs[0].width||frameY>sheet.imgs[0].height) {
+			var img = ImageFactory.getImage(sheet.pages[0]);
+			if (frameX>img.width||frameY>img.height) {
 				if (sheet.defaultAnimation&&sheet.defaultAnimation!=animationName) Animation.drawFromSheet(sheet,x,y,sheet.defaultAnimation,time,direction,entity);
 				else Animation.drawMissing(entity);
 			}
-			else c.drawImage(ImageFactory.getImage(sheet.imgs[animPage]),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.displayOffset.x,y+sheet.displayOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
+			else c.drawImage(ImageFactory.getImage(sheet.pages[animPage]),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.drawOffset.x,y+sheet.drawOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
 		}
 		else if (sheet.defaultAnimation&&sheet.defaultAnimation!=animationName) Animation.drawFromSheet(sheet,x,y,sheet.defaultAnimation,time,direction,entity);
 		else Animation.drawMissing(entity);
 	},
 	drawMissing: function(entity) {
+		var sheet = entity.sheet;
 		if (sheet.errorColor) c.fillStyle = sheet.errorColor;
 		else sheet.fillStyle = "hotpink";
 		c.fillRect(entity.x-entity.halfW(),entity.y,entity.width,-entity.height);
 	},
-	createSpritesheet: function(imgs,spriteWidth,spriteHeight,errorColor,hasDirection,rOffsets,lOffsets,cOffsets,dispOffsets,animations,defaultAnimation) {
-		if (!imgs||!imgs[0]||!errorColor) return;
-		var sheet = {
-			imgs: imgs,
-			spriteWidth: 16, spriteHeight: 16, errorColor: errorColor,
-			hasDirection: false,
-			rightOffset: { x:0, y:0 },
-			leftOffset: { x:0, y:0 },
-			centerOffset: { x:0, y:0 },
-			displayOffset: { x:0, y:0 },
-			animations: [],
-			defaultAnimation: defaultAnimation
-		}
-		sheet.getAnimation = function(name) {
-			for (var i in this.animations) {
-				if (this.animations[i].name==name) return this.animations[i];
-			}
-			return;
-		};
-		if (spriteWidth) sheet.spriteWidth = spriteWidth;
-		if (spriteHeight) sheet.spriteHeight = spriteHeight;
-		if (hasDirection) sheet.hasDirection = true;
-		if (rOffsets) sheet.rightOffset.x = rOffsets[0], sheet.rightOffset.y = rOffsets[1];
-		if (lOffsets) sheet.leftOffset.x = lOffsets[0], sheet.leftOffset.y = lOffsets[1];
-		if (cOffsets) sheet.centerOffset.x = cOffsets[0], sheet.centerOffset.y = cOffsets[1];
-		if (dispOffsets) sheet.displayOffset.x = dispOffsets[0], sheet.displayOffset.y = dispOffsets[1];
-		if (!animations) return sheet;
-		for (var i = 0; i<animations.length; i+=5) {
-			var anim = { };
-			anim.name = animations[i];
-			anim.x = animations[i+1];
-			anim.y = animations[i+2];
-			anim.frames = animations[i+3];
-			anim.framerate = animations[i+4];
-			sheet.animations.push(anim);
-		}
-		return sheet;
+	createSpritesheet: function(name,varName) {
+		$.get("animations/"+name,function(data) {
+			var sheet = JSON.parse(data);
+			sheet.getAnimation = function(action) {
+				for (var i in this.animations) {
+					if (this.animations[i].action==action) return this.animations[i];
+				}
+				return;
+			};
+			window[varName] = sheet;
+		});
 	},
 	protoDraw: function(preventTick) {
 		if (!this.isLoaded) return;
@@ -189,38 +165,14 @@ var Animation = {
 }
 
 
-var bAnims = [
-	"stand", 0, 0, [0], 0.2,
-	"crouch", 1, 0, [0], 0.2,
-	"jump", 2, 0, [0], 0.2,
-	"run", 0, 1, [0,1,2,3], 0.2,
-	"attack", 0, 2, [0,1,2,3], 0.2
-];
-var pAnims = [...bAnims,
-	"lift", 0, 3, [0,1,2], 0.2,
-	"carry-stand", 0, 4, [0], 0.2,
-	"carry-crouch", 1, 4, [0], 0.2,
-	"carry-jump", 2, 4, [0], 0.2,
-	"carry-run", 0, 5, [0,1,2,3], 0.2,
-	"attack-charge", 0, 6, [0,1,2,3], 0.2,
-	"attack-charge-air", 0, 7, [0,1,2,3], 0.2,
-	"attack-upward", 0, 8, [0,1,2,3], 0.2
-];
-var DoodlemanSpritesheet = Animation.createSpritesheet(["DoodlemanSprites","Blueman","Redman","Greenman","Yellowman"],93,48,"blue",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var Redsheet = Animation.createSpritesheet(["Redman"],93,48,"red",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var Bluesheet = Animation.createSpritesheet(["Blueman"],93,48,"blue",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var Greensheet = Animation.createSpritesheet(["Greenman"],93,48,"green",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var Yellowsheet = Animation.createSpritesheet(["Yellowman"],93,48,"yellow",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var PaintMinionSpritesheet = Animation.createSpritesheet(["PaintMinionSprites"],57,44,"purple",true,[0,19],[228,19],[0,19],[-28,0],bAnims,"stand");
-var BackgroundGuySpritesheet = Animation.createSpritesheet(["BackgroundGuySprites"],93,48,"yellow",true,[0,19],[372,19],[0,19],[-46,2],pAnims,"stand");
-var yellowBlockAnimations = Animation.createSpritesheet(["a"],null,null,"yellow");
-
-var doorSheet = Animation.createSpritesheet(["Doors"],72,59,"green",false,null,null,null,[-54,2],[
-	"closed", 0, 0, [0], 0,
-	"open", 0, 0, [6], 0,
-	"opening", 0, 0, [0,1,2,3,4,5,6], 0.2,
-	"closing", 0, 0, [6,5,4,3,2,1,0], 0.2
-],"closed");
+var DoodlemanSpritesheet = Animation.createSpritesheet("Doodleman.json","DoodlemanSpritesheet");
+var Redsheet = Animation.createSpritesheet("Redman.json","Redsheet");
+var Bluesheet = Animation.createSpritesheet("Blueman.json","Bluesheet");
+var Greensheet = Animation.createSpritesheet("Greenman.json","Greensheet");
+var Yellowsheet = Animation.createSpritesheet("Yellowman.json","Yellowsheet");
+var PaintMinionSpritesheet = Animation.createSpritesheet("PaintMinion.json","PaintMinionSpritesheet");
+var yellowBlockAnimations = Animation.createSpritesheet("Yellowblock.json","yellowBlockAnimations");
+var doorSheet = Animation.createSpritesheet("Door.json","doorSheet");
 
 ImageFactory.initImage("DoodlemanSprites","res/Doodleman Spritesheet.png");
 ImageFactory.initImage("Redman","res/Redman-sprites.png");

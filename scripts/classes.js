@@ -1037,7 +1037,7 @@ var Player = class Player extends Entity {
   }
   drawHud() {
   	var playerNumber = Player.getAll().indexOf(this);
-  	ImageFactory.drawImage(this.sheet.imgs[this.animPage],10,10+(24*playerNumber),19,19,0,0,19,19);
+  	ImageFactory.drawImage(this.sheet.pages[this.animPage],10,10+(24*playerNumber),19,19,0,0,19,19);
   	c.font = "bold 20px Arial";
   	c.fillStyle = "black";
   	c.fillText("/ "+this.lives,35,27+(24*playerNumber));
