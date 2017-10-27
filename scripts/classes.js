@@ -27,7 +27,6 @@ class _c_ {
 		}
   }
   static callForAll(method) {
-    // console.log("Calling for all "+printFuncName(this) + " p="+paused);
     var all = this.getAll();
 		if (all.length==0) return;
 		if (!this.prototype[method]) return console.log("Error: undefined method: "+method);
@@ -176,7 +175,7 @@ initClass(Interactable,Box);
 var HarmBox = class HarmBox extends Interactable {
   constructor(x,y,width,height,attacker,damage,duration,formulaX,formulaY,endCheck) {
   	super(x,y,width,height,void(0),void(0),Entity);
-  	this.attacker = attacker; //new for harm boxes
+  	this.attacker = attacker;
   	this.damage = damage;
   	this.time = duration;
   	this.formulaX = formulaX;
@@ -366,10 +365,8 @@ var PhysicsBox = class PhysicsBox extends Box {
   groundDragLoop(b,loops) {
   	if (PhysicsBox.getAll().indexOf(b)==-1) return this.ground = null;
   	this.x += b.dx;
-  	//this.y += b.dy;
   	if (loops>=10) console.log("Ground drag limit");
   	else if (b.ground!=null) this.groundDragLoop(b.ground,loops+1);
-
   }
   doGroundDrag() {
   	if (this.defyPhysics||this.heldBy) return;
@@ -901,7 +898,7 @@ var Player = class Player extends Entity {
   	super.breakConnections();
   }
   update() {
-    var pad = this.ctrls.mostRecent();//controller;
+    var pad = this.ctrls.mostRecent();
     if (!pad) {
       pad = nullController;
       console.log("missing controller");
@@ -1038,12 +1035,6 @@ var Player = class Player extends Entity {
           this.held.y -= yShift + heightFactor;
         }
       }
-      // if (this.animCurrent=="lift") {
-  		// 	this.held.y = [this.y+this.held.height,this.y-20,this.topY()][Math.floor(this.animFrame*0.2)];
-  		// }
-  		// else if (this.animCurrent=="carry-run") this.held.y = this.topY()+7;
-  		// else this.held.y = this.topY();
-
       this.held.velX = tempVelX;
   		this.held.velY = tempVelY;
   	}

@@ -1,10 +1,6 @@
 /* TODO:
-spritesheet system
-	carried object behavior???
-	fix discrepencies between preventAnimTick and inherited Animation.protoDraw
-		idk if there's actually any issues tho...
 finish pause menu controls
-touch controls - interections with regular gui buttons
+touch controls - interactions with regular gui buttons
 collision system
 	collided sides cacheing:
 		store maximum collisionType per side
@@ -717,7 +713,7 @@ function tick() { //GAME UPDATES//
 	if (focused) window.requestAnimationFrame(drawGame);
 }
 
-function drawGame(preventAnimTick) {
+function drawGame() {
 	//densityPixels
 	c.save();
 	c.scale(dp(1),dp(1));
@@ -742,7 +738,7 @@ function drawGame(preventAnimTick) {
 		for (var i in DrawableClassList) {
 			var all = DrawableClassList[i].getAll();
 			for (var j in all) {
-				if (layer==all[j].drawLayer) all[j].draw(preventAnimTick);
+				if (layer==all[j].drawLayer) all[j].draw();
 			}
 		}
 	}
@@ -803,9 +799,6 @@ function drawGame(preventAnimTick) {
 
 	//normalPixels
 	c.restore();
-}
-function redrawFrame() {
-	drawGame(true);
 }
 
 function screenSize(pxDensity) {
@@ -1082,12 +1075,12 @@ function addEvents() {
 			screenSize(res);
 			if (calcedWidth>=calcedHeight) $(canvas).css({height: '100%', width:'auto'});
 			if (calcedHeight>=calcedWidth) $(canvas).css({width: '100%', height:'auto'});
-			redrawFrame();
+			drawGame();
 		}
 		else {
 			screenSize(1);
 			$(canvas).css({width: 'auto', height: 'auto'});
-			redrawFrame();
+			drawGame();
 		}
 	});
 	$(window).on("blur",function() {
@@ -1095,7 +1088,7 @@ function addEvents() {
 		G$("PauseFocusMsg").show();
 		$(canvas).css({cursor: 'auto'});
 		pauseGame(true);
-		window.requestAnimationFrame(redrawFrame);
+		window.requestAnimationFrame(drawGame);
 	});
 	$(window).on("focus",function() {
 		focused = true;

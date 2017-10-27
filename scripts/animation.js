@@ -125,7 +125,7 @@ var Animation = {
 			window[varName] = sheet;
 		});
 	},
-	protoDraw: function(preventTick) {
+	protoDraw: function() {
 		if (!this.isLoaded) return;
 		Animation.drawFromSheet(this.sheet,Math.floor(this.x),Math.floor(this.y),this.animCurrent,this.animFrame,this.direction,this,this.animPage);
 	},
