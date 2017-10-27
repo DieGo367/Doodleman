@@ -1,60 +1,60 @@
 {
-    "pages": ["Doors"],
-    "spriteWidth": 72,
-    "spriteHeight": 59,
-    "errorColor": "green",
-    "hasDirection": false,
-    "sheetOffsets": {
-        "left": {
-            "x": 0,
-            "y": 0
-        },
-        "center": {
-            "x": 0,
-            "y": 0
-        },
-        "right": {
-            "x": 0,
-            "y": 0
-        }
+  "pages": ["Doors"],
+  "spriteWidth": 72,
+  "spriteHeight": 59,
+  "errorColor": "green",
+  "hasDirection": false,
+  "sheetOffsets": {
+    "left": {
+      "x": 0,
+      "y": 0
     },
-    "drawOffset": {
-        "x": -54,
-        "y": 2
+    "center": {
+      "x": 0,
+      "y": 0
     },
-    "animations": [
-        {
-            "action": "closed",
-            "row": 0,
-            "col": 0,
-            "framerate": 0,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "open",
-            "row": 0,
-            "col": 0,
-            "framerate": 0,
-            "frames": [ 6 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "opening",
-            "row": 0,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2, 3, 4, 5, 6 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "closing",
-            "row": 0,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 6, 5, 4, 3, 2, 1, 0 ],
-            "alphas": [ 1 ]
-        }
-    ],
-    "defaultAnimation": "closed"
+    "right": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  "drawOffset": {
+    "x": -54,
+    "y": 2
+  },
+  "animations": [
+    {
+      "action": "closed",
+      "row": 0,
+      "col": 0,
+      "framerate": 0,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "open",
+      "row": 0,
+      "col": 0,
+      "framerate": 0,
+      "frames": [ 6 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "opening",
+      "row": 0,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3, 4, 5, 6 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "closing",
+      "row": 0,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 6, 5, 4, 3, 2, 1, 0 ],
+      "alphas": [ 1 ]
+    }
+  ],
+  "defaultAnimation": "closed"
 }

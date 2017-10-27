@@ -1,132 +1,182 @@
 {
-    "pages": ["Redman"],
-    "spriteWidth": 93,
-    "spriteHeight": 48,
-    "errorColor": "red",
-    "hasDirection": true,
-    "sheetOffsets": {
-        "left": {
-            "x": 372,
-            "y": 19
-        },
-        "center": {
-            "x": 0,
-            "y": 19
-        },
-        "right": {
-            "x": 0,
-            "y": 19
-        }
+  "pages": ["Redman"],
+  "spriteWidth": 93,
+  "spriteHeight": 48,
+  "errorColor": "red",
+  "hasDirection": true,
+  "sheetOffsets": {
+    "left": {
+      "x": 372,
+      "y": 19
     },
-    "drawOffset": {
-        "x": -46,
-        "y": 2
+    "center": {
+      "x": 0,
+      "y": 19
     },
-    "animations": [
-        {
-            "action": "stand",
-            "row": 0,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
+    "right": {
+      "x": 0,
+      "y": 19
+    }
+  },
+  "drawOffset": {
+    "x": -46,
+    "y": 2
+  },
+  "animations": [
+    {
+      "action": "stand",
+      "row": 0,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "crouch",
+      "row": 0,
+      "col": 1,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "jump",
+      "row": 0,
+      "col": 2,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "run",
+      "row": 1,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "attack",
+      "row": 2,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "lift",
+      "row": 3,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2 ],
+      "alphas": [ 1 ],
+      "holp": {
+        "x": {
+          "placement": [ 0 ],
+          "widthFactor": [ 0 ]
         },
-        {
-            "action": "crouch",
-            "row": 0,
-            "col": 1,
-            "framerate": 0.2,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "jump",
-            "row": 0,
-            "col": 2,
-            "framerate": 0.2,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "run",
-            "row": 1,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2, 3 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "attack",
-            "row": 2,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2, 3 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "lift",
-            "row": 3,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "carry-stand",
-            "row": 4,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "carry-crouch",
-            "row": 4,
-            "col": 1,
-            "framerate": 0.2,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "carry-jump",
-            "row": 4,
-            "col": 2,
-            "framerate": 0.2,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "carry-run",
-            "row": 5,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2, 3 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "attack-charge",
-            "row": 6,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2, 3 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "attack-charge-air",
-            "row": 7,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2, 3 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "attack-upward",
-            "row": 8,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2, 3 ],
-            "alphas": [ 1 ]
+        "y": {
+          "placement": [ 0, 20, 44 ],
+          "heightFactor": [ -1, 0, 0 ]
         }
-    ],
-    "defaultAnimation": "stand"
+      }
+    },
+    {
+      "action": "carry-stand",
+      "row": 4,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ],
+      "holp": {
+        "x": {
+          "placement": [ 0 ],
+          "widthFactor": [ 0 ]
+        },
+        "y": {
+          "placement": [ 44 ],
+          "heightFactor": [ 0 ]
+        }
+      }
+    },
+    {
+      "action": "carry-crouch",
+      "row": 4,
+      "col": 1,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ],
+      "holp": {
+        "x": {
+          "placement": [ 0 ],
+          "widthFactor": [ 0 ]
+        },
+        "y": {
+          "placement": [ 38 ],
+          "heightFactor": [ 0 ]
+        }
+      }
+    },
+    {
+      "action": "carry-jump",
+      "row": 4,
+      "col": 2,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ],
+      "holp": {
+        "x": {
+          "placement": [ 0 ],
+          "widthFactor": [ 0 ]
+        },
+        "y": {
+          "placement": [ 44 ],
+          "heightFactor": [ 0 ]
+        }
+      }
+    },
+    {
+      "action": "carry-run",
+      "row": 5,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ],
+      "holp": {
+        "x": {
+          "placement": [ 0 ],
+          "widthFactor": [ 0 ]
+        },
+        "y": {
+          "placement": [ 37 ],
+          "heightFactor": [ 0 ]
+        }
+      }
+    },
+    {
+      "action": "attack-charge",
+      "row": 6,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "attack-charge-air",
+      "row": 7,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "attack-upward",
+      "row": 8,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ]
+    }
+  ],
+  "defaultAnimation": "stand"
 }

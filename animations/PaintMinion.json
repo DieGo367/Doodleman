@@ -1,68 +1,68 @@
 {
-    "pages": ["PaintMinionSprites"],
-    "spriteWidth": 57,
-    "spriteHeight": 44,
-    "errorColor": "purple",
-    "hasDirection": true,
-    "sheetOffsets": {
-        "left": {
-            "x": 228,
-            "y": 19
-        },
-        "center": {
-            "x": 0,
-            "y": 19
-        },
-        "right": {
-            "x": 0,
-            "y": 19
-        }
+  "pages": ["PaintMinionSprites"],
+  "spriteWidth": 57,
+  "spriteHeight": 44,
+  "errorColor": "purple",
+  "hasDirection": true,
+  "sheetOffsets": {
+    "left": {
+      "x": 228,
+      "y": 19
     },
-    "drawOffset": {
-        "x": -28,
-        "y": 0
+    "center": {
+      "x": 0,
+      "y": 19
     },
-    "animations": [
-        {
-            "action": "stand",
-            "row": 0,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "crouch",
-            "row": 0,
-            "col": 1,
-            "framerate": 0.2,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "jump",
-            "row": 0,
-            "col": 2,
-            "framerate": 0.2,
-            "frames": [ 0 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "run",
-            "row": 1,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2, 3 ],
-            "alphas": [ 1 ]
-        },
-        {
-            "action": "attack",
-            "row": 2,
-            "col": 0,
-            "framerate": 0.2,
-            "frames": [ 0, 1, 2, 3 ],
-            "alphas": [ 1 ]
-        }
-    ],
-    "defaultAnimation": "stand"
+    "right": {
+      "x": 0,
+      "y": 19
+    }
+  },
+  "drawOffset": {
+    "x": -28,
+    "y": 0
+  },
+  "animations": [
+    {
+      "action": "stand",
+      "row": 0,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "crouch",
+      "row": 0,
+      "col": 1,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "jump",
+      "row": 0,
+      "col": 2,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "run",
+      "row": 1,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ]
+    },
+    {
+      "action": "attack",
+      "row": 2,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ]
+    }
+  ],
+  "defaultAnimation": "stand"
 }
