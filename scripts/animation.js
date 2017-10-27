@@ -87,8 +87,11 @@ var Animation = {
 			var frameIndex = Math.floor(time*animation.framerate);
 			var frame = animation.frames[frameIndex];
 			if (frame>0) frameX += frame*sheet.spriteWidth;
-			var frameAlpha = animation.alphas[frameIndex];
-			if (frameAlpha==null) frameAlpha = animation.alphas[0] || 0;
+			if (animation.alphas) {
+				var frameAlpha = animation.alphas[frameIndex];
+				if (frameAlpha==null) frameAlpha = animation.alphas[0]!=null?animation.alphas[0]:1;
+			}
+			else var frameAlpha = 1;
 			var img = ImageFactory.getImage(sheet.pages[0]);
 			if (frameX>img.width||frameY>img.height) {
 				if (sheet.defaultAnimation&&sheet.defaultAnimation!=animationName) Animation.drawFromSheet(sheet,x,y,sheet.defaultAnimation,time,direction,entity);
@@ -125,9 +128,6 @@ var Animation = {
 	protoDraw: function(preventTick) {
 		if (!this.isLoaded) return;
 		Animation.drawFromSheet(this.sheet,Math.floor(this.x),Math.floor(this.y),this.animCurrent,this.animFrame,this.direction,this,this.animPage);
-		//if (!paused) this.animFrame+=1;
-		//if (preventTick) this.animFrame-=1;
-
 	},
 	protoAnimationTick: function() {
 		if (paused) return;
