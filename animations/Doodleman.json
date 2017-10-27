@@ -69,7 +69,17 @@
             "col": 0,
             "framerate": 0.2,
             "frames": [ 0, 1, 2 ],
-            "alphas": [ 1 ]
+            "alphas": [ 1 ],
+            "holp": {
+              "x": {
+                "placement": [ 0 ],
+                "widthFactor": [ 0 ]
+              },
+              "y": {
+                "placement": [ 0, 20, 44 ],
+                "heightFactor": [ -1, 0, 0 ]
+              }
+            }
         },
         {
             "action": "carry-stand",
@@ -77,7 +87,17 @@
             "col": 0,
             "framerate": 0.2,
             "frames": [ 0 ],
-            "alphas": [ 1 ]
+            "alphas": [ 1 ],
+            "holp": {
+              "x": {
+                "placement": [ 0 ],
+                "widthFactor": [ 0 ]
+              },
+              "y": {
+                "placement": [ 44 ],
+                "heightFactor": [ 0 ]
+              }
+            }
         },
         {
             "action": "carry-crouch",
@@ -85,7 +105,17 @@
             "col": 1,
             "framerate": 0.2,
             "frames": [ 0 ],
-            "alphas": [ 1 ]
+            "alphas": [ 1 ],
+            "holp": {
+              "x": {
+                "placement": [ 0 ],
+                "widthFactor": [ 0 ]
+              },
+              "y": {
+                "placement": [ 38 ],
+                "heightFactor": [ 0 ]
+              }
+            }
         },
         {
             "action": "carry-jump",
@@ -93,7 +123,17 @@
             "col": 2,
             "framerate": 0.2,
             "frames": [ 0 ],
-            "alphas": [ 1 ]
+            "alphas": [ 1 ],
+            "holp": {
+              "x": {
+                "placement": [ 0 ],
+                "widthFactor": [ 0 ]
+              },
+              "y": {
+                "placement": [ 44 ],
+                "heightFactor": [ 0 ]
+              }
+            }
         },
         {
             "action": "carry-run",
@@ -101,7 +141,17 @@
             "col": 0,
             "framerate": 0.2,
             "frames": [ 0, 1, 2, 3 ],
-            "alphas": [ 1 ]
+            "alphas": [ 1 ],
+            "holp": {
+              "x": {
+                "placement": [ 0 ],
+                "widthFactor": [ 0 ]
+              },
+              "y": {
+                "placement": [ 37 ],
+                "heightFactor": [ 0 ]
+              }
+            }
         },
         {
             "action": "attack-charge",

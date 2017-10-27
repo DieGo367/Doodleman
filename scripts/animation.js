@@ -9,7 +9,8 @@ var ImageFactory = {
 		this.imgData[name].img.src = url;
 	},
 	getImage: function(imageName) {
-		return this.imgData[imageName].img;
+		if (this.imgData[imageName]!=null) return this.imgData[imageName].img;
+		else return null;
 	},
 	drawImage: function(imageName,x,y,width,height,clipX = 0,clipY = 0,clipWidth,clipHeight) {
 		var img = this.getImage(imageName);
@@ -86,12 +87,19 @@ var Animation = {
 			var frameIndex = Math.floor(time*animation.framerate);
 			var frame = animation.frames[frameIndex];
 			if (frame>0) frameX += frame*sheet.spriteWidth;
+			var frameAlpha = animation.alphas[frameIndex];
+			if (frameAlpha==null) frameAlpha = animation.alphas[0] || 0;
 			var img = ImageFactory.getImage(sheet.pages[0]);
 			if (frameX>img.width||frameY>img.height) {
 				if (sheet.defaultAnimation&&sheet.defaultAnimation!=animationName) Animation.drawFromSheet(sheet,x,y,sheet.defaultAnimation,time,direction,entity);
 				else Animation.drawMissing(entity);
 			}
-			else c.drawImage(ImageFactory.getImage(sheet.pages[animPage]),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.drawOffset.x,y+sheet.drawOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
+			else {
+				var alpha = c.globalAlpha;
+				c.globalAlpha *= frameAlpha;
+				c.drawImage(ImageFactory.getImage(sheet.pages[animPage]),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.drawOffset.x,y+sheet.drawOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
+				c.globalAlpha = alpha;
+			}
 		}
 		else if (sheet.defaultAnimation&&sheet.defaultAnimation!=animationName) Animation.drawFromSheet(sheet,x,y,sheet.defaultAnimation,time,direction,entity);
 		else Animation.drawMissing(entity);
@@ -117,13 +125,19 @@ var Animation = {
 	protoDraw: function(preventTick) {
 		if (!this.isLoaded) return;
 		Animation.drawFromSheet(this.sheet,Math.floor(this.x),Math.floor(this.y),this.animCurrent,this.animFrame,this.direction,this,this.animPage);
-		if (!paused) this.animFrame+=1;
+		//if (!paused) this.animFrame+=1;
 		//if (preventTick) this.animFrame-=1;
-		var animObj = this.sheet.getAnimation(this.animCurrent);
-		if (!animObj) return console.log("Missing animation: "+this.animCurrent);
-		if (Math.floor(this.animFrame*animObj.framerate)>=animObj.frames.length) {
+
+	},
+	protoAnimationTick: function() {
+		if (paused) return;
+		var animation = this.sheet.getAnimation(this.animCurrent);
+		if (!animation) return console.log("Missing animation: "+this.animCurrent);
+		this.animFrame += 1;
+		if (Math.floor(this.animFrame*animation.framerate)>=animation.frames.length) {
 			this.animFrame = 0;
 			this.animLock = 0;
+			this.animPrevious = this.animCurrent;
 		}
 	},
 	protoSetAnimation: function(animation,direction,lockTime) {
@@ -133,6 +147,7 @@ var Animation = {
 		}
 		if (direction!=null) this.direction = direction;
 		if (this.animCurrent==animation) return true;
+		this.animPrevious = this.animCurrent;
 		this.animCurrent = animation;
 		this.animFrame = 0;
 		var animObj = this.sheet.getAnimation(this.animCurrent);
@@ -150,17 +165,19 @@ var Animation = {
 	protoSetAnimationPage: function(pageIndex) {
 		this.animPage = pageIndex;
 	},
-	applyTo: function(obj,doSoft) {
+	applyTo: function(obj) {
 		obj.animCurrent = "none";
+		obj.animPrevious = "none";
 		obj.animFrame = 0;
 		obj.animLock = 0;
 		obj.animPage = 0;
-		if (!doSoft) obj.draw = Animation.protoDraw;
+		obj.draw = Animation.protoDraw;
+		obj.animationTick = Animation.protoAnimationTick;
 		obj.setAnimation = Animation.protoSetAnimation;
 		obj.setAnimationPage = Animation.protoSetAnimationPage;
 	},
-	applyToClass: function(cl,doSoft) {
-		Animation.applyTo(cl.prototype,doSoft);
+	applyToClass: function(cl) {
+		Animation.applyTo(cl.prototype);
 	}
 }
 

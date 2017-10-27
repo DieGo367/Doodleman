@@ -1,6 +1,5 @@
 /* TODO:
 spritesheet system
-	add alternate imgs.
 	carried object behavior???
 	fix discrepencies between preventAnimTick and inherited Animation.protoDraw
 		idk if there's actually any issues tho...
@@ -697,6 +696,8 @@ function tick() { //GAME UPDATES//
 		Garbage.clear();
 
 		CollisionCache.checkRequests();
+		Entity.callForAll("animationTick");
+		Door.callForAll("animationTick");
 		Box.callForAll("update");
 		PhysicsBox.runPhysics();
 		Line.callForAll("update");

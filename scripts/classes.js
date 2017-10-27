@@ -570,7 +570,6 @@ var MovingPlatform = class MovingPlatform extends PhysicsBox {
   update() {
   	this.x += this.velX;
   	this.y += this.velY;
-    hudText = this.x + ", " + this.y;
   	if (this.x<-this.width/2) this.x = Level.width+this.width/2;
   	else if (this.x>Level.width+this.width/2) this.x = -this.width/2;
   }
@@ -1017,12 +1016,35 @@ var Player = class Player extends Entity {
   	super.update();
   	if (this.held!=null) { //reposition carried objects
   		this.held.x = this.x;
-  		if (this.animCurrent=="lift") {
-  			this.held.y = [this.y+this.held.height,this.y-20,this.topY()][Math.floor(this.animFrame*0.2)];
-  		}
-  		else if (this.animCurrent=="carry-run") this.held.y = this.topY()+7;
-  		else this.held.y = this.topY();
-  		this.held.velX = tempVelX;
+      this.held.y = this.y;
+      var animation = this.sheet.getAnimation(this.animCurrent);
+      var frameIndex = Math.floor(this.animFrame*0.2);
+      if (animation.holp) {
+        var holp = animation.holp;
+        if (holp.x) {
+          var xShift = 0, widthFactor = this.held.width;
+          if (holp.x.placement[frameIndex]!=null) xShift = holp.x.placement[frameIndex];
+          else xShift = holp.x.placement[0] || 0;
+          if (holp.x.widthFactor[frameIndex]!=null) widthFactor *= holp.x.widthFactor[frameIndex];
+          else widthFactor *= holp.x.widthFactor[0] || 0;
+          this.held.x += xShift + widthFactor;
+        }
+        if (holp.y) {
+          var yShift = 0, heightFactor = this.held.height;
+          if (holp.y.placement[frameIndex]!=null) yShift = holp.y.placement[frameIndex];
+          else yShift = holp.y.placement[0] || 0;
+          if (holp.y.heightFactor[frameIndex]!=null) heightFactor *= holp.y.heightFactor[frameIndex];
+          else heightFactor *= holp.y.heightFactor[0] || 0;
+          this.held.y -= yShift + heightFactor;
+        }
+      }
+      // if (this.animCurrent=="lift") {
+  		// 	this.held.y = [this.y+this.held.height,this.y-20,this.topY()][Math.floor(this.animFrame*0.2)];
+  		// }
+  		// else if (this.animCurrent=="carry-run") this.held.y = this.topY()+7;
+  		// else this.held.y = this.topY();
+
+      this.held.velX = tempVelX;
   		this.held.velY = tempVelY;
   	}
   }
