@@ -1,4 +1,4 @@
-bgName:BG-Paper
+bgName:BG-Paper.png
 dimensions:1920x1080
 zoomScale:1
 camStart:1600,900
@@ -9,8 +9,8 @@ player2Spawn:1779,1040
 minZoom:0.3333
 spawns: [
 PhysicsBox:Level.width*3/4,Level.height,Level.width/2,40,"black",null,true,C_INFINIMASS,false,null
-PhysicsBox:135,1080,50,40,null,"Box201",false,C_ENT,true,2
-MovingPlatform:141,152,282,34,null,"HelloWorld",C_INFINIMASS,1,0
+PhysicsBox:135,1080,50,40,null,"Box201.png",false,C_ENT,true,2
+MovingPlatform:141,152,282,34,null,"helloworld.png",C_INFINIMASS,1,0
 Door:30,Level.height,0,1
 Door:Level.width/2+20,Level.height-80,1,0
 PaintMinion:196,330
