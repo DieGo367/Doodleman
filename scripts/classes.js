@@ -222,7 +222,7 @@ var Door = class Door extends Interactable {
   	this.doorOpen = false;
   	this.warpStep = 0;
   	this.player = null;
-    this.sheet = doorSheet;
+    this.sheet = Animation.getSpritesheet("Door.json");
   }
   static getFromLinkId(linkId) {
   	var allDoors = this.getAll();
@@ -740,7 +740,7 @@ var Entity = class Entity extends PhysicsBox {
   	this.health = health;
   	this.maxHealth = health;
   	this.dead = false;
-  	this.sheet = sheet;
+  	this.sheet = Animation.getSpritesheet(sheet);
   	this.direction = RIGHT;
   	this.stun = 0;
   	this.invulnerability = 0;
@@ -1301,7 +1301,7 @@ Enemy.prototype.particleColor = "#6a00d8";
 
 var PaintMinion = class PaintMinion extends Enemy {
   constructor(x,y) {
-    super(x,y,19,44,2,PaintMinionSpritesheet,38);
+    super(x,y,19,44,2,"PaintMinion.json",38);
   }
 }
 initClass(PaintMinion,Enemy);

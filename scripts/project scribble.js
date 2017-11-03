@@ -18,8 +18,8 @@ do something with login - save settings?
 	Flipnote speed 6 (12fps) frame = 5 60fps game frames
 */
 function printErr(err) {
-	alert("Oh noes everything broke! Diego is stupid lol.\n"+err.stack);
-	console.log("Oh noes everything broke! Diego is stupid lol.\n"+err.stack);
+	alert("Oh noes everything broke!\n"+err.stack);
+	console.log("Oh noes everything broke!\n"+err.stack);
 }
 function printFunc(func) {
 	var result = func.toString();
@@ -595,17 +595,6 @@ function callOnAllClasses (method) {
 	}
 }
 
-
-function loadScripts() {
-	$.getScript("scripts/animation.js", function() {
-		$.getScript("scripts/controls.js", function() {
-			$.getScript("scripts/classes.js", initGame);
-		});
-	});
-}
-
-var LevelDir = ["TestLevel","1st Platformy Level","SMB1-1","Dungeon-0"];
-
 function clearViewLock() {
 	viewLock = false;
 	viewAction();
@@ -616,10 +605,10 @@ function clearViewLock() {
 //Game Functions
 
 function addPlayer(number) {
-	var sheet = [Bluesheet,Redsheet][number];
+	var sheet = ["Blueman.json","Redman.json"][number];
 	var button = Player.respawnButtons[number];
 	var coords = [[Level.player1SpawnX,Level.player1SpawnY],[Level.player2SpawnX,Level.player2SpawnY]][number];
-	var player = Player.create(coords[0],coords[1],19,44,38,4,multiplayer?sheet:DoodlemanSpritesheet,number);
+	var player = Player.create(coords[0],coords[1],19,44,38,4,multiplayer?sheet:"Doodleman.json",number);
 	if (multiplayer) button.hide();
 	else G$("RespawnP1Button").hide();
 }
@@ -1244,16 +1233,19 @@ function addGui() {
 		G$("PauseMenu").show();
 	}).setIcon("GUI-Icons",3,0,42,4).setClose(true).show();
 	TextElement.create("LSText","LevelSelectView",hudWidth/2,30,"Select a level","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
-	for (var i in LevelDir) {
-		var name = LevelDir[i];
-		var y = Math.floor(i/2);
-		var x = i%2==0?20:240;
-		Button.create("LS"+name,"LevelSelectView",x,50+y*60,200,40,name).setOnClick(function() {
-			$.get("levels/"+this.text+".dmlf",function(data) {
-				loadLevel(data);
-			});
-		}).show();
-	}
+	$.get("levels/_list_.json", function(data) {
+		var levelNames = JSON.parse(data);
+		for (var i in levelNames) {
+			var name = levelNames[i];
+			var y = Math.floor(i/2);
+			var x = i%2==0?20:240;
+			Button.create("LS"+name,"LevelSelectView",x,50+y*60,200,40,name).setOnClick(function() {
+				$.get("levels/"+this.text+".dmlf",function(data) {
+					loadLevel(data);
+				});
+			}).show();
+		}
+	});
 	Button.create("LSFileButton","LevelSelectView",hudWidth-170,hudHeight-60,150,40,"Load From File").setOnClick(openLocalFile,true).show().setPressDelay(1);
 }
 
@@ -1368,4 +1360,4 @@ function initGame() {
 	//start game
 	setGameSpeed(gameSpeed);
 }
-$(document).ready(loadScripts);
+$(window).on("load",initGame);

@@ -113,7 +113,8 @@ var Animation = {
 		else sheet.fillStyle = "hotpink";
 		c.fillRect(entity.x-entity.halfW(),entity.y,entity.width,-entity.height);
 	},
-	createSpritesheet: function(name,varName) {
+	spritesheets: {},
+	loadSpritesheet: function(name) {
 		$.get("animations/"+name,function(data) {
 			var sheet = JSON.parse(data);
 			sheet.getAnimation = function(action) {
@@ -122,8 +123,11 @@ var Animation = {
 				}
 				return;
 			};
-			window[varName] = sheet;
+			Animation.spritesheets[name] = sheet;
 		});
+	},
+	getSpritesheet: function(name) {
+		return this.spritesheets[name];
 	},
 	protoDraw: function() {
 		if (!this.isLoaded) return;
@@ -182,14 +186,12 @@ var Animation = {
 }
 
 
-var DoodlemanSpritesheet = Animation.createSpritesheet("Doodleman.json","DoodlemanSpritesheet");
-var Redsheet = Animation.createSpritesheet("Redman.json","Redsheet");
-var Bluesheet = Animation.createSpritesheet("Blueman.json","Bluesheet");
-var Greensheet = Animation.createSpritesheet("Greenman.json","Greensheet");
-var Yellowsheet = Animation.createSpritesheet("Yellowman.json","Yellowsheet");
-var PaintMinionSpritesheet = Animation.createSpritesheet("PaintMinion.json","PaintMinionSpritesheet");
-var yellowBlockAnimations = Animation.createSpritesheet("Yellowblock.json","yellowBlockAnimations");
-var doorSheet = Animation.createSpritesheet("Door.json","doorSheet");
+$.get("animations/_list_.json", function(data) {
+	var list = JSON.parse(data);
+	for (var i in list) {
+		if (typeof list[i]=="string") Animation.loadSpritesheet(list[i]);
+	}
+});
 
 ImageFactory.initImage("DoodlemanSprites","res/Doodleman Spritesheet.png");
 ImageFactory.initImage("Redman","res/Redman-sprites.png");

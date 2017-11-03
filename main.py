@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 import jinja2
+import json
 import webapp2
 from google.appengine.api import users
 
@@ -30,13 +31,24 @@ class MainHandler(webapp2.RequestHandler):
             name = "Guest"
             log_url = users.create_login_url('/')
 
+
         mode = self.request.get("m")
         if mode:
             spoopy = mode=="spoopy"
         else:
             spoopy = False
 
+
+        with open("scripts.json") as data:
+            scripts = json.load(data)
+
+        script_html = ""
+        for script in scripts:
+            script_html += "<script src=%s></script>" % (script)
+
+
         temp_vars = {
+            "scripts": script_html,
             "user": user,
             "name": name,
             "log_url": log_url,
