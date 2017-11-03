@@ -15,11 +15,16 @@
 # limitations under the License.
 #
 import jinja2
-import json
 import webapp2
 from google.appengine.api import users
 
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
+scripts = [
+  "scripts/project%20scribble.js",
+  "scripts/animation.js",
+  "scripts/controls.js",
+  "scripts/classes.js"
+]
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
@@ -38,9 +43,6 @@ class MainHandler(webapp2.RequestHandler):
         else:
             spoopy = False
 
-
-        with open("scripts.json") as data:
-            scripts = json.load(data)
 
         script_html = ""
         for script in scripts:
