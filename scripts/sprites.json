@@ -1,0 +1,16 @@
+[
+  {
+    "class": "Player",
+    "properties": []
+  },
+  null, null, null, null, null, null, null, null, null,
+  {
+    "class": "PaintMinion",
+    "properties": []
+  },
+  null, null, null, null, null, null, null, null, null,
+  {
+    "class": "Moving Platform",
+    "properties": []
+  }
+]

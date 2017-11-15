@@ -1,4 +1,12 @@
 /* TODO:
+load levels from json, not dmlf
+attacks
+	Entity.defineAttack();
+		damage
+		charge duration (or instant) with stun and cooldown system
+		tie in with animation system
+			attack box creation and duration, size and position definitions
+	down stab
 finish pause menu controls
 touch controls - interactions with regular gui buttons
 collision system
@@ -6,10 +14,6 @@ collision system
 		store maximum collisionType per side
 		if our a can't top that, then b outweighs a/
 			might already be implemented, at least partially
-attacks
-	Entity.attack();
-	change attack to only a few specific frames
-	down stab
 gamepad mapper
 level loader and level system - better gui format
 do something with login - save settings?
