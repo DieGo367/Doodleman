@@ -1,5 +1,5 @@
 {
-  "pages": ["Doors.png"],
+  "pages": ["Doors"],
   "spriteWidth": 72,
   "spriteHeight": 59,
   "errorColor": "green",

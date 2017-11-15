@@ -1,5 +1,5 @@
 {
-  "pages": ["Doodleman.png", "Blueman.png", "Redman.png", "Greenman.png", "Yellowman.png"],
+  "pages": ["DoodlemanSprites", "Blueman", "Redman", "Greenman", "Yellowman"],
   "spriteWidth": 93,
   "spriteHeight": 48,
   "errorColor": "blue",

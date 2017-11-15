@@ -824,7 +824,7 @@ var Entity = class Entity extends PhysicsBox {
   drawElements() {
   	var startX = Math.round(this.x-((8*this.health)-1));
   	for (var i = 0; i < this.health; i++) {
-  		ImageFactory.drawImage("GUI-HUD-Hearts.png",startX+(16*i),Math.round(this.y-this.fullHeight-17),14,12,0,0,14,12);
+  		ImageFactory.drawImage("GUI-Hearts",startX+(16*i),Math.round(this.y-this.fullHeight-17),14,12,0,0,14,12);
   	}
   }
   remove() {
@@ -1056,7 +1056,7 @@ var Player = class Player extends Entity {
   	c.fillText("/ "+this.lives,35,27+(24*playerNumber));
   }
   drawElements() {
-  	if (this.attackHeld>=chargeAttackReq&&!this.held) ImageFactory.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
+  	if (this.attackHeld>=chargeAttackReq&&!this.held) ImageFactory.drawImage("GUI-Exclaim",this.x-2,this.topY()-4,4,-16);
   	else super.drawElements();
   }
   attack() {
@@ -1292,7 +1292,7 @@ var Enemy = class Enemy extends Entity {
   	super.drawDebug();
   }
   drawElements() {
-  	if (this.exclaim!=null&&this.exclaim>=0) ImageFactory.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
+  	if (this.exclaim!=null&&this.exclaim>=0) ImageFactory.drawImage("GUI-Exclaim",this.x-2,this.topY()-4,4,-16);
     else super.drawElements();
   }
 }
@@ -1343,7 +1343,7 @@ var View = class View extends _c_ {
   			c.globalAlpha = 1;
   			break;
   		case "window":
-  			ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,0,96);
+  			ImageFactory.drawBorderedImage("GUI-Button",this.x,this.y,this.width,this.height,8,16,0,96);
   	}
   }
 }
@@ -1512,7 +1512,7 @@ var Button = class Button extends GuiElement {
   	if (this.on) x+= 32;
     if (this.mode==BUTTON_NO) x = 32*3;
     if (this.isCloseButton) x = 32*2;
-  	ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,x,y);
+  	ImageFactory.drawBorderedImage("GUI-Button",this.x,this.y,this.width,this.height,8,16,x,y);
   	if (this.useIcon) ImageFactory.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
   	else {
   		c.font = this.hovered?"bold 20px Catamaran, sans-serif":"20px Catamaran, sans-serif";
