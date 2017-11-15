@@ -1,16 +1,19 @@
 var ImageFactory = {
 	imgData: {},
 	initImageB64: function(name,b64) {
-		this.imgData[name] = { img:new Image() };
-		this.imgData[name].img.src = "data:image/png;base64, "+b64;
+		this.imgData[name] = new Image();
+		this.imgData[name].src = "data:image/png;base64, "+b64;
 	},
 	initImage: function(name,url) {
-		this.imgData[name] = { img:new Image() };
-		this.imgData[name].img.src = url;
+		this.imgData[name] = new Image();
+		this.imgData[name].src = url;
+	},
+	loadImage: function(name) {
+		this.imgData[name] = new Image();
+		this.imgData[name].src = "res/"+name;
 	},
 	getImage: function(imageName) {
-		if (this.imgData[imageName]!=null) return this.imgData[imageName].img;
-		else return null;
+		return this.imgData[imageName];
 	},
 	drawImage: function(imageName,x,y,width,height,clipX = 0,clipY = 0,clipWidth,clipHeight) {
 		var img = this.getImage(imageName);
@@ -113,8 +116,9 @@ var Animation = {
 		else sheet.fillStyle = "hotpink";
 		c.fillRect(entity.x-entity.halfW(),entity.y,entity.width,-entity.height);
 	},
-	spritesheets: {},
+	spritesheets: {}, loadStatus: 1,
 	loadSpritesheet: function(name) {
+		this.loadStatus += 1;
 		$.get("animations/"+name,function(data) {
 			var sheet = JSON.parse(data);
 			sheet.getAnimation = function(action) {
@@ -124,6 +128,7 @@ var Animation = {
 				return;
 			};
 			Animation.spritesheets[name] = sheet;
+			Animation.loadStatus -= 1;
 		});
 	},
 	getSpritesheet: function(name) {
@@ -191,22 +196,29 @@ $.get("animations/_list_.json", function(data) {
 	for (var i in list) {
 		if (typeof list[i]=="string") Animation.loadSpritesheet(list[i]);
 	}
+	Animation.loadStatus -= 1;
 });
 
-ImageFactory.initImage("DoodlemanSprites","res/Doodleman Spritesheet.png");
-ImageFactory.initImage("Redman","res/Redman-sprites.png");
-ImageFactory.initImage("Blueman","res/Blueman-sprites.png");
-ImageFactory.initImage("Greenman","res/Greenman-sprites.png");
-ImageFactory.initImage("Yellowman","res/Yellowman-sprites.png");
-ImageFactory.initImage("PaintMinionSprites",spoopy==false?"res/Paint Minion Spritesheet.png":"res/Skeltal Spritesheet.png");
-ImageFactory.initImage("BG-Paper","res/paper.png");
-ImageFactory.initImage("GUI-Hearts","res/GUI-HUD-Hearts new.png");
-ImageFactory.initImage("GUI-Exclaim","res/GUI-HUD-!.png");
-ImageFactory.initImage("GUI-Button","res/GUI-Button.png");
-ImageFactory.initImage("GUI-Pointer","res/GUI-HUD-pointer.png");
-ImageFactory.initImage("Box201","res/box201.png");
-ImageFactory.initImage("Doors","res/Doors.png");
-ImageFactory.initImage("GUI-Icons","res/GUI-IconsBigger.png");
-ImageFactory.initImage("HelloWorld","res/helloworld.png");
-ImageFactory.initImage("GUI-Controller","res/controlly.png");
-ImageFactory.initImage("GUI-TouchButton","res/GUI-TouchButton.png")
+$.get("res/_list_.json", function(data) {
+	var list = JSON.parse(data);
+	for (var i in list) {
+		if (typeof list[i]=="string") ImageFactory.loadImage(list[i]);
+	}
+});
+// ImageFactory.initImage("DoodlemanSprites","res/Doodleman Spritesheet.png");
+// ImageFactory.initImage("Redman","res/Redman-sprites.png");
+// ImageFactory.initImage("Blueman","res/Blueman-sprites.png");
+// ImageFactory.initImage("Greenman","res/Greenman-sprites.png");
+// ImageFactory.initImage("Yellowman","res/Yellowman-sprites.png");
+// ImageFactory.initImage("PaintMinionSprites",spoopy==false?"res/Paint Minion Spritesheet.png":"res/Skeltal Spritesheet.png");
+// ImageFactory.initImage("BG-Paper","res/paper.png");
+// ImageFactory.initImage("GUI-Hearts","res/GUI-HUD-Hearts new.png");
+// ImageFactory.initImage("GUI-Exclaim","res/GUI-HUD-!.png");
+// ImageFactory.initImage("GUI-Button","res/GUI-Button.png");
+// ImageFactory.initImage("GUI-Pointer","res/GUI-HUD-pointer.png");
+// ImageFactory.initImage("Box201","res/box201.png");
+// ImageFactory.initImage("Doors","res/Doors.png");
+// ImageFactory.initImage("GUI-Icons","res/GUI-IconsBigger.png");
+// ImageFactory.initImage("HelloWorld","res/helloworld.png");
+// ImageFactory.initImage("GUI-Controller","res/controlly.png");
+// ImageFactory.initImage("GUI-TouchButton","res/GUI-TouchButton.png")

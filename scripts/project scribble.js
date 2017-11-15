@@ -219,7 +219,7 @@ const Pointer = {
 	camX: function() { return Math.floor(Camera.x+(this.x-hudWidth/2)/Camera.zoom); },
 	camY: function() { return Math.floor(Camera.y+(this.y-hudHeight/2)/Camera.zoom); },
 	draw: function() {
-		ImageFactory.drawImage("GUI-Pointer",this.x-16,this.y-16,32,32,32*this.styles.indexOf(this.cursor),0,32,32);
+		ImageFactory.drawImage("GUI-HUD-Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(this.cursor),0,32,32);
 	}
 };
 const Camera = {
@@ -1102,14 +1102,14 @@ function addGui() {
 	});
 	Button.create("PauseButton","Hud",hudWidth-60,10,50,50).setOnClick(function() {
 		pauseGame(true);
-	}).setIcon("GUI-Icons",0,0,42,4).show();
+	}).setIcon("GUI-Icons.png",0,0,42,4).show();
 
 	View.create("PauseMenu",0,0,0,hudWidth,hudHeight,"tint","black");
 	TextElement.create("PauseText","PauseMenu",hudWidth/2,hudHeight/2,"Paused","Catamaran, sans-serif",60,true,"yellow",CENTER,true,"darkOrange",5,true,"orange",3,8).show();
 	TextElement.create("PauseFocusMsg","PauseMenu",hudWidth/2,hudHeight/2+55,"Click to focus","Catamaran, sans-serif",30,false,"#ff6f6b",CENTER,false,"#ad2f2b",3,true,"#ad2f2b",3,8);
 	Button.create("PauseClose","PauseMenu",hudWidth-60,10,50,50).setOnClick(function() {
 		pauseGame(false);
-	}).setIcon("GUI-Icons",1,0,42,4).show();
+	}).setIcon("GUI-Icons.png",1,0,42,4).show();
 	Button.create("MultiJumpToggle","PauseMenu",20,hudHeight-120,130,40,"MultiJump").setOnClick(function() {
 		this.on = !this.on;
 		Player.prototype.multiJump = this.on;
@@ -1144,11 +1144,11 @@ function addGui() {
 	}, function() {
 		callPrefixedFunction(document,"exitFullscreen");
 		callPrefixedFunction(document,"exitFullScreen");
-	},true).setIcon("GUI-Icons",2,0,42,4).show();
+	},true).setIcon("GUI-Icons.png",2,0,42,4).show();
 	Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
 		G$("CtrlSettingsView").show();
 		G$("PauseMenu").hide();
-	}).setIcon("GUI-Icons",3,1,42,4).show();
+	}).setIcon("GUI-Icons.png",3,1,42,4).show();
 	TextElement.create("UserInfo","PauseMenu",hudWidth/2,hudHeight-30,"Logged in as "+User.name,"Catamaran, sans-serif",15,false,"white",CENTER)//.show();
 	Button.create("LoginoutButton","PauseMenu",hudWidth/2-50,hudHeight-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
 		User.useLink();
@@ -1159,7 +1159,7 @@ function addGui() {
 	Button.create("CtrlSettingsClose","CtrlSettingsView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("CtrlSettingsView").hide();
 		G$("PauseMenu").show();
-	}).setIcon("GUI-Icons",3,0,42,4).setClose(true).show();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 	TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/3,80,"Player 1","Catamaran, sans-serif",20,false,"white",CENTER,true,"gray",5,false).show();
 	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth*2/3,80,"Player 2","Catamaran, sans-serif",20,false,"white",CENTER,true,"gray",5,false).show();
 	Button.create("CtrlP1Keyboard","CtrlSettingsView",hudWidth/3-100,130,200,40,"Keyboard").setOnViewShown(function() {
@@ -1208,7 +1208,7 @@ function addGui() {
 	TextElement.create("UAVText","UserActionView",hudWidth/2,hudHeight/2,"Press any key or click the screen to continue.","Catamaran, sans-serif",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 
 	View.create("MapperView",1,15,15,hudWidth-30,hudHeight-30,"window");
-	ImgElement.create("MapperImg","MapperView",hudWidth/2,hudHeight/2,"GUI-Controller",640,360).show();
+	ImgElement.create("MapperImg","MapperView",hudWidth/2,hudHeight/2,"GUI-Controller.png",640,360).show();
 	TextElement.create("MapperText","MapperView",hudWidth/2,hudHeight-90,"Press buttons to map.","Catamaran, sans-serif",30,false,"white",CENTER,false,null,null,true,"black",3,8).show();
 	Button.create("MapperClose","MapperView",hudWidth-100,20,80,50,"Cancel").setOnClick(function() {
 		G$("MapperView").hide();
@@ -1223,19 +1223,19 @@ function addGui() {
 		if (G$("DevPencil").on) Pointer.cursor = "pencil";
 		else Pointer.cursor = "crosshair";
 	}
-	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setOnClick(setOn).setIcon("GUI-Icons",0,1,42,4).show();
-	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setOnClick(setOn).setIcon("GUI-Icons",1,1,42,4).show();
+	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setOnClick(setOn).setIcon("GUI-Icons.png",0,1,42,4).show();
+	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setOnClick(setOn).setIcon("GUI-Icons.png",1,1,42,4).show();
 	Button.create("DevEraser","DevTools",hudWidth-60,220,50,50).setOnClick(function(){
 		if (this.on) this.on = false;
 		else if (G$("DevSpawnPM").on||G$("DevPencil").on) this.on = true;
 		Pointer.cursor = this.on?"eraser":(G$("DevPencil").on?"pencil":"crosshair");
-	}).setIcon("GUI-Icons",2,1,42,4).show();
+	}).setIcon("GUI-Icons.png",2,1,42,4).show();
 
 	View.create("LevelSelectView",1,0,0,hudWidth,hudHeight,"tint","black");
 	Button.create("LSClose","LevelSelectView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("LevelSelectView").hide();
 		G$("PauseMenu").show();
-	}).setIcon("GUI-Icons",3,0,42,4).setClose(true).show();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 	TextElement.create("LSText","LevelSelectView",hudWidth/2,30,"Select a level","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 	$.get("levels/_list_.json", function(data) {
 		var levelNames = JSON.parse(data);
@@ -1364,4 +1364,8 @@ function initGame() {
 	//start game
 	setGameSpeed(gameSpeed);
 }
-$(window).on("load",initGame);
+function loadLoop() {
+	if (Animation.loadStatus==0) initGame();
+	else window.requestAnimationFrame(loadLoop);
+}
+$(window).on("load",loadLoop);

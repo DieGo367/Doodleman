@@ -1,6 +1,6 @@
 name:Dungeon-0
 bgType:name
-bgName:BG-Paper
+bgName:BG-Paper.png
 dimensions:640x360
 player1Spawn:320,360
 player2Spawn:295,360
