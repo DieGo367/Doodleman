@@ -177,25 +177,6 @@ const Garbage = {
 		this.list = [];
 	}
 };
-var Level = {
-	bgType: "name", //name = ImageFactory, raw = b64
-	bgName: "none",
-	bgRaw: "",
-	bgScale: 1,
-	width: 640,
-	height: 360,
-	zoomScale: 1,
-	camStartX: 320,
-	camStartY: 180,
-	horScrollBuffer: 240,
-	vertScrollBuffer: 125,
-	minZoom: 1,
-	player1SpawnX: 20,
-	player1SpawnY: 310,
-	player2SpawnX: 620,
-	player2SpawnY: 310
-};
-const BlankLevel = clone(Level);
 const Pointer = {
 	x:0,y:0,
 	focusLayer: 0, cursor: "crosshair",
@@ -235,8 +216,8 @@ const Camera = {
 		this.y = Math.floor(px);
 	},
 	reset: function() {
-		this.x = Level.camStartX;
-		this.y = Level.camStartY;
+		this.x = Level.camStart.x;
+		this.y = Level.camStart.y;
 		this.zoom = this.requestedZoom = 1/Level.zoomScale;
 	},
 	width: function() { return hudWidth/this.zoom; },
@@ -612,7 +593,7 @@ function clearViewLock() {
 function addPlayer(number) {
 	var sheet = ["Blueman.json","Redman.json"][number];
 	var button = Player.respawnButtons[number];
-	var coords = [[Level.player1SpawnX,Level.player1SpawnY],[Level.player2SpawnX,Level.player2SpawnY]][number];
+	var coords = [[Level.player1Spawn.x,Level.player1Spawn.y],[Level.player2Spawn.x,Level.player2Spawn.y]][number];
 	var player = Player.create(coords[0],coords[1],19,44,38,4,multiplayer?sheet:"Doodleman.json",number);
 	if (multiplayer) button.hide();
 	else G$("RespawnP1Button").hide();
@@ -905,109 +886,6 @@ function click(ctrl) {
 	Pointer.move(Pointer.x,Pointer.y);
 }
 
-function loadLevel(file) {
-	var newLevel = {spawns:[]};
-	var lines = file.split("\r\n");
-	if (lines[0]==file) lines = file.split("\n");
-	if (lines[0]==file) lines = file.split("\r");
-
-	var doSpawnList = false;
-	for (var i in lines) {
-		var line = lines[i].split(":");
-		if (line.length>2) return console.log("Failed to load level file @line: "+i),false;
-		var name = line[0];
-		var data = line[1];
-		var endChar = lines[i].charAt(lines[i].length-1);
-		if (doSpawnList==true) {
-			if (endChar=="]") doSpawnList = false;
-			else newLevel.spawns.push(name+'.create('+data+');');
-		}
-		else {
-			switch(name) {
-				//Single String
-				case "name":
-				case "bgType":
-				case "bgName":
-				case "bgRaw":
-					newLevel[name] = data;
-					break;
-				//dimension pair
-				case "dimensions":
-					newLevel.width = parseInt(data.split("x")[0]);
-					newLevel.height = parseInt(data.split("x")[1]);
-					break;
-				//Coordinate Pair
-				case "player1Spawn":
-				case "player2Spawn":
-				case "camStart":
-					newLevel[name+"X"] = parseInt(data.split(",")[0]);
-					newLevel[name+"Y"] = parseInt(data.split(",")[1]);
-					break;
-				//spawnlist
-				case "spawns":
-					if (endChar=="[") doSpawnList = true;
-					else return console.log("Failed to load level file @line: "+i),false;
-					break;
-				//Single Number
-				case "zoomScale":
-				case "horScrollBuffer":
-				case "vertScrollBuffer":
-				case "minZoom":
-				case "bgScale":
-					newLevel[name] = parseFloat(data);
-					break;
-				//blank
-				case "":
-					break;
-				default:
-					console.log("unknown tag line: "+name);
-			}
-		}
-	}
-	if (doSpawnList) return console.log("Failed to load level file @line: "+i),false;
-	pauseGame(true);
-	Box.killAll();
-	Line.killAll();
-	Garbage.clear();
-	Sectors.grid = {};
-	Level = clone(BlankLevel);
-	for (var p in newLevel) if (p!="spawns") Level[p] = newLevel[p];
-	for (var i in newLevel.spawns) eval(newLevel.spawns[i]);
-	if (Level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",Level.bgRaw);
-	Camera.reset();
-	addPlayer(0);
-	if (multiplayer) addPlayer(1);
-	G$("LevelSelectView").hide();
-	if (focused) pauseGame(false);
-	return true;
-}
-function loadLevelB64(b64) {
-	if (loadLevel(atob(b64))) console.log("Loaded Level from Base64");
-	else console.log("Failed to load Level from Base64");
-}
-function openLocalFile() {
-	$("#fileInput").click();
-}
-function loadLocalFile(event) {
-	if (window.File&&window.FileReader&&window.FileList&&window.Blob) {
-		var file = event.target.files[0];
-		if (file) {
-			var reader = new FileReader;
-			reader.onload = function(e) {
-				var fileType = file.name.split(".").pop();
-				if (fileType=="dmlf") {
-					if (loadLevel(e.target.result)) console.log('Loaded Level "'+file.name+'" from local file');
-					else console.log('Failed to load Level "'+file.name+'" from local file');
-				}
-				else alert("Not the right file type!");
-			}
-			reader.readAsText(file);
-		}
-		else alert("No file selected.");
-	}
-	else alert("Unsupported browser.");
-}
-
 function findTopThing(x,y,type) {
 	var allEnem = Enemy.getAll(), allSl = SolidLine.getAll();
 	for (var i in allEnem) {
@@ -1241,11 +1119,11 @@ function addGui() {
 	$.get("levels/_list_.json", function(data) {
 		var levelNames = JSON.parse(data);
 		for (var i in levelNames) {
-			var name = levelNames[i];
+			var name = levelNames[i].split(".")[0];
 			var y = Math.floor(i/2);
 			var x = i%2==0?20:240;
 			Button.create("LS"+name,"LevelSelectView",x,50+y*60,200,40,name).setOnClick(function() {
-				$.get("levels/"+this.text+".dmlf",function(data) {
+				$.get("levels/"+this.text+".json",function(data) {
 					loadLevel(data);
 				});
 			}).show();

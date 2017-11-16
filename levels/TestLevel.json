@@ -1,0 +1,30 @@
+{
+  "spawns": [
+    "PhysicsBox.create(Level.width*3/4,Level.height,Level.width/2,40,\"black\",null,true,C_INFINIMASS,false,null)",
+    "PhysicsBox.create(Level.width/2,Level.height-50,50,40,null,\"Box201.png\",false,C_ENT,true,2)",
+    "MovingPlatform.create(141,152,282,34,null,\"helloworld.png\",C_INFINIMASS,1,0)",
+    "PaintMinion.create(Level.width*3/4,40)",
+    "Door.create(30,Level.height,0,1)",
+    "Door.create(Level.width/2+20,Level.height-80,1,0)"
+  ],
+  "name": "TestLevel",
+  "bgName": "BG-Paper.png",
+  "width": 854,
+  "height": 480,
+  "zoomScale": 1,
+  "player1Spawn": {
+    "x": 20,
+    "y": 310
+  },
+  "player2Spawn": {
+    "x": 834,
+    "y": 310
+  },
+  "camStart": {
+    "x": 320,
+    "y": 300
+  },
+  "horScrollBuffer": 240,
+  "vertScrollBuffer": 125,
+  "minZoom": 0.75
+}

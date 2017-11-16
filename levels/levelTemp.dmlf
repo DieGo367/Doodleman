@@ -1,4 +1,0 @@
-bgName:Box201.png
-spawns: [
-SolidLine:0,0,Level.width/2,Level.height/2,2,"black",2
-]
