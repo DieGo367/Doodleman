@@ -1,5 +1,4 @@
 /* TODO:
-load levels from json, not dmlf
 attacks
 	Entity.defineAttack();
 		damage
@@ -15,7 +14,9 @@ collision system
 		if our a can't top that, then b outweighs a/
 			might already be implemented, at least partially
 gamepad mapper
-level loader and level system - better gui format
+level loader and level system
+	better gui format
+	load levels from json, not dmlf
 do something with login - save settings?
 
    NOTES:

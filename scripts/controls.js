@@ -327,8 +327,8 @@ var TouchButton = class TouchButton {
 	}
 	draw() {
 		var x = this.pressed?32:0;
-		ImageFactory.drawImage("GUI-TouchButton",this.x,this.y,this.width,this.height,x,0,32,32);
-		ImageFactory.drawImage("GUI-TouchButton",this.x,this.pressed?this.y+2:this.y,this.width,this.height,this.id*32,32,32,32);
+		ImageFactory.drawImage("GUI-TouchButton.png",this.x,this.y,this.width,this.height,x,0,32,32);
+		ImageFactory.drawImage("GUI-TouchButton.png",this.x,this.pressed?this.y+2:this.y,this.width,this.height,this.id*32,32,32,32);
 	}
 }
 Tap.analogs[0] = new TouchAnalog(hudWidth/8,hudHeight-hudWidth/8,hudWidth/16,1,5,0);

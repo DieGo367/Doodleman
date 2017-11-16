@@ -1153,7 +1153,7 @@ Player.slots = [null,null,null,null];
 Player.respawnButtons = [];
 Player.keyMaps = [wasd,ijkl,null,null];
 Player.gpMaps = [null,null,null,null];
-Player.gpIds = [0,1,2,3];
+Player.gpIds = [0,1,null,null];
 Player.tapMaps = [tscr,null,null,null];
 Player.globalGPCtrls = [null,null,null,null];
 
