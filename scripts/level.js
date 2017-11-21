@@ -20,7 +20,9 @@ var Level = {
 	player2Spawn: {
 		x: 620,
 		y: 310
-	}
+	},
+	sprites: [],
+	shapes: []
 };
 const BlankLevel = clone(Level);
 const SpriteManager = {
@@ -69,6 +71,15 @@ const SpriteManager = {
 	}
 }
 SpriteManager.init();
+function makeLevelShape(shape) {
+	var construct = [PhysicsBox,SolidLine][shape.type];
+	for (var i in shape.pieces) {
+		var piece = shape.pieces[i];
+		if (shape.type==0) piece[0] += piece[2]/2;
+		var args = [...piece,...shape.properties];
+		construct.create(...args);
+	}
+}
 
 function loadLevel(file) {
 	try {
@@ -76,7 +87,8 @@ function loadLevel(file) {
 	}
 	catch(err) {
 		console.log('Failed to load Level "'+file.name+'" from local file');
-		return console.log(err);
+		console.log(err);
+		return false;
 	}
 	pauseGame(true);
 	Box.killAll();
@@ -84,9 +96,9 @@ function loadLevel(file) {
 	Garbage.clear();
 	Sectors.grid = {};
 	Level = clone(BlankLevel);
-	for (var p in newLevel) if (p!="spawns") Level[p] = newLevel[p];
-	if (newLevel.spawns) for (var i in newLevel.spawns) eval(newLevel.spawns[i]);
-	if (newLevel.sprites) for (var s in newLevel.sprites) SpriteManager.make(...newLevel.sprites[s]);
+	for (var p in newLevel) Level[p] = newLevel[p];
+	for (var s in Level.sprites) SpriteManager.make(...Level.sprites[s]);
+	for (var h in Level.shapes) makeLevelShape(Level.shapes[h]);
 	if (Level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",Level.bgRaw);
 	Camera.reset();
 	addPlayer(0);

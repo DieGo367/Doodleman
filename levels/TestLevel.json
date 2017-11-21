@@ -1,6 +1,12 @@
 {
-  "spawns": [
-    "PhysicsBox.create(Level.width*3/4,Level.height,Level.width/2,40,\"black\",null,true,C_INFINIMASS,false,null)"
+  "shapes": [
+    {
+      "type": 0,
+      "properties": ["black",null,true,5,false,null],
+      "pieces": [
+        [427,480,427,40]
+      ]
+    }
   ],
   "sprites": [
     [22,427,430],

@@ -1,6 +1,12 @@
 {
-  "spawns": [
-    "SolidLine.create(0,0,1,1,1,\"black\",1)"
+  "shapes": [
+    {
+      "type":1,
+      "properties": [1,"black",1],
+      "pieces":[
+        [0,0,1,1]
+      ]
+    }
   ],
   "name": "Dungeon-0",
   "bgType": "name",

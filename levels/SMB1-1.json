@@ -1,17 +1,35 @@
 {
-  "spawns": [
-    "SolidLine.create(1,336,1656,336,0,null,2)",
-    "SolidLine.create(1656,335,1656,384,0,null,1)",
-    "SolidLine.create(1704,384,1704,335,0,null,-1)",
-    "SolidLine.create(1704,336,2066,336,0,null,2)",
-    "SolidLine.create(2065,384,2065,335,0,null,1)",
-    "SolidLine.create(2136,384,2136,335,0,null,-1)",
-    "SolidLine.create(2135,336,3673,336,0,null,2)",
-    "SolidLine.create(3673,384,3673,335,0,null,1)",
-    "SolidLine.create(3720,384,3720,335,0,null,-1)",
-    "SolidLine.create(3719,336,5076,336,0,null,2)",
-    "SolidLine.create(5,341,-107,298,0,null,2)",
-    "SolidLine.create(5063,350,5182,257,0,null,2)"
+  "shapes": [
+    {
+      "type":1,
+      "properties": [0,null,2],
+      "pieces": [
+        [1,336,1656,336],
+        [1704,336,2066,336],
+        [2135,336,3673,336],
+        [3719,336,5076,336],
+        [5,341,-107,298],
+        [5063,350,5182,257]
+      ]
+    },
+    {
+      "type":1,
+      "properties": [0,null,1],
+      "pieces": [
+        [1656,335,1656,384],
+        [2065,384,2065,335],
+        [3673,384,3673,335]
+      ]
+    },
+    {
+      "type":1,
+      "properties": [0,null,-1],
+      "pieces": [
+        [1704,384,1704,335],
+        [2136,384,2136,335],
+        [3720,384,3720,335]
+      ]
+    }
   ],
   "name": "SMB 1-1",
   "bgType": "raw",

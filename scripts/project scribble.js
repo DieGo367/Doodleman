@@ -15,11 +15,8 @@ collision system
 		if our a can't top that, then b outweighs a/
 			might already be implemented, at least partially
 gamepad mapper
-level loader and level system
-	easy level geometry
-	level editor
-		using existing line drawing and enemy spawning. just add fields to edit level properties
-	better gui format
+level editor - using existing line drawing and enemy spawning. just add fields to edit level/sprite/shape properties
+level loader - better gui format
 do something with login - save settings?
 
    NOTES:
