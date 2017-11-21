@@ -1,16 +1,38 @@
 [
   {
+    "id": 0,
     "class": "Player",
-    "properties": []
+    "properties": [
+      "val0","val1",19,44,38,4,["val3","Doodleman.json","Blueman.json","Redman.json"],"val2"
+    ]
   },
-  null, null, null, null, null, null, null, null, null,
   {
+    "id": 10,
     "class": "PaintMinion",
-    "properties": []
+    "properties": ["val0","val1"]
   },
-  null, null, null, null, null, null, null, null, null,
   {
-    "class": "Moving Platform",
-    "properties": []
+    "id": 20,
+    "class": "MovingPlatform",
+    "properties": [
+      "val0","val1","val2","val3",["val4",null,"black"],["val5",null,"helloworld.png"],5,"val6","val7"
+    ]
+  },
+  {
+    "id": 21,
+    "class": "Door",
+    "properties": ["val0","val1","val2","val3"]
+  },
+  {
+    "id": 22,
+    "class": "PhysicsBox",
+    "properties": ["val0","val1",50,40,null,"Box201.png",false,3,true,2]
+  },
+  {
+    "id":23,
+    "class": "MovingPlatform",
+    "properties": [
+      "val0","val1",282,34,null,"helloworld.png",5,"val2","val3"
+    ]
   }
 ]

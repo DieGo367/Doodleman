@@ -9,14 +9,17 @@ attacks
 finish pause menu controls
 touch controls - interactions with regular gui buttons
 collision system
+	separation of level collision and object collision
 	collided sides cacheing:
 		store maximum collisionType per side
 		if our a can't top that, then b outweighs a/
 			might already be implemented, at least partially
 gamepad mapper
 level loader and level system
+	easy level geometry
+	level editor
+		using existing line drawing and enemy spawning. just add fields to edit level properties
 	better gui format
-	load levels from json, not dmlf
 do something with login - save settings?
 
    NOTES:

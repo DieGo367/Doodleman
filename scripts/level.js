@@ -24,8 +24,51 @@ var Level = {
 };
 const BlankLevel = clone(Level);
 const SpriteManager = {
-
+	spriteData: [],
+	init: function() {
+		$.get("scripts/sprites.json",function(data) {
+			var rawData = JSON.parse(data);
+			for (var i in rawData) {
+				var id = rawData[i].id;
+				SpriteManager.spriteData[id] = rawData[i];
+			}
+		});
+	},
+	make: function(id,...vals) {
+		var sprite = this.spriteData[id];
+		if (sprite) {
+			var props = [];
+			for (var i in sprite.properties) {
+				var p = sprite.properties[i];
+				switch(typeof p) {
+					case "string":
+						this.interpretStr(p,props,vals);
+						break;
+					case "object":
+						if (p!=null&&p[0].substring(0,3)=="val") {
+							var choice = vals[parseInt(p[0].substring(3))] +1; //to ignore 1st index in p, which is this
+							if (choice==0||p[choice]==void(0)) var result = p[1];
+							else var result = p[choice];
+							if (typeof result=="string") this.interpretStr(result,props,vals);
+							else props.push(result);
+						}
+						else props.push(null);
+						break;
+					default:
+						props.push(p);
+				}
+			}
+			return window[sprite.class].create(...props);
+		}
+		else console.log("Missing sprite ID: "+id);
+	},
+	interpretStr: function(str,props,vals) {
+		var sub = str.substring(0,3), index = parseInt(str.substring(3));
+		if (sub=="val") props.push(vals[index]);
+		else props.push(str);
+	}
 }
+SpriteManager.init();
 
 function loadLevel(file) {
 	try {
@@ -42,7 +85,8 @@ function loadLevel(file) {
 	Sectors.grid = {};
 	Level = clone(BlankLevel);
 	for (var p in newLevel) if (p!="spawns") Level[p] = newLevel[p];
-	for (var i in newLevel.spawns) eval(newLevel.spawns[i]);
+	if (newLevel.spawns) for (var i in newLevel.spawns) eval(newLevel.spawns[i]);
+	if (newLevel.sprites) for (var s in newLevel.sprites) SpriteManager.make(...newLevel.sprites[s]);
 	if (Level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",Level.bgRaw);
 	Camera.reset();
 	addPlayer(0);
@@ -77,4 +121,13 @@ function loadLocalFile(event) {
 		else alert("No file selected.");
 	}
 	else alert("Unsupported browser.");
+}
+
+function exportLevel() {
+	var data = JSON.stringify(Level);
+	$("#fileOutput").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
+}
+function logLevel() {
+	var data = JSON.stringify(Level);
+	console.log(data);
 }
