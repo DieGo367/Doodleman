@@ -343,7 +343,7 @@ var PhysicsBox = class PhysicsBox extends Box {
   respawn() {
   	this.x = this.spawnX;
   	this.y = this.spawnY;
-  	CollisionCache.removeAllPairsWith(this);
+  	Collision.removeAllPairsWith(this);
   	this.held = null;
   	this.heldBy = null;
   	if (this.defyPhysics) return;
@@ -406,48 +406,6 @@ var PhysicsBox = class PhysicsBox extends Box {
   	this.isGrounded = false;
   	this.cSidesPrev = this.cSides;
   	this.cSides = {u:0,r:0,d:0,l:0};
-  }
-  static runPhysics() {
-  	this.callForAll("doGroundDrag");
-  	this.callForAll("preCollision");
-  	var all = this.getAll(), tempColls = [];
-  	for (var i in all) { //find all collisions and store them temporarily
-      if (all[i].isTerrain) continue;
-  		var suspects = [];
-      for (var j in all[i].sectors) {
-        var list = Sectors.getSector(all[i].sectors[j]).list;
-        for (var k in list) if (suspects.indexOf(list[k])==-1) suspects.push(list[k]);
-      }
-      for (var j in suspects) {
-        if (all.indexOf(suspects[j])==-1) continue;
-  			if (all[i]==suspects[j]) continue;
-  			if (all[i].intersect(suspects[j])) {
-  				var alreadyExists = false;
-  				for (var k in tempColls) if (tempColls[k]==[all[i],suspects[j]]||tempColls[k]==[suspects[j],all[i]]) alreadyExists = true;
-  				if (!alreadyExists) tempColls.push([all[i],suspects[j]]);
-  			}
-  		}
-  	}
-  	for (var i = 0; i < CollisionCache.old.length; i++) CollisionCache.old[i] = true; //mark all previous collision pairs as old
-  	for (var i in tempColls) {
-  		var a = tempColls[i][0], b = tempColls[i][1];
-  		var result = CollisionCache.findPair(a,b);
-  		if (result!="none") { //found a previous collision
-  			CollisionCache.old[result] = false;
-  		}
-  		else { //detected a NEW collision!
-  			var behavior = CollisionCache.determineBehavior(a,b);
-  			CollisionCache.addPair(a,b,behavior);
-  		}
-  	}
-  	var i = CollisionCache.c0.length; //remove all old pairs that don't exist now
-  	while (i-->0) {
-  		if (CollisionCache.old[i]) {
-  			CollisionCache.removePair(i);
-        i++; //move i back up one to account for array change
-  		}
-  	}
-  	CollisionCache.runCollision();
   }
   static collide(a,b,behavior) {
   	var ar = a.rightX(), al = a.leftX(), am = a.midY(), aw = a.halfW(), at = a.topY();
@@ -650,7 +608,7 @@ var SolidLine = class SolidLine extends Line {
   	else if (1/mag<0.25||this.slope()==Infinity) hitboxWidth += 30;
     this.hitbox = SolidLineHitBox.create(this.midX(),hitboxY,hitboxWidth,hitboxHeight,this);
   }
-  singleCheck(box) {
+  pushOut(box) {
   	if (box.collisionType>=C_INFINIMASS||box.defyPhysics||box.heldBy||!this.hitbox.intersect(box)) return;
   	if (this.hitbox.rightX()>=this.x&&this.hitbox.leftX()<=this.x&&this.hitbox.topY()<=this.y&&this.hitbox.y>=this.y) {
   		switch(this.direction) {
@@ -940,7 +898,7 @@ var Player = class Player extends Entity {
   					if (thisBox.topY()==this.y&&this.rightX()>=thisBox.leftX()&&this.leftX()<=thisBox.rightX()) {
   						this.held = thisBox;
   						thisBox.heldBy = this;
-  						CollisionCache.refreshBehavior(this,thisBox);
+              Collision.findPair(this,thisBox).refresh();
   						pad.use("attack");
   						this.setAnimation("lift",null,15);
   						break;
@@ -960,7 +918,7 @@ var Player = class Player extends Entity {
   				drop.y = this.midY();
   				drop.heldBy = null;
   				this.held = null;
-  				CollisionCache.refreshBehavior(this,drop);
+          Collision.findPair(this,drop).refresh();
   			}
   			else {
   				var throwing = this.held;
@@ -977,9 +935,9 @@ var Player = class Player extends Entity {
   				}
   				throwing.heldBy = null;
   				this.held = null;
-  				CollisionCache.removeAllPairsWith(throwing);
-  				CollisionCache.addPair(this,throwing,0);
-  				CollisionCache.requestRefresh(this,throwing,20);
+  				Collision.removeAllPairsWith(throwing);
+  				Collision.addPair(this,throwing,0);
+  				Collision.requestRefresh(this,throwing,20);
   			}
   			pad.use("attack");
   		}

@@ -384,155 +384,6 @@ const LineMaker = {
 		}
 	}
 }
-const CollisionCache = {
-	c0: [],
-	c1: [],
-	type: [],
-	old: [],
-	requests: [],
-	findPair: function(b1,b2) {
-		for (var i in this.c0) {
-			if (this.c0[i]==b1) {
-			if (this.c1[i]==b2) return i;
-			}
-			else if (this.c0[i]==b2) {
-				if (this.c1[i]==b1) return i;
-			}
-		}
-		return "none";
-	},
-	addPair: function(b1,b2,type) {
-		this.c0.push(b1);
-		this.c1.push(b2);
-		this.type.push(type!=null?type:null);
-		this.old.push(false);
-		return this.c0.length-1;
-	},
-	removePair: function(i) {
-		this.c0.splice(i,1);
-		this.c1.splice(i,1);
-		this.type.splice(i,1);
-		this.old.splice(i,1);
-	},
-	runCollision: function() {
-		for (var i in this.c0) {
-			this.collidePair(this.c0[i],this.c1[i],this.type[i]);
-		}
-	},
-	refreshBehavior: function(b1,b2) {
-		var i = this.findPair(b1,b2);
-		if (i!="none") this.type[i] = this.determineBehavior(b1,b2);
-	},
-	requestRefresh: function(b1,b2,ticks) {
-		this.requests.push({
-			box1:b1, box2:b2,
-			tick:ticks
-		});
-	},
-	checkRequests: function() {
-		var list = [];
-		for (var i in this.requests) {
-			var req = this.requests[i];
-			req.tick--;
-			if (req.tick<=0) {
-				this.refreshBehavior(req.box1,req.box2);
-				list.push(req);
-			}
-		}
-		for (var i in list) {
-			this.requests.splice(this.requests.indexOf(list[i]),1);
-		}
-	},
-	removeAllPairsWith: function(b) {
-		var list = [];
-		for (var i in this.c0) {
-			if (this.c0[i]==b||this.c1[i]==b) list.push(i);
-		}
-		for (var n=list.length-1;n>-1;n--) this.removePair(list[n]);
-	},
-	determineBehavior: function(a,b) {
-		var ac = a.collisionType, bc = b.collisionType;
-		if ((a.held&&a.held==b)||(b.held&&b.held==a)) behavior = 0;
-		else if ((a.heldBy&&a.heldBy==b)||(b.heldBy&&b.heldBy==a)) behavior = 0;
-		else if ((a.heldBy&&bc==C_LINE)||(b.heldBy&&ac==C_LINE)) behavior = 0;
-		else if (ac==C_NONE||bc==C_NONE) behavior = 0;
-		else if (ac==C_LINE&&bc<C_INFINIMASS) behavior = SolidLine.testBehavior(a,b)?9:10;
-		else if (bc==C_LINE&&ac<C_INFINIMASS) behavior = SolidLine.testBehavior(b,a)?8:10;
-		else if (ac>=C_INFINIMASS&&bc>=C_INFINIMASS) behavior = 0;
-		else if (ac>=C_INFINIMASS) behavior = 1;
-		else if (bc>=C_INFINIMASS) behavior = 2;
-		else if (ac==bc) behavior = 3;
-		else if (ac==C_SOLID||bc==C_SOLID) behavior = ac>bc?4:5;
-		else if (ac==C_WEAK||bc==C_WEAK) behavior = ac>bc?4:5;
-		else {
-			//pushable and entity.
-			if (ac==C_ENT) behavior = 6;
-			else behavior = 7;
-		}
-		return behavior;
-	},
-	/*balanceType
-		0: no reaction
-		1: a overpowers b
-		2: b overpowers a
-		3: equal movement
-		4: a pushes b
-		5: b pushes a
-			6: a and push-block b
-			7: b and push-block a
-			8: a and line b
-			9: b and line a
-			10: pending line
-	*/
-	collidePair: function(a,b,behavior) {
-		if (!a.intersect(b)||behavior==0) return;
-		if (behavior==8) {
-			b.line.singleCheck(a);
-			return;
-		}
-		else if (behavior==9) {
-			a.line.singleCheck(b);
-			return;
-		}
-		else if (behavior==10) {
-			this.refreshBehavior(a,b);
-			return;
-		}
-		PhysicsBox.collide(a,b,behavior);
-	}
-};
-const Sectors = {
-	grid: {},
-	size: {width:320 , height:180 },
-	update: function() {
-		for (var i in this.grid) this.grid[i].updateLoadedState();
-		Box.callForAll("setSectors");
-	},
-	removeFromSector: function(obj,sectorNameOrX,sectorY) {
-		var sector = this.getSector(sectorNameOrX,sectorY);
-		sector.list.splice(sector.list.indexOf(obj),1);
-	},
-	addToSector: function(obj,sectorX,sectorY) {
-		var sector = this.getSector(sectorX,sectorY);
-		sector.list.push(obj);
-		obj.sectors.push(sector.name);
-	},
-	checkIfInSector: function(obj,sectorNameOrX,sectorY) {
-		var sector = this.getSector(sectorNameOrX,sectorY);
-		if (obj.rightX()>=sector.leftX()&&obj.leftX()<=sector.rightX()) {
-			if (obj.y>=sector.topY()&&obj.topY()<=sector.bottomY()) return true;
-		}
-		else return false;
-	},
-	getSector: function(sectorX,sectorY) {
-		if (typeof sectorX=="string") var sectorName = sectorX;
-		else if (typeof sectorX=="number"&&typeof sectorY=="number") var sectorName = sectorX+","+sectorY;
-		else return {list: []};
-		var sector = this.grid[sectorName];
-		if (!sector) sector = this.grid[sectorName] = new Sector(...sectorName.split(","));
-		return sector;
-	}
-}
 const User = {
 	name: "",
 	logUrl: "",
@@ -545,34 +396,6 @@ const User = {
 		window.location = this.logUrl;
 	}
 };
-
-class Sector {
-	constructor(sectorX,sectorY) {
-		this.x = sectorX;
-		this.y = sectorY;
-		this.name = sectorX+","+sectorY;
-		this.list = [];
-		this.loaded = true;
-	}
-	drawDebug() {
-		c.strokeStyle = "orange";
-		c.strokeRect(this.leftX(),this.topY(),Sectors.size.width,Sectors.size.height);
-		c.font = "10px Consolas";
-		c.strokeText(this.name,this.leftX(),this.topY()+10);
-	}
-	leftX() { return this.x*Sectors.size.width; }
-	rightX() { return this.leftX()+Sectors.size.width; }
-	topY() { return this.y*Sectors.size.height; }
-	bottomY() { return this.topY()+Sectors.size.height; }
-	updateLoadedState() {
-		this.loaded = false;
-		if (this.rightX()>=Camera.leftPx()&&this.leftX()<=Camera.rightPx()) {
-			if (this.bottomY()>=Camera.topPx()&&this.topY()<=Camera.bottomPx()) {
-				this.loaded = true;
-			}
-		}
-	}
-}
 
 var DrawableClassList = [];
 function callOnAllClasses (method) {
@@ -666,11 +489,11 @@ function tick() { //GAME UPDATES//
 	if (!paused) {
 		Garbage.clear();
 
-		CollisionCache.checkRequests();
+		Collision.checkRequests();
 		Entity.callForAll("animationTick");
 		Door.callForAll("animationTick");
 		Box.callForAll("update");
-		PhysicsBox.runPhysics();
+		Collision.run();
 		Line.callForAll("update");
 		Particle.callForAll("update");
 

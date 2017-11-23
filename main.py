@@ -24,6 +24,7 @@ scripts = [
   "scripts/level.js",
   "scripts/animation.js",
   "scripts/controls.js",
+  "scripts/collision.js",
   "scripts/classes.js"
 ]
 
