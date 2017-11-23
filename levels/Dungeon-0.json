@@ -1,13 +1,4 @@
 {
-  "shapes": [
-    {
-      "type":1,
-      "properties": [1,"black",1],
-      "pieces":[
-        [0,0,1,1]
-      ]
-    }
-  ],
   "name": "Dungeon-0",
   "bgType": "name",
   "bgName": "BG-Paper.png",
@@ -20,5 +11,14 @@
   "player2Spawn": {
     "x": 295,
     "y": 360
-  }
+  },
+  "terrain": [
+    {
+      "type":1,
+      "properties": [1,"black",1],
+      "pieces":[
+        [0,0,1,1]
+      ]
+    }
+  ]
 }

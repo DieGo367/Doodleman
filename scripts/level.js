@@ -22,7 +22,7 @@ var Level = {
 		y: 310
 	},
 	sprites: [],
-	shapes: []
+	terrain: []
 };
 const BlankLevel = clone(Level);
 const SpriteManager = {
@@ -71,13 +71,13 @@ const SpriteManager = {
 	}
 }
 SpriteManager.init();
-function makeLevelShape(shape) {
-	var construct = [PhysicsBox,SolidLine][shape.type];
-	for (var i in shape.pieces) {
-		var piece = shape.pieces[i];
-		if (shape.type==0) piece[0] += piece[2]/2;
-		var args = [...piece,...shape.properties];
-		construct.create(...args);
+function makeTerrain(terrain) {
+	var construct = [PhysicsBox,SolidLine][terrain.type];
+	for (var i in terrain.pieces) {
+		var piece = terrain.pieces[i];
+		if (terrain.type==0) piece[0] += piece[2]/2;
+		var args = [...piece,...terrain.properties];
+		construct.create(...args).isTerrain = true;
 	}
 }
 
@@ -98,14 +98,14 @@ function loadLevel(file) {
 	Level = clone(BlankLevel);
 	for (var p in newLevel) Level[p] = newLevel[p];
 	for (var s in Level.sprites) SpriteManager.make(...Level.sprites[s]);
-	for (var h in Level.shapes) makeLevelShape(Level.shapes[h]);
+	for (var h in Level.terrain) makeTerrain(Level.terrain[h]);
 	if (Level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",Level.bgRaw);
 	Camera.reset();
 	addPlayer(0);
 	if (multiplayer) addPlayer(1);
 	G$("LevelSelectView").hide();
 	if (focused) pauseGame(false);
-	console.log("Loaded Level "+newLevel.name);
+	console.log("Loaded Level "+Level.name);
 	return true;
 }
 function loadLevelB64(b64) {

@@ -33,7 +33,7 @@
     [10,1163,980],
     [10,1287,978]
   ],
-  "shapes": [
+  "terrain": [
     {
       "type":0,
       "properties": ["black",null,true,5,false,null],

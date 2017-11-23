@@ -1,20 +1,4 @@
 {
-  "shapes": [
-    {
-      "type": 0,
-      "properties": ["black",null,true,5,false,null],
-      "pieces": [
-        [427,480,427,40]
-      ]
-    }
-  ],
-  "sprites": [
-    [22,427,430],
-    [20,141,152,282,34,0,1,1,0],
-    [10,640.5,40],
-    [21,30,480,0,1],
-    [21,447,440,1,0]
-  ],
   "name": "TestLevel",
   "bgName": "BG-Paper.png",
   "width": 854,
@@ -34,5 +18,21 @@
   },
   "horScrollBuffer": 240,
   "vertScrollBuffer": 125,
-  "minZoom": 0.75
+  "minZoom": 0.75,
+  "terrain": [
+    {
+      "type": 0,
+      "properties": ["black",null,true,5,false,null],
+      "pieces": [
+        [427,480,427,40]
+      ]
+    }
+  ],
+  "sprites": [
+    [22,427,430],
+    [20,141,152,282,34,0,1,1,0],
+    [10,640.5,40],
+    [21,30,480,0,1],
+    [21,447,440,1,0]
+  ]
 }
