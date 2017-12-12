@@ -20,47 +20,61 @@ from google.appengine.api import users
 
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 scripts = [
-  "scripts/project%20scribble.js",
-  "scripts/level.js",
-  "scripts/animation.js",
-  "scripts/controls.js",
-  "scripts/collision.js",
-  "scripts/classes.js"
+  "project%20scribble.js",
+  "game.js",
+  "level.js",
+  "animation.js",
+  "controls.js",
+  "collision.js",
+  "classes.js",
+  "gui.js",
+  "devTools.js"
 ]
+editor_scripts = [
+  "project%20scribble.js",
+  "editor.js",
+  "level.js",
+  "animation.js",
+  "controls.js",
+  "collision.js",
+  "classes.js",
+  "gui.js",
+  "devTools.js"
+]
+
+def get_user_vars():
+    user = users.get_current_user()
+    if user:
+        name = user.nickname().split('@')[0]
+        log_url = users.create_logout_url('/')
+    else:
+        name = "Guest"
+        log_url = users.create_login_url('/')
+    return {"user": user, "name": name, "log_url": log_url}
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        user = users.get_current_user()
-        if user:
-            name = user.nickname().split('@')[0]
-            log_url = users.create_logout_url('/')
-        else:
-            name = "Guest"
-            log_url = users.create_login_url('/')
-
-
-        mode = self.request.get("m")
-        if mode:
-            spoopy = mode=="spoopy"
-        else:
-            spoopy = False
-
-
         script_html = ""
         for script in scripts:
-            script_html += "<script src=%s></script>" % (script)
+            script_html += "<script src=\"scripts/%s\"></script>" % (script)
 
-
-        temp_vars = {
-            "scripts": script_html,
-            "user": user,
-            "name": name,
-            "log_url": log_url,
-            "spoopy": spoopy
-        }
+        temp_vars = get_user_vars()
+        temp_vars["scripts"] = script_html
         temp = env.get_template("main.html")
         self.response.out.write(temp.render(temp_vars))
 
+class EditorHandler(webapp2.RequestHandler):
+    def get(self):
+        script_html = ""
+        for script in editor_scripts:
+            script_html += "<script src=\"scripts/%s\"></script>" % (script)
+
+        temp_vars = get_user_vars()
+        temp_vars["scripts"] = script_html
+        temp = env.get_template("editor.html")
+        self.response.out.write(temp.render(temp_vars))
+
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+    ('/', MainHandler),
+    ('/edit', EditorHandler)
 ], debug=True)

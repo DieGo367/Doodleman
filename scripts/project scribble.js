@@ -46,6 +46,7 @@ function printFuncName(func) {
 var canvas, c, output; //canvas and context
 var interval, gameSpeed = 50/3;
 var pixelDensity = 1, hudWidth = 640, hudHeight = 360;
+var heightScale, widthScale;
 var paused = false, pausedBy, focused = true, fullScreen = false;
 var viewLock = false, viewAction = function() {};
 var gameMode = 0, multiplayer = false, clickSpawn = false;
@@ -95,6 +96,7 @@ function refreshCookie(key,expDays) {
 function setGameSpeed(speed) {
 	if (interval!=null) clearInterval(interval);
 	interval = setInterval(tick,speed);
+	gameSpeed = speed;
 }
 function averageCoords(e) {
 	var tx = 0, ty = 0;
@@ -184,8 +186,8 @@ const Pointer = {
 	mousemove: function(event) {
 		var rect = canvas.getBoundingClientRect();
 		if (fullScreen) {
-			var awkScale = Math.min(calcedWidth,calcedHeight);
-			this.move(px((event.clientX-rect.left)/awkScale*dp(1)),px((event.clientY-rect.top)/awkScale*dp(1)));
+			var scale = Math.min(widthScale,heightScale);
+			this.move(px((event.clientX-rect.left)/scale*dp(1)),px((event.clientY-rect.top)/scale*dp(1)));
 		}
 		else this.move(px(event.clientX-rect.left),px(event.clientY-rect.top));
 	},
@@ -294,96 +296,6 @@ const Camera = {
 		}
 	}
 }
-const LineMaker = {
-	mode: 'line',
-	x: null,
-	y: null,
-	xx: null,
-	yy: null,
-	dir: null,
-	fill: "",
-	size: 1,
-	isBuilding: false,
-	clear: function() {
-		this.x = this.y = this.xx = this.yy = this.dir = null;
-		this.isBuilding = false;
-	},
-	makeLine: function() {
-		SolidLine.create(this.x,this.y,this.xx,this.yy,this.size,this.fill,this.dir);
-		output.show();
-		output.html(output.html()+"\nSolidLine:"+this.x+","+this.y+","+this.xx+","+this.yy+","+(this.fill?this.fill:"null")+","+this.dir);
-		this.clear();
-	},
-	makeBox: function() {
-		PhysicsBox.create(this.x,this.y,this.xx-this.x,this.yy-this.y,this.fill,null,true,C_INFINIMASS,false,0);
-		output.show();
-		output.html(output.html()+"\nPhysicsBox:"+this.x+","+this.y+","+(this.xx-this.x)+","+(this.yy-this.y)+","+(this.fill?this.fill:"null")+",null,true,C_INFINIMASS,false,0");
-		this.clear();
-	},
-	input: function(x,y) {
-		if (this.x==null) {
-			this.x = x;
-			this.y = y;
-		}
-		else switch(this.mode) {
-			case 'line':
-				if (this.xx==null) {
-					this.xx = x;
-					this.yy = y;
-				}
-				else if (this.dir) {
-					this.makeLine();
-				}
-				break;
-			case 'box':
-				this.makeBox(x,y);
-		}
-	},
-	calcDir: function(x,y) {
-		if (!this.xx) return 0;
-		var midX = (this.xx-this.x)/2+this.x;
-		var midY = (this.yy-this.y)/2+this.y;
-		var slope = Math.abs((y-midY)/(x-midX));
-		if (y<midY&&slope>1) return this.dir = LINE_UP;
-		else if (y>midY&&slope>1) return this.dir = LINE_DOWN;
-		else if (x>midX&&slope<1) return this.dir = LINE_RIGHT;
-		else if (x<midX&&slope<1) return this.dir = LINE_LEFT;
-		else return this.dir = 0;
-	},
-	getColor: function(dir) {
-		switch(dir) {
-			case LINE_DOWN: return "red";
-			case LINE_LEFT: return "green";
-			case LINE_RIGHT: return "orange";
-			case LINE_UP: return "blue";
-			default: return "darkGray";
-		}
-	},
-	draw: function() {
-		c.lineWidth = 1;
-		switch(this.mode) {
-			case 'line':
-				if (LineMaker.xx==null) {
-					c.strokeStyle = "hotpink";
-					drawLine(LineMaker.x,LineMaker.y,Pointer.camX(),Pointer.camY());
-				}
-				else {
-					var midX = (LineMaker.xx-LineMaker.x)/2+LineMaker.x;
-					var midY = (LineMaker.yy-LineMaker.y)/2+LineMaker.y;
-					c.strokeStyle = LineMaker.getColor(LineMaker.calcDir(Pointer.camX(),Pointer.camY()));
-					drawLine(midX,midY,Pointer.camX(),Pointer.camY());
-					c.strokeStyle = "darkGray";
-					drawLine(LineMaker.x,LineMaker.y,LineMaker.xx,LineMaker.yy);
-				}
-				break;
-			case 'box':
-				if (LineMaker.xx==null) {
-					c.strokeStyle = "hotpink";
-					c.strokeRect(LineMaker.x,LineMaker.y,Pointer.camX(),Pointer.camY());
-				}
-		}
-	}
-}
 const User = {
 	name: "",
 	logUrl: "",
@@ -463,54 +375,14 @@ function setGameMode(mode) {
 	}
 }
 
-/* WHAT NEEDS TO GO DOWN:
--update the game with a tick first
--then do window.requestAnimationFrame on the canvas to draw with frameskip
--first draw gray and BG
--then draw all tints
--then draw all objects
--then draw hearts and in-game hud
--then draw main hud and gui elements
--then draw debug and outlines
+/* DRAW ORDER:
+-gray and BG
+-all tints
+-all objects
+-hearts and in-game hud
+-hud and gui elements
+-debug and outlines
 */
-
-function tick() { //GAME UPDATES//
-	//update button states
-	GamePad.checkButtons();
-	Tap.checkTouches();
-	//global controls
-	doGlobalControls(globalKeyboard);
-	for (var i in Player.slots) {
-		if (Player.globalGPCtrls[i]&&Player.globalGPCtrls[i].gamepad()) {
-			doGlobalControls(Player.globalGPCtrls[i]);
-		}
-	}
-	//update all objects
-	if (!paused) {
-		Garbage.clear();
-
-		Collision.checkRequests();
-		Entity.callForAll("animationTick");
-		Door.callForAll("animationTick");
-		Box.callForAll("update");
-		Collision.run();
-		Line.callForAll("update");
-		Particle.callForAll("update");
-
-		Camera.update();
-		Sectors.update();
-
-		Garbage.clear();
-	}
-	GuiElement.callForAll("update");
-	//DevTools Line Maker
-	if (LineMaker.x&&(!G$("DevPencil").on||G$("DevEraser").on||!devEnabled)) LineMaker.clear();
-	//prepare keyboard for next frame
-	for (var i in Key.ctrls) Key.ctrls[i].justReleasedButtons = {};
-	//begin drawing
-	if (focused) window.requestAnimationFrame(drawGame);
-}
-
 function drawGame() {
 	//densityPixels
 	c.save();
@@ -542,18 +414,19 @@ function drawGame() {
 	}
 	//in game debug and elements
 	callOnAllClasses("drawElements");
-	if (devEnabled) callOnAllClasses("drawDebug");
-	//devTool eraser highlight
-	if (G$("DevEraser").on&&devEnabled) {
-		var type = G$("DevSpawnPM").on?0:1;
-		var thing = findTopThing(Pointer.camX(),Pointer.camY(),type);
-		if (thing) thing.drawHighlighted();
+	if (devEnabled) {
+		callOnAllClasses("drawDebug");
+		//devTool eraser highlight
+		if (G$("DevEraser").on) {
+			var type = G$("DevSpawnPM").on?0:1;
+			var thing = findTopThing(Pointer.camX(),Pointer.camY(),type);
+			if (thing) thing.drawHighlighted();
+		}
+		for (var i in Sectors.grid) {
+			Sectors.grid[i].drawDebug();
+		}
+		DevTools.LineMaker.draw();
 	}
-	if (devEnabled) for (var i in Sectors.grid) {
-		Sectors.grid[i].drawDebug();
-	}
-	//devTool line maker
-	if (G$("DevPencil").on&&!G$("DevEraser").on&&LineMaker.x!=null) LineMaker.draw();
 	//untranslate
 	c.restore();
 	//draw dev camera view
@@ -581,7 +454,7 @@ function drawGame() {
 			}
 		}
 	}
-	Tap.draw();
+	if (setting=="game") Tap.draw();
 	if (focused&&Tap.touches.length==0) Pointer.draw();
 	//debug hud
 	if (devEnabled&&!viewLock) {
@@ -695,7 +568,7 @@ function click(ctrl) {
 	if (devEnabled&&!found&&!paused) {
 		if (!G$("DevEraser").on) {
 			if (G$("DevSpawnPM").on) addPM(Pointer.camX(),Pointer.camY());
-			else if (G$("DevPencil").on) LineMaker.input(Pointer.camX(),Pointer.camY());
+			else if (G$("DevPencil").on) DevTools.LineMaker.input(Pointer.camX(),Pointer.camY());
 		}
 		else {
 			var type = G$("DevSpawnPM").on?0:1;
@@ -763,13 +636,13 @@ function addEvents() {
 		G$("FSToggle").on = fullScreen;
 		G$("FSToggle").toggleState = fullScreen?1:0;
 		if (fullScreen) {
-			calcedWidth = window.innerWidth/hudWidth;
-			calcedHeight = window.innerHeight/hudHeight;
-			var res = Math.round(Math.max(calcedWidth,calcedHeight));
-			if (res<1) res = 1;
-			screenSize(res);
-			if (calcedWidth>=calcedHeight) $(canvas).css({height: '100%', width:'auto'});
-			if (calcedHeight>=calcedWidth) $(canvas).css({width: '100%', height:'auto'});
+			widthScale = window.innerWidth/hudWidth;
+			heightScale = window.innerHeight/hudHeight;
+			var resolution = Math.round(Math.max(widthScale,heightScale));
+			if (resolution<1) resolution = 1;
+			screenSize(resolution);
+			if (widthScale>=heightScale) $(canvas).css({height: '100%', width:'auto'});
+			if (heightScale>=widthScale) $(canvas).css({width: '100%', height:'auto'});
 			drawGame();
 		}
 		else {
@@ -791,283 +664,3 @@ function addEvents() {
 		$(canvas).css({cursor: 'none'});
 	});
 }
-function addGui() {
-	View.create("Hud",0,0,0,Level.width,hudHeight).show();
-	Button.create("RespawnP1Button","Hud",hudWidth/2-50,50,100,40,"Respawn").setOnClick(function() {
-		addPlayer(0);
-	});
-	Button.create("AddP1Button","Hud",hudWidth/2-110,50,100,40,"P1 Start").setOnClick(function() {
-		addPlayer(0);
-	});
-	Button.create("AddP2Button","Hud",hudWidth/2+10,50,100,40,"P2 Start").setOnClick(function() {
-		addPlayer(1);
-	});
-	Button.create("PauseButton","Hud",hudWidth-60,10,50,50).setOnClick(function() {
-		pauseGame(true);
-	}).setIcon("GUI-Icons.png",0,0,42,4).show();
-
-	View.create("PauseMenu",0,0,0,hudWidth,hudHeight,"tint","black");
-	TextElement.create("PauseText","PauseMenu",hudWidth/2,hudHeight/2,"Paused","Catamaran, sans-serif",60,true,"yellow",CENTER,true,"darkOrange",5,true,"orange",3,8).show();
-	TextElement.create("PauseFocusMsg","PauseMenu",hudWidth/2,hudHeight/2+55,"Click to focus","Catamaran, sans-serif",30,false,"#ff6f6b",CENTER,false,"#ad2f2b",3,true,"#ad2f2b",3,8);
-	Button.create("PauseClose","PauseMenu",hudWidth-60,10,50,50).setOnClick(function() {
-		pauseGame(false);
-	}).setIcon("GUI-Icons.png",1,0,42,4).show();
-	Button.create("MultiJumpToggle","PauseMenu",20,hudHeight-120,130,40,"MultiJump").setOnClick(function() {
-		this.on = !this.on;
-		Player.prototype.multiJump = this.on;
-	}).show();
-	Button.create("LevelSelectButton","PauseMenu",20,hudHeight-60,130,40,"Level Select").setOnClick(function() {
-		G$("LevelSelectView").show();
-		G$("PauseMenu").hide();
-	}).show().setPressDelay(1);
-	Button.create("GameModeToggle","PauseMenu",hudWidth-150,hudHeight-60,130,40,"Sandbox Mode").setOnClick(function(ctrl) {
-		setGameMode(gameMode+1);
-	}).show();
-	Button.create("MPToggle","PauseMenu",hudWidth-150,hudHeight-120,130,40,"Singleplayer").setOnClick(function(ctrl) {
-		multiplayer = !multiplayer;
-		G$("MPToggle").text = multiplayer?"Multiplayer":"Singleplayer";
-		if (multiplayer) {
-			G$("RespawnP1Button").hide();
-			for (var i in Player.slots) {
-				if (!Player.respawnButtons[i]) continue;
-				if (!Player.slots[i]) Player.respawnButtons[i].show();
-				else Player.respawnButtons[i].hide();
-			}
-		}
-		else {
-			for (var i in Player.slots) if (Player.respawnButtons[i]) Player.respawnButtons[i].hide();
-			if (!Player.slots[0]) G$("RespawnP1Button").show();
-			else G$("RespawnP1Button").hide();
-		}
-	}).show();
-	Button.create("FSToggle","PauseMenu",hudWidth-130,10,50,50).setToggle(function() {
-		callPrefixedFunction(canvas,"requestFullscreen");
-		callPrefixedFunction(canvas,"requestFullScreen");
-	}, function() {
-		callPrefixedFunction(document,"exitFullscreen");
-		callPrefixedFunction(document,"exitFullScreen");
-	},true).setIcon("GUI-Icons.png",2,0,42,4).show();
-	Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
-		G$("CtrlSettingsView").show();
-		G$("PauseMenu").hide();
-	}).setIcon("GUI-Icons.png",3,1,42,4).show();
-	TextElement.create("UserInfo","PauseMenu",hudWidth/2,hudHeight-30,"Logged in as "+User.name,"Catamaran, sans-serif",15,false,"white",CENTER)//.show();
-	Button.create("LoginoutButton","PauseMenu",hudWidth/2-50,hudHeight-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
-		User.useLink();
-	})//.show();
-
-	View.create("CtrlSettingsView",1,0,0,hudWidth,hudHeight,"tint","black");
-	TextElement.create("CtrlSettingsText","CtrlSettingsView",hudWidth/2,30,"Controller Settings","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
-	Button.create("CtrlSettingsClose","CtrlSettingsView",hudWidth-60,10,50,50).setOnClick(function() {
-		G$("CtrlSettingsView").hide();
-		G$("PauseMenu").show();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
-	TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/3,80,"Player 1","Catamaran, sans-serif",20,false,"white",CENTER,true,"gray",5,false).show();
-	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth*2/3,80,"Player 2","Catamaran, sans-serif",20,false,"white",CENTER,true,"gray",5,false).show();
-	Button.create("CtrlP1Keyboard","CtrlSettingsView",hudWidth/3-100,130,200,40,"Keyboard").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.keyMaps[0],"keyboard");
-		this.playerSlot = 0;
-	}).setOnClick(function() {
-		createControllerChooserGUI([wasd,ijkl],"keyboard",this);
-	}).show();
-	Button.create("CtrlP1GamePad","CtrlSettingsView",hudWidth/3-100,180,200,40,"GamePad").setOnViewShown(function() {
-		var globalGPCtrl = Player.globalGPCtrls[0];
-		if (globalGPCtrl) this.text = globalGPCtrl.gamepadName;
-		else this.text = "None";
-		this.playerSlot = 0;
-	}).setOnClick(function() {
-		createControllerChooserGUI(GamePad.slotsFilled(),"gamepad",this);
-	}).show();
-	Button.create("CtrlP1Touch","CtrlSettingsView",hudWidth/3-100,230,200,40,"Touch Controls").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.tapMaps[0],"touch");
-		this.playerSlot = 0;
-	}).setOnClick(function() {
-		createControllerChooserGUI([tscr],"touch",this);
-	}).show();
-	Button.create("CtrlP2Keyboard","CtrlSettingsView",hudWidth*2/3-100,130,200,40,"Keyboard").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.keyMaps[1],"keyboard");
-		this.playerSlot = 1;
-	}).setOnClick(function() {
-		createControllerChooserGUI([wasd,ijkl],"keyboard",this);
-	}).show();
-	Button.create("CtrlP2GamePad","CtrlSettingsView",hudWidth*2/3-100,180,200,40,"GamePad").setOnViewShown(function() {
-		var globalGPCtrl = Player.globalGPCtrls[1];
-		if (globalGPCtrl) this.text = globalGPCtrl.gamepadName;
-		else this.text = "None";
-		this.playerSlot = 1;
-	}).setOnClick(function() {
-		createControllerChooserGUI(GamePad.slotsFilled(),"gamepad",this);
-	}).show();
-	Button.create("CtrlP2Touch","CtrlSettingsView",hudWidth*2/3-100,230,200,40,"Touch Controls").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.tapMaps[1],"touch");
-		this.playerSlot = 1;
-	}).setOnClick(function() {
-		createControllerChooserGUI([tscr],"touch",this);
-	}).show();
-	View.create("CtrlChooser",2,0,0,hudWidth,hudHeight,"tint","darkBlue");
-
-	View.create("UserActionView",1,15,15,hudWidth-30,hudHeight-30,"window");
-	TextElement.create("UAVText","UserActionView",hudWidth/2,hudHeight/2,"Press any key or click the screen to continue.","Catamaran, sans-serif",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
-
-	View.create("MapperView",1,15,15,hudWidth-30,hudHeight-30,"window");
-	ImgElement.create("MapperImg","MapperView",hudWidth/2,hudHeight/2,"GUI-Controller.png",640,360).show();
-	TextElement.create("MapperText","MapperView",hudWidth/2,hudHeight-90,"Press buttons to map.","Catamaran, sans-serif",30,false,"white",CENTER,false,null,null,true,"black",3,8).show();
-	Button.create("MapperClose","MapperView",hudWidth-100,20,80,50,"Cancel").setOnClick(function() {
-		G$("MapperView").hide();
-	}).setClose(true).show();
-
-	View.create("DevTools",0,hudWidth-70,70,70,210,"tint","lightBlue");
-	var setOn = function() {
-		this.on = !this.on;
-		for (var i in this.view.children) {
-			if (this.view.children[i]!=this) this.view.children[i].on = false;
-		}
-		if (G$("DevPencil").on) Pointer.cursor = "pencil";
-		else Pointer.cursor = "crosshair";
-	}
-	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setOnClick(setOn).setIcon("GUI-Icons.png",0,1,42,4).show();
-	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setOnClick(setOn).setIcon("GUI-Icons.png",1,1,42,4).show();
-	Button.create("DevEraser","DevTools",hudWidth-60,220,50,50).setOnClick(function(){
-		if (this.on) this.on = false;
-		else if (G$("DevSpawnPM").on||G$("DevPencil").on) this.on = true;
-		Pointer.cursor = this.on?"eraser":(G$("DevPencil").on?"pencil":"crosshair");
-	}).setIcon("GUI-Icons.png",2,1,42,4).show();
-
-	View.create("LevelSelectView",1,0,0,hudWidth,hudHeight,"tint","black");
-	Button.create("LSClose","LevelSelectView",hudWidth-60,10,50,50).setOnClick(function() {
-		G$("LevelSelectView").hide();
-		G$("PauseMenu").show();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
-	TextElement.create("LSText","LevelSelectView",hudWidth/2,30,"Select a level","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
-	$.get("levels/_list_.json", function(data) {
-		var levelNames = JSON.parse(data);
-		for (var i in levelNames) {
-			var name = levelNames[i].split(".")[0];
-			var y = Math.floor(i/2);
-			var x = i%2==0?20:240;
-			Button.create("LS"+name,"LevelSelectView",x,50+y*60,200,40,name).setOnClick(function() {
-				$.get("levels/"+this.text+".json",function(data) {
-					loadLevel(data);
-				});
-			}).show();
-		}
-	});
-	Button.create("LSFileButton","LevelSelectView",hudWidth-170,hudHeight-60,150,40,"Load From File").setOnClick(openLocalFile,true).show().setPressDelay(1);
-}
-
-function getCtrlDisplayName(obj,type) {
-	if (obj!=null&&(typeof obj=="object"||typeof obj=="number")) {
-		switch(type) {
-			case "keyboard":
-				return obj.name;
-				break;
-			case "gamepad":
-				return GamePad.controllers[obj].id.split("(")[0].trim();
-				break;
-			case "touch":
-				return "Touch Controls";
-		}
-	}
-	return "None";
-}
-
-function createControllerChooserGUI(list,type,sourceButton) {
-	var finalList = [];
-	for (var i in list) {
-		var mapSettings = [Player.keyMaps,Player.gpIds,Player.tapMaps][["keyboard","gamepad","touch"].indexOf(type)];
-		if (mapSettings.indexOf(list[i])==-1 || list[i]==mapSettings[sourceButton.playerSlot]) {
-			finalList.push(list[i]);
-		}
-	}
-	finalList.push("None");
-	G$("CtrlChooser").show();
-	for (var i in finalList) {
-		Button.create("ctrlChooser::"+i+"::"+type,"CtrlChooser",hudWidth/2-100,30+50*i,200,40,getCtrlDisplayName(finalList[i],type)).setOnClick(function() {
-			var resultCtrl = finalList[this.name.split("::")[1]];
-			var type = this.name.split("::")[2];
-			sourceButton.text = getCtrlDisplayName(resultCtrl,type);
-			changeControlSlots(type,sourceButton.playerSlot,resultCtrl);
-			G$("CtrlChooserClose").onClickFunction();
-		}).show();
-	}
-	Button.create("CtrlChooserClose","CtrlChooser",hudWidth/2-100,hudHeight-70,200,40,"Cancel").setOnClick(function() {
-		var view = G$("CtrlChooser");
-		for (var i in view.children) view.children[i].remove();
-		view.children = [];
-		view.hide();
-	}).setClose(true).show();
-}
-
-function changeControlSlots(type,slot,ctrl) {
-	switch(type) {
-		case "keyboard":
-			Player.keyMaps[slot] = ctrl=="None"?null:ctrl;
-			break;
-		case "gamepad":
-			if (Player.globalGPCtrls[slot]) Player.globalGPCtrls[slot].selfDestruct();
-			if (ctrl=="None") {
-				Player.gpIds[slot] = null;
-				Player.globalGPCtrls[slot] = null;
-			}
-			else {
-				Player.gpIds[slot] = ctrl;
-				if (GamePad.controllers[ctrl].mapping=="standard") {
-					Player.globalGPCtrls[slot] = new Ctrl(globalGamepadMap,ctrl);
-					Player.gpMaps[slot] = gpad;
-				}
-				else {
-					Player.globalGPCtrls[slot] = new Ctrl(globalRSamMap,ctrl);
-					Player.gpMaps[slot] = rsam;
-				}
-			}
-			break;
-		case "touch":
-			Player.tapMaps[slot] = ctrl=="None"?null:ctrl;
-			break;
-	}
-	Player.relinkCtrls();
-}
-
-function G$(query) {
-	var v = View.getAll(), g = GuiElement.getAll();
-	for (var i in v) {
-		if (v[i].name==query) return v[i];
-	}
-	for (var i in g) {
-		if (g[i].name==query) return g[i];
-	}
-}
-G$.hide = function(q) { return this(q).hide(); }
-G$.show = function(q) { return this(q).show(); }
-G$.on = function(q) {
-	var g = this(q);
-	if (g instanceof GuiElement) {
-		return g.on;
-	}
-}
-
-
-var calcedHeight, calcedWidth;
-function initGame() {
-	//canvas stuff
-	canvas = $("#paper")[0], c = canvas.getContext("2d");
-	setPrefixedProperty(c,"imageSmoothingEnabled",false);
-	output = $("#output");
-	output.hide();
-	//event listeners
-	addEvents();
-	//toolongtago//set up gui objects
-	addGui();
-	//some other stuff
-	globalKeyboard = new Ctrl(globalKeyboardMap);
-	Player.respawnButtons = [G$("AddP1Button"),G$("AddP2Button"),null,null];
-	//set up physical objects
-	addPlayer(0);
-	//start game
-	setGameSpeed(gameSpeed);
-}
-function loadLoop() {
-	if (Animation.loadStatus==0) initGame();
-	else window.requestAnimationFrame(loadLoop);
-}
-$(window).on("load",loadLoop);

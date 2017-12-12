@@ -558,3 +558,50 @@ var gpad = new CtrlMap("GPAD","gamepad",playerActions,[[12,'a1-'],[15,'a0+'],[13
 var tscr = new CtrlMap("TOUCH","touch",playerActions,['a1-','a0+','a1+','a0-',0,1]);
 
 var rsam = new CtrlMap("GPAD-RedSamuraiChrome","gamepad",playerActions,[['a1-','h90'],['a0+','h91'],['a1+','h92'],['a0-','h93'],0,[3,1]]);
+
+
+function getCtrlDisplayName(obj,type) {
+	if (obj!=null&&(typeof obj=="object"||typeof obj=="number")) {
+		switch(type) {
+			case "keyboard":
+				return obj.name;
+				break;
+			case "gamepad":
+				return GamePad.controllers[obj].id.split("(")[0].trim();
+				break;
+			case "touch":
+				return "Touch Controls";
+		}
+	}
+	return "None";
+}
+
+function changeControlSlots(type,slot,ctrl) {
+	switch(type) {
+		case "keyboard":
+			Player.keyMaps[slot] = ctrl=="None"?null:ctrl;
+			break;
+		case "gamepad":
+			if (Player.globalGPCtrls[slot]) Player.globalGPCtrls[slot].selfDestruct();
+			if (ctrl=="None") {
+				Player.gpIds[slot] = null;
+				Player.globalGPCtrls[slot] = null;
+			}
+			else {
+				Player.gpIds[slot] = ctrl;
+				if (GamePad.controllers[ctrl].mapping=="standard") {
+					Player.globalGPCtrls[slot] = new Ctrl(globalGamepadMap,ctrl);
+					Player.gpMaps[slot] = gpad;
+				}
+				else {
+					Player.globalGPCtrls[slot] = new Ctrl(globalRSamMap,ctrl);
+					Player.gpMaps[slot] = rsam;
+				}
+			}
+			break;
+		case "touch":
+			Player.tapMaps[slot] = ctrl=="None"?null:ctrl;
+			break;
+	}
+	Player.relinkCtrls();
+}
