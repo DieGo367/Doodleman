@@ -655,7 +655,7 @@ function addEvents() {
 		focused = false;
 		G$("PauseFocusMsg").show();
 		$(canvas).css({cursor: 'auto'});
-		pauseGame(true);
+		if (setting=="game") pauseGame(true);
 		window.requestAnimationFrame(drawGame);
 	});
 	$(window).on("focus",function() {

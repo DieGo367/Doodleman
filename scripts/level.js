@@ -71,13 +71,32 @@ const SpriteManager = {
 	}
 }
 SpriteManager.init();
-function makeTerrain(terrain) {
-	var construct = [PhysicsBox,SolidLine][terrain.type];
-	for (var i in terrain.pieces) {
-		var piece = terrain.pieces[i];
-		if (terrain.type==0) piece[0] += piece[2]/2;
-		var args = [...piece,...terrain.properties];
-		construct.create(...args).isTerrain = true;
+const TerrainManager = {
+	make: function(terrain) {
+		var construct = [PhysicsBox,SolidLine][terrain.type];
+		for (var i in terrain.pieces) {
+			var piece = terrain.pieces[i];
+			if (terrain.type==0) piece[0] += piece[2]/2;
+			var args = [...piece,...terrain.properties];
+			construct.create(...args).isTerrain = true;
+		}
+	},
+	updateLevelData: function(type,rawArgs) {
+		var dimensions = rawArgs.slice(0,4);
+		var properties = rawArgs.slice(4);
+		if (type==0) properties[0] -= properties[2]/2;
+		var found = false;
+		for (var i in Level.terrain) {
+			var definition = Level.terrain[i];
+			if (definition.type==type) {
+				if (JSON.stringify(definition.properties)==JSON.stringify(properties)) {
+					definition.pieces.push(dimensions);
+					found = true;
+					break;
+				}
+			}
+		}
+		if (!found) Level.terrain.push({type:type, properties:properties, pieces:[dimensions]});
 	}
 }
 
@@ -98,7 +117,7 @@ function loadLevel(file) {
 	Level = clone(BlankLevel);
 	for (var p in newLevel) Level[p] = newLevel[p];
 	for (var s in Level.sprites) SpriteManager.make(...Level.sprites[s]);
-	for (var h in Level.terrain) makeTerrain(Level.terrain[h]);
+	for (var h in Level.terrain) TerrainManager.make(Level.terrain[h]);
 	if (Level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",Level.bgRaw);
 	Camera.reset();
 	addPlayer(0);
@@ -136,10 +155,10 @@ function loadLocalFile(event) {
 }
 
 function exportLevel() {
-	var data = JSON.stringify(Level);
+	var data = JSON.stringify(Level,null,'\t');
 	$("#fileOutput").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
 }
 function logLevel() {
-	var data = JSON.stringify(Level);
+	var data = JSON.stringify(Level,null,'\t');
 	console.log(data);
 }

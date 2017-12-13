@@ -14,16 +14,16 @@ const DevTools = {
   		this.isBuilding = false;
   	},
   	makeLine: function() {
-  		SolidLine.create(this.x,this.y,this.xx,this.yy,this.size,this.fill,this.dir);
-  		output.show();
-  		output.html(output.html()+"\nSolidLine:"+this.x+","+this.y+","+this.xx+","+this.yy+","+(this.fill?this.fill:"null")+","+this.dir);
+      var properties = [this.x,this.y,this.xx,this.yy,this.size,this.fill,this.dir];
+  		SolidLine.create(...properties);
+      if (setting=="editor") TerrainManager.updateLevelData(1,properties);
   		this.clear();
   	},
   	makeBox: function() {
-  		PhysicsBox.create(this.x,this.y,this.xx-this.x,this.yy-this.y,this.fill,null,true,C_INFINIMASS,false,0);
-  		output.show();
-  		output.html(output.html()+"\nPhysicsBox:"+this.x+","+this.y+","+(this.xx-this.x)+","+(this.yy-this.y)+","+(this.fill?this.fill:"null")+",null,true,C_INFINIMASS,false,0");
-  		this.clear();
+      var properties = [this.x,this.y,this.xx-this.x,this.yy-this.y,this.fill,null,true,C_INFINIMASS,false,0];
+      PhysicsBox.create(...properties);
+  		if (setting=="editor") TerrainManager.updateLevelData(0,properties);
+      this.clear();
   	},
   	input: function(x,y) {
   		if (this.x==null) {
@@ -65,27 +65,27 @@ const DevTools = {
   		}
   	},
   	draw: function() {
-      if (!G$("DevPencil").on||G$("DevEraser").on||LineMaker.x==null) return;
+      if (!G$("DevPencil").on||G$("DevEraser").on||this.x==null) return;
   		c.lineWidth = 1;
   		switch(this.mode) {
   			case 'line':
-  				if (LineMaker.xx==null) {
+  				if (this.xx==null) {
   					c.strokeStyle = "hotpink";
-  					drawLine(LineMaker.x,LineMaker.y,Pointer.camX(),Pointer.camY());
+  					drawLine(this.x,this.y,Pointer.camX(),Pointer.camY());
   				}
   				else {
-  					var midX = (LineMaker.xx-LineMaker.x)/2+LineMaker.x;
-  					var midY = (LineMaker.yy-LineMaker.y)/2+LineMaker.y;
-  					c.strokeStyle = LineMaker.getColor(LineMaker.calcDir(Pointer.camX(),Pointer.camY()));
+  					var midX = (this.xx-this.x)/2+this.x;
+  					var midY = (this.yy-this.y)/2+this.y;
+  					c.strokeStyle = this.getColor(this.calcDir(Pointer.camX(),Pointer.camY()));
   					drawLine(midX,midY,Pointer.camX(),Pointer.camY());
   					c.strokeStyle = "darkGray";
-  					drawLine(LineMaker.x,LineMaker.y,LineMaker.xx,LineMaker.yy);
+  					drawLine(this.x,this.y,this.xx,this.yy);
   				}
   				break;
   			case 'box':
-  				if (LineMaker.xx==null) {
+  				if (this.xx==null) {
   					c.strokeStyle = "hotpink";
-  					c.strokeRect(LineMaker.x,LineMaker.y,Pointer.camX(),Pointer.camY());
+  					c.strokeRect(this.x,this.y,Pointer.camX(),Pointer.camY());
   				}
   		}
   	}
