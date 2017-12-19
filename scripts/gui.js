@@ -18,7 +18,7 @@ G$.on = function(q) {
 }
 
 function buildMainHud() {
-  View.create("Hud",0,0,0,Level.width,hudHeight).show();
+  View.create("Hud",0,0,0,hudWidth,hudHeight).show();
 	Button.create("RespawnP1Button","Hud",hudWidth/2-50,50,100,40,"Respawn").setOnClick(function() {
 		addPlayer(0);
 	});
@@ -117,7 +117,7 @@ function buildLevelSelectMenu() {
 			}).show();
 		}
 	});
-  
+
 	Button.create("LSFileButton","LevelSelectView",hudWidth-170,hudHeight-60,150,40,"Load From File").setOnClick(openLocalFile,true).show().setPressDelay(1);
 }
 
@@ -225,9 +225,28 @@ function buildDevToolsHud() {
 	}
 	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setOnClick(setOn).setIcon("GUI-Icons.png",0,1,42,4).show();
 	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setOnClick(setOn).setIcon("GUI-Icons.png",1,1,42,4).show();
-	Button.create("DevEraser","DevTools",hudWidth-60,220,50,50).setOnClick(function(){
+	Button.create("DevEraser","DevTools",hudWidth-60,220,50,50).setOnClick(function() {
 		if (this.on) this.on = false;
 		else if (G$("DevSpawnPM").on||G$("DevPencil").on) this.on = true;
 		Pointer.cursor = this.on?"eraser":(G$("DevPencil").on?"pencil":"crosshair");
 	}).setIcon("GUI-Icons.png",2,1,42,4).show();
+}
+
+function buildEditorTools() {
+	View.create("EditorToolbar",0,0,0,hudWidth,70,"tint","purple");
+	View.create("EditorHud",0,0,0,70,70).show();
+
+	Button.create("ExpandButton","EditorHud",10,10,50,50,">").setToggle(function() {
+		G$("EditorToolbar").show();
+		G$("ExpandButton").text = "x";
+		G$("ExpandButton").toggleState = 1;
+	}, function() {
+		G$("EditorToolbar").hide();
+		G$("ExpandButton").text = ">";
+		G$("ExpandButton").toggleState = 0;
+	}).show();
+
+	Button.create("BoxTool","EditorToolbar",80,10,50,50).setOnClick(function() {
+		this.on = !this.on;
+	}).show();
 }

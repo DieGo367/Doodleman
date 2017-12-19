@@ -89,5 +89,19 @@ const DevTools = {
   				}
   		}
   	}
+  },
+  onClick: function() {
+    if (!G$("DevEraser").on) {
+      if (G$("DevSpawnPM").on) addPM(Pointer.camX(),Pointer.camY());
+      else if (G$("DevPencil").on) DevTools.LineMaker.input(Pointer.camX(),Pointer.camY());
+    }
+    else {
+      var type = G$("DevSpawnPM").on?0:1;
+      var thing = findTopThing(Pointer.camX(),Pointer.camY(),type);
+      if (thing) {
+        if (setting=="game") Particle.generate(Pointer.camX(),Pointer.camY(),0,15,5,30,false,type==0?"#6a00d8":thing.stroke,-90,45,8,2);
+        thing.remove();
+      }
+    }
   }
 }

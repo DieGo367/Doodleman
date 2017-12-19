@@ -110,6 +110,12 @@ var Box = class Box extends _c_ {
   	c.strokeStyle = this.hitBoxStroke;
   	c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
   }
+  drawHighlighted() {
+    c.lineWidth = 5;
+  	c.strokeStyle = "red";
+  	c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
+  	this.draw(true);
+  }
   update() { }
   setSectors() {
     if (!this.keepSectorsConstant||this.sectors[0]==null) {

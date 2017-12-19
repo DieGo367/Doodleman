@@ -10,6 +10,7 @@ function addGui() {
 	TextElement.create("UAVText","UserActionView",hudWidth/2,hudHeight/2,"Press any key or click the screen to continue.","Catamaran, sans-serif",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 
 	buildDevToolsHud();
+  buildEditorTools();
 }
 
 function initEditor() {

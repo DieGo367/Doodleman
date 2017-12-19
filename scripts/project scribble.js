@@ -1,4 +1,9 @@
 /* TODO:
+fix phasing through lines
+fix whatever is wrong with gamepads in chrome
+level editor
+	add fields to edit sprite/terrain properties
+fix not being able to carry block sometimes
 attacks
 	Entity.defineAttack();
 		damage
@@ -8,14 +13,7 @@ attacks
 	down stab
 finish pause menu controls
 touch controls - interactions with regular gui buttons
-collision system
-	separation of level collision and object collision
-	collided sides cacheing:
-		store maximum collisionType per side
-		if our a can't top that, then b outweighs a/
-			might already be implemented, at least partially
 gamepad mapper
-level editor - using existing line drawing and enemy spawning. just add fields to edit level/sprite/shape properties
 level loader - better gui format
 do something with login - save settings?
 
@@ -39,7 +37,7 @@ function printFunc(func) {
 	else output.hide();
 }
 function printFuncName(func) {
-	str = func.toString();
+	var str = func.toString();
 	return str.split(" ")[1];
 }
 //variables
@@ -565,37 +563,28 @@ function click(ctrl) {
 		}
 	}
 	else if (ctrl==Pointer) clearViewLock();
-	if (devEnabled&&!found&&!paused) {
-		if (!G$("DevEraser").on) {
-			if (G$("DevSpawnPM").on) addPM(Pointer.camX(),Pointer.camY());
-			else if (G$("DevPencil").on) DevTools.LineMaker.input(Pointer.camX(),Pointer.camY());
-		}
-		else {
-			var type = G$("DevSpawnPM").on?0:1;
-			var thing = findTopThing(Pointer.camX(),Pointer.camY(),type);
-			if (thing) {
-				Particle.generate(Pointer.camX(),Pointer.camY(),0,15,5,30,false,type==0?"#6a00d8":thing.stroke,-90,45,8,2);
-				thing.remove();
-			}
-		}
-	}
+	if (devEnabled&&!found&&!paused) DevTools.onClick();
 	Pointer.move(Pointer.x,Pointer.y);
 }
 
 function findTopThing(x,y,type) {
 	var allEnem = Enemy.getAll(), allSl = SolidLine.getAll();
-	for (var i in allEnem) {
-		if (allEnem[i].containsPoint(x,y)&&type==0) return allEnem[i];
+	if (type==0) {
+		for (var i in allEnem) {
+			if (allEnem[i].containsPoint(x,y)) return allEnem[i];
+		}
 	}
-	for (var i in allSl) {
-		if (allSl[i].hitbox.containsPoint(x,y)&&type==1) {
-			var lx = allSl[i].valueAt(y,'y');
-			var ly = allSl[i].valueAt(x,'x');
-			var diffX = Math.abs(x-lx);
-			var diffY = Math.abs(y-ly);
-			var slope = Math.abs(allSl[i].slope());
-			if ((slope=="vertical tangent"||slope>50)&&diffX<15) return allSl[i];
-			if (diffY<15) return allSl[i];
+	else {
+		for (var i in allSl) {
+			if (allSl[i].hitbox.containsPoint(x,y)) {
+				var lx = allSl[i].valueAt(y,'y');
+				var ly = allSl[i].valueAt(x,'x');
+				var diffX = Math.abs(x-lx);
+				var diffY = Math.abs(y-ly);
+				var slope = Math.abs(allSl[i].slope());
+				if ((slope=="vertical tangent"||slope>50)&&diffX<15) return allSl[i];
+				if (diffY<15) return allSl[i];
+			}
 		}
 	}
 }
