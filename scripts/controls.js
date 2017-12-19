@@ -173,8 +173,8 @@ var Tap = {
 		var rect = canvas.getBoundingClientRect();
 		for (var i = 0; i < touches.length; i++) {
 			if (fullScreen) {
-				var awkScale = Math.min(calcedWidth,calcedHeight);
-				var x = px((touches[i].clientX-rect.left)/awkScale*dp(1)), y = px((touches[i].clientY-rect.top)/awkScale*dp(1));
+				var scale = Math.min(widthScale,heightScale);
+				var x = px((touches[i].clientX-rect.left)/scale*dp(1)), y = px((touches[i].clientY-rect.top)/scale*dp(1));
 			}
 			else var x = px(touches[i].clientX-rect.left), y = px(touches[i].clientY-rect.top);
 			var oldTouch = this.getTouchById(touches[i].identifier);
