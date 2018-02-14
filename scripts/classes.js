@@ -77,7 +77,7 @@ var Box = class Box extends _c_ {
   	this.sprite = sprite;
     this.isLoaded = true;
     this.alwaysLoaded = false;
-    this.keepSectorsConstant = false;
+    this.lockSectors = false;
     this.sectors = [];
   }
   halfW() { return this.width/2 }
@@ -118,25 +118,35 @@ var Box = class Box extends _c_ {
   }
   update() { }
   setSectors() {
-    if (!this.keepSectorsConstant||this.sectors[0]==null) {
-      for (var i in this.sectors) {
-        Sectors.removeFromSector(this,this.sectors[i]);
-      }
+    if (!this.lockSectors||this.sectors[0]==null) {
+      for (var i in this.sectors) Sectors.removeFromSector(this,this.sectors[i]);
       this.sectors = [];
       var sectorX = Math.floor(this.x/Sectors.size.width);
       var sectorY = Math.floor(this.y/Sectors.size.height);
       Sectors.addToSector(this,sectorX,sectorY);
-      for (var a = -1; a<2; a++) {
-        for (var b = -1; b<2; b++) {
-          if (a==b&&b==0) continue;
-          if (Sectors.checkIfInSector(this,sectorX+a,sectorY+b)) {
-            Sectors.addToSector(this,sectorX+a,sectorY+b);
+      
+      if (this.width>Sectors.size.width||this.height>Sectors.size.height) {
+        var leftX = Math.floor(this.leftX()/Sectors.size.width);
+        var rightX = Math.floor(this.rightX()/Sectors.size.width);
+        var topY = Math.floor(this.topY()/Sectors.size.height);
+        var bottomY = Math.floor(this.y/Sectors.size.height);
+        for (var a = leftX; a <= rightX; a++) {
+          for (var b = topY; b <= bottomY; b++) {
+            if (a!=sectorX&&b!=sectorY) Sectors.addToSector(this,a,b);
           }
         }
       }
     }
-    if (this.alwaysLoaded) return this.loaded = true;
-    else if (this.sectors[0]) this.loaded = this.sectors[0].loaded;
+    if (this.alwaysLoaded) this.isLoaded = true;
+    else {
+      this.isLoaded = false;
+      for (var i in this.sectors) {
+        if (Sectors.getSector(this.sectors[i]).loaded) {
+          this.isLoaded = true;
+          break;
+        }
+      }
+    }
   }
   remove() {
     for (var i in this.sectors) {
@@ -328,7 +338,7 @@ var Door = class Door extends Interactable {
 initClass(Door,Interactable);
 Animation.applyToClass(Door);
 Door.prototype.drawLayer = -1;
-Door.prototype.keepSectorsConstant = true;
+Door.prototype.lockSectors = true;
 
 
 var PhysicsBox = class PhysicsBox extends Box {
@@ -691,7 +701,7 @@ var SolidLineHitBox = class SolidLineHitBox extends PhysicsBox {
   }
 }
 SolidLineHitBox.prototype.hitBoxStroke = "lightBlue";
-SolidLineHitBox.prototype.keepSectorsConstant = true;
+SolidLineHitBox.prototype.lockSectors = true;
 SolidLineHitBox.prototype.isTerrain = true;
 
 

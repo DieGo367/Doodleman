@@ -3,15 +3,24 @@ const Collision = {
     PhysicsBox.callForAll("doGroundDrag");
   	PhysicsBox.callForAll("preCollision");
 
-    var boxes = this.classify(PhysicsBox.getAll());
+    //get all boxes, and classsify them as either terrain or objects
+    // var boxes = this.classify(PhysicsBox.getAll());
+    var all = PhysicsBox.getAll();
+    // for (var i in all) console.log(all[i].isLoaded + ": " + printFuncName(all[i].constructor));
 
+    var loadedSectors = Sectors.getLoadedSectors();
+    for (var i in loadedSectors) console.log(loadedSectors[i]);
+    var boxes = this.classify(Sectors.getObjectListFromSectors(loadedSectors));
+
+    //detect intersections only among objects
     var objXobj = this.detectIntersections(boxes.objs,false);
+    // console.log(boxes.objs);
     this.updateCollisionList(objXobj,false);
-    for (var i in this.pairs) if (!this.pairs[i].involvesTerrain()) this.pairs[i].collide();
+    this.collidePairs(false);
 
-  	var objXterr = this.detectIntersections(boxes.objs,true);
+  	var objXterr = this.detectIntersections(boxes.objs,true,boxes.terrain);
     this.updateCollisionList(objXterr,true);
-    for (var i in this.pairs) if (this.pairs[i].involvesTerrain()) this.pairs[i].collide();
+    this.collidePairs(true);
   },
   classify: function(list) {
     var terrain = [], objects = [], other = [];
@@ -24,22 +33,23 @@ const Collision = {
     }
     return {terrain: terrain, objs: objects, other: other};
   },
-  detectIntersections: function(objs,checkTerrain) {
+  detectIntersections: function(objs,checkTerrain,terrain) {
     var intersections = [];
     // find all intersection pairs, then store temporarily
   	for (var i in objs) {
       //for every sector that this box is in, add the other objects in that sector as suspects for intersection
-      var suspects = [];
-      for (var j in objs[i].sectors) {
-        var list = Sectors.getSector(objs[i].sectors[j]).list;
-        for (var k in list) {
-          if (suspects.indexOf(list[k])==-1) suspects.push(list[k]);
-        }
-      }
+      // var suspects = [];
+      // for (var j in objs[i].sectors) {
+      //   var list = Sectors.getSector(objs[i].sectors[j]).list;
+      //   for (var k in list) {
+      //     if (suspects.indexOf(list[k])==-1) suspects.push(list[k]);
+      //   }
+      // }
 
       //limit our search to either terrain or objects
-      if (checkTerrain) suspects = this.classify(suspects).terrain;
-      else suspects = this.classify(suspects).objs;
+      // if (checkTerrain) suspects = this.classify(suspects).terrain;
+      // else suspects = this.classify(suspects).objs;
+      var suspects = checkTerrain? terrain: objs;
 
       //for all our suspects, check for actual intersection
       for (var j in suspects) {
@@ -116,12 +126,16 @@ const Collision = {
     }
     for (var i in list) this.removePair(list[i]);
   },
+  collidePairs: function(withTerrain) {
+    for (var i in this.pairs) {
+      if (withTerrain==this.pairs[i].involvesTerrain()) this.pairs[i].collide();
+    }
+  },
   updateCollisionList: function(newList,checkTerrain) {
     //mark all previous collision pairs as old
     for (var i in this.pairs) {
       var pair = this.pairs[i];
-      if (checkTerrain&&pair.involvesTerrain()) pair.old = true;
-      else if (!checkTerrain&&!pair.involvesTerrain()) pair.old = true;
+      if (checkTerrain==pair.involvesTerrain()) pair.old = true;
     }
 
     //check our new list of collisions to see if any are new or have ended
@@ -204,11 +218,11 @@ const Sectors = {
 	},
 	removeFromSector: function(obj,sectorNameOrX,sectorY) {
 		var sector = this.getSector(sectorNameOrX,sectorY);
-		sector.list.splice(sector.list.indexOf(obj),1);
+		sector.objects.splice(sector.objects.indexOf(obj),1);
 	},
 	addToSector: function(obj,sectorX,sectorY) {
 		var sector = this.getSector(sectorX,sectorY);
-		sector.list.push(obj);
+		sector.objects.push(obj);
 		obj.sectors.push(sector.name);
 	},
 	checkIfInSector: function(obj,sectorNameOrX,sectorY) {
@@ -221,18 +235,35 @@ const Sectors = {
 	getSector: function(sectorX,sectorY) {
 		if (typeof sectorX=="string") var sectorName = sectorX;
 		else if (typeof sectorX=="number"&&typeof sectorY=="number") var sectorName = sectorX+","+sectorY;
-		else return {list: []};
+    else return {objects: []};
 		var sector = this.grid[sectorName];
 		if (!sector) sector = this.grid[sectorName] = new Sector(...sectorName.split(","));
 		return sector;
-	}
+	},
+  getLoadedSectors: function() {
+    var list = [];
+    for (var i in this.grid) {
+      if (this.grid[i].loaded) list.push(this.grid[i]);
+    }
+    return list;
+  },
+  getObjectListFromSectors: function(sectors) {
+    var objectCollection = [];
+    for (var i in sectors) {
+      for (var j in sectors[i].objects) {
+        var obj = sectors[i].objects[j];
+        if (objectCollection.indexOf(obj)==-1) objectCollection.push(obj);
+      }
+    }
+    return objectCollection;
+  }
 }
 class Sector {
 	constructor(sectorX,sectorY) {
 		this.x = sectorX;
 		this.y = sectorY;
 		this.name = sectorX+","+sectorY;
-		this.list = [];
+		this.objects = [];
 		this.loaded = true;
 	}
 	drawDebug() {
