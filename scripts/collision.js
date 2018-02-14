@@ -3,18 +3,13 @@ const Collision = {
     PhysicsBox.callForAll("doGroundDrag");
   	PhysicsBox.callForAll("preCollision");
 
-    //get all boxes, and classsify them as either terrain or objects
-    // var boxes = this.classify(PhysicsBox.getAll());
-    var all = PhysicsBox.getAll();
-    // for (var i in all) console.log(all[i].isLoaded + ": " + printFuncName(all[i].constructor));
-
+    //get loaded boxes, and classsify them as either terrain or objects
     var loadedSectors = Sectors.getLoadedSectors();
     for (var i in loadedSectors) console.log(loadedSectors[i]);
     var boxes = this.classify(Sectors.getObjectListFromSectors(loadedSectors));
 
     //detect intersections only among objects
     var objXobj = this.detectIntersections(boxes.objs,false);
-    // console.log(boxes.objs);
     this.updateCollisionList(objXobj,false);
     this.collidePairs(false);
 
@@ -33,31 +28,16 @@ const Collision = {
     }
     return {terrain: terrain, objs: objects, other: other};
   },
-  detectIntersections: function(objs,checkTerrain,terrain) {
+  detectIntersections: function(listA,listB) {
     var intersections = [];
     // find all intersection pairs, then store temporarily
-  	for (var i in objs) {
-      //for every sector that this box is in, add the other objects in that sector as suspects for intersection
-      // var suspects = [];
-      // for (var j in objs[i].sectors) {
-      //   var list = Sectors.getSector(objs[i].sectors[j]).list;
-      //   for (var k in list) {
-      //     if (suspects.indexOf(list[k])==-1) suspects.push(list[k]);
-      //   }
-      // }
-
-      //limit our search to either terrain or objects
-      // if (checkTerrain) suspects = this.classify(suspects).terrain;
-      // else suspects = this.classify(suspects).objs;
-      var suspects = checkTerrain? terrain: objs;
-
-      //for all our suspects, check for actual intersection
-      for (var j in suspects) {
-  			if (objs[i]==suspects[j]) continue;
-  			if (objs[i].intersect(suspects[j])) {
+  	for (var i in listA) {
+      for (var j in listB) {
+  			if (listA[i]==listB[j]) continue;
+  			if (listA[i].intersect(listB[j])) {
           //add the pair to our list if it isn't there already
   				var alreadyExists = false;
-  				for (var k in intersections) if (intersections[k]==[objs[i],suspects[j]]||intersections[k]==[suspects[j],objs[i]]) alreadyExists = true;
+  				for (var k in intersections) if (intersections[k]==[listA[i],listB[j]]||intersections[k]==[listB[j],listA[i]]) alreadyExists = true;
   				if (!alreadyExists) intersections.push([objs[i],suspects[j]]);
   			}
   		}
