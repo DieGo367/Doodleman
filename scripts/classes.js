@@ -124,7 +124,7 @@ var Box = class Box extends _c_ {
       var sectorX = Math.floor(this.x/Sectors.size.width);
       var sectorY = Math.floor(this.y/Sectors.size.height);
       Sectors.addToSector(this,sectorX,sectorY);
-      
+
       if (this.width>Sectors.size.width||this.height>Sectors.size.height) {
         var leftX = Math.floor(this.leftX()/Sectors.size.width);
         var rightX = Math.floor(this.rightX()/Sectors.size.width);
@@ -1127,7 +1127,7 @@ Player.slots = [null,null,null,null];
 Player.respawnButtons = [];
 Player.keyMaps = [wasd,ijkl,null,null];
 Player.gpMaps = [null,null,null,null];
-Player.gpIds = [0,1,null,null];
+Player.gpIds = [null,null,null,null];
 Player.tapMaps = [tscr,null,null,null];
 Player.globalGPCtrls = [null,null,null,null];
 

@@ -1,6 +1,5 @@
 /* TODO:
 fix phasing through lines
-fix whatever is wrong with gamepads in chrome
 level editor
 	add fields to edit sprite/terrain properties
 fix not being able to carry block sometimes

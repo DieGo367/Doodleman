@@ -28,29 +28,28 @@ var GamePad = {
 	ctrls: [],
 	haveEvents: true,
 	connect: function(gp) {
+		if (gp.timestamp==0) return;
 		this.controllers[gp.index] = gp;
 		this.controllers[gp.index].detected = true;
-		console.log("Connected Gamepad "+gp.index+": "+gp.id);
-		if (gp.mapping=="standard") {
-			this.ctrlMaps[gp.index] = gpad;
-			var slot = Player.gpIds.indexOf(gp.index);
-			Player.globalGPCtrls[slot] = new Ctrl(globalGamepadMap,gp.index);
-			Player.gpMaps[slot] = gpad;
-		}
-		else {
-			this.ctrlMaps[gp.index] = rsam;
-			var slot = Player.gpIds.indexOf(gp.index);
-			Player.globalGPCtrls[slot] = new Ctrl(globalRSamMap,gp.index);
-			Player.gpMaps[slot] = rsam;
+		this.ctrlMaps[gp.index] = gpad;
+
+		for (var i = 0; i < 4; i++) {
+			if (Player.gpIds[i]==null) {
+				changeControlSlots("gamepad",i,gp.index);
+				console.log("Connected Gamepad "+gp.index+" to slot "+i+": "+gp.id);
+				break;
+			}
 		}
 	},
 	disconnect: function(gp) {
 		delete this.controllers[gp.index];
 		delete this.snapshots[gp.index];
 		delete this.ctrlMaps[gp.index];
-		Player.globalGPCtrls[Player.gpIds.indexOf(gp.index)].selfDestruct();
-		Player.globalGPCtrls[Player.gpIds.indexOf(gp.index)] = null;
-		console.log("Disonnected Gamepad "+gp.index+": "+gp.id);
+		var slot = Player.gpIds.indexOf(gp.index);
+		if (slot!=-1) {
+			changeControlSlots("gamepad",slot,"None");
+			console.log("Disconnected Gamepad "+gp.index+" from slot "+slot+": "+gp.id);
+		}
 	},
 	scanGamepads: function() {
 		var gamepads = navigator.getGamepads?navigator.getGamepads():(navigator.webkitGetGamepads?navigator.webkitGetGamepads():[]);
@@ -582,21 +581,18 @@ function changeControlSlots(type,slot,ctrl) {
 			Player.keyMaps[slot] = ctrl=="None"?null:ctrl;
 			break;
 		case "gamepad":
-			if (Player.globalGPCtrls[slot]) Player.globalGPCtrls[slot].selfDestruct();
 			if (ctrl=="None") {
 				Player.gpIds[slot] = null;
-				Player.globalGPCtrls[slot] = null;
+				if (Player.globalGPCtrls[slot]) {
+					Player.globalGPCtrls[slot].selfDestruct();
+					Player.globalGPCtrls[slot] = null;
+				}
+				Player.gpMaps[slot] = null;
 			}
 			else {
 				Player.gpIds[slot] = ctrl;
-				if (GamePad.controllers[ctrl].mapping=="standard") {
-					Player.globalGPCtrls[slot] = new Ctrl(globalGamepadMap,ctrl);
-					Player.gpMaps[slot] = gpad;
-				}
-				else {
-					Player.globalGPCtrls[slot] = new Ctrl(globalRSamMap,ctrl);
-					Player.gpMaps[slot] = rsam;
-				}
+				Player.globalGPCtrls[slot] = new Ctrl(globalGamepadMap,ctrl);
+				Player.gpMaps[slot] = gpad;
 			}
 			break;
 		case "touch":

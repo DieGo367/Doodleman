@@ -5,7 +5,6 @@ const Collision = {
 
     //get loaded boxes, and classsify them as either terrain or objects
     var loadedSectors = Sectors.getLoadedSectors();
-    for (var i in loadedSectors) console.log(loadedSectors[i]);
     var boxes = this.classify(Sectors.getObjectListFromSectors(loadedSectors));
 
     //detect intersections only among objects
