@@ -911,7 +911,7 @@ var Player = class Player extends Entity {
   					var thisBox = allPBox[j];
   					if (!thisBox.canBeCarried) continue;
   					if (thisBox.heldBy||this.heldBy==thisBox) continue;
-  					if (thisBox.topY()==this.y&&this.rightX()>=thisBox.leftX()&&this.leftX()<=thisBox.rightX()) {
+  					if (Math.abs(thisBox.topY()-this.y)<=0.1&&this.rightX()>=thisBox.leftX()&&this.leftX()<=thisBox.rightX()) {
   						this.held = thisBox;
   						thisBox.heldBy = this;
               Collision.findPair(this,thisBox).refresh();
@@ -934,7 +934,7 @@ var Player = class Player extends Entity {
   				drop.y = this.midY();
   				drop.heldBy = null;
   				this.held = null;
-          Collision.findPair(this,drop).refresh();
+          Collision.removeAllPairsWith(drop);
   			}
   			else {
   				var throwing = this.held;

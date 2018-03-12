@@ -99,11 +99,12 @@ const Collision = {
     this.pairs.splice(index,1);
   },
   removeAllPairsWith: function(box) {
-    var list = []
-    for (var i in this.pairs) {
-      if (this.pairs[i].a==box||this.pairs[i].b==box) list.push(this.pairs[i]);
+    for (var i = 0; i < this.pairs.length; i++) {
+      if (this.pairs[i].a==box||this.pairs[i].b==box) {
+        this.removePair(i);
+        i--;
+      }
     }
-    for (var i in list) this.removePair(list[i]);
   },
   collidePairs: function(withTerrain) {
     for (var i in this.pairs) {

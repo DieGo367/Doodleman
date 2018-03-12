@@ -1,27 +1,3 @@
-/* TODO:
-fix thrown object bugs
-	phases through lines when thrown
-	thrower phases through lines
-	can only carry blocks like 50% of the time
-level editor
-	finish toolbar
-	add fields to edit sprite/terrain properties
-attacks
-	Entity.defineAttack();
-		damage
-		charge duration (or instant) with stun and cooldown system
-		tie in with animation system
-			attack box creation and duration, size and position definitions
-	down stab
-finish pause menu controls
-touch controls - interactions with regular gui buttons
-gamepad mapper
-level loader - better gui format
-do something with login - save settings?
-
-   NOTES:
-	Flipnote speed 6 (12fps) frame = 5 60fps game frames
-*/
 function printErr(err) {
 	alert("Oh noes everything broke!\n"+err.stack);
 	console.log("Oh noes everything broke!\n"+err.stack);
