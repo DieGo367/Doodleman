@@ -8,11 +8,11 @@ const Collision = {
     var boxes = this.classify(Sectors.getObjectListFromSectors(loadedSectors));
 
     //detect intersections only among objects
-    var objXobj = this.detectIntersections(boxes.objs,false);
+    var objXobj = this.detectIntersections(boxes.objs,boxes.objs);//false);
     this.updateCollisionList(objXobj,false);
     this.collidePairs(false);
 
-  	var objXterr = this.detectIntersections(boxes.objs,true,boxes.terrain);
+  	var objXterr = this.detectIntersections(boxes.objs,/*true,*/boxes.terrain);
     this.updateCollisionList(objXterr,true);
     this.collidePairs(true);
   },
@@ -37,7 +37,7 @@ const Collision = {
           //add the pair to our list if it isn't there already
   				var alreadyExists = false;
   				for (var k in intersections) if (intersections[k]==[listA[i],listB[j]]||intersections[k]==[listB[j],listA[i]]) alreadyExists = true;
-  				if (!alreadyExists) intersections.push([objs[i],suspects[j]]);
+  				if (!alreadyExists) intersections.push([listA[i],listB[j]]);
   			}
   		}
   	}
@@ -257,8 +257,8 @@ class Sector {
 	bottomY() { return this.topY()+Sectors.size.height; }
 	updateLoadedState() {
 		this.loaded = false;
-		if (this.rightX()>=Camera.leftPx()&&this.leftX()<=Camera.rightPx()) {
-			if (this.bottomY()>=Camera.topPx()&&this.topY()<=Camera.bottomPx()) {
+		if (this.rightX()>=Camera.leftPx()-Sectors.size.width&&this.leftX()<=Camera.rightPx()+Sectors.size.width) {
+			if (this.bottomY()>=Camera.topPx()-Sectors.size.height&&this.topY()<=Camera.bottomPx()+Sectors.size.height) {
 				this.loaded = true;
 			}
 		}

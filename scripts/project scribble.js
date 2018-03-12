@@ -1,8 +1,11 @@
 /* TODO:
-fix phasing through lines
+fix thrown object bugs
+	phases through lines when thrown
+	thrower phases through lines
+	can only carry blocks like 50% of the time
 level editor
+	finish toolbar
 	add fields to edit sprite/terrain properties
-fix not being able to carry block sometimes
 attacks
 	Entity.defineAttack();
 		damage
