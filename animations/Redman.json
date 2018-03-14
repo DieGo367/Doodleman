@@ -61,7 +61,13 @@
       "col": 0,
       "framerate": 0.2,
       "frames": [ 0, 1, 2, 3 ],
-      "alphas": [ 1 ]
+      "alphas": [ 1 ],
+      "attack": {
+        "x": [ 18.5 ],
+        "y": [ 0 ],
+        "width": [ 18 ],
+        "height": [ 33 ]
+      }
     },
     {
       "action": "lift",
@@ -159,7 +165,13 @@
       "col": 0,
       "framerate": 0.2,
       "frames": [ 0, 1, 2, 3 ],
-      "alphas": [ 1 ]
+      "alphas": [ 1 ],
+      "attack": {
+        "x": [ 26.5 ],
+        "y": [ -11 ],
+        "width": [ 34 ],
+        "height": [ 22 ]
+      }
     },
     {
       "action": "attack-charge-air",
@@ -167,7 +179,13 @@
       "col": 0,
       "framerate": 0.2,
       "frames": [ 0, 1, 2, 3 ],
-      "alphas": [ 1 ]
+      "alphas": [ 1 ],
+      "attack": {
+        "x": [ 26.5 ],
+        "y": [ -11 ],
+        "width": [ 34 ],
+        "height": [ 22 ]
+      }
     },
     {
       "action": "attack-upward",
@@ -175,7 +193,13 @@
       "col": 0,
       "framerate": 0.2,
       "frames": [ 0, 1, 2, 3 ],
-      "alphas": [ 1 ]
+      "alphas": [ 1 ],
+      "attack": {
+        "x": [ 0 ],
+        "y": [ -26 ],
+        "width": [ 73 ],
+        "height": [ 22 ]
+      }
     }
   ],
   "defaultAnimation": "stand"

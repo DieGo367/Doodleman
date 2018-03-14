@@ -99,23 +99,7 @@ var Box = class Box extends _c_ {
   	}
   	return false;
   }
-  draw() {
-    if (!this.isLoaded) return;
-  	c.fillStyle = this.color;
-  	if (this.color!=null) c.fillRect(Math.round(this.leftX()),Math.round(this.y),this.width,-(this.height));
-  	if (this.sprite!=null) ImageFactory.drawImage(this.sprite,Math.round(this.leftX()),Math.round(this.topY()),this.width,this.height);
-  }
-  drawDebug() {
-  	c.lineWidth = 1;
-  	c.strokeStyle = this.hitBoxStroke;
-  	c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
-  }
-  drawHighlighted() {
-    c.lineWidth = 5;
-  	c.strokeStyle = "red";
-  	c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
-  	this.draw(true);
-  }
+
   update() { }
   setSectors() {
     if (!this.lockSectors||this.sectors[0]==null) {
@@ -153,6 +137,24 @@ var Box = class Box extends _c_ {
       Sectors.removeFromSector(this,this.sectors[i]);
     }
     super.remove();
+  }
+
+  draw() {
+    if (!this.isLoaded) return;
+    c.fillStyle = this.color;
+    if (this.color!=null) c.fillRect(Math.round(this.leftX()),Math.round(this.y),this.width,-(this.height));
+    if (this.sprite!=null) ImageFactory.drawImage(this.sprite,Math.round(this.leftX()),Math.round(this.topY()),this.width,this.height);
+  }
+  drawDebug() {
+    c.lineWidth = 1;
+    c.strokeStyle = this.hitBoxStroke;
+    c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
+  }
+  drawHighlighted() {
+    c.lineWidth = 5;
+  	c.strokeStyle = "red";
+  	c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
+  	this.draw(true);
   }
 }
 initClass(Box,true);
@@ -200,13 +202,6 @@ var HarmBox = class HarmBox extends Interactable {
   	else this.endCheck = function() { return false; };
   	this.harmed = [];
   }
-  remove() {
-  	if (Entity.getAll().indexOf(this.attacker)!=-1) {
-  		this.attacker.setAnimation("stand");
-  		this.attacker.attackBox = null;
-  	}
-  	super.remove();
-  }
   update() {
   	if (this.attacker!=null&&Entity.getAll().indexOf(this.attacker!=-1)) {
   		this.x = this.formulaX(this.attacker,this);
@@ -227,8 +222,41 @@ var HarmBox = class HarmBox extends Interactable {
   	}
   	else this.remove();
   }
+  remove() {
+  	if (Entity.getAll().indexOf(this.attacker)!=-1) {
+  		this.attacker.setAnimation("stand");
+  		this.attacker.attackBox = null;
+  	}
+  	super.remove();
+  }
 }
 HarmBox.prototype.hitBoxStroke = "red";
+
+var AttackBox = class AttackBox extends HarmBox {
+  constructor(x,y,width,height,attacker,damage,duration,frames,framerate) {
+    var formulaX = function(ent) {
+      var frameVal = this.frames.x[Math.floor(this.frame*this.framerate)];
+      if (!frameVal) frameVal = this.frames.x[0];
+      if (!frameVal) return ent.x;
+      return ent.x + ent.direction*frameVal;
+    };
+    var formulaY = function(ent) {
+      var frameVal = this.frames.y[Math.floor(this.frame*this.framerate)];
+      this.frame++;
+      if (!frameVal) frameVal = this.frames.y[0];
+      if (!frameVal) return ent.y;
+      return ent.y + frameVal;
+    };
+    super(x,y,width,height,attacker,damage,duration,formulaX,formulaY);
+    this.frames = frames;
+    this.frame = 0;
+    this.framerate = framerate;
+  }
+  remove() {
+    if (this.attacker!=null) this.attacker.completeAttack();
+    super.remove();
+  }
+}
 
 var Door = class Door extends Interactable {
   constructor(x,y,linkId,destination) {
@@ -248,6 +276,59 @@ var Door = class Door extends Interactable {
   	return -1;
   }
   getLink() { return Door.getFromLinkId(this.destination); };
+
+  checkPlayers() {
+  	var linked = this.getLink();
+  	if (this.player||this.doorOpen||this.animCurrent!="closed"||linked==-1||linked.player!=null) return;
+  	for (var i in this.touches) {
+  		var p = this.touches[i];
+      var pad = p.ctrls.mostRecent();
+  		if (pad.pressed("lookUp")&&p.isGrounded&&p.held==null&&Math.abs(this.y-p.y)<2&&p.door==null) {
+  			this.player = p;
+  			p.door = this;
+  			p.doorEnterTick = 30;
+  			p.doorWaitStep = 1;
+  			p.velX = 0;
+  			p.velY = 0;
+  			p.defyGravity = true;
+  			this.setAnimation("opening",null,"full");
+  			this.doorOpen = true;
+  			this.warpStep = 1;
+  			return;
+  		}
+  	}
+  }
+  receivePlayer(p) {
+  	p.x = this.x;
+  	p.y = this.y;
+  	p.door = this;
+  	p.direction = RIGHT;
+  	this.player = p;
+  	this.warpStep = 4;
+  	this.setAnimation("opening",null,"full");
+  	this.doorOpen = true;
+  }
+  forgetPlayer() {
+  	this.player.defyGravity = false;
+  	this.player.door = null;
+  	this.player.doorWaitStep = 0;
+  	this.player = null;
+  	this.animLock = 0;
+  	this.setAnimation("closing",null,"full");
+  	this.doorOpen = 0;
+  	this.warpStep = 0;
+  }
+
+  doWarp() {
+  	var door = this.getLink();
+  	if (door!=-1&&door.player==null) {
+  		door.receivePlayer(this.player);
+  		this.player = null;
+  		return true;
+  	}
+  	else return false;
+  }
+
   update() {
   	super.update();
   	this.checkPlayers();
@@ -284,56 +365,6 @@ var Door = class Door extends Interactable {
     if (this.doorOpen) this.setAnimation("open");
     else this.setAnimation("closed");
   }
-  checkPlayers() {
-  	var linked = this.getLink();
-  	if (this.player||this.doorOpen||this.animCurrent!="closed"||linked==-1||linked.player!=null) return;
-  	for (var i in this.touches) {
-  		var p = this.touches[i];
-      var pad = p.ctrls.mostRecent();
-  		if (pad.pressed("lookUp")&&p.isGrounded&&p.held==null&&Math.abs(this.y-p.y)<2&&p.door==null) {
-  			this.player = p;
-  			p.door = this;
-  			p.doorEnterTick = 30;
-  			p.doorWaitStep = 1;
-  			p.velX = 0;
-  			p.velY = 0;
-  			p.defyGravity = true;
-  			this.setAnimation("opening",null,"full");
-  			this.doorOpen = true;
-  			this.warpStep = 1;
-  			return;
-  		}
-  	}
-  }
-  doWarp() {
-  	var door = this.getLink();
-  	if (door!=-1&&door.player==null) {
-  		door.receivePlayer(this.player);
-  		this.player = null;
-  		return true;
-  	}
-  	else return false;
-  }
-  receivePlayer(p) {
-  	p.x = this.x;
-  	p.y = this.y;
-  	p.door = this;
-  	p.direction = RIGHT;
-  	this.player = p;
-  	this.warpStep = 4;
-  	this.setAnimation("opening",null,"full");
-  	this.doorOpen = true;
-  }
-  forgetPlayer() {
-  	this.player.defyGravity = false;
-  	this.player.door = null;
-  	this.player.doorWaitStep = 0;
-  	this.player = null;
-  	this.animLock = 0;
-  	this.setAnimation("closing",null,"full");
-  	this.doorOpen = 0;
-  	this.warpStep = 0;
-  }
 }
 initClass(Door,Interactable);
 Animation.applyToClass(Door);
@@ -355,16 +386,6 @@ var PhysicsBox = class PhysicsBox extends Box {
   	this.isGrounded = false;
   	this.cSides = {u:0,r:0,d:0,l:0};
   	this.cSidesPrev = {u:0,r:0,d:0,l:0};
-  }
-  respawn() {
-  	this.x = this.spawnX;
-  	this.y = this.spawnY;
-  	Collision.removeAllPairsWith(this);
-  	this.held = null;
-  	this.heldBy = null;
-  	if (this.defyPhysics) return;
-  	this.velX = 0;
-  	this.velY = 0;
   }
   preCollision() {
   	if (this.defyPhysics||this.heldBy) return;
@@ -388,6 +409,7 @@ var PhysicsBox = class PhysicsBox extends Box {
   	if (this.defyPhysics||this.heldBy) return;
   	if (this.ground!=null) this.groundDragLoop(this.ground,0);
   }
+
   update() {
     super.update();
     if (!this.isLoaded) return;
@@ -423,6 +445,17 @@ var PhysicsBox = class PhysicsBox extends Box {
   	this.cSidesPrev = this.cSides;
   	this.cSides = {u:0,r:0,d:0,l:0};
   }
+  respawn() {
+  	this.x = this.spawnX;
+  	this.y = this.spawnY;
+  	Collision.removeAllPairsWith(this);
+  	this.held = null;
+  	this.heldBy = null;
+  	if (this.defyPhysics) return;
+  	this.velX = 0;
+  	this.velY = 0;
+  }
+
   static collide(a,b,behavior) {
   	var ar = a.rightX(), al = a.leftX(), am = a.midY(), aw = a.halfW(), at = a.topY();
   	var br = b.rightX(), bl = b.leftX(), bm = b.midY(), bw = b.halfW(), bt = b.topY();
@@ -585,6 +618,8 @@ var Line = class Line extends _c_ {
   			else return 1/slope*(input-this.y)+this.x;
   	}
   }
+
+  update() { }
   draw() {
   	c.strokeStyle = this.stroke;
   	c.lineWidth = this.size;
@@ -601,7 +636,6 @@ var Line = class Line extends _c_ {
   	drawLine(this.x,this.y,this.x2,this.y2);
   	this.draw(true);
   }
-  update() { }
 }
 initClass(Line,true);
 Line.prototype.hitBoxStroke = "darkGray";
@@ -624,6 +658,7 @@ var SolidLine = class SolidLine extends Line {
   	else if (1/mag<0.25||this.slope()==Infinity) hitboxWidth += 30;
     this.hitbox = SolidLineHitBox.create(this.midX(),hitboxY,hitboxWidth,hitboxHeight,this);
   }
+
   pushOut(box) {
   	if (box.collisionType>=C_INFINIMASS||box.defyPhysics||box.heldBy||!this.hitbox.intersect(box)) return;
   	if (this.hitbox.rightX()>=this.x&&this.hitbox.leftX()<=this.x&&this.hitbox.topY()<=this.y&&this.hitbox.y>=this.y) {
@@ -660,14 +695,15 @@ var SolidLine = class SolidLine extends Line {
   		}
   	}
   }
-  drawDebug() {
-  	this.hitbox.drawDebug();
-  	super.drawDebug();
-  }
   remove() {
   	this.hitbox.remove(true);
   	super.remove();
   }
+  drawDebug() {
+  	this.hitbox.drawDebug();
+  	super.drawDebug();
+  }
+
   static testBehavior(a,b) {
   	switch(a.line.direction) {
   		case LINE_UP:
@@ -718,12 +754,15 @@ var Entity = class Entity extends PhysicsBox {
   	this.direction = RIGHT;
   	this.stun = 0;
   	this.invulnerability = 0;
+    this.attackCooldown = 0;
+    this.actionLocked = false;
+    this.movementLocked = false;
   }
   distanceTo(target) {
   	if (typeof target=="object") return Math.abs(this.x-target.x);
   	else return Math.abs(this.x-target)
   }
-  getDirTo(target) {
+  getDirTo(target) { //returns the x-direction in which the entity would be facing the target x-coord or obj
   	if (typeof target=="object") {
   		if (target.x<this.x) return LEFT;
   		else if (target.x>this.x) return RIGHT;
@@ -737,6 +776,7 @@ var Entity = class Entity extends PhysicsBox {
   }
   faceTo(target) { this.direction = this.getDirTo(target); };
   calcXPosInFront(distance) { return this.x+(this.halfW()+distance)*this.direction; };
+
   jump() {
   	if (this.particleColor!=null) var color = this.particleColor;
   	else {
@@ -780,6 +820,16 @@ var Entity = class Entity extends PhysicsBox {
   		else this.stun = 60;
   	}
   }
+
+  update() {
+  	if (this.stun>0) this.stun -= 1;
+  	if (this.invulnerability>0) this.invulnerability -= 1;
+  	super.update();
+  }
+  respawn() {
+  	this.breakConnections();
+  	super.respawn();
+  }
   die(attacker) {
   	if (this.respawnsOnDeath) {
   		this.health = this.maxHealth;
@@ -790,26 +840,7 @@ var Entity = class Entity extends PhysicsBox {
   		this.remove();
   	}
   }
-  update() {
-  	if (this.stun>0) this.stun -= 1;
-  	if (this.invulnerability>0) this.invulnerability -= 1;
-  	super.update();
-  }
-  drawElements() {
-  	var startX = Math.round(this.x-((8*this.health)-1));
-  	for (var i = 0; i < this.health; i++) {
-  		ImageFactory.drawImage("GUI-HUD-Hearts.png",startX+(16*i),Math.round(this.y-this.fullHeight-17),14,12,0,0,14,12);
-  	}
-  }
-  remove() {
-  	this.breakConnections();
-  	super.remove();
-  }
-  respawn() {
-  	this.breakConnections();
-  	super.respawn();
-  }
-  breakConnections() {
+  breakConnections() { //removes references to this obj from other objects
   	if (this.held!=null) {
   		this.held.velX = this.velX;
   		this.held.velY = this.velY;
@@ -817,6 +848,68 @@ var Entity = class Entity extends PhysicsBox {
   		this.held = null;
   	}
   	if (this.attackBox!=null) this.attackBox.remove();
+  }
+  remove() {
+  	this.breakConnections();
+  	super.remove();
+  }
+
+  drawElements() {
+  	var startX = Math.round(this.x-((8*this.health)-1));
+  	for (var i = 0; i < this.health; i++) {
+  		ImageFactory.drawImage("GUI-HUD-Hearts.png",startX+(16*i),Math.round(this.y-this.fullHeight-17),14,12,0,0,14,12);
+  	}
+  }
+
+  static defineAttack(name,damage=0,duration=0,cooldown=0,lockMovement=false,lockActions=false,defyGravity=false,prep) {
+    // defines an attack and stores it in this class's attack list
+    if (!name) return;
+    this.attacks.push({
+      name: name,
+      damage: damage,
+      duration: duration,
+      cooldown: cooldown,
+      lockMovement: lockMovement,
+      lockActions: lockActions,
+      defyGravity: defyGravity,
+      prep: prep
+    });
+  }
+  static getAttack(name) { //returns attack obj from the class's (or parents') list of attack
+    if (!name) return console.log("missing attack: "+name);
+    for (var i in this.attacks) {
+      if (this.attacks[i].name==name) return this.attacks[i]; //found attack
+    }
+    if (this!=Entity) return this.parent.getAttack(name); //look for attack in parent class
+  }
+  activateAttack(name) { //creates attack boxes and sets player states
+    if (this.attackCooldown!=0||this.direction==CENTER) return; //don't attack if you can't
+    var attack = this.constructor.getAttack(name);
+    if (attack) { //found valid attack
+      var action = this.sheet.getAnimation(attack.name);
+      if (action&&action.attack) { //found valid attack info from animation sheet
+        if (attack.prep) attack.prep.call(this); //call special code for this attack
+        //make attack box
+        var a = action.attack;
+        this.attackBox = AttackBox.create(a.x[0],a.y[0],a.width,a.height,this,attack.damage,attack.duration,a,action.framerate);
+        //set player states
+        this.attackCooldown = attack.cooldown;
+        if (attack.defyGravity) this.defyGravity = attack.defyGravity;
+        this.actionLocked = attack.lockActions;
+        this.movementLocked = attack.lockMovement;
+        this.currentAttack = attack.name;
+        this.setAnimation(attack.name,null,attack.duration);
+      }
+    }
+  }
+  completeAttack() { //resets player states back to normal when attack is finished
+    var attack = this.constructor.getAttack(this.currentAttack);
+    if (attack) {
+      if (attack.defyGravity) this.defyGravity = this.constructor.prototype.defyGravity;
+      this.actionLocked = false;
+      this.movementLocked = false;
+    }
+    this.currentAttack = null;
   }
 }
 initClass(Entity,PhysicsBox);
@@ -828,6 +921,7 @@ Entity.prototype.draw = function(preventAnimTick) {
 Entity.prototype.drawLayer = 1;
 Entity.prototype.respawnsOnDeath = false;
 Entity.prototype.particleColor = null;
+Entity.attacks = [];
 
 var chargeAttackReq = 40;
 var Player = class Player extends Entity {
@@ -838,7 +932,7 @@ var Player = class Player extends Entity {
     this.alwaysLoaded = true;
   	this.slot = slot; //new for players
   	if (slot!=null) Player.setSlot(slot,this);
-  	this.attackCoolDown = 0;
+  	this.attackCooldown = 0;
   	this.attackHeld = 0;
   	this.doorEnterTick = 0;
   	this.doorWaitStep = 0;
@@ -862,62 +956,23 @@ var Player = class Player extends Entity {
       }
     };
   }
-  die() {
-  	this.lives -= 1;
-  	if (this.lives<=0) this.respawnsOnDeath = false;
-  	super.die();
-  }
-  breakConnections() {
-  	if (this.door) this.door.forgetPlayer();
-  	super.breakConnections();
-  }
-  update() {
-    var controller = this.ctrls.mostRecent();
-    if (!controller) {
-      controller = nullController;
-      console.log("missing controller");
-    }
 
-  	if (this.door) this.doorActions();
-
-    //attack state vars
-  	if (this.attackCoolDown>0) this.attackCoolDown -= 1;
-  	if (this.inChargeAttack&&(this.animCurrent!="attack-charge"&&this.animCurrent!="attack-charge-air")) {
-  		this.inChargeAttack = false;
-  		this.defyGravity = false;
-  	}
-  	if (this.inUpAttack&&(this.animCurrent!="attack-upward")) this.inUpAttack = false;
-    if (this.inLiftAnim&&(this.animCurrent!="lift")) {
-      this.inLiftAnim = false;
-      this.defyGravity = false;
-    }
-
-    //if not stunned, run controls
-  	if (this.stun==0&&!this.door) this.handleControls(controller);
-
-  	this.chooseAnimation(controller);
-
-  	var tempVelX = this.velX, tempVelY = this.velY;
-  	super.update();
-  	this.dragHeldObject(tempVelX,tempVelY);
-  }
   handleControls(pad) {
-    if (pad.pressed("moveLeft")&&!pad.pressed("moveRight")&&!this.inChargeAttack&&!this.inUpAttack) {
+    if (pad.pressed("moveLeft")&&!pad.pressed("moveRight")&&!this.movementLocked) {
       if (this.attackBox!=null&&this.direction==RIGHT) this.velX = 0;
       else if (this.heldBy!=null) this.direction = LEFT;
       else this.move(4.5,LEFT);
     }
-    if (pad.ready("jump")&&(this.isGrounded||this.heldBy!=null||this.multiJump)&&!this.inChargeAttack) { pad.use("jump"); this.jump(); }
-    if (pad.pressed("moveRight")&&!pad.pressed("moveLeft")&&!this.inChargeAttack&&!this.inUpAttack) {
-      if (this.heldBy==null) this.velX = 4.5;
-      if (this.attackBox==null) {
-        this.direction = RIGHT;
-      }
-      else if (this.direction==LEFT) {
-        if (this.velX>0) this.velX = 0;
-      }
+    if (pad.ready("jump")&&(this.isGrounded||this.heldBy!=null||this.multiJump)&&!this.actionLocked) {
+      pad.use("jump");
+      this.jump();
     }
-    if (pad.pressed("crouch")&&this.isGrounded&&!this.inChargeAttack) {
+    if (pad.pressed("moveRight")&&!pad.pressed("moveLeft")&&!this.movementLocked) {
+      if (this.attackBox!=null&&this.direction==LEFT) this.velX = 0;
+      else if (this.heldBy!=null) this.direction = RIGHT;
+      else this.move(4.5,RIGHT);
+    }
+    if (pad.pressed("crouch")&&this.isGrounded&&!this.actionLocked) {
       this.velX = 0;
       if (!this.ducking) this.duck(true);
       if (pad.ready("attack")&&this.held==null&&this.animLock==0) {
@@ -928,8 +983,8 @@ var Player = class Player extends Entity {
     else if (this.ducking) this.duck(false);
     if (pad.ready("attack")) {
       if (this.held==null) {
-        if (this.isGrounded&&pad.pressed("lookUp")) this.upAttack();
-        else this.attack();
+        if (this.isGrounded&&pad.pressed("lookUp")) this.activateAttack("attack-upward");
+        else this.activateAttack("attack");
         pad.use("attack");
       }
       else if (!this.inLiftAnim) {
@@ -941,27 +996,52 @@ var Player = class Player extends Entity {
     else if (pad.pressed("attack")) this.attackHeld += 1;
     else {
       if (this.attackHeld>=chargeAttackReq&&this.held==null) {
-        if (this.ducking) this.upAttack();
-        else this.chargeAttack();
+        if (this.ducking) this.activateAttack("attack-upward");
+        else this.activateAttack(this.isGrounded?"attack-charge":"attack-charge-air");
       }
       this.attackHeld = 0;
     }
   }
   chooseAnimation(pad) {
     if (this.held==null) {
-  		if (this.door&&this.doorEnterTick<30) this.setAnimation("run");
-  		else if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("jump");
-  		else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
-  		else if (pad.pressed("crouch")) this.setAnimation("crouch");
-  		else this.setAnimation("stand");
-  	}
-  	else {
-  		if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("carry-jump");
-  		else if (this.velX!=0) this.setAnimation("carry-run");
-  		else if (pad.pressed("crouch")) this.setAnimation("carry-crouch");
-  		else this.setAnimation("carry-stand");
-  	}
+      if (this.door&&this.doorEnterTick<30) this.setAnimation("run");
+      else if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("jump");
+      else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
+      else if (pad.pressed("crouch")) this.setAnimation("crouch");
+      else this.setAnimation("stand");
+    }
+    else {
+      if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("carry-jump");
+      else if (this.velX!=0) this.setAnimation("carry-run");
+      else if (pad.pressed("crouch")) this.setAnimation("carry-crouch");
+      else this.setAnimation("carry-stand");
+    }
   }
+  doorActions() {
+    switch(this.doorWaitStep) {
+      case 1:
+      this.faceTo(this.door);
+      if (this.door.warpStep==2&&this.door.doorOpen) this.doorWaitStep = 2;
+      break;
+      case 2:
+      this.faceTo(this.door);
+      if (this.distanceTo(this.door)>4.5) this.move(1.5);
+      else {
+        this.move(this.distanceTo(this.door)/2);
+        if (this.doorEnterTick>0) {
+          this.doorEnterTick--;
+        }
+        else this.doorWaitStep = 3;
+      }
+      break;
+      case 4:
+      if (this.doorEnterTick>0) {
+        this.doorEnterTick--;
+      }
+      else this.doorWaitStep = 5;
+    }
+  }
+
   liftObject() {
     var objs = Sectors.getObjectListFromSectors(Sectors.getLoadedSectors());
     for (var i in objs) {
@@ -975,6 +1055,8 @@ var Player = class Player extends Entity {
         Collision.findPair(this,box).refresh();
         this.setAnimation("lift",null,15);
         this.defyGravity = true;
+        this.movementLocked = true;
+        this.velY = 0;
         this.inLiftAnim = true;
         break;
       }
@@ -1038,6 +1120,54 @@ var Player = class Player extends Entity {
   		this.held.velY = velY;
   	}
   }
+
+  update() {
+    //get this player's most recently updated controller to use for input
+    var controller = this.ctrls.mostRecent();
+    if (!controller) {
+      controller = nullController; //defaults to no input pressed
+      console.log("missing controller");
+    }
+
+  	if (this.door) this.doorActions();
+
+  	if (this.attackCooldown>0) this.attackCooldown -= 1;
+
+    //return player state to normal when lift animation is complete
+    if (this.inLiftAnim&&(this.animCurrent!="lift")) {
+      this.inLiftAnim = false;
+      this.defyGravity = false;
+      this.movementLocked = false;
+    }
+
+    //if not stunned, run controls
+  	if (this.stun==0&&!this.door) this.handleControls(controller);
+
+  	this.chooseAnimation(controller);
+
+  	var tempVelX = this.velX, tempVelY = this.velY;
+  	super.update();
+  	this.dragHeldObject(tempVelX,tempVelY);
+  }
+  die() {
+  	this.lives -= 1;
+  	if (this.lives<=0) this.respawnsOnDeath = false;
+  	super.die();
+  }
+  breakConnections() {
+  	if (this.door) this.door.forgetPlayer();
+  	super.breakConnections();
+  }
+  remove() {
+    this.ctrls.selfDestructAll();
+    Player.clearFromSlot(this);
+    super.remove();
+  }
+  respawn() {
+  	if (this.door) this.door.forgetPlayer();
+  	super.respawn();
+  }
+
   draw(preventAnimTick) {
   	if (this.door) {
   		if (this.doorWaitStep==2) c.globalAlpha = this.doorEnterTick/30;
@@ -1057,68 +1187,6 @@ var Player = class Player extends Entity {
   drawElements() {
   	if (this.attackHeld>=chargeAttackReq&&!this.held) ImageFactory.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
   	else super.drawElements();
-  }
-  attack() {
-  	if (this.attackCoolDown!=0||this.direction==CENTER) return;
-  	var formulaX = function(player,harmbox) { return player.calcXPosInFront(harmbox.halfW()); };
-  	var formulaY = function(player) { return player.y; };
-  	this.attackBox = HarmBox.create(this.calcXPosInFront(/*this.width*3/8*/9),this.midY()+(this.height/2),/*this.width*3/4*/18,this.height*3/4,this,1,20,formulaX,formulaY);
-  	this.attackCoolDown = 30;
-  	this.setAnimation("attack",null,20);
-  }
-  chargeAttack() {
-  	if (this.attackCoolDown!=0||this.direction==CENTER) return;
-  	this.move(10);
-  	var formulaX = function(player,harmbox) { return player.calcXPosInFront(harmbox.halfW()); };
-  	var formulaY = function(player) { return player.y-player.height/4; };
-  	this.attackBox = HarmBox.create(this.calcXPosInFront(34/2),this.y-this.height/4,34,this.height/2,this,2,20,formulaX,formulaY);
-  	this.attackCoolDown = 30;
-  	this.inChargeAttack = true;
-  	this.defyGravity = true;
-  	this.velY = 0;
-  	this.setAnimation(this.isGrounded?"attack-charge":"attack-charge-air",null,20);
-  }
-  upAttack() {
-  	if (this.attackCoolDown!=0||this.direction==CENTER) return;
-  	var formulaX = function(player) { return player.x; };
-  	var formulaY = function(player) { return player.topY()+18; };
-  	this.attackBox = HarmBox.create(this.x,this.topY()+18,73,22,this,1,20,formulaX,formulaY);
-  	this.attackCoolDown = 30;
-  	this.inUpAttack = true;
-  	this.setAnimation("attack-upward",null,20);
-  }
-  doorActions() {
-  	switch(this.doorWaitStep) {
-  		case 1:
-  			this.faceTo(this.door);
-  			if (this.door.warpStep==2&&this.door.doorOpen) this.doorWaitStep = 2;
-  			break;
-  		case 2:
-  			this.faceTo(this.door);
-  			if (this.distanceTo(this.door)>4.5) this.move(1.5);
-  			else {
-  				this.move(this.distanceTo(this.door)/2);
-  				if (this.doorEnterTick>0) {
-  					this.doorEnterTick--;
-  				}
-  				else this.doorWaitStep = 3;
-  			}
-  			break;
-  		case 4:
-  			if (this.doorEnterTick>0) {
-  				this.doorEnterTick--;
-  			}
-  			else this.doorWaitStep = 5;
-  	}
-  }
-  remove() {
-  	this.ctrls.selfDestructAll();
-  	Player.clearFromSlot(this);
-  	super.remove();
-  }
-  respawn() {
-  	if (this.door) this.door.forgetPlayer();
-  	super.respawn();
   }
 
   static setSlot(slot,player) {
@@ -1148,6 +1216,7 @@ Player.prototype.respawnsOnDeath = true;
 Player.prototype.lives = 5;
 Player.prototype.deaths = 0;
 Player.prototype.multiJump = false;
+Player.attacks = [];
 Player.slots = [null,null,null,null];
 Player.respawnButtons = [];
 Player.keyMaps = [wasd,ijkl,null,null];
@@ -1155,27 +1224,37 @@ Player.gpMaps = [null,null,null,null];
 Player.gpIds = [null,null,null,null];
 Player.tapMaps = [tscr,null,null,null];
 Player.globalGPCtrls = [null,null,null,null];
+Player.defineAttack("attack",1,20,30);
+Player.defineAttack("attack-charge",2,20,30,true,true,true,function() {
+  this.move(10);
+  this.velY = 0;
+});
+Player.defineAttack("attack-charge-air",2,20,30,true,true,true,function() {
+  this.move(10);
+  this.velY = 0;
+});
+Player.defineAttack("attack-upward",1,20,30,true);
 
 var Enemy = class Enemy extends Entity {
   constructor(x,y,width,height,health,sheet,duckHeight) {
     super(x,y,width,height,duckHeight,health,sheet);
     this.canBeCarried = true; //overwrites
     this.thrownDamage = 1;
-  	this.attackCoolDown = 0;//also in player
+  	this.attackCooldown = 0;//also in player
   	this.target = null;//new to enemy
   	this.post = x;
   	this.paceTarget = x;
   	this.standbyTick = 0;
   }
   attack() {
-  	if (this.attackCoolDown!=0) return;
+  	if (this.attackCooldown!=0) return;
   	if (this.direction==RIGHT) var attackX = this.rightX();
   	else if (this.direction==LEFT) var attackX = this.leftX();
   	else return;
   	var formulaX = function(enemy,harmbox) { return enemy.direction==RIGHT? enemy.rightX()+harmbox.halfW():enemy.leftX()-harmbox.halfW(); };
   	var formulaY = function(enemy) { return enemy.midY()+10; };
   	this.attackBox = HarmBox.create(attackX,this.midY()+10,this.width*3/4,10,this,1,18,formulaX,formulaY);
-  	this.attackCoolDown = 30;
+  	this.attackCooldown = 30;
   	this.stun = 30;
   	this.setAnimation("attack");
   }
@@ -1188,7 +1267,7 @@ var Enemy = class Enemy extends Entity {
   	}
   	else {
   		this.exclaim -= 1;
-  		if (this.attackCoolDown>0) this.attackCoolDown -= 1;
+  		if (this.attackCooldown>0) this.attackCooldown -= 1;
   		if (this.target!=null) {
   			if (PhysicsBox.getAll().indexOf(this.target)==-1) this.target = null;
   			else {
