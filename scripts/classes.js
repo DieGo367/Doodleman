@@ -872,104 +872,83 @@ var Player = class Player extends Entity {
   	super.breakConnections();
   }
   update() {
-    var pad = this.ctrls.mostRecent();
-    if (!pad) {
-      pad = nullController;
+    var controller = this.ctrls.mostRecent();
+    if (!controller) {
+      controller = nullController;
       console.log("missing controller");
     }
 
   	if (this.door) this.doorActions();
+
+    //attack state vars
   	if (this.attackCoolDown>0) this.attackCoolDown -= 1;
   	if (this.inChargeAttack&&(this.animCurrent!="attack-charge"&&this.animCurrent!="attack-charge-air")) {
   		this.inChargeAttack = false;
   		this.defyGravity = false;
   	}
   	if (this.inUpAttack&&(this.animCurrent!="attack-upward")) this.inUpAttack = false;
-  	if (this.stun==0&&!this.door) { //if not stunned
-  		//controls
-  		if (pad.pressed("moveLeft")&&!pad.pressed("moveRight")&&!this.inChargeAttack&&!this.inUpAttack) {
-  			if (this.attackBox!=null&&this.direction==RIGHT) this.velX = 0;
-  			else if (this.heldBy!=null) this.direction = LEFT;
-  			else this.move(4.5,LEFT);
-  		}
-  		if (pad.ready("jump")&&(this.isGrounded||this.heldBy!=null||this.multiJump)&&!this.inChargeAttack) { pad.use("jump"); this.jump(); }
-  		if (pad.pressed("moveRight")&&!pad.pressed("moveLeft")&&!this.inChargeAttack&&!this.inUpAttack) {
-  			if (this.heldBy==null) this.velX = 4.5;
-  			if (this.attackBox==null) {
-  				this.direction = RIGHT;
-  			}
-  			else if (this.direction==LEFT) {
-  				if (this.velX>0) this.velX = 0;
-  			}
-  		}
-  		if (pad.pressed("crouch")&&this.isGrounded&&!this.inChargeAttack) {
-  			this.velX = 0;
-  			if (!this.ducking) this.duck(true);
-  			if (pad.ready("attack")&&this.held==null&&this.animLock==0) {
-  				var allPBox = PhysicsBox.getAll();
-  				for (var j in allPBox) {
-  					var thisBox = allPBox[j];
-  					if (!thisBox.canBeCarried) continue;
-  					if (thisBox.heldBy||this.heldBy==thisBox) continue;
-  					if (Math.abs(thisBox.topY()-this.y)<=0.1&&this.rightX()>=thisBox.leftX()&&this.leftX()<=thisBox.rightX()) {
-  						this.held = thisBox;
-  						thisBox.heldBy = this;
-              Collision.findPair(this,thisBox).refresh();
-  						pad.use("attack");
-  						this.setAnimation("lift",null,15);
-  						break;
-  					}
-  				}
-  			}
-  		}
-  		else if (this.ducking) this.duck(false);
-  		if (pad.ready("attack")) {
-  			if (this.held==null) {
-  				if (this.isGrounded&&pad.pressed("lookUp")) this.upAttack();
-  				else this.attack();
-  			}
-  			else if (pad.pressed("crouch")&&this.isGrounded) {
-  				var drop = this.held;
-  				drop.x = this.calcXPosInFront(drop.halfW());
-  				drop.y = this.midY();
-  				drop.heldBy = null;
-  				this.held = null;
-          Collision.removeAllPairsWith(drop);
-  			}
-  			else {
-  				var throwing = this.held;
-  				throwing.velX = this.direction*6.5+this.velX;
-  				throwing.velY = -7+this.velY;
-  				throwing.y += this.velY;
-  				var xFunct = function(thrownObj,harm) { return thrownObj.x; };
-  				var yFunct = function(thrownObj) { return thrownObj.y+5; };
-  				if (throwing.thrownDamage>0) {
-  					var throwHurt = HarmBox.create(throwing.x,throwing.y+5,throwing.width+10,throwing.height+10,throwing,throwing.thrownDamage,1000,xFunct,yFunct,function(thrownObj,harm) {
-  						return (thrownObj.velX==0&&thrownObj.velY==0)||thrownObj.isGrounded;
-  					});
-  					throwHurt.harmed.push(this);
-  				}
-  				throwing.heldBy = null;
-  				this.held = null;
-  				Collision.removeAllPairsWith(throwing);
-  				Collision.addPair(this,throwing,0);
-  				Collision.requestRefresh(this,throwing,20);
-  			}
-  			pad.use("attack");
-  		}
-  		else if (pad.pressed("attack")) {
-  			this.attackHeld += 1;
-  		}
-  		else {
-  			if (this.attackHeld>=chargeAttackReq&&this.held==null) {
-  				if (this.ducking) this.upAttack();
-  				else this.chargeAttack();
-  			}
-  			this.attackHeld = 0;
-  		}
-  	}
-  	//animation
-  	if (this.held==null) {
+    if (this.inLiftAnim&&(this.animCurrent!="lift")) {
+      this.inLiftAnim = false;
+      this.defyGravity = false;
+    }
+
+    //if not stunned, run controls
+  	if (this.stun==0&&!this.door) this.handleControls(controller);
+
+  	this.chooseAnimation(controller);
+
+  	var tempVelX = this.velX, tempVelY = this.velY;
+  	super.update();
+  	this.dragHeldObject(tempVelX,tempVelY);
+  }
+  handleControls(pad) {
+    if (pad.pressed("moveLeft")&&!pad.pressed("moveRight")&&!this.inChargeAttack&&!this.inUpAttack) {
+      if (this.attackBox!=null&&this.direction==RIGHT) this.velX = 0;
+      else if (this.heldBy!=null) this.direction = LEFT;
+      else this.move(4.5,LEFT);
+    }
+    if (pad.ready("jump")&&(this.isGrounded||this.heldBy!=null||this.multiJump)&&!this.inChargeAttack) { pad.use("jump"); this.jump(); }
+    if (pad.pressed("moveRight")&&!pad.pressed("moveLeft")&&!this.inChargeAttack&&!this.inUpAttack) {
+      if (this.heldBy==null) this.velX = 4.5;
+      if (this.attackBox==null) {
+        this.direction = RIGHT;
+      }
+      else if (this.direction==LEFT) {
+        if (this.velX>0) this.velX = 0;
+      }
+    }
+    if (pad.pressed("crouch")&&this.isGrounded&&!this.inChargeAttack) {
+      this.velX = 0;
+      if (!this.ducking) this.duck(true);
+      if (pad.ready("attack")&&this.held==null&&this.animLock==0) {
+        this.liftObject();
+        pad.use("attack");
+      }
+    }
+    else if (this.ducking) this.duck(false);
+    if (pad.ready("attack")) {
+      if (this.held==null) {
+        if (this.isGrounded&&pad.pressed("lookUp")) this.upAttack();
+        else this.attack();
+        pad.use("attack");
+      }
+      else if (!this.inLiftAnim) {
+        if (pad.pressed("crouch")&&this.isGrounded) this.dropHeldObject();
+        else this.throwHeldObject();
+        pad.use("attack");
+      }
+    }
+    else if (pad.pressed("attack")) this.attackHeld += 1;
+    else {
+      if (this.attackHeld>=chargeAttackReq&&this.held==null) {
+        if (this.ducking) this.upAttack();
+        else this.chargeAttack();
+      }
+      this.attackHeld = 0;
+    }
+  }
+  chooseAnimation(pad) {
+    if (this.held==null) {
   		if (this.door&&this.doorEnterTick<30) this.setAnimation("run");
   		else if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("jump");
   		else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
@@ -982,10 +961,56 @@ var Player = class Player extends Entity {
   		else if (pad.pressed("crouch")) this.setAnimation("carry-crouch");
   		else this.setAnimation("carry-stand");
   	}
-  	//apply physics
-  	var tempVelX = this.velX, tempVelY = this.velY;
-  	super.update();
-  	if (this.held!=null) { //reposition carried objects
+  }
+  liftObject() {
+    var objs = Sectors.getObjectListFromSectors(Sectors.getLoadedSectors());
+    for (var i in objs) {
+      var box = objs[i];
+      if (!(box instanceof PhysicsBox)) continue;
+      if (!box.canBeCarried) continue;
+      if (box.heldBy||this.heldBy==box) continue;
+      if (Math.abs(box.topY()-this.y)<=0.1&&this.rightX()>=box.leftX()&&this.leftX()<=box.rightX()) {
+        this.held = box;
+        box.heldBy = this;
+        Collision.findPair(this,box).refresh();
+        this.setAnimation("lift",null,15);
+        this.defyGravity = true;
+        this.inLiftAnim = true;
+        break;
+      }
+    }
+  }
+  throwHeldObject() {
+    var throwing = this.held;
+    if (!throwing) return;
+    throwing.velX = this.direction*6.5+this.velX;
+    throwing.velY = -7+this.velY;
+    throwing.y += this.velY;
+    var xFunct = function(thrownObj,harm) { return thrownObj.x; };
+    var yFunct = function(thrownObj) { return thrownObj.y+5; };
+    if (throwing.thrownDamage>0) {
+      var throwHurt = HarmBox.create(throwing.x,throwing.y+5,throwing.width+10,throwing.height+10,throwing,throwing.thrownDamage,1000,xFunct,yFunct,function(thrownObj,harm) {
+        return (thrownObj.velX==0&&thrownObj.velY==0)||thrownObj.isGrounded;
+      });
+      throwHurt.harmed.push(this);
+    }
+    throwing.heldBy = null;
+    this.held = null;
+    Collision.removeAllPairsWith(throwing);
+    Collision.addPair(this,throwing,0);
+    Collision.requestRefresh(this,throwing,20);
+  }
+  dropHeldObject() {
+    var drop = this.held;
+    if (!drop) return;
+    drop.x = this.calcXPosInFront(drop.halfW());
+    drop.y = this.midY();
+    drop.heldBy = null;
+    this.held = null;
+    Collision.removeAllPairsWith(drop);
+  }
+  dragHeldObject(velX,velY) {
+    if (this.held!=null) { //reposition carried objects
   		this.held.x = this.x;
       this.held.y = this.y;
       var animation = this.sheet.getAnimation(this.animCurrent);
@@ -1009,8 +1034,8 @@ var Player = class Player extends Entity {
           this.held.y -= yShift + heightFactor;
         }
       }
-      this.held.velX = tempVelX;
-  		this.held.velY = tempVelY;
+      this.held.velX = velX;
+  		this.held.velY = velY;
   	}
   }
   draw(preventAnimTick) {
