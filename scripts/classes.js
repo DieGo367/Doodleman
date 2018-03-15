@@ -19,6 +19,12 @@ class _c_ {
 		for (var i in all) if (all[i]&&!all[i].deleted) list.push(all[i]);
 		return list;
   }
+  static getLoaded() {
+    var list = [];
+    var all = this.getAll();
+    for (var i in all) if (all[i].isLoaded) list.push(all[i]);
+    return list;
+  }
   static killAll() {
     var list = [].concat(this.classList);
 		var i = list.length;
@@ -171,7 +177,7 @@ var Interactable = class Interactable extends Box {
   }
   update() {
     super.update();
-  	var all = this.targetClass.getAll();
+  	var all = this.targetClass.getLoaded();
   	var newTouches = [];
   	for (var i in all) {
   		if (this.intersect(all[i])) {
@@ -1043,10 +1049,9 @@ var Player = class Player extends Entity {
   }
 
   liftObject() {
-    var objs = Sectors.getObjectListFromSectors(Sectors.getLoadedSectors());
+    var objs = PhysicsBox.getLoaded();
     for (var i in objs) {
       var box = objs[i];
-      if (!(box instanceof PhysicsBox)) continue;
       if (!box.canBeCarried) continue;
       if (box.heldBy||this.heldBy==box) continue;
       if (Math.abs(box.topY()-this.y)<=0.1&&this.rightX()>=box.leftX()&&this.leftX()<=box.rightX()) {
@@ -1246,107 +1251,109 @@ var Enemy = class Enemy extends Entity {
   	this.paceTarget = x;
   	this.standbyTick = 0;
   }
-  attack() {
-  	if (this.attackCooldown!=0) return;
-  	if (this.direction==RIGHT) var attackX = this.rightX();
-  	else if (this.direction==LEFT) var attackX = this.leftX();
-  	else return;
-  	var formulaX = function(enemy,harmbox) { return enemy.direction==RIGHT? enemy.rightX()+harmbox.halfW():enemy.leftX()-harmbox.halfW(); };
-  	var formulaY = function(enemy) { return enemy.midY()+10; };
-  	this.attackBox = HarmBox.create(attackX,this.midY()+10,this.width*3/4,10,this,1,18,formulaX,formulaY);
-  	this.attackCooldown = 30;
-  	this.stun = 30;
-  	this.setAnimation("attack");
+
+  handleTarget() {
+    this.faceTo(this.target);
+    var dist = this.distanceTo(this.target);
+    var distY = Math.abs(this.y-this.target.y);
+    if (this.exclaim<=0) {
+      var frontBox = new Box(this.calcXPosInFront(15/2),this.y-1,15,this.height-2);
+      if (dist>30) {
+        //follow
+        if (!this.stun) this.move(2.5);
+        //jump
+        var isBlocked = false, objs = PhysicsBox.getLoaded();
+        for (var i in objs) {
+          var box = objs[i];
+          if (box==this||box==this.target) continue; //self and target should't trigger a jump
+          if (box.collisionType==C_LINE&&(box.line.direction==LINE_UP||box.line.direction==LINE_DOWN)) continue; //don't trigger jump from lines
+          if (box.intersect(frontBox)) isBlocked = true;
+        }
+        if (isBlocked&&this.isGrounded&&this.stun==0) this.jump();
+      }
+      else {
+        //attack
+        if (this.target.intersect(frontBox)&&this.stun==0) this.activateAttack("attack");
+      }
+    }
+    //forget
+    if ((dist>200||distY>300)&&this.exclaim<=-120) {
+      this.target = null;
+      this.standbyTick = 0;
+      this.post = this.x;
+      this.paceTarget = this.x;
+    }
   }
+  chooseAnimation() {
+    if (this.attackBox!=null) this.setAnimation("attack");
+  	else if (!this.isGrounded&&this.heldBy==null) this.setAnimation("jump");
+  	else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
+  	else this.setAnimation("stand");
+  }
+  doRandomPacing() {
+    if (this.standbyTick>=240) {
+      this.paceTarget = this.post+Math.floor(25+Math.round(Math.random()*40)+1)*(Math.random()<0.5? -1:1);
+      if (this.paceTarget<0||this.paceTarget>Level.width) this.paceTarget = this.post;
+      this.standbyTick = -1;
+    }
+    this.standbyTick += 1;
+    var dist = Math.abs(this.x-this.paceTarget);
+    var frontBox = new Box(this.calcXPosInFront(1),this.y-1,2,this.height-2);
+    var isBlocked = false, allEnem = Enemy.getLoaded();
+    for (var j in allEnem) {
+      if (allEnem[j]==this) continue;
+      if (allEnem[j].intersect(frontBox)) isBlocked = true;
+    }
+    if (this.paceTarget!=null&&dist>3) {
+      this.faceTo(this.paceTarget);
+      if (!isBlocked&&this.stun==0) this.move(1.5);
+    }
+    else this.paceTarget = null;
+  }
+  findPlayers() {
+    var allPlayers = Player.getAll();
+    for (var i in allPlayers) {
+      var p = allPlayers[i];
+      var distX = this.distanceTo(p);
+      var dir = this.getDirTo(p);
+
+      //if player is within x-range and enemy is facing them
+      if (distX<=200&&dir==this.direction) {
+        if (p.y>this.y-100&&p.y<this.y+100) { //if player is within y-range
+          this.target = p; //player is new target
+          this.exclaim = 30; //enemy is in alerted mode
+          break;
+        }
+      }
+    }
+  }
+
   update() {
-  	//AI
-  	if (this.heldBy!=null) {
+  	if (this.heldBy!=null) { //do nothing while held
   		this.exclaim = -1;
   		this.target = this.heldBy;
   		this.stun = 120;
   	}
   	else {
+      //counters
   		this.exclaim -= 1;
   		if (this.attackCooldown>0) this.attackCooldown -= 1;
+
+      //choose which behavior to use based on whether or not target is around
   		if (this.target!=null) {
-  			if (PhysicsBox.getAll().indexOf(this.target)==-1) this.target = null;
-  			else {
-  				this.faceTo(this.target);
-  				var dist = this.distanceTo(this.target);
-  				var distY = Math.abs(this.y-this.target.y);
-  				if (this.exclaim<=0) {
-  					var frontBox = new Box(this.calcXPosInFront(15/2),this.y-1,15,this.height-2);
-  					if (dist>30) {
-  						//follow
-  						if (!this.stun) this.move(2.5);
-  						//jump
-  						var isBlocked = false, allPBox = PhysicsBox.getAll();
-  						for (var j in allPBox) {
-                var b = allPBox[j]
-  							if (b==this||b==this.target) continue;
-                if (b.collisionType==C_LINE&&(b.line.direction==LINE_UP||b.line.direction==LINE_DOWN)) continue;
-  							if (allPBox[j].intersect(frontBox)) isBlocked = true;
-  						}
-  						if (isBlocked&&this.isGrounded&&this.stun==0) this.jump();
-  					}
-  					else {
-  						//attack
-  						if (this.target.intersect(frontBox)&&this.stun==0) this.attack();
-  					}
-  				}
-  				//forget
-  				if ((dist>200||distY>300)&&this.exclaim<=-120) {
-  					this.target = null;
-  					this.standbyTick = 0;
-  					this.post = this.x;
-  					this.paceTarget = this.x;
-  				}
-  			}
+  			if (PhysicsBox.getAll().indexOf(this.target)==-1) this.target = null; //lost target
+  			else this.handleTarget();
   		}
   		else {
-  			//random pacing
-  			if (this.standbyTick>=240) {
-  				this.paceTarget = this.post+Math.floor(25+Math.round(Math.random()*40)+1)*(Math.random()<0.5? -1:1);
-  				if (this.paceTarget<0||this.paceTarget>Level.width) this.paceTarget = this.post;
-  				this.standbyTick = -1;
-  			}
-  			this.standbyTick += 1;
-  			var dist = Math.abs(this.x-this.paceTarget);
-  			var frontBox = new Box(this.calcXPosInFront(1),this.y-1,2,this.height-2);
-  			var isBlocked = false, allEnem = Enemy.getAll();
-  			for (var j in allEnem) {
-  				if (allEnem[j]==this) continue;
-  				if (allEnem[j].intersect(frontBox)) isBlocked = true;
-  			}
-  			if (this.paceTarget!=null&&dist>3) {
-  				this.faceTo(this.paceTarget);
-  				if (!isBlocked&&this.stun==0) this.move(1.5);
-  			}
-  			else this.paceTarget = null;
-  			//find players
-  			var allPlayers = Player.getAll();
-  			for (var j in allPlayers) {
-  				var distPX = this.distanceTo(allPlayers[j]);
-  				var py = allPlayers[j].y;
-  				var dir = this.getDirTo(allPlayers[j]);
-  				if (distPX<=200&&dir==this.direction) {
-  					if (py>this.y-100&&py<this.y+100) {
-  						this.target = allPlayers[j];
-  						this.exclaim = 30;
-  						break;
-  					}
-  				}
-  			}
-  		}
+        this.doRandomPacing();
+        this.findPlayers();
+      }
   	}
-  	//animation
-  	if (this.attackBox!=null) this.setAnimation("attack");
-  	else if (!this.isGrounded&&this.heldBy==null) this.setAnimation("jump");
-  	else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
-  	else this.setAnimation("stand");
+  	this.chooseAnimation();
 
   	super.update();
   }
+
   drawTint() {
   	if (devEnabled) {
   		if (this.target==null) {
@@ -1376,6 +1383,8 @@ var Enemy = class Enemy extends Entity {
 }
 initClass(Enemy,Entity);
 Enemy.prototype.particleColor = "#6a00d8";
+Enemy.attacks = [];
+Enemy.defineAttack("attack",1,18,30,false,false,false,function() { this.stun = 30; });
 
 var PaintMinion = class PaintMinion extends Enemy {
   constructor(x,y) {

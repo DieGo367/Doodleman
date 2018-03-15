@@ -61,7 +61,13 @@
       "col": 0,
       "framerate": 0.2,
       "frames": [ 0, 1, 2, 3 ],
-      "alphas": [ 1 ]
+      "alphas": [ 1 ],
+      "attack": {
+        "x": [ 26 ],
+        "y": [ -12 ],
+        "width": [ 33 ],
+        "height": [ 10 ]
+      }
     }
   ],
   "defaultAnimation": "stand"

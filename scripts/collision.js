@@ -236,6 +236,9 @@ const Sectors = {
       }
     }
     return objectCollection;
+  },
+  getLoadedObjects: function() {
+    return this.getObjectListFromSectors(this.getLoadedSectors());
   }
 }
 class Sector {
