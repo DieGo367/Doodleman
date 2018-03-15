@@ -200,6 +200,20 @@
         "width": [ 73 ],
         "height": [ 22 ]
       }
+    },
+    {
+      "action": "attack-upward-air",
+      "row": 9,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 3, 2, 1 ],
+      "alphas": [ 1 ],
+      "attack": {
+        "x": [ 22 ],
+        "y": [ -9 ],
+        "width": [ 25 ],
+        "height": [ 40 ]
+      }
     }
   ],
   "defaultAnimation": "stand"

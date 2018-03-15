@@ -219,6 +219,7 @@ var HarmBox = class HarmBox extends Interactable {
   			var v = this.touches[i];
   			if (v==this.attacker||this.harmed.indexOf(v)!=-1) continue;
   			v.hurt(this.damage,this.attacker!=null?this.attacker:this);
+        if (this.onHurt) this.onHurt(v);
   			if (!v.dead) this.harmed.push(v);
   		}
   		this.time -= 1;
@@ -241,14 +242,26 @@ HarmBox.prototype.hitBoxStroke = "red";
 var AttackBox = class AttackBox extends HarmBox {
   constructor(x,y,width,height,attacker,damage,duration,frames,framerate) {
     var formulaX = function(ent) {
-      var frameVal = this.frames.x[Math.floor(this.frame*this.framerate)];
-      if (!frameVal) frameVal = this.frames.x[0];
-      if (!frameVal) return ent.x;
+      var frameIndex = Math.floor(this.frame*this.framerate);
+
+      var widthVal = this.frames.width[frameIndex];
+      if (widthVal==null) widthVal = this.frames.width[0];
+      if (widthVal!=null) this.width = widthVal;
+
+      var frameVal = this.frames.x[frameIndex];
+      if (frameVal==null) frameVal = this.frames.x[0];
+      if (frameVal==null) return ent.x;
       return ent.x + ent.direction*frameVal;
     };
     var formulaY = function(ent) {
-      var frameVal = this.frames.y[Math.floor(this.frame*this.framerate)];
+      var frameIndex = Math.floor(this.frame*this.framerate);
       this.frame++;
+
+      var heightVal = this.frames.height[frameIndex];
+      if (heightVal==null) heightVal = this.frames.height[0];
+      if (heightVal!=null) this.height = heightVal;
+
+      var frameVal = this.frames.y[frameIndex];
       if (!frameVal) frameVal = this.frames.y[0];
       if (!frameVal) return ent.y;
       return ent.y + frameVal;
@@ -867,7 +880,7 @@ var Entity = class Entity extends PhysicsBox {
   	}
   }
 
-  static defineAttack(name,damage=0,duration=0,cooldown=0,lockMovement=false,lockActions=false,defyGravity=false,prep) {
+  static defineAttack(name,damage=0,duration=0,cooldown=0,lockMovement=false,lockActions=false,defyGravity=false,prep,onHurt) {
     // defines an attack and stores it in this class's attack list
     if (!name) return;
     this.attacks.push({
@@ -878,7 +891,8 @@ var Entity = class Entity extends PhysicsBox {
       lockMovement: lockMovement,
       lockActions: lockActions,
       defyGravity: defyGravity,
-      prep: prep
+      prep: prep,
+      onHurt: onHurt
     });
   }
   static getAttack(name) { //returns attack obj from the class's (or parents') list of attack
@@ -898,6 +912,7 @@ var Entity = class Entity extends PhysicsBox {
         //make attack box
         var a = action.attack;
         this.attackBox = AttackBox.create(a.x[0],a.y[0],a.width,a.height,this,attack.damage,attack.duration,a,action.framerate);
+        if (attack.onHurt) this.attackBox.onHurt = attack.onHurt;
         //set player states
         this.attackCooldown = attack.cooldown;
         if (attack.defyGravity) this.defyGravity = attack.defyGravity;
@@ -942,6 +957,7 @@ var Player = class Player extends Entity {
   	this.attackHeld = 0;
   	this.doorEnterTick = 0;
   	this.doorWaitStep = 0;
+    this.canUpAirAttack = true;
   }
   static onCreate() {
     this.ctrls = {
@@ -989,7 +1005,10 @@ var Player = class Player extends Entity {
     else if (this.ducking) this.duck(false);
     if (pad.ready("attack")) {
       if (this.held==null) {
-        if (this.isGrounded&&pad.pressed("lookUp")) this.activateAttack("attack-upward");
+        if (pad.pressed("lookUp")||pad.ready("jump")) {
+          if (this.isGrounded) this.activateAttack("attack-upward");
+          else if (this.canUpAirAttack) this.activateAttack("attack-upward-air");
+        }
         else this.activateAttack("attack");
         pad.use("attack");
       }
@@ -1138,6 +1157,8 @@ var Player = class Player extends Entity {
 
   	if (this.attackCooldown>0) this.attackCooldown -= 1;
 
+    if (this.isGrounded) this.canUpAirAttack = true;
+
     //return player state to normal when lift animation is complete
     if (this.inLiftAnim&&(this.animCurrent!="lift")) {
       this.inLiftAnim = false;
@@ -1239,6 +1260,14 @@ Player.defineAttack("attack-charge-air",2,20,30,true,true,true,function() {
   this.velY = 0;
 });
 Player.defineAttack("attack-upward",1,20,30,true);
+Player.defineAttack("attack-upward-air",1,20,30,false,true,true,function() {
+  this.velY = -6;
+  this.move(5);
+  this.canUpAirAttack = false;
+},
+function() {
+  this.attacker.canUpAirAttack = true;
+});
 
 var Enemy = class Enemy extends Entity {
   constructor(x,y,width,height,health,sheet,duckHeight) {
