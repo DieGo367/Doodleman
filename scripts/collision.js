@@ -115,6 +115,7 @@ const Collision = {
     //mark all previous collision pairs as old
     for (var i in this.pairs) {
       var pair = this.pairs[i];
+      if (pair.involvesUnloaded()) continue;
       if (checkTerrain==pair.involvesTerrain()) pair.old = true;
     }
 
@@ -167,9 +168,13 @@ class CollisionPair {
   refresh() {
     this.behavior = Collision.determineBehavior(this.a,this.b);
   }
-  involvesTerrain() {
+  involvesTerrain() { //returns true if one of the pair is a terrain obj
     if (this.a.isTerrain||this.b.isTerrain) return true;
     else return false;
+  }
+  involvesUnloaded() { //returns false if one of the pair is unloaded
+    if (this.a.isLoaded&&this.b.isLoaded) return false;
+    else return true;
   }
   collide() {
     if (!this.a.intersect(this.b)||this.behavior==0) return;
