@@ -43,14 +43,15 @@ editor_scripts = [
 ]
 
 def get_user_vars():
-    user = users.get_current_user()
-    if user:
-        name = user.nickname().split('@')[0]
-        log_url = users.create_logout_url('/')
-    else:
-        name = "Guest"
-        log_url = users.create_login_url('/')
-    return {"user": user, "name": name, "log_url": log_url}
+    # user = users.get_current_user()
+    # if user:
+    #     name = user.nickname().split('@')[0]
+    #     log_url = users.create_logout_url('/')
+    # else:
+    #     name = "Guest"
+    #     log_url = users.create_login_url('/')
+    # return {"user": user, "name": name, "log_url": log_url}
+    return {}
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
