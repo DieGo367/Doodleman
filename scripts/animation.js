@@ -134,6 +134,21 @@ var Animation = {
 	getSpritesheet: function(name) {
 		return this.spritesheets[name];
 	},
+	doInheritance: function(list) { //copy missing sheet properties from parents
+		for (var i in list) {
+			if (typeof list[i]!="string") continue;
+			var sheet = Animation.getSpritesheet(list[i]);
+			if (sheet&&sheet.extends) {
+				var parent = Animation.getSpritesheet(sheet.extends);
+				if (parent) {
+					for (var p in parent) {
+						if (sheet[p]===void(0)) sheet[p] = parent[p];
+					}
+				}
+				else console.log("Couldn't extend animation: "+sheet.extends);
+			}
+		}
+	},
 	protoDraw: function() {
 		if (!this.isLoaded) return;
 		Animation.drawFromSheet(this.sheet,Math.floor(this.x),Math.floor(this.y),this.animCurrent,this.animFrame,this.direction,this,this.animPage);
@@ -190,13 +205,17 @@ var Animation = {
 	}
 }
 
-
-$.get("animations/_list_.json", function(data) {
+$.get("animations/_list_.json", function(data) { //get list of animation resources
 	var list = JSON.parse(data);
 	for (var i in list) {
-		if (typeof list[i]=="string") Animation.loadSpritesheet(list[i]);
+		if (typeof list[i]=="string") Animation.loadSpritesheet(list[i]); //send request for sheet
 	}
-	Animation.loadStatus -= 1;
+	Animation.loopInterval = setInterval(function() {
+		if (Animation.loadStatus!=1) return; // wait until all sheets are loaded
+		clearInterval(Animation.loopInterval);
+		Animation.doInheritance(list);
+		Animation.loadStatus -= 1;
+	},10);
 });
 
 $.get("res/_list_.json", function(data) {
@@ -205,20 +224,3 @@ $.get("res/_list_.json", function(data) {
 		if (typeof list[i]=="string") ImageFactory.loadImage(list[i]);
 	}
 });
-// ImageFactory.initImage("DoodlemanSprites","res/Doodleman Spritesheet.png");
-// ImageFactory.initImage("Redman","res/Redman-sprites.png");
-// ImageFactory.initImage("Blueman","res/Blueman-sprites.png");
-// ImageFactory.initImage("Greenman","res/Greenman-sprites.png");
-// ImageFactory.initImage("Yellowman","res/Yellowman-sprites.png");
-// ImageFactory.initImage("PaintMinionSprites",spoopy==false?"res/Paint Minion Spritesheet.png":"res/Skeltal Spritesheet.png");
-// ImageFactory.initImage("BG-Paper","res/paper.png");
-// ImageFactory.initImage("GUI-Hearts","res/GUI-HUD-Hearts new.png");
-// ImageFactory.initImage("GUI-Exclaim","res/GUI-HUD-!.png");
-// ImageFactory.initImage("GUI-Button","res/GUI-Button.png");
-// ImageFactory.initImage("GUI-Pointer","res/GUI-HUD-pointer.png");
-// ImageFactory.initImage("Box201","res/box201.png");
-// ImageFactory.initImage("Doors","res/Doors.png");
-// ImageFactory.initImage("GUI-Icons","res/GUI-IconsBigger.png");
-// ImageFactory.initImage("HelloWorld","res/helloworld.png");
-// ImageFactory.initImage("GUI-Controller","res/controlly.png");
-// ImageFactory.initImage("GUI-TouchButton","res/GUI-TouchButton.png")
