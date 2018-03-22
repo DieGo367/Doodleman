@@ -1026,6 +1026,7 @@ var Player = class Player extends Entity {
           if (this.isGrounded) this.activateAttack("attack-upward");
           else if (this.canUpAirAttack) this.activateAttack("attack-upward-air");
         }
+        else if (pad.pressed("crouch")&&!this.isGrounded) this.activateAttack("attack-down-stab");
         else this.activateAttack("attack");
         pad.use("attack");
       }
@@ -1285,6 +1286,22 @@ Player.defineAttack("attack-upward-air",1,20,30,false,true,true,function() {
 function() {
   this.attacker.canUpAirAttack = true;
 });
+Player.defineAttack("attack-down-stab",1,30,60,true,true,false,function() {
+  this.velY = -7;
+},null,
+[4,11],[function() {
+  this.velY = 5;
+  this.stun = 40;
+},
+function() {
+  if (!this.ground&&!this.lineGround&&this.y!=Level.height) {
+    this.attackBox.time++;
+    this.attackBox.frame--;
+    this.animFrame--;
+    this.animLock++;
+    this.attackCooldown++;
+  }
+}]);
 
 var Enemy = class Enemy extends Entity {
   constructor(x,y,width,height,health,sheet,duckHeight) {
