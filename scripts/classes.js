@@ -271,6 +271,16 @@ var AttackBox = class AttackBox extends HarmBox {
     this.frame = 0;
     this.framerate = framerate;
   }
+  update() {
+    if (this.specialFrames&&this.specialFuncs) { //this has special functions defined on certain frames
+      var specialIndex = this.specialFrames.indexOf(this.frame);
+      if (specialIndex!=-1) { //there is a special function defined for this frame
+        var f = this.specialFuncs[specialIndex];
+        if (f&&this.attacker) f.call(this.attacker);
+      }
+    }
+    super.update();
+  }
   remove() {
     if (this.attacker!=null) this.attacker.completeAttack();
     super.remove();
@@ -880,7 +890,7 @@ var Entity = class Entity extends PhysicsBox {
   	}
   }
 
-  static defineAttack(name,damage=0,duration=0,cooldown=0,lockMovement=false,lockActions=false,defyGravity=false,prep,onHurt) {
+  static defineAttack(name,damage=0,duration=0,cooldown=0,lockMovement=false,lockActions=false,defyGravity=false,prep,onHurt,specialFrames=[],specialFuncs=[]) {
     // defines an attack and stores it in this class's attack list
     if (!name) return;
     this.attacks.push({
@@ -892,7 +902,9 @@ var Entity = class Entity extends PhysicsBox {
       lockActions: lockActions,
       defyGravity: defyGravity,
       prep: prep,
-      onHurt: onHurt
+      onHurt: onHurt,
+      specialFrames: specialFrames,
+      specialFuncs: specialFuncs
     });
   }
   static getAttack(name) { //returns attack obj from the class's (or parents') list of attack
@@ -911,8 +923,13 @@ var Entity = class Entity extends PhysicsBox {
         if (attack.prep) attack.prep.call(this); //call special code for this attack
         //make attack box
         var a = action.attack;
-        this.attackBox = AttackBox.create(a.x[0],a.y[0],a.width,a.height,this,attack.damage,attack.duration,a,action.framerate);
-        if (attack.onHurt) this.attackBox.onHurt = attack.onHurt;
+        var box = this.attackBox = AttackBox.create(a.x[0],a.y[0],a.width,a.height,this,attack.damage,attack.duration,a,action.framerate);
+        //apply extra methods
+        if (attack.onHurt) box.onHurt = attack.onHurt;
+        if (attack.specialFrames&&attack.specialFuncs) {
+          box.specialFrames = attack.specialFrames;
+          box.specialFuncs = attack.specialFuncs;
+        }
         //set player states
         this.attackCooldown = attack.cooldown;
         if (attack.defyGravity) this.defyGravity = attack.defyGravity;
