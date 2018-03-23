@@ -269,8 +269,8 @@ var TouchAnalog = class TouchAnalog {
 			var x = Math.round(touch.x-this.x), y = Math.round(touch.y-this.y);
 			var angle = Math.atan2(y,x);
 			var dist = Math.sqrt(Math.pow(x,2)+Math.pow(y,2));
-			dist = dist/this.r;
-			if (dist>1) dist = 1;
+			if (dist>this.r) dist = 1;
+			else dist = dist/this.r;
 			this.tiltX = Math.cos(angle)*dist;
 			this.tiltY = Math.sin(angle)*dist;
 		}
@@ -330,7 +330,7 @@ var TouchButton = class TouchButton {
 		ImageFactory.drawImage("GUI-TouchButton.png",this.x,this.pressed?this.y+2:this.y,this.width,this.height,this.id*32,32,32,32);
 	}
 }
-Tap.analogs[0] = new TouchAnalog(hudWidth/8,hudHeight-hudWidth/8,hudWidth/16,1,5,0);
+Tap.analogs[0] = new TouchAnalog(hudWidth/8,hudHeight-hudWidth/8,hudWidth/16,1,1,0);
 Tap.buttons[0] = new TouchButton(hudWidth*7/8-35-30,hudHeight-hudWidth/8-35+30,60,60,false,0);
 Tap.buttons[1] = new TouchButton(hudWidth*7/8-35+35,hudHeight-hudWidth/8-35-30,60,60,true,1);
 
@@ -395,20 +395,19 @@ var Ctrl = class Ctrl {
 			default: return false;
 		}
 	}
-	pressed(action,skip) {
+	pressed(action,threshold=0.1,skip=false) {
 		var id = skip?action:this.id(action);
 		if (id=="none") return console.log("Invalid action name: "+action),false;
-		var ctrlManager = this.getCtrlManager();
 		switch(typeof id) {
 			case "number":
-				return !!this.getValue(id,true);
+				return this.getValue(id,true)>threshold;
 			case "string":
 				var value = this.getValue(id,true);
 				var mode = id.charAt(0), sign = id.charAt(2);
 				switch(mode) {
 					case "a":
 					case "f":
-						return Math.abs(value)>0.1;
+						return Math.abs(value)>threshold;
 					case "h":
 						var requested = [-1,-0.4285714030265808,0.14285719394683838,0.7142857313156128][parseInt(sign)];
 						if (Math.abs(requested-value)<0.3) return true;
@@ -418,7 +417,7 @@ var Ctrl = class Ctrl {
 			case "object":
 				var value = 0;
 				for (var i in id) {
-					value = Math.max(value,this.pressed(id[i],true));
+					value = Math.max(value,this.pressed(id[i],threshold,true));
 				}
 				return value;
 			default: return false;
@@ -453,7 +452,7 @@ var Ctrl = class Ctrl {
 			if (typeof mapping=="object") { //for all multi-mappings
 				for (var j in mapping) {
 					if (mapping[j]==id) { //if this button is a part of it
-						if (!this.pressed(mapping[j],true)) { //and if the mapping is no longer counted, then it's no longer used
+						if (!this.pressed(mapping[j],null,true)) { //and if the mapping is no longer counted, then it's no longer used
 							this.usedButtons["actions-"+this.actions[i]] = false;
 							this.justReleasedButtons["actions-"+this.actions[i]] = true;
 						}

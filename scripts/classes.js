@@ -312,7 +312,7 @@ var Door = class Door extends Interactable {
   	for (var i in this.touches) {
   		var p = this.touches[i];
       var pad = p.ctrls.mostRecent();
-  		if (pad.pressed("lookUp")&&p.isGrounded&&p.held==null&&Math.abs(this.y-p.y)<2&&p.door==null) {
+  		if (pad.pressed("lookUp",0.8)&&p.isGrounded&&p.held==null&&Math.abs(this.y-p.y)<2&&p.door==null) {
   			this.player = p;
   			p.door = this;
   			p.doorEnterTick = 30;
@@ -1011,7 +1011,7 @@ var Player = class Player extends Entity {
       else if (this.heldBy!=null) this.direction = RIGHT;
       else this.move(4.5,RIGHT);
     }
-    if (pad.pressed("crouch")&&this.isGrounded&&!this.actionLocked) {
+    if (pad.pressed("crouch",0.8)&&this.isGrounded&&!this.actionLocked) {
       this.velX = 0;
       if (!this.ducking) this.duck(true);
       if (pad.ready("attack")&&this.held==null&&this.animLock==0) {
@@ -1022,16 +1022,16 @@ var Player = class Player extends Entity {
     else if (this.ducking) this.duck(false);
     if (pad.ready("attack")) {
       if (this.held==null) {
-        if (pad.pressed("lookUp")||pad.ready("jump")) {
+        if (pad.pressed("lookUp",0.8)||pad.ready("jump")) {
           if (this.isGrounded) this.activateAttack("attack-upward");
           else if (this.canUpAirAttack) this.activateAttack("attack-upward-air");
         }
-        else if (pad.pressed("crouch")&&!this.isGrounded) this.activateAttack("attack-down-stab");
+        else if (pad.pressed("crouch",0.8)&&!this.isGrounded) this.activateAttack("attack-down-stab");
         else this.activateAttack("attack");
         pad.use("attack");
       }
       else if (!this.inLiftAnim) {
-        if (pad.pressed("crouch")&&this.isGrounded) this.dropHeldObject();
+        if (pad.pressed("crouch",0.8)&&this.isGrounded) this.dropHeldObject();
         else this.throwHeldObject();
         pad.use("attack");
       }
@@ -1050,13 +1050,13 @@ var Player = class Player extends Entity {
       if (this.door&&this.doorEnterTick<30) this.setAnimation("run");
       else if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("jump");
       else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
-      else if (pad.pressed("crouch")) this.setAnimation("crouch");
+      else if (this.ducking) this.setAnimation("crouch");
       else this.setAnimation("stand");
     }
     else {
       if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("carry-jump");
       else if (this.velX!=0) this.setAnimation("carry-run");
-      else if (pad.pressed("crouch")) this.setAnimation("carry-crouch");
+      else if (this.ducking) this.setAnimation("carry-crouch");
       else this.setAnimation("carry-stand");
     }
   }
