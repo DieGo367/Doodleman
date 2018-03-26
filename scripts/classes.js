@@ -890,21 +890,21 @@ var Entity = class Entity extends PhysicsBox {
   	}
   }
 
-  static defineAttack(name,damage=0,duration=0,cooldown=0,lockMovement=false,lockActions=false,defyGravity=false,prep,onHurt,specialFrames=[],specialFuncs=[]) {
+  static defineAttack(name,damage,duration,cooldown,lockMovement,lockActions,defyGravity,prep,onHurt,specialFrames,specialFuncs) {
     // defines an attack and stores it in this class's attack list
     if (!name) return;
-    this.attacks.push({
+    this.attacks.push({ // default parameters provided as well
       name: name,
-      damage: damage,
-      duration: duration,
-      cooldown: cooldown,
-      lockMovement: lockMovement,
-      lockActions: lockActions,
-      defyGravity: defyGravity,
+      damage: damage||0,
+      duration: duration||0,
+      cooldown: cooldown||0,
+      lockMovement: lockMovement||false,
+      lockActions: lockActions||false,
+      defyGravity: defyGravity||false,
       prep: prep,
       onHurt: onHurt,
-      specialFrames: specialFrames,
-      specialFuncs: specialFuncs
+      specialFrames: specialFrames||[],
+      specialFuncs: specialFuncs||[]
     });
   }
   static getAttack(name) { //returns attack obj from the class's (or parents') list of attack
@@ -1540,11 +1540,11 @@ var GuiElement = class GuiElement extends _c_ {
 initClass(GuiElement);
 
 var Button = class Button extends GuiElement {
-  constructor(name,viewName,x,y,width,height,text="") {
+  constructor(name,viewName,x,y,width,height,text) {
     super(name,viewName,x,y);
   	this.width = width;
   	this.height = height;
-  	this.text = text;
+  	this.text = text||"";
     this.mode = BUTTON_NO;
     this.isCloseButton = false;
     this.onClickFunction = function() {};
@@ -1562,10 +1562,10 @@ var Button = class Button extends GuiElement {
   	this.iconX = this.iconY = 0;
   	this.iconSize = 0;
   }
-  setOnClick(func,requireUserAction=false) {
+  setOnClick(func,requireUserAction) {
     this.onClickFunction = func;
     this.mode = BUTTON_NORMAL;
-    this.requireUserAction = requireUserAction;
+    this.requireUserAction = requireUserAction||false;
     return this;
   }
   setToggle(stateA,stateB) {
@@ -1674,21 +1674,21 @@ var Button = class Button extends GuiElement {
 initClass(Button,GuiElement);
 
 var TextElement = class TextElement extends GuiElement {
-  constructor(name,viewName,x,y,text,font="Times New Roman",size=10,isBold=false,color="black",alignment=LEFT,hasShadow=false,shadowColor="darkGray",shadowDistance=3,hasBorder=false,borderColor="white",borderSize=2,borderSteps=8) {
+  constructor(name,viewName,x,y,text,font,size,isBold,color,alignment,hasShadow,shadowColor,shadowDistance,hasBorder,borderColor,borderSize,borderSteps) {
     super(name,viewName,x,y);
     this.text = text;
-  	this.font = font;
-  	this.size = size;
-  	this.isBold = isBold;
-  	this.color = color;
-  	this.alignment = alignment;
-  	this.hasShadow = hasShadow;
-  	this.shadowColor = shadowColor;
-  	this.shadowDistance = shadowDistance;
-  	this.hasBorder = hasBorder;
-  	this.borderColor = borderColor;
-  	this.borderSize = borderSize;
-  	this.borderSteps = borderSteps;
+  	this.font = font||"Times New Roman";
+  	this.size = size||10;
+  	this.isBold = isBold||false;
+  	this.color = color||"black";
+  	this.alignment = alignment||LEFT;
+  	this.hasShadow = hasShadow||false;
+  	this.shadowColor = shadowColor||"darkGray";
+  	this.shadowDistance = shadowDistance||3;
+  	this.hasBorder = hasBorder||false;
+  	this.borderColor = borderColor||"white";
+  	this.borderSize = borderSize||2;
+  	this.borderSteps = borderSteps||8;
   }
   customDraw() {
   	c.font = (this.isBold?"bold ":"")+this.size+"px "+this.font;

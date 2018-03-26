@@ -36,7 +36,8 @@ const SpriteManager = {
 			}
 		});
 	},
-	make: function(id,...vals) {
+	make: function(id) {
+		var vals = Array.from(arguments).slice(1);
 		var sprite = this.spriteData[id];
 		if (sprite) {
 			var props = [];

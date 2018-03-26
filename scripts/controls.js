@@ -395,7 +395,8 @@ var Ctrl = class Ctrl {
 			default: return false;
 		}
 	}
-	pressed(action,threshold=0.1,skip=false) {
+	pressed(action,threshold,skip) {
+		threshold = threshold||0.1, skip = skip||false; //default params
 		var id = skip?action:this.id(action);
 		if (id=="none") return console.log("Invalid action name: "+action),false;
 		switch(typeof id) {

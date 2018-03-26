@@ -65,7 +65,7 @@ function initGame() {
 }
 
 function loadLoop() {
-	if (Animation.loadStatus==0) initGame();
+	if (Animation||Animation.loadStatus==0) initGame();
 	else window.requestAnimationFrame(loadLoop);
 }
 $(window).on("load",loadLoop);

@@ -15,26 +15,31 @@ var ImageFactory = {
 	getImage: function(imageName) {
 		return this.imgData[imageName];
 	},
-	drawImage: function(imageName,x,y,width,height,clipX = 0,clipY = 0,clipWidth,clipHeight) {
+	drawImage: function(imageName,x,y,width,height,clipX,clipY,clipWidth,clipHeight) {
+		if (clipX==null) clipX = 0;
+		if (clipY==null) clipY = 0;
 		var img = this.getImage(imageName);
 		if (img==null) return;
 		if (clipWidth==null) clipWidth = img.width;
 		if (clipHeight==null) clipHeight = img.height;
 		c.drawImage(img,clipX,clipY,clipWidth,clipHeight,x,y,width,height);
 	},
-	drawRotatedImage: function(imageName,x,y,width,height,clipX = 0,clipY = 0,clipWidth,clipHeight,angle = 0) {
+	drawRotatedImage: function(imageName,x,y,width,height,clipX,clipY,clipWidth,clipHeight,angle) {
 		var img = this.getImage(imageName);
 		if (img==null) return;
+		if (clipX==null) clipX = 0;
+		if (clipY==null) clipY = 0;
 		if (clipWidth==null) clipWidth = img.width;
 		if (clipHeight==null) clipHeight = img.height;
+		if (angle==null) angle = 0;
 		c.save();
 		c.translate(x,y);
 		c.rotate(angle*Math.PI/180);
 		c.drawImage(img,clipX,clipY,clipWidth,clipHeight,-(width/2),-(height/2),width,height);
 		c.restore();
 	},
-	drawBorderedImage: function(imageName,x,y,width,height,borderSize,center,offsetX = 0,offsetY = 0) {
-		var ox = offsetX, oy = offsetY, bp = borderSize;
+	drawBorderedImage: function(imageName,x,y,width,height,borderSize,center,offsetX,offsetY) {
+		var ox = offsetX||0, oy = offsetY||0, bp = borderSize;
 		this.drawImage(imageName,x,         y,          bp,bp,ox,          oy,          bp,bp);
 		this.drawImage(imageName,x+width-bp,y,          bp,bp,ox+bp+center,oy,          bp,bp);
 		this.drawImage(imageName,x,         y+height-bp,bp,bp,ox,          oy+bp+center,bp,bp);
@@ -59,8 +64,9 @@ var ImageFactory = {
 	}
 }
 
+
 var Animation = {
-	drawFromSheet: function(sheet,x,y,animationName,time,direction,entity,animPage=0) {
+	drawFromSheet: function(sheet,x,y,animationName,time,direction,entity,animPage) {
 		var animation = sheet.getAnimation(animationName);
 		if (animationName=="none") {
 			entity.setAnimation(sheet.defaultAnimation);
@@ -103,7 +109,7 @@ var Animation = {
 			else {
 				var alpha = c.globalAlpha;
 				c.globalAlpha *= frameAlpha;
-				c.drawImage(ImageFactory.getImage(sheet.pages[animPage]),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.drawOffset.x,y+sheet.drawOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
+				c.drawImage(ImageFactory.getImage(sheet.pages[animPage||0]),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.drawOffset.x,y+sheet.drawOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
 				c.globalAlpha = alpha;
 			}
 		}
