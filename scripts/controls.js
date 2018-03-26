@@ -83,15 +83,14 @@ var GamePad = {
 						newState = this.buttonPressed(gp.buttons[j])
 						oldState = this.buttonPressed(snap.buttons[j]);
 						if (newState!=oldState) {
-							if (j==0) hudText+=0.5;
 							if (newState) { //Pressed a button
 								buttonText = j;
-								for (var k in this.ctrls) {
-									if (this.ctrls[k].gamepadIndex&&this.ctrls[k].contains(j)) this.ctrls[k].setTimestamp();
-								}
 							}
 							else if (oldState) { //Released button
 								for (var k in this.ctrls) this.ctrls[k].clear(j);
+							}
+							for (var k in this.ctrls) {
+								if (this.ctrls[k].gamepadIndex==gp.index) this.ctrls[k].setTimestamp();
 							}
 						}
 						this.snapshots[gp.index].buttons[j] = newState;
@@ -101,7 +100,7 @@ var GamePad = {
 						oldState = snap.axes[j];
 						if (newState!=oldState) {
 							for (var k in this.ctrls) {
-								if (this.ctrls[k].gamepadIndex&&this.ctrls[k].contains(j,true)) this.ctrls[k].setTimestamp();
+								if (this.ctrls[k].gamepadIndex==gp.index) this.ctrls[k].setTimestamp();
 							}
 						}
 						this.snapshots[gp.index].axes[j] = newState;
@@ -466,6 +465,7 @@ var Ctrl = class Ctrl {
 		if (checkAnalogs) {
 			var mappingsToCheck = ["a"+mapping+"+","a"+mapping+"-","f"+mapping,"h"+mapping+"0","h"+mapping+"1","h"+mapping+"2","h"+mapping+"3"];
 			for (var i in mappingsToCheck) if (this.contains(mappingsToCheck[i])) return true;
+			return false;
 		}
 		for (var i in this.mappings) {
 			if (typeof this.mappings[i]=="object") {
