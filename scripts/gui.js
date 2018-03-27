@@ -88,10 +88,15 @@ function buildPauseMenu() {
 		G$("PauseMenu").hide();
 	}).setIcon("GUI-Icons.png",3,1,42,4).show();
 
-  TextElement.create("UserInfo","PauseMenu",hudWidth/2,hudHeight-30,"Logged in as "+User.name,"Catamaran, sans-serif",15,false,"white",CENTER)//.show();
-	Button.create("LoginoutButton","PauseMenu",hudWidth/2-50,hudHeight-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
-		User.useLink();
-	})//.show();
+	Button.create("HelpButton","PauseMenu",70,10,50,50,"Help").setOnClick(function() {
+		G$("HelpView").show();
+		G$("PauseMenu").hide();
+	}).show();
+
+  // TextElement.create("UserInfo","PauseMenu",hudWidth/2,hudHeight-30,"Logged in as "+User.name,"Catamaran, sans-serif",15,false,"white",CENTER)//.show();
+	// Button.create("LoginoutButton","PauseMenu",hudWidth/2-50,hudHeight-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
+	// 	User.useLink();
+	// })//.show();
 }
 
 function buildLevelSelectMenu() {
@@ -130,8 +135,8 @@ function buildControllerSettingsMenu() {
 		G$("PauseMenu").show();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
-  TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/3,80,"Player 1","Catamaran, sans-serif",20,false,"white",CENTER,true,"gray",5,false).show();
-	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth*2/3,80,"Player 2","Catamaran, sans-serif",20,false,"white",CENTER,true,"gray",5,false).show();
+  TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/3,80,"Player 1","Catamaran, sans-serif",20,false,"yellow",CENTER,true,"darkOrange",2,false).show();
+	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth*2/3,80,"Player 2","Catamaran, sans-serif",20,false,"yellow",CENTER,true,"darkOrange",2,false).show();
 
   Button.create("CtrlP1Keyboard","CtrlSettingsView",hudWidth/3-100,130,200,40,"Keyboard").setOnViewShown(function() {
 		this.text = getCtrlDisplayName(Player.keyMaps[0],"keyboard");
@@ -202,6 +207,44 @@ function buildControllerSelector(list,type,sourceButton) {
 		view.children = [];
 		view.hide();
 	}).setClose(true).show();
+}
+
+function buildHelpPage() {
+	View.create("HelpView",1,0,0,hudWidth,hudHeight,"tint","black");
+	Button.create("HelpClose","HelpView",hudWidth-60,10,50,50).setOnClick(function() {
+		G$("WASDPage").onClickFunction();
+		G$("HelpView").hide();
+		G$("PauseMenu").show();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+
+	var actions = ["Move Left / Right", "Jump", "Crouch", "Attack", "Enter Door / Up"];
+	var onClick = function() {
+		buildControlList(this.b,this.a);
+	}
+
+	TextElement.create("HelpTitle","HelpView",hudWidth/2,30,"Controls","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	var bWasd = Button.create("WASDPage","HelpView",10,100,100,40,"WASD").setOnClick(onClick).show();
+	bWasd.b = ["A / D", "W", "S", "G", "E"], bWasd.a = actions;
+	var bIjkl = Button.create("IJKLPage","HelpView",10,150,100,40,"IJKL").setOnClick(onClick).show();
+	bIjkl.b = ["J / L", "I", "K", "'", "O"], bIjkl.a = actions;
+	var bMoves = Button.create("MovesPage","HelpView",10,250,100,40,"Moves").setOnClick(onClick).show();
+	bMoves.b = ["Lift","Charge","Stab Down","Swipe Up","Air Jab"];
+	bMoves.a = ["[Crouch + Attack] on top of object","Hold [Attack] and release","[Crouch + Attack] when in air","[Up + Attack] or [Crouch] on Charge","[Up + Attack] or [Jump + Attack] in air"];
+
+	buildControlList(bWasd.b,actions);
+}
+function buildControlList(buttons,actions) {
+	buttons = buttons||[], actions = actions||[];
+	for (var i in actions) {
+		var te = G$("HelpItem-A::"+i);
+		if (te instanceof TextElement) te.text = actions[i];
+		else TextElement.create("HelpItem-A::"+i,"HelpView",hudWidth/2-50,100+55*i,actions[i],"Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	}
+	for (var i in buttons) {
+		var te = G$("HelpItem-B::"+i);
+		if (te instanceof Button) te.text = buttons[i];
+		else Button.create("HelpItem-B::"+i,"HelpView",hudWidth/5+5,70+55*i,120,50,buttons[i]).show();
+	}
 }
 
 function buildMapperView() {
