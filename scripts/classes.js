@@ -1681,7 +1681,7 @@ var TextElement = class TextElement extends GuiElement {
   	this.size = size||10;
   	this.isBold = isBold||false;
   	this.color = color||"black";
-  	this.alignment = alignment||LEFT;
+  	this.alignment = alignment===void(0)?LEFT:alignment;
   	this.hasShadow = hasShadow||false;
   	this.shadowColor = shadowColor||"darkGray";
   	this.shadowDistance = shadowDistance||3;
