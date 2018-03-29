@@ -32,8 +32,9 @@ var GamePad = {
 		this.controllers[gp.index] = gp;
 		this.controllers[gp.index].detected = true;
 		this.ctrlMaps[gp.index] = gpad;
+		gp.name = gp.index + ": " + gp.id.split("(").reverse().slice(1).reverse().join("(").trim(); //remove vendor info and show index
 
-		for (var i = 0; i < 4; i++) {
+		for (var i = 0; i < 2; i++) {
 			if (Player.gpIds[i]==null) {
 				changeControlSlots("gamepad",i,gp.index);
 				console.log("Connected Gamepad "+gp.index+" to slot "+i+": "+gp.id);
@@ -134,7 +135,7 @@ var GamePad = {
 	},
 	slotsFilled: function() {
 		var slots = [];
-		for (var i = 0; i < 4; i++) {
+		for (var i = 0; i < this.controllers.length; i++) {
 			if (this.controllers[i]) slots.push(i);
 		}
 		return slots;
@@ -347,7 +348,7 @@ var Ctrl = class Ctrl {
 		if (this.type=="gamepad") {
 			if (gamepadIndex!=null) {
 				this.gamepadIndex = gamepadIndex;
-				this.gamepadName = GamePad.controllers[gamepadIndex].id.split("(")[0].trim();
+				this.gamepadName = GamePad.controllers[gamepadIndex].name;
 			}
 			else return new NullCtrl();
 		}
@@ -566,7 +567,7 @@ function getCtrlDisplayName(obj,type) {
 				return obj.name;
 				break;
 			case "gamepad":
-				return GamePad.controllers[obj].id.split("(")[0].trim();
+				return GamePad.controllers[obj].name;
 				break;
 			case "touch":
 				return "Touch Controls";
