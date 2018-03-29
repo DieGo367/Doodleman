@@ -547,18 +547,13 @@ var cameraActions = ["camUp","camRight","camDown","camLeft","camZoomIn","camZoom
 var pointerActions = ["pointerMoveX","pointerMoveY","click"];
 
 var globalKeyboardMap = new CtrlMap("GlobalKeyboard","keyboard",[...gameActions,...cameraActions,"snippet","pause-p1","pause-p2"],[[82,80],192,220,104,102,101,100,99,97,103,105,98,221,82,80]);
-var globalGamepadMap = new CtrlMap("GlobalGamepad","gamepad",[...gameActions,...pointerActions],[9,5,8,'f2','f3',4]);
-
-var globalRSamMap = new CtrlMap("GlobalGPAD-RedSamuraiChrome","gamepad",[...gameActions,...pointerActions],[11,7,10,'f2','f5',6]);
+var globalGamepadMap = new CtrlMap("GlobalGamepad","gamepad",[...gameActions,...pointerActions],[9,5,8,'f2','f5',4]);
 
 var wasd = new CtrlMap("WASD","keyboard",playerActions,[69,68,83,65,87,71])
 var ijkl = new CtrlMap("IJKL","keyboard",playerActions,[79,76,75,74,73,222]);
 var dpad = new CtrlMap("DPad","keyboard",playerActions,[[191,96],39,40,37,38,[190,110]]);
 var gpad = new CtrlMap("GPAD","gamepad",playerActions,[[12,'a1-'],[15,'a0+'],[13,'a1+'],[14,'a0-'],0,[1,2]]);
 var tscr = new CtrlMap("TOUCH","touch",playerActions,['a1-','a0+','a1+','a0-',0,1]);
-
-var rsam = new CtrlMap("GPAD-RedSamuraiChrome","gamepad",playerActions,[['a1-','h90'],['a0+','h91'],['a1+','h92'],['a0-','h93'],0,[3,1]]);
-
 
 function getCtrlDisplayName(obj,type) {
 	if (obj!=null&&(typeof obj=="object"||typeof obj=="number")) {
