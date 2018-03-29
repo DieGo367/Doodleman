@@ -23,7 +23,20 @@ function initEditor() {
 }
 
 function loadLoop() {
-  if (Animation.loadStatus==0) initEditor();
+  if (ResourceManager.pendingRequests()==0) initEditor();
 	else window.requestAnimationFrame(loadLoop);
 }
-$(window).on("load",loadLoop);
+$(window).on("load",function() {
+  ResourceManager.requestGroup("res",function(item,name) {
+		ImageFactory.loadImage(name);
+	});
+
+	ResourceManager.requestGroup("animations",function(item,name) {
+		Animation.loadSpritesheet(name,item);
+	},
+	function(list,groupName) {
+		Animation.doInheritance(list);
+	});
+
+  loadLoop();
+});
