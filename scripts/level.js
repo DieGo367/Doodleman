@@ -28,7 +28,7 @@ const BlankLevel = clone(Level);
 const SpriteManager = {
 	spriteData: [],
 	init: function() {
-		$.get("scripts/sprites.json",function(data) {
+		ResourceManager.request("scripts/sprites.json",function(data) {
 			var rawData = JSON.parse(data);
 			for (var i in rawData) {
 				var id = rawData[i].id;

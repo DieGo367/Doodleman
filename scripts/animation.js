@@ -123,19 +123,15 @@ var Animation = {
 		c.fillRect(entity.x-entity.halfW(),entity.y,entity.width,-entity.height);
 	},
 	spritesheets: {}, loadStatus: 1,
-	loadSpritesheet: function(name) {
-		this.loadStatus += 1;
-		$.get("animations/"+name,function(data) {
-			var sheet = JSON.parse(data);
-			sheet.getAnimation = function(action) {
-				for (var i in this.animations) {
-					if (this.animations[i].action==action) return this.animations[i];
-				}
-				return;
-			};
-			Animation.spritesheets[name] = sheet;
-			Animation.loadStatus -= 1;
-		});
+	loadSpritesheet: function(name,data) {
+		var sheet = JSON.parse(data);
+		sheet.getAnimation = function(action) {
+			for (var i in this.animations) {
+				if (this.animations[i].action==action) return this.animations[i];
+			}
+			return;
+		};
+		Animation.spritesheets[name] = sheet;
 	},
 	getSpritesheet: function(name) {
 		return this.spritesheets[name];
@@ -210,23 +206,3 @@ var Animation = {
 		Animation.applyTo(cl.prototype);
 	}
 }
-
-$.get("animations/_list_.json", function(data) { //get list of animation resources
-	var list = JSON.parse(data);
-	for (var i in list) {
-		if (typeof list[i]=="string") Animation.loadSpritesheet(list[i]); //send request for sheet
-	}
-	Animation.loopInterval = setInterval(function() {
-		if (Animation.loadStatus!=1) return; // wait until all sheets are loaded
-		clearInterval(Animation.loopInterval);
-		Animation.doInheritance(list);
-		Animation.loadStatus -= 1;
-	},10);
-});
-
-$.get("res/_list_.json", function(data) {
-	var list = JSON.parse(data);
-	for (var i in list) {
-		if (typeof list[i]=="string") ImageFactory.loadImage(list[i]);
-	}
-});

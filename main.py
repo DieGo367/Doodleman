@@ -21,6 +21,7 @@ from google.appengine.api import users
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 scripts = [
   "project%20scribble.js",
+  "resource.js",
   "game.js",
   "level.js",
   "animation.js",
@@ -32,6 +33,7 @@ scripts = [
 ]
 editor_scripts = [
   "project%20scribble.js",
+  "resource.js",
   "editor.js",
   "level.js",
   "animation.js",

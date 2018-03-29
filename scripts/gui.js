@@ -109,14 +109,14 @@ function buildLevelSelectMenu() {
 		G$("PauseMenu").show();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
-  $.get("levels/_list_.json", function(data) {
+  ResourceManager.request("levels/_list_.json", function(data) {
 		var levelNames = JSON.parse(data);
 		for (var i in levelNames) {
 			var name = levelNames[i].split(".")[0];
 			var y = Math.floor(i/2);
 			var x = i%2==0?20:240;
-			Button.create("LS"+name,"LevelSelectView",x,50+y*60,200,40,name).setOnClick(function() {
-				$.get("levels/"+this.text+".json",function(data) {
+			Button.create("LSLevel"+i,"LevelSelectView",x,50+y*60,200,40,name).setOnClick(function() {
+				ResourceManager.request("levels/"+this.text+".json",function(data) {
 					loadLevel(data);
 				});
 			}).show();
