@@ -20,21 +20,8 @@ from google.appengine.api import users
 
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 scripts = [
-  "project%20scribble.js",
+  "project scribble.js",
   "resource.js",
-  "game.js",
-  "level.js",
-  "animation.js",
-  "controls.js",
-  "collision.js",
-  "classes.js",
-  "gui.js",
-  "devTools.js"
-]
-editor_scripts = [
-  "project%20scribble.js",
-  "resource.js",
-  "editor.js",
   "level.js",
   "animation.js",
   "controls.js",
@@ -57,7 +44,7 @@ def get_user_vars():
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        script_html = ""
+        script_html = "<script src=\"scripts/game.js\"></script>"
         for script in scripts:
             script_html += "<script src=\"scripts/%s\"></script>" % (script)
 
@@ -68,8 +55,8 @@ class MainHandler(webapp2.RequestHandler):
 
 class EditorHandler(webapp2.RequestHandler):
     def get(self):
-        script_html = ""
-        for script in editor_scripts:
+        script_html = "<script src=\"scripts/editor.js\"></script>"
+        for script in scripts:
             script_html += "<script src=\"scripts/%s\"></script>" % (script)
 
         temp_vars = get_user_vars()
