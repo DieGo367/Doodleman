@@ -500,7 +500,7 @@ function doGlobalControls(controller) {
 		}
 	}
 	if (controller.ready("showInfo")) {
-		devEnabled = !devEnabled;
+		G$("CtrlDevMode").on = devEnabled = !devEnabled;
 		if (!paused&&devEnabled) G$("DevTools").show();
 		else G$("DevTools").hide();
 		controller.use("showInfo");

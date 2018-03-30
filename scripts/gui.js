@@ -180,6 +180,10 @@ function buildControllerSettingsMenu() {
 		buildControllerSelector([tscr],"touch",this);
 	}).show();
 
+	Button.create("CtrlDevMode","CtrlSettingsView",hudWidth-15,hudHeight-15,10,10).setOnClick(function() {
+		this.on = devEnabled = !devEnabled;
+	}).show();
+
   View.create("CtrlChooser",2,0,0,hudWidth,hudHeight,"tint","darkBlue");
 }
 function buildControllerSelector(list,type,sourceButton) {
