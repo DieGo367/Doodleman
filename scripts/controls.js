@@ -552,7 +552,7 @@ var globalGamepadMap = new CtrlMap("GlobalGamepad","gamepad",[...gameActions,...
 var wasd = new CtrlMap("WASD","keyboard",playerActions,[69,68,83,65,87,71])
 var ijkl = new CtrlMap("IJKL","keyboard",playerActions,[79,76,75,74,73,222]);
 var dpad = new CtrlMap("DPad","keyboard",playerActions,[[191,96],39,40,37,38,[190,110]]);
-var gpad = new CtrlMap("GPAD","gamepad",playerActions,[[12,'a1-'],[15,'a0+'],[13,'a1+'],[14,'a0-'],0,[1,2]]);
+var gpad = new CtrlMap("GPAD","gamepad",playerActions,[[12,'a1-','h90'],[15,'a0+','h91'],[13,'a1+','h92'],[14,'a0-','h93'],0,[1,2]]);
 var tscr = new CtrlMap("TOUCH","touch",playerActions,['a1-','a0+','a1+','a0-',0,1]);
 
 function getCtrlDisplayName(obj,type) {
