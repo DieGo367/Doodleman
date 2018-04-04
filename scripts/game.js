@@ -44,7 +44,7 @@ function addGui() {
 	buildPauseMenu();
 	buildLevelSelectMenu();
 	buildControllerSettingsMenu();
-	//buildMapperView();
+	buildMapperView();
 	buildHelpPage();
 	buildDevToolsHud();
 }

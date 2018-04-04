@@ -184,32 +184,49 @@ function buildControllerSettingsMenu() {
 		this.on = devEnabled = !devEnabled;
 	}).show();
 
-  View.create("CtrlChooser",2,0,0,hudWidth,hudHeight,"tint","darkBlue");
+	Button.create("CtrlMapperBttn","CtrlSettingsView",5,hudHeight-45,200,40,"Gamepad Mapper").setOnViewShown(function() {
+		var ids = GamePad.slotsFilled();
+		if (ids.length==0) {
+			this.setOnClick(null);
+			this.mode = BUTTON_NO;
+		}
+		else this.setOnClick(function() {
+			G$("CtrlSettingsView").hide();
+			G$("MapperView").show();
+		});
+	}).show();
 }
 function buildControllerSelector(list,type,sourceButton) {
-	var finalList = [];
+	var finalList = [], names = [];
 	for (var i in list) {
 		var mapSettings = [Player.keyMaps,Player.gpIds,Player.tapMaps][["keyboard","gamepad","touch"].indexOf(type)];
 		if (mapSettings.indexOf(list[i])==-1 || list[i]==mapSettings[sourceButton.playerSlot]) {
 			finalList.push(list[i]);
+			names.push(getCtrlDisplayName(list[i],type));
 		}
 	}
 	finalList.push("None");
-	G$("CtrlChooser").show();
-	for (var i in finalList) {
-		Button.create("ctrlChooser::"+i+"::"+type,"CtrlChooser",hudWidth/2-150,30+50*i,300,40,getCtrlDisplayName(finalList[i],type)).setOnClick(function() {
-			var resultCtrl = finalList[this.name.split("::")[1]];
-			var type = this.name.split("::")[2];
-			sourceButton.text = getCtrlDisplayName(resultCtrl,type);
-			changeControlSlots(type,sourceButton.playerSlot,resultCtrl);
-			G$("CtrlChooserClose").onClickFunction();
+	names.push("None");
+
+	buildSelector(names,function(i,item) {
+		sourceButton.text = item;
+		changeControlSlots(type,sourceButton.playerSlot,finalList[i]);
+	},null,2);
+}
+
+function buildSelector(list,onSelect,onCancel,viewLayer) {
+	View.create("Selector",viewLayer===void(0)?1:viewLayer,0,0,hudWidth,hudHeight,"tint","darkBlue").show();
+	for (var i in list) {
+		Button.create("Selector::"+i,"Selector",hudWidth/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
+			if (typeof onSelect=="function") onSelect(this.name.split("::")[1],this.text);
+			G$("SelectorClose").onClickFunction();
 		}).show();
 	}
-	Button.create("CtrlChooserClose","CtrlChooser",hudWidth/2-150,hudHeight-70,300,40,"Cancel").setOnClick(function() {
-		var view = G$("CtrlChooser");
+	Button.create("SelectorClose","Selector",hudWidth/2-150,hudHeight-70,300,40,"Cancel").setOnClick(function() {
+		if (typeof onCancel=="function") onCancel();
+		var view = G$("Selector");
 		for (var i in view.children) view.children[i].remove();
-		view.children = [];
-		view.hide();
+		view.hide().remove();
 	}).setClose(true).show();
 }
 
@@ -252,12 +269,38 @@ function buildControlList(buttons,actions) {
 }
 
 function buildMapperView() {
-  View.create("MapperView",1,15,15,hudWidth-30,hudHeight-30,"window");
-	ImgElement.create("MapperImg","MapperView",hudWidth/2,hudHeight/2,"GUI-Controller.png",640,360).show();
-	TextElement.create("MapperText","MapperView",hudWidth/2,hudHeight-90,"Press buttons to map.","Catamaran, sans-serif",30,false,"white",CENTER,false,null,null,true,"black",3,8).show();
-	Button.create("MapperClose","MapperView",hudWidth-100,20,80,50,"Cancel").setOnClick(function() {
+  View.create("MapperView",1,0,0,hudWidth,hudHeight,"tint","black");
+	// ImgElement.create("MapperImg","MapperView",hudWidth/2,hudHeight/2,"GUI-Controller.png",640,360).show();
+	TextElement.create("MapperTitle","MapperView",hudWidth/2,30,"Gamepad Mapper","Catamaran, sans-serif",30,false,"white",CENTER,false,null,null,true,"black",3,8).show();
+
+	Button.create("MapperClose","MapperView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("MapperView").hide();
-	}).setClose(true).show();
+		G$("CtrlSettingsView").show();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+
+	TextElement.create("MapperSelectText","MapperView",hudWidth/3-5,115,"Settings for: ","Catamaran, sans-serif",20,false,"yellow",RIGHT,true,"darkOrange",2).show();
+	Button.create("MapperGPSelect","MapperView",hudWidth/3+5,90,300,40).setOnViewShown(function() {
+		var ids = GamePad.slotsFilled();
+		if (ids.length==0) G$("MapperClose").onClickFunction();
+		else {
+			this.text = GamePad.controllers[ids[0]].name;
+			this.selectedId = ids[0];
+		}
+	}
+	).setOnClick(function() {
+		var ids = GamePad.slotsFilled(), names = [];
+		for (var i in ids) names.push(GamePad.controllers[ids[i]].name);
+		buildSelector(names,function(i,item) {
+			var b = G$("MapperGPSelect");
+			b.text = item;
+			b.selectedId = ids[i];
+		},null,2);
+	}).show();
+
+	TextElement.create("MapperCurrentMapText","MapperView",hudWidth/3-5,165,"Current Mapping: ","Catamaran, sans-serif",20,false,"yellow",RIGHT,true,"darkOrange",2).show();
+
+	Button.create("MapperRemap","MapperView",hudWidth/3-100,hudHeight-90,200,40,"Change Mappings").show();
+	Button.create("MapperSetDefault","MapperView",hudWidth*2/3-100,hudHeight-90,200,40,"Reset to Default").show();
 }
 
 function buildDevToolsHud() {
