@@ -93,16 +93,16 @@ function drawLine(x,y,x2,y2) {
 	c.lineTo(x2,y2);
 	c.stroke();
 }
-function drawStrokedText(text,x,y,textColor,strokeColor,thickness,steps) {
+function drawStrokedText(text,x,y,textColor,strokeColor,thickness,steps,maxWidth) {
 	c.fillStyle = strokeColor;
 	for (var a = 0; a<steps; a++) {
-		c.fillText(text,x-thickness+2*thickness*a/(steps-1),y+thickness);
-		c.fillText(text,x-thickness+2*thickness*a/(steps-1),y-thickness);
-		c.fillText(text,x+thickness,y-thickness+2*thickness*a/(steps-1));
-		c.fillText(text,x-thickness,y-thickness+2*thickness*a/(steps-1));
+		c.fillText(text,x-thickness+2*thickness*a/(steps-1),y+thickness,maxWidth);
+		c.fillText(text,x-thickness+2*thickness*a/(steps-1),y-thickness,maxWidth);
+		c.fillText(text,x+thickness,y-thickness+2*thickness*a/(steps-1),maxWidth);
+		c.fillText(text,x-thickness,y-thickness+2*thickness*a/(steps-1),maxWidth);
 	}
 	c.fillStyle = textColor;
-	c.fillText(text,x,y);
+	c.fillText(text,x,y,maxWidth);
 }
 function getPrefixedProperty(source,strProp) {
 	var capProp = strProp.charAt(0).toUpperCase()+strProp.slice(1);

@@ -1674,7 +1674,7 @@ var Button = class Button extends GuiElement {
 initClass(Button,GuiElement);
 
 var TextElement = class TextElement extends GuiElement {
-  constructor(name,viewName,x,y,text,font,size,isBold,color,alignment,hasShadow,shadowColor,shadowDistance,hasBorder,borderColor,borderSize,borderSteps) {
+  constructor(name,viewName,x,y,text,font,size,isBold,color,alignment,hasShadow,shadowColor,shadowDistance,hasBorder,borderColor,borderSize,borderSteps,maxWidth) {
     super(name,viewName,x,y);
     this.text = text;
   	this.font = font||"Times New Roman";
@@ -1689,6 +1689,7 @@ var TextElement = class TextElement extends GuiElement {
   	this.borderColor = borderColor||"white";
   	this.borderSize = borderSize||2;
   	this.borderSteps = borderSteps||8;
+    this.maxWidth = maxWidth;
   }
   customDraw() {
   	c.font = (this.isBold?"bold ":"")+this.size+"px "+this.font;
@@ -1701,6 +1702,7 @@ var TextElement = class TextElement extends GuiElement {
   }
   drawText(yOffset,isShadow) {
   	var metrics = c.measureText(this.text);
+    if (this.maxWidth&&metrics.width>this.maxWidth) metrics = {width: this.maxWidth};
   	var xOffset;
   	switch(this.alignment) {
   		case LEFT:
@@ -1712,8 +1714,8 @@ var TextElement = class TextElement extends GuiElement {
   		case RIGHT:
   			xOffset = -metrics.width;
   	}
-  	if (this.hasBorder) drawStrokedText(this.text,this.x+xOffset,this.y+yOffset,isShadow?this.shadowColor:this.color,isShadow?this.shadowColor:this.borderColor,this.borderSize,this.borderSteps);
-  	else c.fillText(this.text,this.x+xOffset,this.y+yOffset);
+  	if (this.hasBorder) drawStrokedText(this.text,this.x+xOffset,this.y+yOffset,isShadow?this.shadowColor:this.color,isShadow?this.shadowColor:this.borderColor,this.borderSize,this.borderSteps,this.maxWidth);
+  	else c.fillText(this.text,this.x+xOffset,this.y+yOffset,this.maxWidth);
   }
 }
 initClass(TextElement,GuiElement);
