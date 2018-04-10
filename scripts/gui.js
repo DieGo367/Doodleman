@@ -283,8 +283,12 @@ function buildMapperView() {
 		var ids = GamePad.slotsFilled();
 		if (ids.length==0) G$("MapperClose").onClickFunction();
 		else {
-			this.text = GamePad.controllers[ids[0]].name;
 			this.selectedId = ids[0];
+			this.text = GamePad.controllers[ids[0]].name;
+			G$("MapperMappingName").text = GamePad.ctrlMaps[ids[0]].name;
+			strs = genMapDetails(GamePad.ctrlMaps[ids[0]]);
+			G$("MapperMappingDetails").text = strs[0];
+			G$("MapperMappingDetails2").text = strs[1];
 		}
 	}
 	).setOnClick(function() {
@@ -298,9 +302,31 @@ function buildMapperView() {
 	}).show();
 
 	TextElement.create("MapperCurrentMapText","MapperView",hudWidth/3-5,165,"Current Mapping: ","Catamaran, sans-serif",20,false,"yellow",RIGHT,true,"darkOrange",2).show();
+	TextElement.create("MapperMappingName","MapperView",hudWidth/3+5,165,"__","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextElement.create("MapperMappingDetails","MapperView",hudWidth/2,205,"Jmp: 0, Atck: 1, U: 12, D:13, L:14, R:15, Dpd: a9, AX: a0, AY: a1","Catamaran, sans-serif",20,false,"lime",CENTER,true,"darkGreen",2,null,null,null,null,hudWidth-20).show();
+	TextElement.create("MapperMappingDetails2","MapperView",hudWidth/2,245,"Paus: 9, Sel: 8, LB: 5, RB: 5, CX: a2, CY: a5","Catamaran, sans-serif",20,false,"lime",CENTER,true,"darkGreen",2,null,null,null,null,hudWidth-20).show();
 
 	Button.create("MapperRemap","MapperView",hudWidth/3-100,hudHeight-90,200,40,"Change Mappings").show();
 	Button.create("MapperSetDefault","MapperView",hudWidth*2/3-100,hudHeight-90,200,40,"Reset to Default").show();
+}
+function genMapDetails(standardMap,globalMap) {
+	if (!standardMap||!standardMap.actions||!standardMap.mappings) return ["none",""];
+	var name = ["jump","attack","lookUp","crouch","moveLeft","moveRight","gp_custom_dpad","gp_custom_AX","gp_custom_AY","pause","showInfo","click","respawn","gp_custom_CX","gp_custom_CY"];
+	var note = ["Jmp","Atck","U","D","L","R","Dpd","AX","AY","Paus","Sel","LB","RB","CX","CY"];
+	var results1 = [], results2 = [];
+	var targetResult = results1;
+	for (var i in name) {
+		var mapIndex;
+		if ((mapIndex=standardMap.actions.indexOf(name[i]))!=-1) {
+			targetResult.push(note[i] + ": " + standardMap.mappings[mapIndex]);
+		}
+		else if (globalMap&&(mapIndex=globalMap.actions.indexOf(name[i]))!=-1) {
+			targetResult.push(note[i] + ": " + globalMap.mappings[mapIndex]);
+		}
+		else targetResult.push(note[i] + ": none");
+		if (i==8) targetResult = results2;
+	}
+	return [results1.join(", "),results2.join(", ")];
 }
 
 function buildDevToolsHud() {

@@ -24,6 +24,7 @@ var Key = {
 var GamePad = {
 	controllers: [],
 	ctrlMaps: [],
+	customMaps: [],
 	snapshots: [],
 	ctrls: [],
 	haveEvents: true,
