@@ -7,12 +7,20 @@ var Key = {
 	onKeydown: function(event) {
 		this.pressedKeys[event.keyCode] = true;
 		for (var i in this.ctrls) {
-			if (this.ctrls[i].contains(event.keyCode)) this.ctrls[i].setTimestamp();
+			if (this.ctrls[i].contains(event.keyCode)) {
+				this.ctrls[i].setTimestamp();
+				this.ctrls[i].updateActionStates(event.keyCode);
+			}
 		}
 	},
 	onKeyup: function(event) {
 		delete this.pressedKeys[event.keyCode];
-		for (var i in this.ctrls) this.ctrls[i].clear(event.keyCode);
+		for (var i in this.ctrls) {
+			if (this.ctrls[i].contains(event.keyCode)) {
+				this.ctrls[i].setTimestamp();
+				this.ctrls[i].updateActionStates(event.keyCode);
+			}
+		}
 	},
 	ctrlButtonValue: function(id,ctrl) {
 		return Key.isDown(id)?1:0;
@@ -75,39 +83,38 @@ var GamePad = {
 	},
 	checkButtons: function() {
 		if (!this.haveEvents) this.scanGamepads();
-		for (var i in this.ctrls) this.ctrls[i].justReleasedButtons = {};
+		for (var i in this.ctrls) this.ctrls[i].justReleasedActions = {};
 		for (var i in this.controllers) {
 			if (!this.controllers[i]) continue;
 			var gp = this.controllers[i];
 			var snap = this.snapshots[gp.index];
 			if (snap) {
-					for (var j in gp.buttons) {
-						newState = this.buttonPressed(gp.buttons[j])
-						oldState = this.buttonPressed(snap.buttons[j]);
-						if (newState!=oldState) {
-							if (newState) { //Pressed a button
-								buttonText = j;
-							}
-							else if (oldState) { //Released button
-								for (var k in this.ctrls) this.ctrls[k].clear(j);
-							}
-							for (var k in this.ctrls) {
-								if (this.ctrls[k].gamepadIndex==gp.index) this.ctrls[k].setTimestamp();
+				for (var j in gp.buttons) {
+					var newState = this.buttonPressed(gp.buttons[j]);
+					var oldState = this.buttonPressed(snap.buttons[j]);
+					if (newState!=oldState) {
+						for (var k in this.ctrls) {
+							if (this.ctrls[k].gamepadIndex==gp.index) {
+								this.ctrls[k].setTimestamp();
+								this.ctrls[k].updateActionStates(j);
 							}
 						}
-						this.snapshots[gp.index].buttons[j] = newState;
 					}
-					for (var j in gp.axes) {
-						newState = gp.axes[j];
-						oldState = snap.axes[j];
-						if (newState!=oldState) {
-							for (var k in this.ctrls) {
-								if (this.ctrls[k].gamepadIndex==gp.index) this.ctrls[k].setTimestamp();
+					this.snapshots[gp.index].buttons[j] = newState;
+				}
+				for (var j in gp.axes) {
+					var newState = gp.axes[j];
+					var oldState = snap.axes[j];
+					if (newState!=oldState) {
+						for (var k in this.ctrls) {
+							if (this.ctrls[k].gamepadIndex==gp.index) {
+								this.ctrls[k].setTimestamp();
+								this.ctrls[k].updateActionStates('a'+j);
 							}
 						}
-						this.snapshots[gp.index].axes[j] = newState;
 					}
-
+					this.snapshots[gp.index].axes[j] = newState;
+				}
 			}
 			else {
 				if (gp.buttons&&gp.axes) {
@@ -123,16 +130,10 @@ var GamePad = {
 		if (typeof button=="object") return button.value;
 		else return button;
 	},
-	ctrlAnalogValue: function(id,mode,sign,ctrl) {
+	ctrlAnalogValue: function(id,ctrl) {
 		var gp = ctrl.gamepad();
 		if (gp==null) return false;
-		switch(mode) {
-			case 'a':
-				return Math.max(0,(sign=="+"?1:-1)*gp.axes[id]);
-			case 'h':
-			case 'f':
-				return gp.axes[id];
-		}
+		return gp.axes[id];
 	},
 	slotsFilled: function() {
 		var slots = [];
@@ -140,6 +141,19 @@ var GamePad = {
 			if (this.controllers[i]) slots.push(i);
 		}
 		return slots;
+	},
+	changeMap: function(id,map) {
+		if (!map) return;
+		var gp = this.controllers[id];
+		if (!gp) return console.warn("Invalid id");
+		this.ctrlMaps[id] = map;
+		for (var i in this.ctrls) {
+			var ctrl = this.ctrls[i];
+			if (ctrl.gamepad()==gp) {
+				ctrl.actions = map.actions;
+				ctrl.mappings = map.mappings;
+			}
+		}
 	}
 };
 var Tap = {
@@ -230,18 +244,12 @@ var Tap = {
 	ctrlButtonValue: function(id,ctrl) {
 		return this.buttons[id].pressed?1:0;
 	},
-	ctrlAnalogValue: function(id,mode,sign,ctrl) {
+	ctrlAnalogValue: function(id,ctrl) {
 		var tilt = ["tiltX","tiltY"][id%2];
 		var analog = this.analogs[Math.floor(id/2)];
 		var rawVal = analog[tilt];
 		if (tilt=="tiltY") rawVal /= analog.sense[id%2];
-		switch(mode) {
-			case 'a':
-				return Math.max(0,(sign=="+"?1:-1)*rawVal);
-			case 'h':
-			case 'f':
-				return rawVal;
-		}
+		return rawVal;
 	}
 };
 
@@ -322,8 +330,10 @@ var TouchButton = class TouchButton {
 				return this.pressed = true;
 			}
 		}
-		if (this.pressed) for (var i in Tap.ctrls) Tap.ctrls[i].clear(this.id);
+		// this is now not pressed
+		var wasPressed = this.pressed;
 		this.pressed = false;
+		if (wasPressed) for (var i in Tap.ctrls) Tap.ctrls[i].updateActionStates(this.id);
 	}
 	draw() {
 		var x = this.pressed?32:0;
@@ -335,11 +345,13 @@ Tap.analogs[0] = new TouchAnalog(hudWidth/8,hudHeight-hudWidth/8,hudWidth/16,1,1
 Tap.buttons[0] = new TouchButton(hudWidth*7/8-35-30,hudHeight-hudWidth/8-35+30,60,60,false,0);
 Tap.buttons[1] = new TouchButton(hudWidth*7/8-35+35,hudHeight-hudWidth/8-35-30,60,60,true,1);
 
-var CtrlMap = function(name,type,actions,mappings) {
+var CtrlMap = function(name,type,inputs,mappings,actions,groups) {
 	this.name = name;
 	this.type = type;
-	this.actions = actions; //Ex: ["jump","moveRight","crouch","moveLeft","attack"];
-	this.mappings = mappings; //Ex: [ 0, 'a0+', 'a1+', 'a0-', 3 ];
+	this.inputs = inputs; //Ex: ["A","B","Dpad","Up","Down","AnalogL_X","AnalogL_Y"];
+	this.mappings = mappings; //Ex: [ 0, 1, 'a9', 13, 14, 'a0', 'a1' ];
+	this.actions = actions; //Ex: ["jump","moveRight","crouch"];
+	this.groups = groups; //Ex: ["A",["Right","AnalogL_X::+","Dpad::R"],["Down","AnalogL_Y::+","Dpad::D"]];
 };
 var Ctrl = class Ctrl {
 	constructor(ctrlMap,gamepadIndex) {
@@ -353,12 +365,14 @@ var Ctrl = class Ctrl {
 			}
 			else return new NullCtrl();
 		}
-		this.actions = ctrlMap.actions;
+		this.inputs = ctrlMap.inputs;
 		this.mappings = ctrlMap.mappings;
-		this.usedButtons = {};
-		this.justReleasedButtons = {};
-		this.usedButtonsPaused = {};
-		this.justReleasedButtonsPaused = {};
+		this.actions = ctrlMap.actions;
+		this.groups = ctrlMap.groups;
+		this.usedActions = {};
+		this.justReleasedActions = {};
+		this.usedActionsPaused = {};
+		this.justReleasedActionsPaused = {};
 		this.timestamp = Date.now();
 		[NullCtrl,Key,GamePad,Tap][["NullCtrl","keyboard","gamepad","touch"].indexOf(ctrlMap.type)].ctrls.push(this);
 	}
@@ -366,126 +380,146 @@ var Ctrl = class Ctrl {
 		var typeIndex = ["NullCtrl","keyboard","gamepad","touch"].indexOf(this.type);
 		return [NullCtrl,Key,GamePad,Tap][typeIndex];
 	}
-	id(action) {
-		var index = this.actions.indexOf(action);
-		if (index==-1) return "none";
+	getMapping(input) {
+		var index = this.inputs.indexOf(input);
+		if (index==-1) return;
 		else return this.mappings[index];
 	}
-	namify(id) {
-		var name = "";
-		for (var i in id) {
-			name = name+id[i].toString();
-		}
-		return name;
+	getGroup(action) {
+		var index = this.actions.indexOf(action);
+		if (index==-1) return;
+		var result = this.groups[index];
+		if (!(result instanceof Array)&&result!=void(0)) return [result];
+		else return result;
 	}
-	getValue(action,skip) {
-		var id = skip?action:this.id(action);
-		if (id=="none") return console.log("Invalid action name: "+action),false;
+	getInputValue(input) {
+		var id = this.getMapping(input)
+		if (id===void(0)) return console.warn("Invalid input name: "+input),false;
 		var ctrlManager = this.getCtrlManager();
 		switch(typeof id) {
 			case "number":
 				return ctrlManager.ctrlButtonValue(id,this);
-			case "string":
-				return ctrlManager.ctrlAnalogValue(parseInt(id.charAt(1)),id.charAt(0),id.charAt(2),this);
-			case "object":
-				var value = 0;
-				for (var i in id) {
-					value = Math.max(value,this.getValue(id[i],true));
-				}
-				return value;
-			default: return false;
+			case "string": //Ex: "a0"
+				return ctrlManager.ctrlAnalogValue(parseInt(id.charAt(1)),this);
+			default:
+				return null;
 		}
 	}
-	pressed(action,threshold,skip) {
-		threshold = threshold||0.1, skip = skip||false; //default params
-		var id = skip?action:this.id(action);
-		if (id=="none") return console.log("Invalid action name: "+action),false;
-		switch(typeof id) {
-			case "number":
-				return this.getValue(id,true)>threshold;
-			case "string":
-				var value = this.getValue(id,true);
-				var mode = id.charAt(0), sign = id.charAt(2);
-				switch(mode) {
-					case "a":
-					case "f":
-						return Math.abs(value)>threshold;
-					case "h":
-						var requested = [-1,-0.4285714030265808,0.14285719394683838,0.7142857313156128][parseInt(sign)];
-						if (Math.abs(requested-value)<0.3) return true;
-						if ((requested==1&&value==-1)||(value==1&&requested==-1)) return true;
-						return false;
+	getActionValue(action) {
+		var group = this.getGroup(action);
+		if (!group) return console.warn("Invalid action name: "+action),false;
+		var groupValue;
+		for (var i in group) {
+			if (!group[i]) continue;
+			var input = group[i].split("::")[0];
+			var modifier = group[i].split("::")[1];
+			var val = this.getInputValue(input);
+			if (modifier) {
+				switch(typeof modifier) {
+					case '-':
+						val *= -1;
+					case '+':
+						if (val<0) val = 0;
+						break;
+					case 'U':
+						if (val==-1) {
+							val = 1;
+							break;
+						}
+					case 'R':
+					case 'D':
+					case 'L':
+						var requested = [-1,-0.428571,0.142857,0.714286][['U','R','D','L'].indexOf(modifier)];
+						if (Math.abs(requested-val)<0.3) val = 1;
+						else val = 0;
 				}
-			case "object":
-				var value = 0;
-				for (var i in id) {
-					value = Math.max(value,this.pressed(id[i],threshold,true));
+			}
+			if (groupValue==void(0)) groupValue = val;
+			else if (val>groupValue) groupValue = val;
+		}
+		return groupValue;
+	}
+	pressed(action,threshold) {
+		threshold = threshold||0.1;
+		var group = this.getGroup(action);
+		if (!group) return console.warn("Invalid action name: "+action),false;
+		for (var i in group) {
+			if (!group[i]) continue;
+			var input = group[i].split("::")[0];
+			var modifier = group[i].split("::")[1];
+			var val = this.getInputValue(input);
+			if (modifier) {
+				switch(modifier) {
+					case '-':
+						val *= -1;
+					case '+':
+						if (val<0) val = 0;
+						break;
+					case 'U':
+						if (val==-1) {
+							val = 1;
+							break;
+						}
+					case 'R':
+					case 'D':
+					case 'L':
+						var requested = [-1,-0.428571,0.142857,0.714286][['U','R','D','L'].indexOf(modifier)];
+						if (Math.abs(requested-val)<0.3) val = 1;
+						else val = 0;
 				}
-				return value;
-			default: return false;
+			}
+			if (Math.abs(val)>=threshold) return true;
 		}
 		return false;
 	}
 	used(action) {
-		if (this.id(action)=="none") return console.log("Invalid action name: "+action),false;
-		if (typeof this.id(action)=="object") return this.usedButtons["actions-"+action];
-		else return this.usedButtons[this.id(action)];
+		var group = this.getGroup(action);
+		if (!group) return console.warn("Invalid action name: "+action),false;
+		return this.usedActions[action];
 	}
 	ready(action) {
-		if (this.id(action)=="none") return console.log("Invalid action name: "+action),false;
-		if (this.pressed(action)&&!this.used(action)) return true;
-		else return false;
+		var group = this.getGroup(action);
+		if (!group) return console.warn("Invalid action name: "+action),false;
+		return (this.pressed(action)&&!this.used(action));
 	}
 	use(action,source) {
-		if (this.id(action)=="none") return console.log("Invalid action name: "+action),false;
-		if (typeof this.id(action)=="object") this.usedButtons["actions-"+action] = true;
-		else this.usedButtons[this.id(action)] = true;
+		var group = this.getGroup(action);
+		if (!group) return console.warn("Invalid action name: "+action),false;
+		this.usedActions[action] = true;
 	}
 	justReleased(action) {
-		if (this.id(action)=="none") return console.log("Invalid action name: "+action),false;
-		if (typeof this.id(action)=="object") return this.justReleasedButtons["actions-"+action];
-		else return this.justReleasedButtons[this.id(action)];
+		var group = this.getGroup(action);
+		if (!group) return console.warn("Invalid action name: "+action),false;
+		return this.justReleasedActions[action];
 	}
-	clear(id,isAxis) {
-		this.usedButtons[id] = false;
-		this.justReleasedButtons[id] = true;
-		for (var i in this.mappings) {
-			var mapping = this.mappings[i];
-			if (typeof mapping=="object") { //for all multi-mappings
-				for (var j in mapping) {
-					if (mapping[j]==id) { //if this button is a part of it
-						if (!this.pressed(mapping[j],null,true)) { //and if the mapping is no longer counted, then it's no longer used
-							this.usedButtons["actions-"+this.actions[i]] = false;
-							this.justReleasedButtons["actions-"+this.actions[i]] = true;
-						}
-					}
-				}
-			}
+	updateActionStates(mapping) {
+		if (!this.contains(mapping)) return;
+		for (var i in this.actions) {
+			var group = this.getGroup(this.actions[i]);
+			if (!group) continue;
+			if (!this.mappingInGroup(mapping,group)) continue;
+			if (!this.pressed(this.actions[i])) this.usedActions[this.actions[i]] = false;
 		}
 	}
-	contains(mapping,checkAnalogs) {
-		if (checkAnalogs) {
-			var mappingsToCheck = ["a"+mapping+"+","a"+mapping+"-","f"+mapping,"h"+mapping+"0","h"+mapping+"1","h"+mapping+"2","h"+mapping+"3"];
-			for (var i in mappingsToCheck) if (this.contains(mappingsToCheck[i])) return true;
-			return false;
-		}
-		for (var i in this.mappings) {
-			if (typeof this.mappings[i]=="object") {
-				for (var j in this.mappings[i]) {
-					if (mapping==this.mappings[i][j]) return true;
-				}
-			}
-			else if (mapping==this.mappings[i]) return true;
+	contains(mapping) {
+		if (!isNaN(parseInt(mapping))) mapping = parseInt(mapping);
+		var index = this.mappings.indexOf(mapping);
+		return index!=-1;
+	}
+	mappingInGroup(mapping,group) {
+		for (var i in group) {
+			var input = group[i].split("::")[0];
+			if (this.getMapping(input)==mapping) return true;
 		}
 		return false;
 	}
 	makePausedCache() {
-		for (var property in this.usedButtons) this.usedButtonsPaused[property] = this.usedButtons[property];
-		for (var property in this.justReleasedButtons) this.justReleasedButtonsPaused[property] = this.justReleasedButtons[property];
+		for (var property in this.usedActions) this.usedActionsPaused[property] = this.usedActions[property];
+		for (var property in this.justReleasedActions) this.justReleasedActionsPaused[property] = this.justReleasedActions[property];
 	}
 	loadPausedCache() {
-		for (var property in this.usedButtonsPaused) this.usedButtons[property] = this.usedButtonsPaused[property];
-		for (var property in this.justReleasedButtonsPaused) this.justReleasedButtons[property] = this.justReleasedButtonsPaused[property];
+		for (var property in this.usedActionsPaused) this.usedActions[property] = this.usedActionsPaused[property];
+		for (var property in this.justReleasedActionsPaused) this.justReleasedActions[property] = this.justReleasedActionsPaused[property];
 	}
 	gamepad() {
 		if (this.type=="gamepad") return GamePad.controllers[this.gamepadIndex];
@@ -504,9 +538,9 @@ var Ctrl = class Ctrl {
 
 var NullCtrl = class NullCtrl extends Ctrl {
 	constructor() {
-		super({name:"NullCtrl",type:"NullCtrl",actions:[],mappings:[]});
+		super({name:"NullCtrl",type:"NullCtrl",inputs:[],mappings:[],actions:[],groups:[]});
 	}
-	getValue() { return false; }
+	getActionValue() { return false; }
 	pressed() { return false; }
 	used() { return false; }
 	ready() { return false; }
@@ -515,46 +549,26 @@ var NullCtrl = class NullCtrl extends Ctrl {
 }
 NullCtrl.ctrls = [];
 var nullController = new NullCtrl();
-/*Controller mapping documentation
-The actions argument is an array that contains all the different actions this controller can have. These strings are what will be passed into things like controller.usable(action);
-The mappings argument is an array that contains a matching keycode or button id for every action.
-Items may be:
-	integers:
-		Just put the raw id of the input. Keycodes for the keyboard, Button IDs for gamepads.
-	strings:
-		For gamepads only. Indicates that we're dealing with an axis.
-		These follow the format "x0?":
-			'x' is a letter that corresponds to how we should read the axis.
-				'a' means just a normal direction on an axis.
-				'h' means that this axis is actually a hat switch for the dpad. We're testing for a specific direction.
-				'f' means to take the value of the whole axis.
-			'0' represents the number of the axis.
-			'?' depends on 'x':
-				For 'a' this should be a +/- sign indicating which side of the axis we're mapping to.
-				For 'h' this should be the button's distance from up. This order goes URDL and 0-3.
-					The Controller will check if it's at or near the value associated with that button.
-					It will also check for the two diagonals associated with our button.
-	arrays:
-		lists of buttons that should all map to the same action.
-		If at least one of the mapped buttons is pressed, then ctrl.pressed(action) will return true.
-		Items are treated the same as any other in mappings.
 
-So that's pretty much it.
-*/
+var dmInputs = ["A","B","Dpad","Up","Down","Left","Right","AnalogL_X","AnalogL_Y","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"];
+var dmActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack","pause","showInfo","click","respawn","pointerMoveX","pointerMoveY"];
 
 var playerActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack"];
 var gameActions = ["pause","respawn","showInfo"];
 var cameraActions = ["camUp","camRight","camDown","camLeft","camZoomIn","camZoomOut","camRotateCW","camRotateCCW","camReset"];
 var pointerActions = ["pointerMoveX","pointerMoveY","click"];
 
-var globalKeyboardMap = new CtrlMap("GlobalKeyboard","keyboard",[...gameActions,...cameraActions,"snippet","pause-p1","pause-p2"],[[82,80],192,220,104,102,101,100,99,97,103,105,98,221,82,80]);
-var globalGamepadMap = new CtrlMap("GlobalGamepad","gamepad",[...gameActions,...pointerActions],[9,5,8,'f2','f5',4]);
+var globalKeyboardMap = new CtrlMap("GlobalKeyboard","keyboard",["P1","P2","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]"],[82,80,192,220,104,102,101,100,99,97,103,105,98,221],
+[...gameActions,...cameraActions,"snippet","pause-p1","pause-p2"],["P1","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]","P1","P2"]);
 
-var wasd = new CtrlMap("WASD","keyboard",playerActions,[69,68,83,65,87,71])
-var ijkl = new CtrlMap("IJKL","keyboard",playerActions,[79,76,75,74,73,222]);
-var dpad = new CtrlMap("DPad","keyboard",playerActions,[[191,96],39,40,37,38,[190,110]]);
-var gpad = new CtrlMap("GPAD","gamepad",playerActions,[[12,'a1-','h90'],[15,'a0+','h91'],[13,'a1+','h92'],[14,'a0-','h93'],0,[1,2]]);
-var tscr = new CtrlMap("TOUCH","touch",playerActions,['a1-','a0+','a1+','a0-',0,1]);
+var wasd = new CtrlMap("WASD","keyboard",dmInputs,[87,71,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
+var ijkl = new CtrlMap("IJKL","keyboard",dmInputs,[73,222,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
+// var dpad = new CtrlMap("DPad","keyboard",playerActions,[[191,96],39,40,37,38,[190,110]]);
+var gpad = new CtrlMap("GPAD","gamepad",dmInputs,[0,2,'a9',12,13,14,15,'a0','a1',9,8,4,5,'a2','a5'],dmActions,[
+	["Up","AnalogL_Y::-","Dpad::U"],["Right","AnalogL_X::+","Dpad::R"],["Down","AnalogL_Y::+","Dpad::D"],["Left","AnalogL_X::-","Dpad::L"],
+	"A","B","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"
+]);
+var tscr = new CtrlMap("TOUCH","touch",dmInputs,[0,1,null,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
 
 function getCtrlDisplayName(obj,type) {
 	if (obj!=null&&(typeof obj=="object"||typeof obj=="number")) {
@@ -588,8 +602,9 @@ function changeControlSlots(type,slot,ctrl) {
 			}
 			else {
 				Player.gpIds[slot] = ctrl;
-				Player.globalGPCtrls[slot] = new Ctrl(globalGamepadMap,ctrl);
-				Player.gpMaps[slot] = gpad;
+				if (Player.globalGPCtrls[slot]) Player.globalGPCtrls[slot].selfDestruct();
+				Player.globalGPCtrls[slot] = new Ctrl(GamePad.ctrlMaps[ctrl],ctrl);
+				Player.gpMaps[slot] = GamePad.ctrlMaps[ctrl];
 			}
 			break;
 		case "touch":

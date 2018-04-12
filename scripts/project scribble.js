@@ -524,7 +524,7 @@ function doGlobalControls(controller) {
 		}
 	}
 	if (controller.type=="gamepad") {
-		var moveX = controller.getValue("pointerMoveX"), moveY = controller.getValue("pointerMoveY"), moved = false;
+		var moveX = controller.getActionValue("pointerMoveX"), moveY = controller.getActionValue("pointerMoveY"), moved = false;
 		if (Math.abs(moveX)>0.01||Math.abs(moveY)>0.01) Pointer.move(Pointer.x+moveX*8,Pointer.y+moveY*8);
 		if (controller.ready("click")) {
 			controller.use("click");
