@@ -305,7 +305,9 @@ function buildMapperView() {
 
 	Button.create("MapperRemap","MapperView",hudWidth/3-100,hudHeight-90,200,40,"Change Mappings").setOnViewShown(function() {
 		var id = G$("MapperGPSelect").selectedId;
-		if (GamePad.ctrlMaps[id]==gpad) this.setOnClick(function() {
+		if (!GamePad.controllers[id]) G$("MapperClose").onClickFunction();
+		else if (GamePad.ctrlMaps[id]==gpad) this.setOnClick(function() {
+			G$("MapperTool").selectedId = id;
 			G$("MapperTool").show();
 		});
 		else {
@@ -355,9 +357,67 @@ function genMapDetails(standardMap,globalMap) {
 
 function buildMapperTool() {
 	View.create("MapperTool",2,20,20,hudWidth-40,hudHeight-40,"window");
-	Button.create("MapperToolClose","MapperTool",hudWidth-60,10,50,50).setOnClick(function() {
+	Button.create("MapperToolClose","MapperTool",hudWidth-75,25,50,50).setOnClick(function() {
 		G$("MapperTool").hide();
+		GamePad.buttonListeners = [];
+		GamePad.axisListeners = [];
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+
+	var titles = ["Press A","Press B","Press Start","Press Select","Press Left Bumper","Press Right Bumper",
+	"Move Left Stick Left/Right","Move Left Stick Up/Down","Move Right Stick Left/Right","Move Right Up/Down",
+	"Press on the DPad","Press Up","Press Down","Press Left","Press Right"];
+	TextElement.create("MapperToolText","MapperTool",hudWidth/2,90,"Press A","Catamaran, sans-serif",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("MapperToolResult","MapperTool",hudWidth/2,150,"-","Catamaran, sans-serif",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+
+	Button.create("MapperToolSkip","MapperTool",hudWidth/2-50,hudHeight-65,100,40,"Skip").setOnViewShown(function() {
+		var id = G$("MapperTool").selectedId;
+		if (!GamePad.controllers[id]) G$("MapperToolClose").onClickFunction();
+		this.mode = BUTTON_NO;
+		G$("MapperToolResult").text = "-";
+		mapperStep(id,0,titles,"button");
+	}).show();
+}
+function mapperStep(gpId,step,titles,type) {
+	G$("MapperTool").step = step;
+	G$("MapperToolText").text = titles[step];
+	console.log(step);
+	if (!GamePad.controllers[gpId]) G$("MapperToolClose").onClickFunction();
+	else switch(type) {
+		case "button":
+			GamePad.onNextButtonPress(gpId,function(buttonId,gp) {
+				G$("MapperToolResult").text = buttonId;
+				var nextStep = G$("MapperTool").step+1;
+				if (nextStep < 6) mapperStep(gp.index,nextStep,titles,"button");
+				else if (nextStep < 10) mapperStep(gp.index,nextStep,titles,"axis");
+				else if (nextStep < titles.length) mapperStep(gp.index,nextStep,titles,"button");
+				else {
+					G$("MapperToolText").text = "done";
+					G$("MapperToolSkip").setOnClick(G$("MapperToolClose").onClickFunction);
+				}
+			});
+			break;
+		case "axis":
+			GamePad.onNextAxisChange(gpId,function(axisId,gp) {
+				G$("MapperToolResult").text = 'a'+axisId;
+				var nextStep = G$("MapperTool").step+1;
+				if (nextStep < 10) mapperStep(gp.index,nextStep,titles,"axis");
+				else mapperStep(gp.index,nextStep,titles,"dpad");
+			});
+			break;
+		case "dpad":
+			GamePad.onNextButtonPress(gpId,function(buttonId,gp) {
+				GamePad.axisListeners = [];
+				G$("MapperToolResult").text = buttonId;
+				var nextStep = G$("MapperTool").step+1;
+				mapperStep(gp.index,nextStep,titles,"button");
+			});
+			GamePad.onNextAxisChange(gpId,function(axisId,gp) {
+				G$("MapperToolResult").text = 'a'+axisId;
+				G$("MapperToolText").text = "done";
+				G$("MapperToolSkip").setOnClick(G$("MapperToolClose").onClickFunction);
+			});
+			break;
+	}
 }
 
 function buildDevToolsHud() {

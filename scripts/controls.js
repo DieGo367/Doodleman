@@ -91,6 +91,8 @@ var GamePad = {
 			var gp = this.controllers[i];
 			var snap = this.snapshots[gp.index];
 			if (snap) {
+				var buttonListenerCopy = clone(this.buttonListeners);
+				var axisListenerCopy = clone(this.axisListeners);
 				for (var j in gp.buttons) {
 					var newState = this.buttonPressed(gp.buttons[j]);
 					var oldState = this.buttonPressed(snap.buttons[j]);
@@ -101,10 +103,11 @@ var GamePad = {
 								this.ctrls[k].updateActionStates(j);
 							}
 						}
-						if (newState) for (var k = 0; k < this.buttonListeners.length; k++) {
-							if (this.buttonListeners[k].gp==gp) {
+						if (newState) for (var k = 0; k < buttonListenerCopy.length; k++) {
+							if (this.buttonListeners[k].gpIndex==gp.index) {
 								this.buttonListeners[k].callback(j,gp);
 								this.buttonListeners.splice(k,1);
+								buttonListenerCopy.splice(k,1);
 								k--;
 							}
 						}
@@ -121,10 +124,18 @@ var GamePad = {
 								this.ctrls[k].updateActionStates('a'+j);
 							}
 						}
-						for (var k = 0; k < this.axisListeners.length; k++) {
-							if (this.axisListeners[k].gp==gp) {
+						var held = Math.abs(newState)>0.8&&Math.abs(oldState)<0.8&&Math.abs(newState)<1.5;
+						var hatValues = [-1,-0.428571,0.142857,0.714286];
+						var isHat = false;
+						for (var i in hatValues) if (Math.abs(hatValues[i]-newState)<0.00001) {
+							isHat = true;
+							break;
+						}
+						if (held||isHat) for (var k = 0; k < axisListenerCopy.length; k++) {
+							if (this.axisListeners[k].gpIndex==gp.index) {
 								this.axisListeners[k].callback(j,gp);
 								this.axisListeners.splice(k,1);
+								axisListenerCopy.splice(k,1);
 								k--;
 							}
 						}
@@ -171,15 +182,15 @@ var GamePad = {
 			}
 		}
 	},
-	onNextButtonPress: function(gp,callback) {
-		if (this.controllers.indexOf(gp)==-1) return;
+	onNextButtonPress: function(gpIndex,callback) {
+		if (!this.controllers[gpIndex]) return;
 		if (typeof callback != "function") return;
-		this.buttonListeners.push({gp: gp, callback: callback});
+		this.buttonListeners.push({gpIndex: gpIndex, callback: callback});
 	},
-	onNextAxisChange: function(gp,callback) {
-		if (this.controllers.indexOf(gp)==-1) return;
+	onNextAxisChange: function(gpIndex,callback) {
+		if (!this.controllers[gpIndex]) return;
 		if (typeof callback != "function") return;
-		this.axisListeners.push({gp: gp, callback: callback});
+		this.axisListeners.push({gpIndex: gpIndex, callback: callback});
 	}
 };
 var Tap = {
