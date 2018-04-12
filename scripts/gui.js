@@ -53,9 +53,9 @@ function buildPauseMenu() {
 		G$("PauseMenu").hide();
 	}).show().setPressDelay(1);
 
-	Button.create("GameModeToggle","PauseMenu",hudWidth-150,hudHeight-60,130,40,"Sandbox Mode").setOnClick(function(ctrl) {
+	Button.create("GameModeToggle","PauseMenu",hudWidth-150,hudHeight-60,130,40,"Sandbox Mode")./*setOnClick(function(ctrl) {
 		setGameMode(gameMode+1);
-	}).show();
+	}).*/show();
 
   Button.create("MPToggle","PauseMenu",hudWidth-150,hudHeight-120,130,40,"Singleplayer").setOnClick(function(ctrl) {
 		multiplayer = !multiplayer;
@@ -271,7 +271,7 @@ function buildControlList(buttons,actions) {
 function buildMapperView() {
   View.create("MapperView",1,0,0,hudWidth,hudHeight,"tint","black");
 	// ImgElement.create("MapperImg","MapperView",hudWidth/2,hudHeight/2,"GUI-Controller.png",640,360).show();
-	TextElement.create("MapperTitle","MapperView",hudWidth/2,30,"Gamepad Mapper","Catamaran, sans-serif",30,false,"white",CENTER,false,null,null,true,"black",3,8).show();
+	TextElement.create("MapperTitle","MapperView",hudWidth/2,30,"Gamepad Mapper","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 
 	Button.create("MapperClose","MapperView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("MapperView").hide();
@@ -303,11 +303,27 @@ function buildMapperView() {
 	TextElement.create("MapperMappingDetails","MapperView",hudWidth/2,205,"none","Catamaran, sans-serif",20,false,"lime",CENTER,true,"darkGreen",2,null,null,null,null,hudWidth-20).show();
 	TextElement.create("MapperMappingDetails2","MapperView",hudWidth/2,245,"","Catamaran, sans-serif",20,false,"lime",CENTER,true,"darkGreen",2,null,null,null,null,hudWidth-20).show();
 
-	Button.create("MapperRemap","MapperView",hudWidth/3-100,hudHeight-90,200,40,"Change Mappings").show();
-	Button.create("MapperSetDefault","MapperView",hudWidth*2/3-100,hudHeight-90,200,40,"Reset to Default").setOnClick(function() {
+	Button.create("MapperRemap","MapperView",hudWidth/3-100,hudHeight-90,200,40,"Change Mappings").setOnViewShown(function() {
 		var id = G$("MapperGPSelect").selectedId;
-		GamePad.changeMap(id,gpad);
-		updateMapText(id);
+		if (GamePad.ctrlMaps[id]==gpad) this.setOnClick(function() {
+			G$("MapperTool").show();
+		});
+		else {
+			this.setOnClick(null);
+			this.mode = BUTTON_NO;
+		}
+	}).show();
+	Button.create("MapperSetDefault","MapperView",hudWidth*2/3-100,hudHeight-90,200,40,"Reset to Default").setOnViewShown(function() {
+		var id = G$("MapperGPSelect").selectedId;
+		if (GamePad.ctrlMaps[id]==gpad) {
+			this.setOnClick(null);
+			this.mode = BUTTON_NO;
+		}
+		else this.setOnClick(function() {
+			var id = G$("MapperGPSelect").selectedId;
+			GamePad.changeMap(id,gpad);
+			updateMapText(id);
+		});
 	}).show();
 }
 function updateMapText(id) {
@@ -335,6 +351,13 @@ function genMapDetails(standardMap,globalMap) {
 		if (i==8) targetResult = results2;
 	}
 	return [results1.join(", "),results2.join(", ")];
+}
+
+function buildMapperTool() {
+	View.create("MapperTool",2,20,20,hudWidth-40,hudHeight-40,"window");
+	Button.create("MapperToolClose","MapperTool",hudWidth-60,10,50,50).setOnClick(function() {
+		G$("MapperTool").hide();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 }
 
 function buildDevToolsHud() {

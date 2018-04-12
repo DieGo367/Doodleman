@@ -32,10 +32,12 @@ var Key = {
 var GamePad = {
 	controllers: [],
 	ctrlMaps: [],
-	customMaps: [],
 	snapshots: [],
 	ctrls: [],
 	haveEvents: true,
+	customMaps: [],
+	buttonListeners: [],
+	axisListeners: [],
 	connect: function(gp) {
 		if (gp.timestamp==0) return;
 		this.controllers[gp.index] = gp;
@@ -99,6 +101,13 @@ var GamePad = {
 								this.ctrls[k].updateActionStates(j);
 							}
 						}
+						if (newState) for (var k = 0; k < this.buttonListeners.length; k++) {
+							if (this.buttonListeners[k].gp==gp) {
+								this.buttonListeners[k].callback(j,gp);
+								this.buttonListeners.splice(k,1);
+								k--;
+							}
+						}
 					}
 					this.snapshots[gp.index].buttons[j] = newState;
 				}
@@ -110,6 +119,13 @@ var GamePad = {
 							if (this.ctrls[k].gamepadIndex==gp.index) {
 								this.ctrls[k].setTimestamp();
 								this.ctrls[k].updateActionStates('a'+j);
+							}
+						}
+						for (var k = 0; k < this.axisListeners.length; k++) {
+							if (this.axisListeners[k].gp==gp) {
+								this.axisListeners[k].callback(j,gp);
+								this.axisListeners.splice(k,1);
+								k--;
 							}
 						}
 					}
@@ -154,6 +170,16 @@ var GamePad = {
 				ctrl.mappings = map.mappings;
 			}
 		}
+	},
+	onNextButtonPress: function(gp,callback) {
+		if (this.controllers.indexOf(gp)==-1) return;
+		if (typeof callback != "function") return;
+		this.buttonListeners.push({gp: gp, callback: callback});
+	},
+	onNextAxisChange: function(gp,callback) {
+		if (this.controllers.indexOf(gp)==-1) return;
+		if (typeof callback != "function") return;
+		this.axisListeners.push({gp: gp, callback: callback});
 	}
 };
 var Tap = {
