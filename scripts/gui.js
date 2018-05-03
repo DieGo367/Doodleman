@@ -397,7 +397,7 @@ function mapperStep(gpId,step,titles,type) {
 			});
 			break;
 		case "axis":
-			GamePad.onNextAxisChange(gpId,function(axisId,gp) {
+			GamePad.onNextAxisPress(gpId,function(axisId,gp) {
 				G$("MapperToolResult").text = 'a'+axisId;
 				var nextStep = G$("MapperTool").step+1;
 				if (nextStep < 10) mapperStep(gp.index,nextStep,titles,"axis");

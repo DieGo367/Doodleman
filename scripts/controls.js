@@ -124,12 +124,14 @@ var GamePad = {
 								this.ctrls[k].updateActionStates('a'+j);
 							}
 						}
-						var held = Math.abs(newState)>0.8&&Math.abs(oldState)<0.8&&Math.abs(newState)<1.5;
+						var held = Math.abs(newState)>0.8&&Math.abs(oldState)<0.7&&Math.abs(newState)<1.5;
 						var hatValues = [-1,-0.428571,0.142857,0.714286];
 						var isHat = false;
-						for (var i in hatValues) if (Math.abs(hatValues[i]-newState)<0.00001) {
-							isHat = true;
-							break;
+						if (Math.abs(oldState)>1) for (var i in hatValues) {
+							if (Math.abs(hatValues[i]-newState)<0.000001) {
+								isHat = true;
+								break;
+							}
 						}
 						if (held||isHat) for (var k = 0; k < axisListenerCopy.length; k++) {
 							if (this.axisListeners[k].gpIndex==gp.index) {
@@ -187,7 +189,7 @@ var GamePad = {
 		if (typeof callback != "function") return;
 		this.buttonListeners.push({gpIndex: gpIndex, callback: callback});
 	},
-	onNextAxisChange: function(gpIndex,callback) {
+	onNextAxisPress: function(gpIndex,callback) {
 		if (!this.controllers[gpIndex]) return;
 		if (typeof callback != "function") return;
 		this.axisListeners.push({gpIndex: gpIndex, callback: callback});
