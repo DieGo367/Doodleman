@@ -1249,7 +1249,7 @@ var Player = class Player extends Entity {
       var p = all[i], slot = p.slot;
       p.ctrls.selfDestructAll();
       p.ctrls.key = new Ctrl(Player.keyMaps[slot]);
-      p.ctrls.gp = new Ctrl(Player.gpMaps[slot],Player.gpIds[slot]);
+      p.ctrls.gp = new Ctrl(GamePad.ctrlMaps[Player.gpIds[slot]],Player.gpIds[slot]);
       p.ctrls.tap = new Ctrl(Player.tapMaps[slot]);
     }
   }

@@ -43,7 +43,7 @@ var GamePad = {
 		this.controllers[gp.index] = gp;
 		this.controllers[gp.index].detected = true;
 		this.ctrlMaps[gp.index] = gpad;
-		gp.name = gp.index + ": " + gp.id.split("(").reverse().slice(1).reverse().join("(").trim(); //remove vendor info and show index
+		gp.name = gp.index + ": " + gp.id.split("(Vendor")[0].trim(); //remove vendor info and show index
 
 		for (var i = 0; i < 2; i++) {
 			if (Player.gpIds[i]==null) {
@@ -93,7 +93,7 @@ var GamePad = {
 			if (snap) {
 				var buttonListenerCopy = clone(this.buttonListeners);
 				var axisListenerCopy = clone(this.axisListeners);
-				for (var j in gp.buttons) {
+				for (var j = 0; j < gp.buttons.length; j++) {
 					var newState = this.buttonPressed(gp.buttons[j]);
 					var oldState = this.buttonPressed(snap.buttons[j]);
 					if (newState!=oldState) {
@@ -114,7 +114,7 @@ var GamePad = {
 					}
 					this.snapshots[gp.index].buttons[j] = newState;
 				}
-				for (var j in gp.axes) {
+				for (var j = 0; j < gp.axes.length; j++) {
 					var newState = gp.axes[j];
 					var oldState = snap.axes[j];
 					if (newState!=oldState) {
@@ -590,6 +590,7 @@ NullCtrl.ctrls = [];
 var nullController = new NullCtrl();
 
 var dmInputs = ["A","B","Dpad","Up","Down","Left","Right","AnalogL_X","AnalogL_Y","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"];
+var dmInputs = ["A","B","Start","Select","BumperL","BumperR","AnalogL_X","AnalogL_Y","AnalogR_X","AnalogR_Y","Dpad","Up","Down","Left","Right"];
 var dmActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack","pause","showInfo","click","respawn","pointerMoveX","pointerMoveY"];
 
 var playerActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack"];
@@ -600,14 +601,15 @@ var pointerActions = ["pointerMoveX","pointerMoveY","click"];
 var globalKeyboardMap = new CtrlMap("GlobalKeyboard","keyboard",["P1","P2","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]"],[82,80,192,220,104,102,101,100,99,97,103,105,98,221],
 [...gameActions,...cameraActions,"snippet","pause-p1","pause-p2"],["P1","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]","P1","P2"]);
 
-var wasd = new CtrlMap("WASD","keyboard",dmInputs,[87,71,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
-var ijkl = new CtrlMap("IJKL","keyboard",dmInputs,[73,222,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
+var wasd = new CtrlMap("WASD","keyboard",dmInputs,[87,71,null,null,null,null,null,null,null,null,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
+var ijkl = new CtrlMap("IJKL","keyboard",dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
 // var dpad = new CtrlMap("DPad","keyboard",playerActions,[[191,96],39,40,37,38,[190,110]]);
-var gpad = new CtrlMap("GPAD","gamepad",dmInputs,[0,2,'a9',12,13,14,15,'a0','a1',9,8,4,5,'a2','a5'],dmActions,[
+var gpadGroupings = [
 	["Up","AnalogL_Y::-","Dpad::U"],["Right","AnalogL_X::+","Dpad::R"],["Down","AnalogL_Y::+","Dpad::D"],["Left","AnalogL_X::-","Dpad::L"],
 	"A","B","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"
-]);
-var tscr = new CtrlMap("TOUCH","touch",dmInputs,[0,1,null,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
+];
+var gpad = new CtrlMap("GPAD","gamepad",dmInputs,[0,2,9,8,4,5,'a0','a1','a2','a5','a9',12,13,14,15],dmActions,gpadGroupings);
+var tscr = new CtrlMap("TOUCH","touch",dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
 
 function getCtrlDisplayName(obj,type) {
 	if (obj!=null&&(typeof obj=="object"||typeof obj=="number")) {
