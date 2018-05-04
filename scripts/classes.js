@@ -979,7 +979,7 @@ var Player = class Player extends Entity {
   static onCreate() {
     this.ctrls = {
       key: new Ctrl(Player.keyMaps[this.slot]),
-      gp: new Ctrl(Player.gpMaps[this.slot],Player.gpIds[this.slot]),
+      gp: new Ctrl(GamePad.ctrlMaps[Player.gpIds[this.slot]],Player.gpIds[this.slot]),
       tap: new Ctrl(Player.tapMaps[this.slot]),
       mostRecent: function() {
         var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp];
@@ -1251,6 +1251,8 @@ var Player = class Player extends Entity {
       p.ctrls.key = new Ctrl(Player.keyMaps[slot]);
       p.ctrls.gp = new Ctrl(GamePad.ctrlMaps[Player.gpIds[slot]],Player.gpIds[slot]);
       p.ctrls.tap = new Ctrl(Player.tapMaps[slot]);
+      Player.globalGPCtrls[slot].selfDestruct();
+      Player.globalGPCtrls[slot] = new Ctrl(GamePad.ctrlMaps[Player.gpIds[slot]],Player.gpIds[slot]);
     }
   }
 }

@@ -6,8 +6,12 @@ function tick() { //GAME UPDATES//
 	//global controls
 	doGlobalControls(globalKeyboard);
 	for (var i in Player.slots) {
-		if (Player.globalGPCtrls[i]&&Player.globalGPCtrls[i].gamepad()) {
-			doGlobalControls(Player.globalGPCtrls[i]);
+		if (Player.globalGPCtrls[i]) {
+			let gp = Player.globalGPCtrls[i].gamepad();
+			let id = G$("MapperTool").selectedId;
+			if (gp && (!G$("MapperTool").visible || GamePad.controllers[id]!=gp)) {
+				doGlobalControls(Player.globalGPCtrls[i]);
+			}
 		}
 	}
 	//update all objects
