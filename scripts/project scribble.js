@@ -484,15 +484,15 @@ function pauseGame(pause,player) {
 function doGlobalControls(controller) {
 	if (controller.ready("pause")) {
 		var slot = -1;
-		if (controller.type=="gamepad") slot = Player.gpIds.indexOf(controller.gamepadIndex);
-		else if (controller.type=="keyboard") {
+		if (controller.type==GAMEPAD) slot = Player.gpIds.indexOf(controller.gamepadIndex);
+		else if (controller.type==KEYBOARD) {
 			slot = controller.ready("pause-p1")?0:1;
 			controller.use("pause-p"+(slot+1));
 		}
 		pauseGame(!paused,slot!=-1?slot:null);
 		controller.use("pause");
 	}
-	if (controller.type=="keyboard") {
+	if (controller.type==KEYBOARD) {
 		if (controller.ready("snippet")) {
 			controller.use("snippet")
 			var code = prompt("Run code snippet:");
@@ -507,7 +507,7 @@ function doGlobalControls(controller) {
 	}
 	else {
 		if (!multiplayer&&controller.ready("respawn")) { PhysicsBox.callForAll("respawn"); controller.use("respawn"); }
-		if (devEnabled&&controller.type=="keyboard") {
+		if (devEnabled&&controller.type==KEYBOARD) {
 			if (controller.pressed("camRotateCW")) myAngle += 0.01;
 			if (controller.pressed("camRotateCCW")) myAngle -= 0.01;
 			if (controller.pressed("camLeft")) Camera.x -= 5;
@@ -523,7 +523,7 @@ function doGlobalControls(controller) {
 			if (Camera.zoom<0) Camera.zoom = 0;
 		}
 	}
-	if (controller.type=="gamepad") {
+	if (controller.type==GAMEPAD) {
 		var moveX = controller.getActionValue("pointerMoveX"), moveY = controller.getActionValue("pointerMoveY"), moved = false;
 		if (Math.abs(moveX)>0.01||Math.abs(moveY)>0.01) Pointer.move(Pointer.x+moveX*8,Pointer.y+moveY*8);
 		if (controller.ready("click")) {

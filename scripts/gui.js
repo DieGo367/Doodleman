@@ -139,45 +139,41 @@ function buildControllerSettingsMenu() {
 	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth/2+135,100,"Player 2","Catamaran, sans-serif",20,false,"yellow",CENTER,true,"darkOrange",2,false).show();
 
   Button.create("CtrlP1Keyboard","CtrlSettingsView",hudWidth/2-260,130,250,40,"Keyboard").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.keyMaps[0],"keyboard");
+		this.text = getCtrlDisplayName(Player.keyIds[0],KEYBOARD);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
-		buildControllerSelector([wasd,ijkl],"keyboard",this);
+		buildControllerSelector([0,1],KEYBOARD,this);
 	}).show();
   Button.create("CtrlP1GamePad","CtrlSettingsView",hudWidth/2-260,180,250,40,"GamePad").setOnViewShown(function() {
-		var globalGPCtrl = Player.globalGPCtrls[0];
-		if (globalGPCtrl) this.text = globalGPCtrl.gamepadName;
-		else this.text = "None";
+		this.text = getCtrlDisplayName(Player.gpIds[0],GAMEPAD);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
-		buildControllerSelector(GamePad.slotsFilled(),"gamepad",this);
+		buildControllerSelector(GamePad.slotsFilled(),GAMEPAD,this);
 	}).show();
 	Button.create("CtrlP1Touch","CtrlSettingsView",hudWidth/2-260,230,250,40,"Touch Controls").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.tapMaps[0],"touch");
+		this.text = getCtrlDisplayName(Player.tapIds[0],TOUCH);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
-		buildControllerSelector([tscr],"touch",this);
+		buildControllerSelector([0],TOUCH,this);
 	}).show();
 
   Button.create("CtrlP2Keyboard","CtrlSettingsView",hudWidth/2+10,130,250,40,"Keyboard").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.keyMaps[1],"keyboard");
+		this.text = getCtrlDisplayName(Player.keyIds[1],KEYBOARD);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
-		buildControllerSelector([wasd,ijkl],"keyboard",this);
+		buildControllerSelector([0,1],KEYBOARD,this);
 	}).show();
 	Button.create("CtrlP2GamePad","CtrlSettingsView",hudWidth/2+10,180,250,40,"GamePad").setOnViewShown(function() {
-		var globalGPCtrl = Player.globalGPCtrls[1];
-		if (globalGPCtrl) this.text = globalGPCtrl.gamepadName;
-		else this.text = "None";
+		this.text = getCtrlDisplayName(Player.gpIds[1],GAMEPAD);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
-		buildControllerSelector(GamePad.slotsFilled(),"gamepad",this);
+		buildControllerSelector(GamePad.slotsFilled(),GAMEPAD,this);
 	}).show();
 	Button.create("CtrlP2Touch","CtrlSettingsView",hudWidth/2+10,230,250,40,"Touch Controls").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.tapMaps[1],"touch");
+		this.text = getCtrlDisplayName(Player.tapIds[1],TOUCH);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
-		buildControllerSelector([tscr],"touch",this);
+		buildControllerSelector([0],TOUCH,this);
 	}).show();
 
 	Button.create("CtrlDevMode","CtrlSettingsView",hudWidth-15,hudHeight-15,10,10).setOnClick(function() {
@@ -199,7 +195,7 @@ function buildControllerSettingsMenu() {
 function buildControllerSelector(list,type,sourceButton) {
 	var finalList = [], names = [];
 	for (var i in list) {
-		var mapSettings = [Player.keyMaps,Player.gpIds,Player.tapMaps][["keyboard","gamepad","touch"].indexOf(type)];
+		var mapSettings = [Player.keyIds,Player.gpIds,Player.tapIds][[KEYBOARD,GAMEPAD,TOUCH].indexOf(type)];
 		if (mapSettings.indexOf(list[i])==-1 || list[i]==mapSettings[sourceButton.playerSlot]) {
 			finalList.push(list[i]);
 			names.push(getCtrlDisplayName(list[i],type));
@@ -404,7 +400,7 @@ function mapperStep(gpId,step,titles,type,mappings) {
 			G$("MapperToolClose").onClickFunction();
 			G$("MapperView").hide().show();
 		}).text = "Done";
-		let c = new CtrlMap("custom-"+GamePad.customMaps.length,"gamepad",dmInputs,mappings,dmActions,gpadGroupings);
+		let c = new CtrlMap("custom-"+GamePad.customMaps.length,GAMEPAD,dmInputs,mappings,dmActions,gpadGroupings);
 		GamePad.customMaps.push(c);
 		GamePad.ctrlMaps[gpId] = c;
 		Player.relinkCtrls();

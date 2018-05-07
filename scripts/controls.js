@@ -1,5 +1,11 @@
+const NULLCTRL = 0;
+const KEYBOARD = 1;
+const GAMEPAD = 2;
+const TOUCH = 3;
+
 var Key = {
 	pressedKeys: [],
+	ctrlMaps: [],
 	ctrls: [],
 	isDown: function(keyCode) {
 		return this.pressedKeys[keyCode];
@@ -47,7 +53,7 @@ var GamePad = {
 
 		for (var i = 0; i < 2; i++) {
 			if (Player.gpIds[i]==null) {
-				changeControlSlots("gamepad",i,gp.index);
+				changeControlSlots(GAMEPAD,i,gp.index);
 				console.log("Connected Gamepad "+gp.index+" to slot "+i+": "+gp.id);
 				break;
 			}
@@ -59,7 +65,7 @@ var GamePad = {
 		delete this.ctrlMaps[gp.index];
 		var slot = Player.gpIds.indexOf(gp.index);
 		if (slot!=-1) {
-			changeControlSlots("gamepad",slot,"None");
+			changeControlSlots(GAMEPAD,slot,"None");
 			console.log("Disconnected Gamepad "+gp.index+" from slot "+slot+": "+gp.id);
 		}
 	},
@@ -98,7 +104,7 @@ var GamePad = {
 					var oldState = this.buttonPressed(snap.buttons[j]);
 					if (newState!=oldState) {
 						for (var k in this.ctrls) {
-							if (this.ctrls[k].gamepadIndex==gp.index) {
+							if (this.ctrls[k].index==gp.index) {
 								this.ctrls[k].setTimestamp();
 								this.ctrls[k].updateActionStates(j);
 							}
@@ -119,7 +125,7 @@ var GamePad = {
 					var oldState = snap.axes[j];
 					if (newState!=oldState) {
 						for (var k in this.ctrls) {
-							if (this.ctrls[k].gamepadIndex==gp.index) {
+							if (this.ctrls[k].index==gp.index) {
 								this.ctrls[k].setTimestamp();
 								this.ctrls[k].updateActionStates('a'+j);
 							}
@@ -197,6 +203,7 @@ var GamePad = {
 };
 var Tap = {
 	active: false,
+	ctrlMaps: [],
 	ctrls: [],
 	touches: [],
 	targetTouch: null,
@@ -393,16 +400,14 @@ var CtrlMap = function(name,type,inputs,mappings,actions,groups) {
 	this.groups = groups; //Ex: ["A",["Right","AnalogL_X::+","Dpad::R"],["Down","AnalogL_Y::+","Dpad::D"]];
 };
 var Ctrl = class Ctrl {
-	constructor(ctrlMap,gamepadIndex) {
-		if (ctrlMap==null||ctrlMap=="None") return new NullCtrl();
+	constructor(type,index) {
+		if (type==null||type=="None"||index===void(0)) return new NullCtrl();
+		let ctrlMap = type;
 		this.name = ctrlMap.name;
 		this.type = ctrlMap.type;
-		if (this.type=="gamepad") {
-			if (gamepadIndex!=null) {
-				this.gamepadIndex = gamepadIndex;
-				this.gamepadName = GamePad.controllers[gamepadIndex].name;
-			}
-			else return new NullCtrl();
+		this.index = index;
+		if (this.type==GAMEPAD) {
+			this.gamepadName = GamePad.controllers[index].name;
 		}
 		this.inputs = ctrlMap.inputs;
 		this.mappings = ctrlMap.mappings;
@@ -413,10 +418,10 @@ var Ctrl = class Ctrl {
 		this.usedActionsPaused = {};
 		this.justReleasedActionsPaused = {};
 		this.timestamp = Date.now();
-		[NullCtrl,Key,GamePad,Tap][["NullCtrl","keyboard","gamepad","touch"].indexOf(ctrlMap.type)].ctrls.push(this);
+		[NullCtrl,Key,GamePad,Tap][[NULLCTRL,KEYBOARD,GAMEPAD,TOUCH].indexOf(ctrlMap.type)].ctrls.push(this);
 	}
 	getCtrlManager() {
-		var typeIndex = ["NullCtrl","keyboard","gamepad","touch"].indexOf(this.type);
+		var typeIndex = [NULLCTRL,KEYBOARD,GAMEPAD,TOUCH].indexOf(this.type);
 		return [NullCtrl,Key,GamePad,Tap][typeIndex];
 	}
 	getMapping(input) {
@@ -561,7 +566,7 @@ var Ctrl = class Ctrl {
 		for (var property in this.justReleasedActionsPaused) this.justReleasedActions[property] = this.justReleasedActionsPaused[property];
 	}
 	gamepad() {
-		if (this.type=="gamepad") return GamePad.controllers[this.gamepadIndex];
+		if (this.type==GAMEPAD) return GamePad.controllers[this.index];
 		else return void(0);
 	}
 	setTimestamp() {
@@ -577,7 +582,7 @@ var Ctrl = class Ctrl {
 
 var NullCtrl = class NullCtrl extends Ctrl {
 	constructor() {
-		super({name:"NullCtrl",type:"NullCtrl",inputs:[],mappings:[],actions:[],groups:[]});
+		super({name:NULLCTRL,type:NULLCTRL,inputs:[],mappings:[],actions:[],groups:[]},0);
 	}
 	getActionValue() { return false; }
 	pressed() { return false; }
@@ -587,9 +592,8 @@ var NullCtrl = class NullCtrl extends Ctrl {
 	justReleased() { return false; }
 }
 NullCtrl.ctrls = [];
-var nullController = new NullCtrl();
+new NullCtrl();
 
-var dmInputs = ["A","B","Dpad","Up","Down","Left","Right","AnalogL_X","AnalogL_Y","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"];
 var dmInputs = ["A","B","Start","Select","BumperL","BumperR","AnalogL_X","AnalogL_Y","AnalogR_X","AnalogR_Y","Dpad","Up","Down","Left","Right"];
 var dmActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack","pause","showInfo","click","respawn","pointerMoveX","pointerMoveY"];
 
@@ -598,29 +602,29 @@ var gameActions = ["pause","respawn","showInfo"];
 var cameraActions = ["camUp","camRight","camDown","camLeft","camZoomIn","camZoomOut","camRotateCW","camRotateCCW","camReset"];
 var pointerActions = ["pointerMoveX","pointerMoveY","click"];
 
-var globalKeyboardMap = new CtrlMap("GlobalKeyboard","keyboard",["P1","P2","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]"],[82,80,192,220,104,102,101,100,99,97,103,105,98,221],
+var globalKeyboardMap = new CtrlMap("GlobalKeyboard",KEYBOARD,["P1","P2","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]"],[82,80,192,220,104,102,101,100,99,97,103,105,98,221],
 [...gameActions,...cameraActions,"snippet","pause-p1","pause-p2"],["P1","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]","P1","P2"]);
 
-var wasd = new CtrlMap("WASD","keyboard",dmInputs,[87,71,null,null,null,null,null,null,null,null,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
-var ijkl = new CtrlMap("IJKL","keyboard",dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
-// var dpad = new CtrlMap("DPad","keyboard",playerActions,[[191,96],39,40,37,38,[190,110]]);
+Key.ctrlMaps[0] = new CtrlMap("WASD",KEYBOARD,dmInputs,[87,71,null,null,null,null,null,null,null,null,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
+Key.ctrlMaps[1] = new CtrlMap("IJKL",KEYBOARD,dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
+// var dpad = new CtrlMap("DPad",KEYBOARD,playerActions,[[191,96],39,40,37,38,[190,110]]);
 var gpadGroupings = [
 	["Up","AnalogL_Y::-","Dpad::U"],["Right","AnalogL_X::+","Dpad::R"],["Down","AnalogL_Y::+","Dpad::D"],["Left","AnalogL_X::-","Dpad::L"],
 	"A","B","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"
 ];
-var gpad = new CtrlMap("GPAD","gamepad",dmInputs,[0,2,9,8,4,5,'a0','a1','a2','a5','a9',12,13,14,15],dmActions,gpadGroupings);
-var tscr = new CtrlMap("TOUCH","touch",dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
+var gpad = new CtrlMap("GPAD",GAMEPAD,dmInputs,[0,2,9,8,4,5,'a0','a1','a2','a5','a9',12,13,14,15],dmActions,gpadGroupings);
+Tap.ctrlMaps[0] = new CtrlMap("TOUCH",TOUCH,dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
 
 function getCtrlDisplayName(obj,type) {
 	if (obj!=null&&(typeof obj=="object"||typeof obj=="number")) {
 		switch(type) {
-			case "keyboard":
-				return obj.name;
+			case KEYBOARD:
+				return Key.ctrlMaps[obj].name;
 				break;
-			case "gamepad":
+			case GAMEPAD:
 				return GamePad.controllers[obj].name;
 				break;
-			case "touch":
+			case TOUCH:
 				return "Touch Controls";
 		}
 	}
@@ -629,10 +633,10 @@ function getCtrlDisplayName(obj,type) {
 
 function changeControlSlots(type,slot,ctrl) {
 	switch(type) {
-		case "keyboard":
-			Player.keyMaps[slot] = ctrl=="None"?null:ctrl;
+		case KEYBOARD:
+			Player.keyIds[slot] = ctrl=="None"?null:ctrl;
 			break;
-		case "gamepad":
+		case GAMEPAD:
 			if (ctrl=="None") {
 				Player.gpIds[slot] = null;
 				if (Player.globalGPCtrls[slot]) {
@@ -648,8 +652,8 @@ function changeControlSlots(type,slot,ctrl) {
 				Player.gpMaps[slot] = GamePad.ctrlMaps[ctrl];
 			}
 			break;
-		case "touch":
-			Player.tapMaps[slot] = ctrl=="None"?null:ctrl;
+		case TOUCH:
+			Player.tapIds[slot] = ctrl=="None"?null:ctrl;
 			break;
 	}
 	Player.relinkCtrls();

@@ -978,14 +978,14 @@ var Player = class Player extends Entity {
   }
   static onCreate() {
     this.ctrls = {
-      key: new Ctrl(Player.keyMaps[this.slot]),
+      key: new Ctrl(Key.ctrlMaps[Player.keyIds[this.slot]],Player.keyIds[this.slot]),
       gp: new Ctrl(GamePad.ctrlMaps[Player.gpIds[this.slot]],Player.gpIds[this.slot]),
-      tap: new Ctrl(Player.tapMaps[this.slot]),
+      tap: new Ctrl(Tap.ctrlMaps[Player.tapIds[this.slot]],Player.tapIds[this.slot]),
       mostRecent: function() {
         var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp];
         var newest = Math.max(...timestamps);
         var mostRecent = [this.key,this.gp,this.tap][timestamps.indexOf(newest)];
-        if (this.tap.type!="NullCtrl"&&mostRecent.type!="touch") Tap.active = false;
+        if (this.tap.type!=NULLCTRL&&mostRecent.type!=TOUCH) Tap.active = false;
         return mostRecent;
       },
       selfDestructAll: function() {
@@ -1167,7 +1167,7 @@ var Player = class Player extends Entity {
     //get this player's most recently updated controller to use for input
     var controller = this.ctrls.mostRecent();
     if (!controller) {
-      controller = nullController; //defaults to no input pressed
+      controller = NullCtrl.ctrls[0]; //defaults to no input pressed
       console.log("missing controller");
     }
 
@@ -1248,11 +1248,13 @@ var Player = class Player extends Entity {
     for (var i in all) {
       var p = all[i], slot = p.slot;
       p.ctrls.selfDestructAll();
-      p.ctrls.key = new Ctrl(Player.keyMaps[slot]);
+      p.ctrls.key = new Ctrl(Key.ctrlMaps[Player.keyIds[slot]],Player.keyIds[slot]);
       p.ctrls.gp = new Ctrl(GamePad.ctrlMaps[Player.gpIds[slot]],Player.gpIds[slot]);
-      p.ctrls.tap = new Ctrl(Player.tapMaps[slot]);
-      Player.globalGPCtrls[slot].selfDestruct();
-      Player.globalGPCtrls[slot] = new Ctrl(GamePad.ctrlMaps[Player.gpIds[slot]],Player.gpIds[slot]);
+      p.ctrls.tap = new Ctrl(Tap.ctrlMaps[Player.tapIds[slot]],Player.tapIds[slot]);
+      if (Player.globalGPCtrls[slot]) {
+        Player.globalGPCtrls[slot].selfDestruct();
+        Player.globalGPCtrls[slot] = new Ctrl(GamePad.ctrlMaps[Player.gpIds[slot]],Player.gpIds[slot]);
+      }
     }
   }
 }
@@ -1265,10 +1267,10 @@ Player.prototype.multiJump = false;
 Player.attacks = [];
 Player.slots = [null,null,null,null];
 Player.respawnButtons = [];
-Player.keyMaps = [wasd,ijkl,null,null];
+Player.keyIds = [0,1,null,null];
 Player.gpMaps = [null,null,null,null];
 Player.gpIds = [null,null,null,null];
-Player.tapMaps = [tscr,null,null,null];
+Player.tapIds = [0,null,null,null];
 Player.globalGPCtrls = [null,null,null,null];
 Player.defineAttack("attack",1,20,30);
 Player.defineAttack("attack-charge",2,20,30,true,true,true,function() {
