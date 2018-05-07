@@ -1,7 +1,4 @@
-const NULLCTRL = 0;
-const KEYBOARD = 1;
-const GAMEPAD = 2;
-const TOUCH = 3;
+const NULLCTRL = 0, KEYBOARD = 1, GAMEPAD = 2, TOUCH = 3;
 
 var Key = {
 	pressedKeys: [],
@@ -42,6 +39,7 @@ var GamePad = {
 	ctrls: [],
 	haveEvents: true,
 	customMaps: [],
+	globalCtrls: [],
 	buttonListeners: [],
 	axisListeners: [],
 	connect: function(gp) {
@@ -51,9 +49,11 @@ var GamePad = {
 		this.ctrlMaps[gp.index] = this.customMaps[0];
 		gp.name = gp.index + ": " + gp.id.split("(Vendor")[0].trim(); //remove vendor info and show index
 
+		this.globalCtrls[gp.index] = new Ctrl(GAMEPAD,gp.index);
+
 		for (var i = 0; i < 2; i++) {
 			if (Player.gpIds[i]==null) {
-				changeControlSlots(GAMEPAD,i,gp.index);
+				Player.changeControlSlots(i,GAMEPAD,gp.index);
 				console.log("Connected Gamepad "+gp.index+" to slot "+i+": "+gp.id);
 				break;
 			}
@@ -63,9 +63,11 @@ var GamePad = {
 		delete this.controllers[gp.index];
 		delete this.snapshots[gp.index];
 		delete this.ctrlMaps[gp.index];
+		this.globalCtrls[gp.index].selfDestruct();
+		delete this.globalCtrls[gp.index];
 		var slot = Player.gpIds.indexOf(gp.index);
 		if (slot!=-1) {
-			changeControlSlots(GAMEPAD,slot,"None");
+			changeControlSlots(slot,GAMEPAD,"None");
 			console.log("Disconnected Gamepad "+gp.index+" from slot "+slot+": "+gp.id);
 		}
 	},
@@ -407,7 +409,6 @@ var Ctrl = class Ctrl {
 		this.name = ctrlMap.name;
 		this.type = ctrlMap.type;
 		this.index = index;
-		if (this.type==GAMEPAD) this.gamepadName = GamePad.controllers[index].name;
 		this.inputs = ctrlMap.inputs;
 		this.mappings = ctrlMap.mappings;
 		this.actions = ctrlMap.actions;
@@ -576,6 +577,20 @@ var Ctrl = class Ctrl {
 		for (var property in this) delete this[property];
 		delete this;
 	}
+	static getDisplayName(type,index) {
+		if (index==void(0)) return "None";
+		switch(type) {
+			case KEYBOARD:
+				return Key.ctrlMaps[index].name;
+				break;
+			case GAMEPAD:
+				return GamePad.controllers[index].name;
+				break;
+			case TOUCH:
+				return "Touch Controls";
+		}
+		return "None";
+	}
 }
 
 var NullCtrl = class NullCtrl extends Ctrl {
@@ -614,46 +629,3 @@ Key.ctrlMaps[0] = new CtrlMap("WASD",KEYBOARD,dmInputs,[87,71,null,null,null,nul
 Key.ctrlMaps[1] = new CtrlMap("IJKL",KEYBOARD,dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
 GamePad.customMaps[0] = new CtrlMap("GPAD",GAMEPAD,dmInputs,[0,2,9,8,4,5,'a0','a1','a2','a5','a9',12,13,14,15],dmActions,gpadGroupings);
 Tap.ctrlMaps[0] = new CtrlMap("TOUCH",TOUCH,dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
-
-function getCtrlDisplayName(obj,type) {
-	if (obj==void(0)) return "None";
-	switch(type) {
-		case KEYBOARD:
-			return Key.ctrlMaps[obj].name;
-			break;
-		case GAMEPAD:
-			return GamePad.controllers[obj].name;
-			break;
-		case TOUCH:
-			return "Touch Controls";
-	}
-	return "None";
-}
-
-function changeControlSlots(type,slot,ctrl) {
-	switch(type) {
-		case KEYBOARD:
-			Player.keyIds[slot] = ctrl=="None"?null:ctrl;
-			break;
-		case GAMEPAD:
-			if (ctrl=="None") {
-				Player.gpIds[slot] = null;
-				if (Player.globalGPCtrls[slot]) {
-					Player.globalGPCtrls[slot].selfDestruct();
-					Player.globalGPCtrls[slot] = null;
-				}
-				Player.gpMaps[slot] = null;
-			}
-			else {
-				Player.gpIds[slot] = ctrl;
-				if (Player.globalGPCtrls[slot]) Player.globalGPCtrls[slot].selfDestruct();
-				Player.globalGPCtrls[slot] = new Ctrl(GAMEPAD,ctrl);
-				Player.gpMaps[slot] = GamePad.ctrlMaps[ctrl];
-			}
-			break;
-		case TOUCH:
-			Player.tapIds[slot] = ctrl=="None"?null:ctrl;
-			break;
-	}
-	Player.relinkCtrls();
-}

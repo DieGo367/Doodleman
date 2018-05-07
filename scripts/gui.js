@@ -139,38 +139,38 @@ function buildControllerSettingsMenu() {
 	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth/2+135,100,"Player 2","Catamaran, sans-serif",20,false,"yellow",CENTER,true,"darkOrange",2,false).show();
 
   Button.create("CtrlP1Keyboard","CtrlSettingsView",hudWidth/2-260,130,250,40,"Keyboard").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.keyIds[0],KEYBOARD);
+		this.text = Ctrl.getDisplayName(KEYBOARD,Player.keyIds[0]);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
 		buildControllerSelector([0,1],KEYBOARD,this);
 	}).show();
   Button.create("CtrlP1GamePad","CtrlSettingsView",hudWidth/2-260,180,250,40,"GamePad").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.gpIds[0],GAMEPAD);
+		this.text = Ctrl.getDisplayName(GAMEPAD,Player.gpIds[0]);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
 		buildControllerSelector(GamePad.slotsFilled(),GAMEPAD,this);
 	}).show();
 	Button.create("CtrlP1Touch","CtrlSettingsView",hudWidth/2-260,230,250,40,"Touch Controls").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.tapIds[0],TOUCH);
+		this.text = Ctrl.getDisplayName(TOUCH,Player.tapIds[0]);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
 		buildControllerSelector([0],TOUCH,this);
 	}).show();
 
   Button.create("CtrlP2Keyboard","CtrlSettingsView",hudWidth/2+10,130,250,40,"Keyboard").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.keyIds[1],KEYBOARD);
+		this.text = Ctrl.getDisplayName(KEYBOARD,Player.keyIds[1]);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
 		buildControllerSelector([0,1],KEYBOARD,this);
 	}).show();
 	Button.create("CtrlP2GamePad","CtrlSettingsView",hudWidth/2+10,180,250,40,"GamePad").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.gpIds[1],GAMEPAD);
+		this.text = Ctrl.getDisplayName(GAMEPAD,Player.gpIds[1]);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
 		buildControllerSelector(GamePad.slotsFilled(),GAMEPAD,this);
 	}).show();
 	Button.create("CtrlP2Touch","CtrlSettingsView",hudWidth/2+10,230,250,40,"Touch Controls").setOnViewShown(function() {
-		this.text = getCtrlDisplayName(Player.tapIds[1],TOUCH);
+		this.text = Ctrl.getDisplayName(TOUCH,Player.tapIds[1]);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
 		buildControllerSelector([0],TOUCH,this);
@@ -198,7 +198,7 @@ function buildControllerSelector(list,type,sourceButton) {
 		var mapSettings = [Player.keyIds,Player.gpIds,Player.tapIds][[KEYBOARD,GAMEPAD,TOUCH].indexOf(type)];
 		if (mapSettings.indexOf(list[i])==-1 || list[i]==mapSettings[sourceButton.playerSlot]) {
 			finalList.push(list[i]);
-			names.push(getCtrlDisplayName(list[i],type));
+			names.push(Ctrl.getDisplayName(type,list[i]));
 		}
 	}
 	finalList.push("None");
@@ -206,7 +206,7 @@ function buildControllerSelector(list,type,sourceButton) {
 
 	buildSelector(names,function(i,item) {
 		sourceButton.text = item;
-		changeControlSlots(type,sourceButton.playerSlot,finalList[i]);
+		Player.changeControlSlots(sourceButton.playerSlot,type,finalList[i]);
 	},null,2);
 }
 

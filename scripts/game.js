@@ -5,12 +5,13 @@ function tick() { //GAME UPDATES//
 	Tap.checkTouches();
 	//global controls
 	doGlobalControls(globalKeyboard);
-	for (var i in Player.slots) {
-		if (Player.globalGPCtrls[i]) {
-			let gp = Player.globalGPCtrls[i].gamepad();
+	for (var i = 0; i < GamePad.globalCtrls.length; i++) {
+		let ctrl = GamePad.globalCtrls[i];
+		if (ctrl) {
+			let gp = ctrl.gamepad();
 			let id = G$("MapperTool").selectedId;
 			if (gp && (!G$("MapperTool").visible || GamePad.controllers[id]!=gp)) {
-				doGlobalControls(Player.globalGPCtrls[i]);
+				doGlobalControls(ctrl);
 			}
 		}
 	}

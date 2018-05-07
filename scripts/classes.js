@@ -1251,11 +1251,14 @@ var Player = class Player extends Entity {
       p.ctrls.key = new Ctrl(KEYBOARD,Player.keyIds[slot]);
       p.ctrls.gp = new Ctrl(GAMEPAD,Player.gpIds[slot]);
       p.ctrls.tap = new Ctrl(TOUCH,Player.tapIds[slot]);
-      if (Player.globalGPCtrls[slot]) {
-        Player.globalGPCtrls[slot].selfDestruct();
-        Player.globalGPCtrls[slot] = new Ctrl(GAMEPAD,Player.gpIds[slot]);
-      }
     }
+  }
+  static changeControlSlots(slot,type,index) {
+  	if (slot==void(0)||type==void(0)||index==void(0)) return;
+  	if (type<1) return;
+  	let ids = [null,"keyIds","gpIds","tapIds"][type];
+  	this[ids][slot] = index=="None"?null:index;
+  	this.relinkCtrls();
   }
 }
 initClass(Player,Entity);
@@ -1268,10 +1271,8 @@ Player.attacks = [];
 Player.slots = [null,null,null,null];
 Player.respawnButtons = [];
 Player.keyIds = [0,1,null,null];
-Player.gpMaps = [null,null,null,null];
 Player.gpIds = [null,null,null,null];
 Player.tapIds = [0,null,null,null];
-Player.globalGPCtrls = [null,null,null,null];
 Player.defineAttack("attack",1,20,30);
 Player.defineAttack("attack-charge",2,20,30,true,true,true,function() {
   this.move(10);
