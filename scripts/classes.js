@@ -978,9 +978,9 @@ var Player = class Player extends Entity {
   }
   static onCreate() {
     this.ctrls = {
-      key: new Ctrl(Key.ctrlMaps[Player.keyIds[this.slot]],Player.keyIds[this.slot]),
-      gp: new Ctrl(GamePad.ctrlMaps[Player.gpIds[this.slot]],Player.gpIds[this.slot]),
-      tap: new Ctrl(Tap.ctrlMaps[Player.tapIds[this.slot]],Player.tapIds[this.slot]),
+      key: new Ctrl(KEYBOARD,Player.keyIds[this.slot]),
+      gp: new Ctrl(GAMEPAD,Player.gpIds[this.slot]),
+      tap: new Ctrl(TOUCH,Player.tapIds[this.slot]),
       mostRecent: function() {
         var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp];
         var newest = Math.max(...timestamps);
@@ -1248,12 +1248,12 @@ var Player = class Player extends Entity {
     for (var i in all) {
       var p = all[i], slot = p.slot;
       p.ctrls.selfDestructAll();
-      p.ctrls.key = new Ctrl(Key.ctrlMaps[Player.keyIds[slot]],Player.keyIds[slot]);
-      p.ctrls.gp = new Ctrl(GamePad.ctrlMaps[Player.gpIds[slot]],Player.gpIds[slot]);
-      p.ctrls.tap = new Ctrl(Tap.ctrlMaps[Player.tapIds[slot]],Player.tapIds[slot]);
+      p.ctrls.key = new Ctrl(KEYBOARD,Player.keyIds[slot]);
+      p.ctrls.gp = new Ctrl(GAMEPAD,Player.gpIds[slot]);
+      p.ctrls.tap = new Ctrl(TOUCH,Player.tapIds[slot]);
       if (Player.globalGPCtrls[slot]) {
         Player.globalGPCtrls[slot].selfDestruct();
-        Player.globalGPCtrls[slot] = new Ctrl(GamePad.ctrlMaps[Player.gpIds[slot]],Player.gpIds[slot]);
+        Player.globalGPCtrls[slot] = new Ctrl(GAMEPAD,Player.gpIds[slot]);
       }
     }
   }

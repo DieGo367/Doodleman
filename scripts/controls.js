@@ -48,7 +48,7 @@ var GamePad = {
 		if (gp.timestamp==0) return;
 		this.controllers[gp.index] = gp;
 		this.controllers[gp.index].detected = true;
-		this.ctrlMaps[gp.index] = gpad;
+		this.ctrlMaps[gp.index] = this.customMaps[0];
 		gp.name = gp.index + ": " + gp.id.split("(Vendor")[0].trim(); //remove vendor info and show index
 
 		for (var i = 0; i < 2; i++) {
@@ -401,14 +401,13 @@ var CtrlMap = function(name,type,inputs,mappings,actions,groups) {
 };
 var Ctrl = class Ctrl {
 	constructor(type,index) {
-		if (type==null||type=="None"||index===void(0)) return new NullCtrl();
-		let ctrlMap = type;
+		if (type==null||type=="None"||index==void(0)) return new NullCtrl();
+		let manager = [NullCtrl,Key,GamePad,Tap][type];
+		let ctrlMap = manager.ctrlMaps[index];
 		this.name = ctrlMap.name;
 		this.type = ctrlMap.type;
 		this.index = index;
-		if (this.type==GAMEPAD) {
-			this.gamepadName = GamePad.controllers[index].name;
-		}
+		if (this.type==GAMEPAD) this.gamepadName = GamePad.controllers[index].name;
 		this.inputs = ctrlMap.inputs;
 		this.mappings = ctrlMap.mappings;
 		this.actions = ctrlMap.actions;
@@ -418,11 +417,10 @@ var Ctrl = class Ctrl {
 		this.usedActionsPaused = {};
 		this.justReleasedActionsPaused = {};
 		this.timestamp = Date.now();
-		[NullCtrl,Key,GamePad,Tap][[NULLCTRL,KEYBOARD,GAMEPAD,TOUCH].indexOf(ctrlMap.type)].ctrls.push(this);
+		manager.ctrls.push(this);
 	}
 	getCtrlManager() {
-		var typeIndex = [NULLCTRL,KEYBOARD,GAMEPAD,TOUCH].indexOf(this.type);
-		return [NullCtrl,Key,GamePad,Tap][typeIndex];
+		return [NullCtrl,Key,GamePad,Tap][this.type];
 	}
 	getMapping(input) {
 		var index = this.inputs.indexOf(input);
@@ -582,7 +580,7 @@ var Ctrl = class Ctrl {
 
 var NullCtrl = class NullCtrl extends Ctrl {
 	constructor() {
-		super({name:NULLCTRL,type:NULLCTRL,inputs:[],mappings:[],actions:[],groups:[]},0);
+		super(NULLCTRL,0);
 	}
 	getActionValue() { return false; }
 	pressed() { return false; }
@@ -592,41 +590,42 @@ var NullCtrl = class NullCtrl extends Ctrl {
 	justReleased() { return false; }
 }
 NullCtrl.ctrls = [];
+NullCtrl.ctrlMaps = [{name:"NullCtrl",type:NULLCTRL,inputs:[],mappings:[],actions:[],groups:[]}];
 new NullCtrl();
 
-var dmInputs = ["A","B","Start","Select","BumperL","BumperR","AnalogL_X","AnalogL_Y","AnalogR_X","AnalogR_Y","Dpad","Up","Down","Left","Right"];
-var dmActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack","pause","showInfo","click","respawn","pointerMoveX","pointerMoveY"];
+let dmInputs = ["A","B","Start","Select","BumperL","BumperR","AnalogL_X","AnalogL_Y","AnalogR_X","AnalogR_Y","Dpad","Up","Down","Left","Right"];
+let dmActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack","pause","showInfo","click","respawn","pointerMoveX","pointerMoveY"];
 
-var playerActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack"];
-var gameActions = ["pause","respawn","showInfo"];
-var cameraActions = ["camUp","camRight","camDown","camLeft","camZoomIn","camZoomOut","camRotateCW","camRotateCCW","camReset"];
-var pointerActions = ["pointerMoveX","pointerMoveY","click"];
+let playerActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack"];
+let gameActions = ["pause","respawn","showInfo"];
+let cameraActions = ["camUp","camRight","camDown","camLeft","camZoomIn","camZoomOut","camRotateCW","camRotateCCW","camReset"];
+let pointerActions = ["pointerMoveX","pointerMoveY","click"];
 
-var globalKeyboardMap = new CtrlMap("GlobalKeyboard",KEYBOARD,["P1","P2","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]"],[82,80,192,220,104,102,101,100,99,97,103,105,98,221],
+let gpadGroupings = [
+	["Up","AnalogL_Y::-","Dpad::U"], ["Right","AnalogL_X::+","Dpad::R"],
+	["Down","AnalogL_Y::+","Dpad::D"], ["Left","AnalogL_X::-","Dpad::L"],
+	"A","B","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"
+];
+
+Key.ctrlMaps.global = new CtrlMap("GlobalKeyboard",KEYBOARD,["P1","P2","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]"],[82,80,192,220,104,102,101,100,99,97,103,105,98,221],
 [...gameActions,...cameraActions,"snippet","pause-p1","pause-p2"],["P1","R","\\","NumUp","NumRight","NumDown","NumLeft","NumTR","NumTL","NumBR","NumBL","NumB","]","P1","P2"]);
 
 Key.ctrlMaps[0] = new CtrlMap("WASD",KEYBOARD,dmInputs,[87,71,null,null,null,null,null,null,null,null,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
 Key.ctrlMaps[1] = new CtrlMap("IJKL",KEYBOARD,dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
-// var dpad = new CtrlMap("DPad",KEYBOARD,playerActions,[[191,96],39,40,37,38,[190,110]]);
-var gpadGroupings = [
-	["Up","AnalogL_Y::-","Dpad::U"],["Right","AnalogL_X::+","Dpad::R"],["Down","AnalogL_Y::+","Dpad::D"],["Left","AnalogL_X::-","Dpad::L"],
-	"A","B","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"
-];
-var gpad = new CtrlMap("GPAD",GAMEPAD,dmInputs,[0,2,9,8,4,5,'a0','a1','a2','a5','a9',12,13,14,15],dmActions,gpadGroupings);
+GamePad.customMaps[0] = new CtrlMap("GPAD",GAMEPAD,dmInputs,[0,2,9,8,4,5,'a0','a1','a2','a5','a9',12,13,14,15],dmActions,gpadGroupings);
 Tap.ctrlMaps[0] = new CtrlMap("TOUCH",TOUCH,dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
 
 function getCtrlDisplayName(obj,type) {
-	if (obj!=null&&(typeof obj=="object"||typeof obj=="number")) {
-		switch(type) {
-			case KEYBOARD:
-				return Key.ctrlMaps[obj].name;
-				break;
-			case GAMEPAD:
-				return GamePad.controllers[obj].name;
-				break;
-			case TOUCH:
-				return "Touch Controls";
-		}
+	if (obj==void(0)) return "None";
+	switch(type) {
+		case KEYBOARD:
+			return Key.ctrlMaps[obj].name;
+			break;
+		case GAMEPAD:
+			return GamePad.controllers[obj].name;
+			break;
+		case TOUCH:
+			return "Touch Controls";
 	}
 	return "None";
 }
@@ -648,7 +647,7 @@ function changeControlSlots(type,slot,ctrl) {
 			else {
 				Player.gpIds[slot] = ctrl;
 				if (Player.globalGPCtrls[slot]) Player.globalGPCtrls[slot].selfDestruct();
-				Player.globalGPCtrls[slot] = new Ctrl(GamePad.ctrlMaps[ctrl],ctrl);
+				Player.globalGPCtrls[slot] = new Ctrl(GAMEPAD,ctrl);
 				Player.gpMaps[slot] = GamePad.ctrlMaps[ctrl];
 			}
 			break;

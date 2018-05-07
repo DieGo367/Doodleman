@@ -309,13 +309,13 @@ function buildMapperView() {
 	}).show();
 	Button.create("MapperSetDefault","MapperView",hudWidth*2/3-100,hudHeight-90,200,40,"Reset to Default").setOnViewShown(function() {
 		var id = G$("MapperGPSelect").selectedId;
-		if (GamePad.ctrlMaps[id]==gpad) {
+		if (GamePad.ctrlMaps[id]==GamePad.customMaps[0]) {
 			this.setOnClick(null);
 			this.mode = BUTTON_NO;
 		}
 		else this.setOnClick(function() {
 			var id = G$("MapperGPSelect").selectedId;
-			GamePad.changeMap(id,gpad);
+			GamePad.changeMap(id,GamePad.customMaps[0]);
 			updateMapText(id);
 		});
 	}).show();

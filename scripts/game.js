@@ -63,7 +63,7 @@ function initGame() {
 	addEvents();
 	addGui();
 
-	globalKeyboard = new Ctrl(globalKeyboardMap);
+	globalKeyboard = new Ctrl(KEYBOARD,"global");
 	Player.respawnButtons = [G$("AddP1Button"),G$("AddP2Button"),null,null];
 	addPlayer(0);
 
