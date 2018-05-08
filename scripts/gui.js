@@ -447,15 +447,15 @@ function mapperStep(gpId,step,titles,type,mappings) {
 function buildDevToolsHud() {
   View.create("DevTools",0,hudWidth-70,70,70,210,"tint","lightBlue");
 	let setOn = function() {
-		if (G$("DevPencil").on) Pointer.cursor = "pencil";
-		else Pointer.cursor = "crosshair";
+		if (G$("DevPencil").on) Pointer.cursor = POINTER_PENCIL;
+		else Pointer.cursor = POINTER_CROSSHAIR;
 	}
 	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setOnClick(setOn).setRadioGroup(["DevPencil","DevEraser"]).setIcon("GUI-Icons.png",0,1,42,4).show();
 	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setOnClick(setOn).setRadioGroup(["DevSpawnPM","DevEraser"]).setIcon("GUI-Icons.png",1,1,42,4).show();
 	Button.create("DevEraser","DevTools",hudWidth-60,220,50,50).setOnClick(function() {
 		if (this.on) this.on = false;
 		else if (G$("DevSpawnPM").on||G$("DevPencil").on) this.on = true;
-		Pointer.cursor = this.on?"eraser":(G$("DevPencil").on?"pencil":"crosshair");
+		Pointer.cursor = this.on?POINTER_ERASER:(G$("DevPencil").on?POINTER_PENCIL:POINTER_CROSSHAIR);
 	}).setIcon("GUI-Icons.png",2,1,42,4).show();
 }
 
@@ -473,7 +473,9 @@ function buildEditorTools() {
 		G$("ExpandButton").toggleState = 0;
 	}).show();
 
-	Button.create("BoxTool","EditorToolbar",80,10,50,50,"Box").setRadioGroup(["LineTool","SpriteTool"]).show();
+	Button.create("BoxTool","EditorToolbar",80,10,50,50,"Box").setOnClick(function() {
+		Pointer.cursor = this.on?POINTER_PENCIL:POINTER_ERASER;
+	}).setRadioGroup(["LineTool","SpriteTool"]).show();
 	Button.create("LineTool","EditorToolbar",150,10,50,50,"Line").setRadioGroup(["BoxTool","SpriteTool"]).show();
 	Button.create("SpriteTool","EditorToolbar",220,10,50,50,"Sprite").setRadioGroup(["BoxTool","LineTool"]).show();
 }
