@@ -18,6 +18,7 @@ function initEditor() {
 	setPrefixedProperty(c,"imageSmoothingEnabled",false);
   addEvents();
   addGui();
+  EditorTools.enabled = true;
   globalKeyboard = new Ctrl(KEYBOARD,"global");
 	setInterval(tick,1000/60);
 }

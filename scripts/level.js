@@ -1,30 +1,38 @@
-var Level = {
-	bgType: "name", //name = image, raw = b64
-	bgName: "none",
-	bgRaw: "",
-	bgScale: 1,
-	width: 640,
-	height: 360,
-	zoomScale: 1,
-	camStart: {
-		x: 320,
-		y: 180
+const Level = {
+	level: {
+		bgType: "name", //name = image, raw = b64
+		bgName: "none",
+		bgRaw: "",
+		bgScale: 1,
+		width: 640,
+		height: 360,
+		zoomScale: 1,
+		camStart: {
+			x: 320,
+			y: 180
+		},
+		horScrollBuffer: 240,
+		vertScrollBuffer: 125,
+		minZoom: 1,
+		player1Spawn: {
+			x: 20,
+			y: 310
+		},
+		player2Spawn: {
+			x: 620,
+			y: 310
+		},
+		sprites: [],
+		terrain: []
 	},
-	horScrollBuffer: 240,
-	vertScrollBuffer: 125,
-	minZoom: 1,
-	player1Spawn: {
-		x: 20,
-		y: 310
+	updateTerrainData: function() {
+		
 	},
-	player2Spawn: {
-		x: 620,
-		y: 310
-	},
-	sprites: [],
-	terrain: []
-};
-const BlankLevel = clone(Level);
+	updateSpriteData: function() {
+
+	}
+}
+const BlankLevel = clone(Level.level);
 const SpriteManager = {
 	spriteData: [],
 	init: function() {
@@ -87,8 +95,8 @@ const TerrainManager = {
 		var properties = rawArgs.slice(4);
 		if (type==0) properties[0] -= properties[2]/2;
 		var found = false;
-		for (var i in Level.terrain) {
-			var definition = Level.terrain[i];
+		for (var i in Level.level.terrain) {
+			var definition = Level.level.terrain[i];
 			if (definition.type==type) {
 				if (JSON.stringify(definition.properties)==JSON.stringify(properties)) {
 					definition.pieces.push(dimensions);
@@ -97,7 +105,7 @@ const TerrainManager = {
 				}
 			}
 		}
-		if (!found) Level.terrain.push({type:type, properties:properties, pieces:[dimensions]});
+		if (!found) Level.level.terrain.push({type:type, properties:properties, pieces:[dimensions]});
 	}
 }
 
@@ -115,17 +123,17 @@ function loadLevel(file) {
 	Line.killAll();
 	Garbage.clear();
 	Sectors.grid = {};
-	Level = clone(BlankLevel);
-	for (var p in newLevel) Level[p] = newLevel[p];
-	for (var s in Level.sprites) SpriteManager.make(...Level.sprites[s]);
-	for (var h in Level.terrain) TerrainManager.make(Level.terrain[h]);
-	if (Level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",Level.bgRaw);
+	Level.level = clone(BlankLevel);
+	for (var p in newLevel) Level.level[p] = newLevel[p];
+	for (var s in Level.level.sprites) SpriteManager.make(...Level.level.sprites[s]);
+	for (var h in Level.level.terrain) TerrainManager.make(Level.level.terrain[h]);
+	if (Level.level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",Level.level.bgRaw);
 	Camera.reset();
 	addPlayer(0);
 	if (multiplayer) addPlayer(1);
 	G$("LevelSelectView").hide();
 	if (focused) pauseGame(false);
-	console.log("Loaded Level "+Level.name);
+	console.log("Loaded Level "+Level.level.name);
 	return true;
 }
 function loadLevelB64(b64) {
@@ -156,10 +164,10 @@ function loadLocalFile(event) {
 }
 
 function exportLevel() {
-	var data = JSON.stringify(Level,null,'\t');
+	var data = JSON.stringify(Level.level,null,'\t');
 	$("#fileOutput").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
 }
 function logLevel() {
-	var data = JSON.stringify(Level,null,'\t');
+	var data = JSON.stringify(Level.level,null,'\t');
 	console.log(data);
 }

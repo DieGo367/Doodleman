@@ -467,15 +467,20 @@ function buildEditorTools() {
 		G$("EditorToolbar").show();
 		G$("ExpandButton").text = "x";
 		G$("ExpandButton").toggleState = 1;
-	}, function() {
+	},
+	function() {
 		G$("EditorToolbar").hide();
 		G$("ExpandButton").text = ">";
 		G$("ExpandButton").toggleState = 0;
 	}).show();
 
 	Button.create("BoxTool","EditorToolbar",80,10,50,50,"Box").setOnClick(function() {
-		Pointer.cursor = this.on?POINTER_PENCIL:POINTER_ERASER;
+		Pointer.cursor = this.on?POINTER_PENCIL:POINTER_CROSSHAIR;
 	}).setRadioGroup(["LineTool","SpriteTool"]).show();
-	Button.create("LineTool","EditorToolbar",150,10,50,50,"Line").setRadioGroup(["BoxTool","SpriteTool"]).show();
-	Button.create("SpriteTool","EditorToolbar",220,10,50,50,"Sprite").setRadioGroup(["BoxTool","LineTool"]).show();
+	Button.create("LineTool","EditorToolbar",150,10,50,50,"Line").setOnClick(function() {
+		Pointer.cursor = this.on?POINTER_PENCIL:POINTER_CROSSHAIR;
+	}).setRadioGroup(["BoxTool","SpriteTool"]).show();
+	Button.create("SpriteTool","EditorToolbar",220,10,50,50,"Sprite").setOnClick(function() {
+		Pointer.cursor = POINTER_CROSSHAIR;
+	}).setRadioGroup(["BoxTool","LineTool"]).show();
 }

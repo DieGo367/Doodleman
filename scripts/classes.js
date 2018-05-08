@@ -421,8 +421,8 @@ var PhysicsBox = class PhysicsBox extends Box {
   	this.ground = null;
   	this.lineGround = null;
   	//bottom of screen
-  	if (this.y>=Level.height) {
-  		this.y = Level.height;
+  	if (this.y>=Level.level.height) {
+  		this.y = Level.level.height;
   		this.velY = 0;
   		this.isGrounded = true;
   		this.cSides.d = true;
@@ -466,8 +466,8 @@ var PhysicsBox = class PhysicsBox extends Box {
 
   	}
   	//wrap screen edge
-  	if (this.x<-this.width) this.x = Level.width+this.width;
-  	else if (this.x>Level.width+this.width) this.x = -this.width;
+  	if (this.x<-this.width) this.x = Level.level.width+this.width;
+  	else if (this.x>Level.level.width+this.width) this.x = -this.width;
   	//clear values for collision detection
   	this.dx = this.x-oldX, this.dy = this.y-oldY;
   	this.isGrounded = false;
@@ -603,8 +603,8 @@ var MovingPlatform = class MovingPlatform extends PhysicsBox {
   update() {
   	this.x += this.velX;
   	this.y += this.velY;
-  	if (this.x<-this.width/2) this.x = Level.width+this.width/2;
-  	else if (this.x>Level.width+this.width/2) this.x = -this.width/2;
+  	if (this.x<-this.width/2) this.x = Level.level.width+this.width/2;
+  	else if (this.x>Level.level.width+this.width/2) this.x = -this.width/2;
   }
 }
 initClass(MovingPlatform,PhysicsBox);
@@ -1299,7 +1299,7 @@ Player.defineAttack("attack-down-stab",1,30,60,true,true,false,function() {
   this.stun = 40;
 },
 function() {
-  if (!this.ground&&!this.lineGround&&this.y!=Level.height) {
+  if (!this.ground&&!this.lineGround&&this.y!=Level.level.height) {
     this.attackBox.time++;
     this.attackBox.frame--;
     this.animFrame--;
@@ -1361,7 +1361,7 @@ var Enemy = class Enemy extends Entity {
   doRandomPacing() {
     if (this.standbyTick>=240) {
       this.paceTarget = this.post+Math.floor(25+Math.round(Math.random()*40)+1)*(Math.random()<0.5? -1:1);
-      if (this.paceTarget<0||this.paceTarget>Level.width) this.paceTarget = this.post;
+      if (this.paceTarget<0||this.paceTarget>Level.level.width) this.paceTarget = this.post;
       this.standbyTick = -1;
     }
     this.standbyTick += 1;

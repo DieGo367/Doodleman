@@ -28,7 +28,8 @@ scripts = [
   "collision.js",
   "classes.js",
   "gui.js",
-  "devTools.js"
+  "devTools.js",
+  "editorTools.js"
 ]
 
 def get_user_vars():

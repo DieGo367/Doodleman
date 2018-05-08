@@ -195,9 +195,9 @@ const Camera = {
 		this.y = Math.floor(px);
 	},
 	reset: function() {
-		this.x = Level.camStart.x;
-		this.y = Level.camStart.y;
-		this.zoom = this.requestedZoom = 1/Level.zoomScale;
+		this.x = Level.level.camStart.x;
+		this.y = Level.level.camStart.y;
+		this.zoom = this.requestedZoom = 1/Level.level.zoomScale;
 	},
 	width: function() { return hudWidth/this.zoom; },
 	height: function() { return hudHeight/this.zoom; },
@@ -207,8 +207,8 @@ const Camera = {
 	bottomPx: function() { return this.y+this.height()/2; },
 	approachX: function(goal) {
 		if (this.leftPx()<0) this.x = this.width()/2;
-		if (this.rightPx()>Level.width) this.x = Level.width-this.width()/2;
-		var value = Math.min(goal,Level.width-this.width()/2);
+		if (this.rightPx()>Level.level.width) this.x = Level.level.width-this.width()/2;
+		var value = Math.min(goal,Level.level.width-this.width()/2);
 		value = Math.max(this.width()/2,value);
 		var diff = value-this.x;
 		var step = diff/10;
@@ -221,8 +221,8 @@ const Camera = {
 	},
 	approachY: function(goal) {
 		if (this.topPx()<0) this.y = this.height()/2;
-		if (this.bottomPx()>Level.height) this.y = Level.height-this.height()/2;
-		var value = Math.min(goal,Level.height-this.height()/2);
+		if (this.bottomPx()>Level.level.height) this.y = Level.level.height-this.height()/2;
+		var value = Math.min(goal,Level.level.height-this.height()/2);
 		value = Math.max(this.height()/2,value);
 		var diff = value-this.y;
 		var step = diff/10;
@@ -233,7 +233,7 @@ const Camera = {
 		else this.setY(this.y+step);
 	},
 	approachZoom: function(goal) {
-		var value = Math.max(goal,Level.minZoom);
+		var value = Math.max(goal,Level.level.minZoom);
 		var diff = value-this.zoom;
 		var step = diff/20;
 		if (Math.abs(step)<0.0003) this.zoom = value;
@@ -247,12 +247,12 @@ const Camera = {
 			if (allP.length==1) {
 				this.approachZoom(this.requestedZoom);
 
-				if (targetX>this.rightPx()-Level.horScrollBuffer/this.zoom) this.approachX(targetX+(Level.horScrollBuffer-hudWidth/2)/this.zoom);
-				else if (targetX<this.leftPx()+Level.horScrollBuffer/this.zoom) this.approachX(targetX-(Level.horScrollBuffer-hudWidth/2)/this.zoom);
+				if (targetX>this.rightPx()-Level.level.horScrollBuffer/this.zoom) this.approachX(targetX+(Level.level.horScrollBuffer-hudWidth/2)/this.zoom);
+				else if (targetX<this.leftPx()+Level.level.horScrollBuffer/this.zoom) this.approachX(targetX-(Level.level.horScrollBuffer-hudWidth/2)/this.zoom);
 				else this.approachX(this.x);
 
-				if (targetY>this.bottomPx()-Level.vertScrollBuffer/this.zoom) this.approachY(targetY+(Level.vertScrollBuffer-hudHeight/2)/this.zoom);
-				else if (targetY<this.topPx()+Level.vertScrollBuffer/this.zoom) this.approachY(targetY-(Level.vertScrollBuffer-hudHeight/2)/this.zoom);
+				if (targetY>this.bottomPx()-Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY+(Level.level.vertScrollBuffer-hudHeight/2)/this.zoom);
+				else if (targetY<this.topPx()+Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY-(Level.level.vertScrollBuffer-hudHeight/2)/this.zoom);
 				else this.approachY(this.y);
 			}
 			else {
@@ -305,7 +305,7 @@ function clearViewLock() {
 function addPlayer(number) {
 	var sheet = ["Blueman.json","Redman.json"][number];
 	var button = Player.respawnButtons[number];
-	var coords = [[Level.player1Spawn.x,Level.player1Spawn.y],[Level.player2Spawn.x,Level.player2Spawn.y]][number];
+	var coords = [[Level.level.player1Spawn.x,Level.level.player1Spawn.y],[Level.level.player2Spawn.x,Level.level.player2Spawn.y]][number];
 	var player = Player.create(coords[0],coords[1],19,44,38,4,multiplayer?sheet:"Doodleman.json",number);
 	if (multiplayer) button.hide();
 	else G$("RespawnP1Button").hide();
@@ -324,7 +324,7 @@ function isOdd(n) {
 
 function spawnWave(wave) {
 	while(wave-->0) {
-		PaintMinion.create(Level.width/4+(isEven(wave)?Level.width/2:0),0);
+		PaintMinion.create(Level.level.width/4+(isEven(wave)?Level.level.width/2:0),0);
 	}
 }
 
@@ -343,7 +343,7 @@ function setGameMode(mode) {
 	switch(gameMode) {
 		case 0: //sandbox and battle
 			G$("GameModeToggle").text = "Sandbox Mode";
-			if (!multiplayer) PaintMinion.create(Level.width*3/4,30);
+			if (!multiplayer) PaintMinion.create(Level.level.width*3/4,30);
 			break;
 		case 1: //dungeon mode
 			G$("GameModeToggle").text = "Dungeon Mode";
@@ -376,9 +376,9 @@ function drawGame() {
 	c.translate(-Camera.x,-Camera.y);
 	//background
 	c.fillStyle = "lightGray";
-	c.fillRect(0,0,Level.width,Level.height);
-	if (Level.bgType=="name"&&Level.bgName!="none") ImageFactory.drawImagePattern(Level.bgName,0,0,Level.width,Level.height,Level.bgScale);
-	else if (Level.bgType=="raw") ImageFactory.drawImagePattern("BG-LevelRaw",0,0,Level.width,Level.height,Level.bgScale);
+	c.fillRect(0,0,Level.level.width,Level.level.height);
+	if (Level.level.bgType=="name"&&Level.level.bgName!="none") ImageFactory.drawImagePattern(Level.level.bgName,0,0,Level.level.width,Level.level.height,Level.level.bgScale);
+	else if (Level.level.bgType=="raw") ImageFactory.drawImagePattern("BG-LevelRaw",0,0,Level.level.width,Level.level.height,Level.level.bgScale);
 	//objects and elements
 	callOnAllClasses("drawTint");
 	for (var layer = -2; layer<4; layer++) { //layers: -2: bg stuff -1: doors and other bg sprites, 0:ground and lines, 1: entities, 2: players 3: particles
@@ -411,7 +411,7 @@ function drawGame() {
 		var allP = Player.getAll();
 		c.strokeStyle = "turquoise";
 		c.lineWidth = 1;
-		if (allP.length==1) c.strokeRect(Level.horScrollBuffer,Level.vertScrollBuffer,hudWidth-2*Level.horScrollBuffer,hudHeight-2*Level.vertScrollBuffer);
+		if (allP.length==1) c.strokeRect(Level.level.horScrollBuffer,Level.level.vertScrollBuffer,hudWidth-2*Level.level.horScrollBuffer,hudHeight-2*Level.level.vertScrollBuffer);
 		else if (allP.length>1) {
 			drawCircle(hudWidth/2,hudHeight/2,5);
 			var target = averageCoords(allP);
@@ -543,6 +543,7 @@ function click(ctrl) {
 	}
 	else if (ctrl==Pointer) clearViewLock();
 	if (devEnabled&&!found&&!paused) DevTools.onClick();
+	if (EditorTools.enabled&&!found) EditorTools.onClick();
 	Pointer.move(Pointer.x,Pointer.y);
 }
 
