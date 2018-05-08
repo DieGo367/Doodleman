@@ -117,13 +117,13 @@ function buildLevelSelectMenu() {
 			var x = i%2==0?20:240;
 			Button.create("LSLevel"+i,"LevelSelectView",x,50+y*60,200,40,name).setOnClick(function() {
 				ResourceManager.request("levels/"+this.text+".json",function(data) {
-					Level.load(data);
+					loadLevel(data);
 				});
 			}).show();
 		}
 	});
 
-	Button.create("LSFileButton","LevelSelectView",hudWidth-170,hudHeight-60,150,40,"Load From File").setOnClick(Level.openLocalFile,true).show().setPressDelay(1);
+	Button.create("LSFileButton","LevelSelectView",hudWidth-170,hudHeight-60,150,40,"Load From File").setOnClick(openLocalFile,true).show().setPressDelay(1);
 }
 
 function buildControllerSettingsMenu() {

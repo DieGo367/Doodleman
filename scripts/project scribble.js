@@ -600,7 +600,7 @@ function addEvents() {
 		$(canvas).on("touchend",function(event) { Tap.handleEnd(event); });
 		$(canvas).on("touchcancel",function(event) { Tap.handler(event); });
 	}
-	$("#fileInput").on("change",Level.loadLocalFile);
+	$("#fileInput").on("change",loadLocalFile);
 	$(window).on("resize",function() {
 		fullScreen = getPrefixedProperty(document,"fullscreenElement") || getPrefixedProperty(document,"fullScreenElement");
 		G$("FSToggle").on = fullScreen;

@@ -74,70 +74,6 @@ const Level = {
 				break;
 			}
 		}
-	},
-	load: function(file,doLog) {
-		if (doLog==void(0)) doLog = true;
-		try {
-			var newLevel = JSON.parse(file);
-		}
-		catch(err) {
-			if (doLog) {
-				console.log('Failed to load Level "'+file.name+'" from local file');
-				console.log(err);
-			}
-			return false;
-		}
-		pauseGame(true);
-		Box.killAll();
-		Line.killAll();
-		Garbage.clear();
-		Sectors.grid = {};
-		this.level = clone(BlankLevel);
-		for (var p in newLevel) this.level[p] = newLevel[p];
-		for (var s in this.level.sprites) SpriteManager.make(...this.level.sprites[s]);
-		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
-		if (this.level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",this.level.bgRaw);
-		Camera.reset();
-		addPlayer(0);
-		if (multiplayer) addPlayer(1);
-		G$("LevelSelectView").hide();
-		if (focused) pauseGame(false);
-		if (doLog) console.log("Loaded Level "+this.level.name);
-		return true;
-	},
-	loadB64: function(b64) {
-		if (this.load(atob(b64),false)) console.log("Loaded Level from Base64");
-		else console.log("Failed to load Level from Base64");
-	},
-	openLocalFile: function() {
-		$("#fileInput").click();
-	},
-	loadLocalFile: function(event) {
-		if (window.File&&window.FileReader&&window.FileList&&window.Blob) {
-			var file = event.target.files[0];
-			if (file) {
-				var reader = new FileReader;
-				reader.onload = function(e) {
-					var fileType = file.name.split(".").pop();
-					if (fileType=="json") {
-						if (Level.load(e.target.result,false)) console.log('Loaded Level "'+file.name+'" from local file');
-						else console.log('Failed to load Level "'+file.name+'" from local file');
-					}
-					else alert("Not the right file type!");
-				}
-				reader.readAsText(file);
-			}
-			else alert("No file selected.");
-		}
-		else alert("Unsupported browser.");
-	},
-	export: function() {
-		let data = JSON.stringify(this.level,null,'\t');
-		$("#fileOutput").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
-	},
-	log: function() {
-		let data = JSON.stringify(this.level,null,'\t');
-		console.log(data);
 	}
 }
 const BlankLevel = clone(Level.level);
@@ -204,4 +140,67 @@ const TerrainManager = {
 			return obj;
 		}
 	}
+}
+
+function loadLevel(file) {
+	try {
+		var newLevel = JSON.parse(file);
+	}
+	catch(err) {
+		console.log('Failed to load Level "'+file.name+'" from local file');
+		console.log(err);
+		return false;
+	}
+	pauseGame(true);
+	Box.killAll();
+	Line.killAll();
+	Garbage.clear();
+	Sectors.grid = {};
+	Level.level = clone(BlankLevel);
+	for (var p in newLevel) Level.level[p] = newLevel[p];
+	for (var s in Level.level.sprites) SpriteManager.make(...Level.level.sprites[s]);
+	for (var h in Level.level.terrain) TerrainManager.make(Level.level.terrain[h]);
+	if (Level.level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",Level.level.bgRaw);
+	Camera.reset();
+	addPlayer(0);
+	if (multiplayer) addPlayer(1);
+	G$("LevelSelectView").hide();
+	if (focused) pauseGame(false);
+	console.log("Loaded Level "+Level.level.name);
+	return true;
+}
+function loadLevelB64(b64) {
+	if (loadLevel(atob(b64))) console.log("Loaded Level from Base64");
+	else console.log("Failed to load Level from Base64");
+}
+function openLocalFile() {
+	$("#fileInput").click();
+}
+function loadLocalFile(event) {
+	if (window.File&&window.FileReader&&window.FileList&&window.Blob) {
+		var file = event.target.files[0];
+		if (file) {
+			var reader = new FileReader;
+			reader.onload = function(e) {
+				var fileType = file.name.split(".").pop();
+				if (fileType=="json") {
+					if (loadLevel(e.target.result)) console.log('Loaded Level "'+file.name+'" from local file');
+					else console.log('Failed to load Level "'+file.name+'" from local file');
+				}
+				else alert("Not the right file type!");
+			}
+			reader.readAsText(file);
+		}
+		else alert("No file selected.");
+	}
+	else alert("Unsupported browser.");
+}
+
+function exportLevel() {
+	var data = JSON.stringify(Level.level,null,'\t');
+	$("#fileOutput").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
+}
+function logLevel() {
+	var data = JSON.stringify(Level.level,null,'\t');
+	console.log(data);
 }
