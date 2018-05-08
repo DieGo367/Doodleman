@@ -1,5 +1,7 @@
 const EditorTools = {
   enabled: false,
+  ready: false,
+  modes: ["Box","Line","Sprite"],
   mode: 0,
   eraserOn: false,
   Box: {
@@ -29,7 +31,7 @@ const EditorTools = {
       }
     },
     erase: function() {
-      let box = EditorTools.findAt(Pointer.camX(),Pointer.camY(),0);
+      let box = this.parent.findAt(Pointer.camX(),Pointer.camY(),0);
       if (box) {
         Level.removeTerrainData(box.rawTerrainData);
         box.remove();
@@ -38,6 +40,13 @@ const EditorTools = {
     clear: function() {
       this.x = null;
       this.y = null;
+    },
+    draw: function() {
+      if (this.x==null||this.y==null) return;
+      else {
+        c.strokeStyle = "hotpink";
+        c.strokeRect(this.x,this.y,Pointer.camX()-this.x,Pointer.camY()-this.y);
+      }
     }
   },
   Line: {
@@ -65,7 +74,7 @@ const EditorTools = {
       }
     },
     erase: function() {
-      let line = EditorTools.findAt(Pointer.camX(),Pointer.camY(),1);
+      let line = this.parent.findAt(Pointer.camX(),Pointer.camY(),1);
       if (line) {
         Level.removeTerrainData(line.rawTerrainData);
         line.remove();
@@ -74,6 +83,13 @@ const EditorTools = {
     clear: function() {
       this.x = null;
       this.y = null;
+    },
+    draw: function() {
+      if (this.x==null||this.y==null) return;
+      else {
+        c.strokeStyle = "hotpink";
+        drawLine(this.x,this.y,Pointer.camX(),Pointer.camY());
+      }
     }
   },
   Sprite: {
@@ -86,7 +102,7 @@ const EditorTools = {
       Level.addSpriteData(data);
     },
     erase: function() {
-      let sprite = EditorTools.findAt(Pointer.camX(),Pointer.camY(),2);
+      let sprite = this.parent.findAt(Pointer.camX(),Pointer.camY(),2);
       if (sprite) {
         Level.removeSpriteData(sprite.rawSpriteData);
         sprite.remove();
@@ -94,23 +110,36 @@ const EditorTools = {
     },
     clear: function() {
       this.id = 10;
+    },
+    draw: function() {
+
     }
   },
+  init: function() {
+    for (var i in this.modes) {
+      this[this.modes[i]].parent = this;
+    }
+    this.ready = true;
+  },
   onClick: function() {
-    let tool = [this.Box,this.Line,this.Sprite][this.mode];
-    let button = G$(["BoxTool","LineTool","SpriteTool"][this.mode]);
+    let tool = this[this.getModeText()];
+    let button = G$(this.getModeText()+"Tool");
     if (button.on) {
       if (this.eraserOn) tool.erase();
       else tool.onClick();
     }
   },
   setMode: function(mode) {
+    if (!this.ready) this.init();
     this.mode = mode;
     this.Box.clear();
     this.Line.clear();
     this.Sprite.clear();
-    G$("EditorModeText").text = ["Box","Line","Sprite"][mode];
+    G$("EditorModeText").text = this.getModeText();
     this.setEraserOn(false);
+  },
+  getModeText: function() {
+    return this.modes[this.mode];
   },
   setEraserOn: function(bool) {
     this.eraserOn = !!bool;
@@ -119,7 +148,7 @@ const EditorTools = {
   setCursor: function() {
     if (this.eraserOn) Pointer.cursor = POINTER_ERASER;
     else {
-      let button = G$(["BoxTool","LineTool","SpriteTool"][this.mode]);
+      let button = G$(this.getModeText()+"Tool");
       if (button.on) Pointer.cursor = [POINTER_PENCIL,POINTER_PENCIL,POINTER_CROSSHAIR][this.mode];
       else Pointer.cursor = POINTER_CROSSHAIR;
     }
@@ -150,6 +179,18 @@ const EditorTools = {
       let all = Enemy.getAll();
       for (var i in all) {
         if (all[i].isSprite&&all[i].containsPoint(x,y)) return all[i];
+      }
+    }
+  },
+  draw: function() {
+    let button = G$(this.getModeText()+"Tool");
+    if (button.on) {
+      if (this.eraserOn) {
+        let thing = this.findAt(Pointer.camX(),Pointer.camY(),this.mode);
+        if (thing) thing.drawHighlighted();
+      }
+      else {
+        this[this.getModeText()].draw();
       }
     }
   }

@@ -404,6 +404,7 @@ function drawGame() {
 		}
 		DevTools.LineMaker.draw();
 	}
+	if (EditorTools.enabled) EditorTools.draw();
 	//untranslate
 	c.restore();
 	//draw dev camera view

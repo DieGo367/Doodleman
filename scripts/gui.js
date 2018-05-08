@@ -497,7 +497,7 @@ function buildEditorTools() {
 
 	Button.create("EraserTool","EditorToolbar",hudWidth-60,10,50,50,"Eraser").setOnClick(function() {
 		this.on = !this.on;
-		let button = G$(["BoxTool","LineTool","SpriteTool"][EditorTools.mode]);
+		let button = G$(EditorTools.getModeText()+"Tool");
 		if (!button.on) this.on = false;
 		EditorTools.setEraserOn(this.on);
 	}).show();
