@@ -486,15 +486,19 @@ function buildEditorTools() {
 	}).show();
 
 	Button.create("BoxTool","EditorToolbar",80,10,50,50,"Box").setOnClick(function() {
-		Pointer.cursor = this.on?POINTER_PENCIL:POINTER_CROSSHAIR;
 		EditorTools.setMode(0);
-	}).setRadioGroup(["LineTool","SpriteTool"]).show();
+	}).setRadioGroup(["LineTool","SpriteTool","EraserTool"]).show();
 	Button.create("LineTool","EditorToolbar",150,10,50,50,"Line").setOnClick(function() {
-		Pointer.cursor = this.on?POINTER_PENCIL:POINTER_CROSSHAIR;
 		EditorTools.setMode(1);
-	}).setRadioGroup(["BoxTool","SpriteTool"]).show();
+	}).setRadioGroup(["BoxTool","SpriteTool","EraserTool"]).show();
 	Button.create("SpriteTool","EditorToolbar",220,10,50,50,"Sprite").setOnClick(function() {
-		Pointer.cursor = POINTER_CROSSHAIR;
 		EditorTools.setMode(2);
-	}).setRadioGroup(["BoxTool","LineTool"]).show();
+	}).setRadioGroup(["BoxTool","LineTool","EraserTool"]).show();
+
+	Button.create("EraserTool","EditorToolbar",hudWidth-60,10,50,50,"Eraser").setOnClick(function() {
+		this.on = !this.on;
+		let button = G$(["BoxTool","LineTool","SpriteTool"][EditorTools.mode]);
+		if (!button.on) this.on = false;
+		EditorTools.setEraserOn(this.on);
+	}).show();
 }
