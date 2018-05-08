@@ -193,15 +193,17 @@ const SpriteManager = {
 SpriteManager.init();
 const TerrainManager = {
 	make: function(terrain) {
-		var construct = [PhysicsBox,SolidLine][terrain.type];
+		let construct = [PhysicsBox,SolidLine][terrain.type];
+		let results  = [];
 		for (var i in terrain.pieces) {
-			var piece = terrain.pieces[i];
+			let piece = terrain.pieces[i];
 			if (terrain.type==0) piece[0] += piece[2]/2;
-			var args = [...piece,...terrain.properties];
+			let args = [...piece,...terrain.properties];
 			let obj = construct.create(...args);
 			obj.isTerrain = true;
 			obj.rawTerrainData = clone(terrain);
-			return obj;
+			results.push(obj);
 		}
+		return results;
 	}
 }
