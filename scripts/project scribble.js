@@ -503,13 +503,13 @@ function doGlobalControls(controller) {
 	}
 	if (controller.ready("showInfo")) {
 		G$("CtrlDevMode").on = devEnabled = !devEnabled;
-		if (!paused&&devEnabled) G$("DevTools").show();
+		if (!paused&&devEnabled&&setting=="game") G$("DevTools").show();
 		else G$("DevTools").hide();
 		controller.use("showInfo");
 	}
 	else {
 		if (!multiplayer&&controller.ready("respawn")) { PhysicsBox.callForAll("respawn"); controller.use("respawn"); }
-		if (devEnabled&&controller.type==KEYBOARD) {
+		if ((devEnabled||setting=="editor")&&controller.type==KEYBOARD) {
 			if (controller.pressed("camRotateCW")) myAngle += 0.01;
 			if (controller.pressed("camRotateCCW")) myAngle -= 0.01;
 			if (controller.pressed("camLeft")) Camera.x -= 5;
