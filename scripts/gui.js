@@ -476,11 +476,14 @@ function buildEditorTools() {
 
 	Button.create("BoxTool","EditorToolbar",80,10,50,50,"Box").setOnClick(function() {
 		Pointer.cursor = this.on?POINTER_PENCIL:POINTER_CROSSHAIR;
+		EditorTools.setMode(0);
 	}).setRadioGroup(["LineTool","SpriteTool"]).show();
 	Button.create("LineTool","EditorToolbar",150,10,50,50,"Line").setOnClick(function() {
 		Pointer.cursor = this.on?POINTER_PENCIL:POINTER_CROSSHAIR;
+		EditorTools.setMode(1);
 	}).setRadioGroup(["BoxTool","SpriteTool"]).show();
 	Button.create("SpriteTool","EditorToolbar",220,10,50,50,"Sprite").setOnClick(function() {
 		Pointer.cursor = POINTER_CROSSHAIR;
+		EditorTools.setMode(2);
 	}).setRadioGroup(["BoxTool","LineTool"]).show();
 }

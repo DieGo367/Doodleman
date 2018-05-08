@@ -25,11 +25,24 @@ const Level = {
 		sprites: [],
 		terrain: []
 	},
-	updateTerrainData: function() {
-		
+	addTerrainData: function(data) {
+		let found = false;
+		for (var i in this.level.terrain) {
+			let definition = this.level.terrain[i];
+			if (definition.type==data.type) {
+				if (JSON.stringify(definition.properties)==JSON.stringify(data.properties)) {
+					for (var j in data.pieces) {
+						definition.pieces.push(data.pieces[j]);
+					}
+					found = true;
+					break;
+				}
+			}
+		}
+		if (!found) this.level.terrain.push(data);
 	},
-	updateSpriteData: function() {
-
+	addSpriteData: function(data) {
+		this.level.sprites.push(data);
 	}
 }
 const BlankLevel = clone(Level.level);
@@ -89,23 +102,6 @@ const TerrainManager = {
 			var args = [...piece,...terrain.properties];
 			construct.create(...args).isTerrain = true;
 		}
-	},
-	updateLevelData: function(type,rawArgs) {
-		var dimensions = rawArgs.slice(0,4);
-		var properties = rawArgs.slice(4);
-		if (type==0) properties[0] -= properties[2]/2;
-		var found = false;
-		for (var i in Level.level.terrain) {
-			var definition = Level.level.terrain[i];
-			if (definition.type==type) {
-				if (JSON.stringify(definition.properties)==JSON.stringify(properties)) {
-					definition.pieces.push(dimensions);
-					found = true;
-					break;
-				}
-			}
-		}
-		if (!found) Level.level.terrain.push({type:type, properties:properties, pieces:[dimensions]});
 	}
 }
 

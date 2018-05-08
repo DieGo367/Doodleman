@@ -3,6 +3,7 @@ function tick() {
   if (focused) window.requestAnimationFrame(drawGame);
   doGlobalControls(globalKeyboard);
   GuiElement.callForAll("update");
+  Particle.callForAll("update");
 }
 
 function addGui() {

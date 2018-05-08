@@ -16,13 +16,11 @@ const DevTools = {
   	makeLine: function() {
       var properties = [this.x,this.y,this.xx,this.yy,this.size,this.fill,this.dir];
   		SolidLine.create(...properties);
-      if (setting=="editor") TerrainManager.updateLevelData(1,properties);
   		this.clear();
   	},
   	makeBox: function() {
       var properties = [this.x,this.y,this.xx-this.x,this.yy-this.y,this.fill,null,true,C_INFINIMASS,false,0];
       PhysicsBox.create(...properties);
-  		if (setting=="editor") TerrainManager.updateLevelData(0,properties);
       this.clear();
   	},
   	input: function(x,y) {
@@ -99,7 +97,7 @@ const DevTools = {
       var type = G$("DevSpawnPM").on?0:1;
       var thing = findTopThing(Pointer.camX(),Pointer.camY(),type);
       if (thing) {
-        if (setting=="game") Particle.generate(Pointer.camX(),Pointer.camY(),0,15,5,30,false,type==0?"#6a00d8":thing.stroke,-90,45,8,2);
+        Particle.generate(Pointer.camX(),Pointer.camY(),0,15,5,30,false,type==0?"#6a00d8":thing.stroke,-90,45,8,2);
         thing.remove();
       }
     }
