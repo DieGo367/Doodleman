@@ -450,13 +450,13 @@ function buildDevToolsHud() {
 		if (G$("DevPencil").on) Pointer.cursor = POINTER_PENCIL;
 		else Pointer.cursor = POINTER_CROSSHAIR;
 	}
-	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setOnClick(setOn).setRadioGroup(["DevPencil","DevEraser"]).setIcon("GUI-Icons.png",0,1,42,4).show();
-	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setOnClick(setOn).setRadioGroup(["DevSpawnPM","DevEraser"]).setIcon("GUI-Icons.png",1,1,42,4).show();
+	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setOnClick(setOn).setRadioGroup(["DevPencil","DevEraser"]).setIcon("GUI-Icons.png",2,2,42,4).show();
+	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setOnClick(setOn).setRadioGroup(["DevSpawnPM","DevEraser"]).setIcon("GUI-Icons.png",1,2,42,4).show();
 	Button.create("DevEraser","DevTools",hudWidth-60,220,50,50).setOnClick(function() {
 		if (this.on) this.on = false;
 		else if (G$("DevSpawnPM").on||G$("DevPencil").on) this.on = true;
 		Pointer.cursor = this.on?POINTER_ERASER:(G$("DevPencil").on?POINTER_PENCIL:POINTER_CROSSHAIR);
-	}).setIcon("GUI-Icons.png",2,1,42,4).show();
+	}).setIcon("GUI-Icons.png",3,2,42,4).show();
 }
 
 function buildEditorTools() {
@@ -464,10 +464,10 @@ function buildEditorTools() {
 	View.create("EditorHud",0,0,0,70,70).show();
 	TextElement.create("EditorModeText","EditorHud",70,40,"Mode","Catamaran, sans-serif",20,false,"fuchsia",LEFT,true,"purple",2);
 
-	Button.create("ExpandButton","EditorHud",10,10,50,50,">").setToggle(function() {
+	Button.create("ExpandButton","EditorHud",10,10,50,50).setToggle(function() {
 		G$("EditorToolbar").show();
 		G$("EditorModeText").hide();
-		G$("ExpandButton").text = "x";
+		G$("ExpandButton").setIcon("GUI-Icons.png",3,0,42,4);
 		G$("ExpandButton").toggleState = 1;
 	},
 	function() {
@@ -481,24 +481,24 @@ function buildEditorTools() {
 			}
 		}
 		if (found) G$("EditorModeText").show();
-		G$("ExpandButton").text = ">";
+		G$("ExpandButton").setIcon("GUI-Icons.png",0,1,42,4);
 		G$("ExpandButton").toggleState = 0;
-	}).show();
+	}).setIcon("GUI-Icons.png",0,1,42,4).show();
 
-	Button.create("BoxTool","EditorToolbar",80,10,50,50,"Box").setOnClick(function() {
+	Button.create("BoxTool","EditorToolbar",80,10,50,50).setOnClick(function() {
 		EditorTools.setMode(0);
-	}).setRadioGroup(["LineTool","SpriteTool","EraserTool"]).show();
-	Button.create("LineTool","EditorToolbar",150,10,50,50,"Line").setOnClick(function() {
+	}).setRadioGroup(["LineTool","SpriteTool","EraserTool"]).setIcon("GUI-Icons.png",0,2,42,4).show();
+	Button.create("LineTool","EditorToolbar",150,10,50,50).setOnClick(function() {
 		EditorTools.setMode(1);
-	}).setRadioGroup(["BoxTool","SpriteTool","EraserTool"]).show();
-	Button.create("SpriteTool","EditorToolbar",220,10,50,50,"Sprite").setOnClick(function() {
+	}).setRadioGroup(["BoxTool","SpriteTool","EraserTool"]).setIcon("GUI-Icons.png",1,2,42,4).show();
+	Button.create("SpriteTool","EditorToolbar",220,10,50,50).setOnClick(function() {
 		EditorTools.setMode(2);
-	}).setRadioGroup(["BoxTool","LineTool","EraserTool"]).show();
+	}).setRadioGroup(["BoxTool","LineTool","EraserTool"]).setIcon("GUI-Icons.png",2,2,42,4).show();
 
-	Button.create("EraserTool","EditorToolbar",hudWidth-60,10,50,50,"Eraser").setOnClick(function() {
+	Button.create("EraserTool","EditorToolbar",hudWidth-60,10,50,50).setOnClick(function() {
 		this.on = !this.on;
 		let button = G$(EditorTools.getModeText()+"Tool");
 		if (!button.on) this.on = false;
 		EditorTools.setEraserOn(this.on);
-	}).show();
+	}).setIcon("GUI-Icons.png",3,2,42,4).show();
 }
