@@ -462,14 +462,25 @@ function buildDevToolsHud() {
 function buildEditorTools() {
 	View.create("EditorToolbar",0,0,0,hudWidth,70,"tint","purple");
 	View.create("EditorHud",0,0,0,70,70).show();
+	TextElement.create("EditorModeText","EditorHud",70,40,"Mode","Catamaran, sans-serif",20,false,"fuchsia",LEFT,true,"purple",2);
 
 	Button.create("ExpandButton","EditorHud",10,10,50,50,">").setToggle(function() {
 		G$("EditorToolbar").show();
+		G$("EditorModeText").hide();
 		G$("ExpandButton").text = "x";
 		G$("ExpandButton").toggleState = 1;
 	},
 	function() {
 		G$("EditorToolbar").hide();
+		let tools = ["BoxTool","LineTool","SpriteTool"];
+		let found = false;
+		for (var i in tools) {
+			if (G$(tools[i]).on) {
+				found = true;
+				break;
+			}
+		}
+		if (found) G$("EditorModeText").show();
 		G$("ExpandButton").text = ">";
 		G$("ExpandButton").toggleState = 0;
 	}).show();

@@ -75,16 +75,15 @@ const EditorTools = {
     }
   },
   onClick: function() {
-    if (G$("EditorToolbar").visible) {
-      let tool = [this.Box,this.Line,this.Sprite][this.mode];
-      let button = G$(["BoxTool","LineTool","SpriteTool"][this.mode]);
-      if (button.on) tool.onClick();
-    }
+    let tool = [this.Box,this.Line,this.Sprite][this.mode];
+    let button = G$(["BoxTool","LineTool","SpriteTool"][this.mode]);
+    if (button.on) tool.onClick();
   },
   setMode: function(mode) {
     this.mode = mode;
     this.Box.clear();
     this.Line.clear();
     this.Sprite.clear();
+    G$("EditorModeText").text = ["Box","Line","Sprite"][mode];
   }
 }
