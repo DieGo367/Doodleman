@@ -26,11 +26,12 @@ const Level = {
 		terrain: []
 	},
 	addTerrainData: function(data) {
+		let rawProperties = JSON.stringify(data.properties);
 		let found = false;
 		for (var i in this.level.terrain) {
 			let definition = this.level.terrain[i];
 			if (definition.type==data.type) {
-				if (JSON.stringify(definition.properties)==JSON.stringify(data.properties)) {
+				if (JSON.stringify(definition.properties)==rawProperties) {
 					for (var j in data.pieces) {
 						definition.pieces.push(data.pieces[j]);
 					}
@@ -41,8 +42,38 @@ const Level = {
 		}
 		if (!found) this.level.terrain.push(data);
 	},
+	removeTerrainData: function(data) {
+		let rawProperties = JSON.stringify(data.properties);
+		for (var i in this.level.terrain) {
+			let definition = this.level.terrain[i];
+			if (definition.type==data.type) {
+				if (JSON.stringify(definition.properties)==rawProperties) {
+					for (var j in data.pieces) {
+						let rawPiece = JSON.stringify(data.pieces[j]);
+						for (var k in definition.pieces) {
+							if (JSON.stringify(definition.pieces[k])==rawPiece) {
+								definition.pieces.splice(k,1);
+								break;
+							}
+						}
+					}
+					if (definition.pieces.length==0) this.level.terrain.splice(i,1);
+					break;
+				}
+			}
+		}
+	},
 	addSpriteData: function(data) {
 		this.level.sprites.push(data);
+	},
+	removeSpriteData: function(data) {
+		let raw = JSON.stringify(data);
+		for (var i in this.level.sprites) {
+			if (JSON.stringify(this.level.sprites[i])==raw) {
+				this.level.sprites.splice(i,1);
+				break;
+			}
+		}
 	}
 }
 const BlankLevel = clone(Level.level);
@@ -82,7 +113,10 @@ const SpriteManager = {
 						props.push(p);
 				}
 			}
-			return window[sprite.class].create(...props);
+			let obj = window[sprite.class].create(...props);
+			obj.isSprite = true;
+			obj.rawSpriteData = Array.from(arguments);
+			return obj;
 		}
 		else console.log("Missing sprite ID: "+id);
 	},
@@ -100,7 +134,10 @@ const TerrainManager = {
 			var piece = terrain.pieces[i];
 			if (terrain.type==0) piece[0] += piece[2]/2;
 			var args = [...piece,...terrain.properties];
-			construct.create(...args).isTerrain = true;
+			let obj = construct.create(...args);
+			obj.isTerrain = true;
+			obj.rawTerrainData = clone(terrain);
+			return obj;
 		}
 	}
 }

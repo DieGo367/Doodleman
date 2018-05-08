@@ -30,7 +30,10 @@ const EditorTools = {
     },
     erase: function() {
       let box = EditorTools.findAt(Pointer.camX(),Pointer.camY(),0);
-      if (box) box.remove();
+      if (box) {
+        Level.removeTerrainData(box.rawTerrainData);
+        box.remove();
+      }
     },
     clear: function() {
       this.x = null;
@@ -63,7 +66,10 @@ const EditorTools = {
     },
     erase: function() {
       let line = EditorTools.findAt(Pointer.camX(),Pointer.camY(),1);
-      if (line) line.remove();
+      if (line) {
+        Level.removeTerrainData(line.rawTerrainData);
+        line.remove();
+      }
     },
     clear: function() {
       this.x = null;
@@ -81,7 +87,10 @@ const EditorTools = {
     },
     erase: function() {
       let sprite = EditorTools.findAt(Pointer.camX(),Pointer.camY(),2);
-      if (sprite) sprite.remove();
+      if (sprite) {
+        Level.removeSpriteData(sprite.rawSpriteData);
+        sprite.remove();
+      }
     },
     clear: function() {
       this.id = 10;
@@ -140,7 +149,7 @@ const EditorTools = {
     if (type==2||tryAll) {
       let all = Enemy.getAll();
       for (var i in all) {
-        if (all[i].containsPoint(x,y)) return all[i];
+        if (all[i].isSprite&&all[i].containsPoint(x,y)) return all[i];
       }
     }
   }
