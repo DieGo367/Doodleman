@@ -1562,6 +1562,8 @@ var Button = class Button extends GuiElement {
   	this.preventClick = 0;
     this.pressDelay = 0;
   	this.on = false;
+    this.radioGroup = [];
+    this.radioGroupNames = [];
   	this.useIcon = false;
   	this.iconImg = null;
   	this.iconX = this.iconY = 0;
@@ -1606,6 +1608,26 @@ var Button = class Button extends GuiElement {
     this.isCloseButton = bool;
     return this;
   }
+  setRadioGroup(group) {
+    this.radioGroupNames = [];
+    for (var i in group) {
+      if (typeof group[i] == "string") this.radioGroupNames.push(group[i]);
+    }
+    if (this.mode==BUTTON_NO) this.mode = BUTTON_NORMAL;
+    return this;
+  }
+  collectRadioGroupElements() {
+    this.radioGroup = [];
+    let elems = Button.getAll();
+    for (var i in this.radioGroupNames) {
+      for (var j in elems) {
+        if (elems[j].name==this.radioGroupNames[i]) {
+          this.radioGroup.push(elems[j]);
+          break;
+        }
+      }
+    }
+  }
   show() {
     this.visible = false;
     this.preventClick = 1;
@@ -1623,6 +1645,13 @@ var Button = class Button extends GuiElement {
   		this.clickSource = ctrl;
       var func;
       if (this.mode==BUTTON_TOGGLE) func = this.states[this.toggleState];
+      if (this.radioGroupNames.length>0) {
+        this.collectRadioGroupElements();
+        for (var i in this.radioGroup) {
+          this.radioGroup[i].on = false;
+        }
+        this.on = !this.on;
+      }
   		if (this.requireUserAction) {
         if (func) return attemptUserAction(func,ctrl);
   			else return attemptUserAction(this.onClickFunction,ctrl);
