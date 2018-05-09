@@ -108,6 +108,13 @@ const EditorTools = {
     id: 10,
     properties: [],
     onClick: function() {
+      if (SpriteManager.getSpriteValuesLength(this.id)==-1) return;
+      let propNum = G$("EditPropView").propNum;
+      if (propNum>1) {
+        for (var i = 1; i < propNum; i++) {
+          if (this.properties[i-1]==void(0)) return;
+        }
+      }
       let x = Pointer.camX(), y = Pointer.camY();
       let data = [this.id,x,y,...this.properties];
       SpriteManager.make(...data);
@@ -121,20 +128,19 @@ const EditorTools = {
       }
     },
     clear: function() {
-      this.id = 10;
+
     },
     draw: function() {
 
     },
     getPropStrings: function() {
-      //let count = SpriteManager.getSpriteValueCount() - 2;
-      let count = 0;
+      let count = SpriteManager.getSpriteValuesLength(this.id) - 2; //get rid of x and y
       let props = {
-        names: [],
-        types: []
+        names: ["id"],
+        types: ["number"]
       }
-      for (var i in count) {
-        props.names.push("i");
+      for (var i = 0; i < count; i++) {
+        props.names.push(i);
         props.types.push("string");
       }
       return props;
@@ -203,7 +209,7 @@ const EditorTools = {
   		}
   	}
     if (type==2||tryAll) {
-      let all = Enemy.getAll().reverse();
+      let all = Box.getAll().reverse();
       for (var i in all) {
         if (all[i].isSprite&&all[i].containsPoint(x,y)) return all[i];
       }
@@ -213,19 +219,32 @@ const EditorTools = {
     let tool = this[type==void(0)?this.getModeText():type];
     let strings = tool.getPropStrings();
     let props = [];
-    let prop = function(name,val,type) {
+    let prop = function(tool,name,type) {
       this.name = name;
-      this.val = val;
+      if (typeof name=="number"&&tool==this.Sprite) {
+        this.val = tool.properties[name];
+        tool.propNum = name+1;
+      }
+      else this.val = tool[name];
       this.type = type;
       props.push(this);
     }
-    for (var i in strings.names) new prop(strings.names[i],tool[strings.names[i]],strings.types[i]);
+    for (var i in strings.names) new prop(tool,strings.names[i],strings.types[i]);
     return props;
   },
   setToolProperty: function(name,val) {
     let tool = this[this.getModeText()];
-    if (tool[name]!==void(0)) {
+    if (tool.properties!==void(0)&&typeof name == "number") {
+      tool.properties[name] = val;
+    }
+    else if (tool[name]!==void(0)) {
       tool[name] = val;
+      if (name=="id"&&tool==this.Sprite) {
+        tool.properties = [];
+        this.propNum = 0;
+        let p = G$("EditPropBttn");
+        p.states[0].call(p);
+      }
     }
   },
   draw: function() {

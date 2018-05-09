@@ -523,12 +523,13 @@ function buildEditorTools() {
 		for (var i = 0; i < props.length; i++) {
 			let button = G$("EditProp:"+i);
 			if (Button.getAll().indexOf(button)==-1) {
-				button = Button.create("EditProp:"+i,"EditPropView",10+140*i,80,125,40,props[i].name+": "+props[i].val).setOnClick(function() {
+				let x = 10+140*(i%4), y = 80+45*Math.floor(i/4);
+				button = Button.create("EditProp:"+i,"EditPropView",x,y,125,40,props[i].name+": "+props[i].val).setOnClick(function() {
 					let response = prompt("Enter value to replace ["+this.propVal+"]");
-					if (!response) response = "";
+					if (response===void(0)) response = "";
 					if (this.propType=="number"&&!isNaN(parseInt(response))) response = parseInt(response);
 					if (typeof response==this.propType) {
-						if (response=="") response = null;
+						if (response==="") response = null;
 						this.propVal = response;
 						this.text = this.propName+": "+response;
 						EditorTools.setToolProperty(this.propName,response);
@@ -541,6 +542,7 @@ function buildEditorTools() {
 			button.propType = props[i].type;
 			button.text = props[i].name +": "+props[i].val;
 			view.propNum = i+1;
+			view.height = button.y-20;
 		}
 		if (view.propNum<view.largestPropNum) {
 			for (var i = view.propNum; i < view.largestPropNum; i++) {
