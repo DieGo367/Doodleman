@@ -523,11 +523,12 @@ function buildEditorTools() {
 		for (var i = 0; i < props.length; i++) {
 			let button = G$("EditProp:"+i);
 			if (Button.getAll().indexOf(button)==-1) {
-				button = Button.create("EditProp:"+i,"EditPropView",10+165*i,80,150,40,props[i].name+": "+props[i].val).setOnClick(function() {
+				button = Button.create("EditProp:"+i,"EditPropView",10+140*i,80,125,40,props[i].name+": "+props[i].val).setOnClick(function() {
 					let response = prompt("Enter value to replace ["+this.propVal+"]");
-					if (!response||response.length==0) return;
+					if (!response) response = "";
 					if (this.propType=="number"&&!isNaN(parseInt(response))) response = parseInt(response);
-					if (typeof this.propVal==this.propType) {
+					if (typeof response==this.propType) {
+						if (response=="") response = null;
 						this.propVal = response;
 						this.text = this.propName+": "+response;
 						EditorTools.setToolProperty(this.propName,response);

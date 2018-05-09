@@ -183,13 +183,13 @@ const EditorTools = {
   findAt: function(x,y,type) {
     let tryAll = (type==void(0));
     if (type==0||tryAll) {
-      let all = PhysicsBox.getAll();
+      let all = PhysicsBox.getAll().reverse();
       for (var i in all) {
         if (all[i].isTerrain&&!(all[i] instanceof SolidLineHitBox)&&all[i].containsPoint(x,y)) return all[i];
       }
     }
   	if (type==1||tryAll) {
-      let all = SolidLine.getAll();
+      let all = SolidLine.getAll().reverse();
   		for (var i in all) {
   			if (all[i].isTerrain&&all[i].hitbox.containsPoint(x,y)) {
   				let lx = all[i].valueAt(y,'y');
@@ -203,7 +203,7 @@ const EditorTools = {
   		}
   	}
     if (type==2||tryAll) {
-      let all = Enemy.getAll();
+      let all = Enemy.getAll().reverse();
       for (var i in all) {
         if (all[i].isSprite&&all[i].containsPoint(x,y)) return all[i];
       }
