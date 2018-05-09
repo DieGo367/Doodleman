@@ -1701,7 +1701,8 @@ var Button = class Button extends GuiElement {
   	else {
   		c.font = this.hovered?"bold 20px Catamaran, sans-serif":"20px Catamaran, sans-serif";
   		var metrics = c.measureText(this.text);
-  		drawStrokedText(this.text,this.x+this.width/2-metrics.width/2,this.y+this.height/2+7,"white","black",2,8);
+      let width = Math.min(metrics.width,this.width)/2;
+  		drawStrokedText(this.text,this.x+this.width/2-width,this.y+this.height/2+7,"white","black",2,8,this.width);
   	}
   }
 }
