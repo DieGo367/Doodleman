@@ -1657,7 +1657,7 @@ var Button = class Button extends GuiElement {
   			else return attemptUserAction(this.onClickFunction,ctrl);
   		}
   		else {
-        if (func) func(ctrl);
+        if (func) func.call(this,ctrl);
   			else this.onClickFunction(ctrl);
   			return true;
   		}

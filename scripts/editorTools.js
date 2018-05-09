@@ -158,7 +158,7 @@ const EditorTools = {
     if (type==0||tryAll) {
       let all = PhysicsBox.getAll();
       for (var i in all) {
-        if (all[i].isTerrain&&all[i].containsPoint(x,y)) return all[i];
+        if (all[i].isTerrain&&!(all[i] instanceof SolidLineHitBox)&&all[i].containsPoint(x,y)) return all[i];
       }
     }
   	if (type==1||tryAll) {
