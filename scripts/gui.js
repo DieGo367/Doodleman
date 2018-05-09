@@ -471,7 +471,7 @@ function buildEditorTools() {
 		this.toggleState = 1;
 	},
 	function(ctrl) {
-		let p = G$("EditorProps");
+		let p = G$("EditPropBttn");
 		if (p.on) p.states[1].call(p,ctrl);
 		G$("EditorToolbar").hide();
 		let tools = ["BoxTool","LineTool","SpriteTool"];
@@ -504,17 +504,48 @@ function buildEditorTools() {
 		EditorTools.setEraserOn(this.on);
 	}).setIcon("GUI-Icons.png",3,2,42,4).show();
 
-	Button.create("EditorProps","EditorToolbar",hudWidth-60,10,50,50).setToggle(function() {
-		G$("EditorPropertiesView").show();
+	Button.create("EditPropBttn","EditorToolbar",hudWidth-60,10,50,50).setToggle(function() {
+		G$("EditPropView").show();
 		this.on = true;
 		this.toggleState = 1;
 	},
 	function() {
-		G$("EditorPropertiesView").hide();
+		G$("EditPropView").hide();
 		this.on = false;
 		this.toggleState = 0;
 	}).setIcon("GUI-Icons.png",1,1,42,4).show();
 
-	View.create("EditorPropertiesView",0,0,70,hudWidth,70,"tint","green");
-	
+	View.create("EditPropView",0,0,70,hudWidth,60,"tint","green");
+	Button.create("EditPropOnShown","EditPropView",0,0,0,0).setOnViewShown(function() {
+		let view = G$("EditPropView");
+		let props = EditorTools.getToolProperties();
+		view.propNum = 0;
+		for (var i = 0; i < props.length; i++) {
+			let button = G$("EditProp:"+i);
+			if (Button.getAll().indexOf(button)==-1) {
+				button = Button.create("EditProp:"+i,"EditPropView",10+165*i,80,150,40,props[i].name+": "+props[i].val).setOnClick(function() {
+					let response = prompt("Enter value to replace ["+this.propVal+"]");
+					if (!response||response.length==0) return;
+					if (this.propType=="number"&&!isNaN(parseInt(response))) response = parseInt(response);
+					if (typeof this.propVal==this.propType) {
+						this.propVal = response;
+						this.text = this.propName+": "+response;
+						EditorTools.setToolProperty(this.propName,response);
+					}
+				});
+			}
+			button.show();
+			button.propName = props[i].name;
+			button.propVal = props[i].val;
+			button.propType = props[i].type;
+			button.text = props[i].name +": "+props[i].val;
+			view.propNum = i+1;
+		}
+		if (view.propNum<view.largestPropNum) {
+			for (var i = view.propNum; i < view.largestPropNum; i++) {
+				G$("EditProp:"+i).hide();
+			}
+		}
+		else view.largestPropNum = view.propNum;
+	}).largestPropNum = 0;
 }

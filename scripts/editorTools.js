@@ -47,6 +47,12 @@ const EditorTools = {
         c.strokeStyle = "hotpink";
         c.strokeRect(this.x,this.y,Pointer.camX()-this.x,Pointer.camY()-this.y);
       }
+    },
+    getPropStrings: function() {
+      return {
+        names: ["color","img","collisionType"],
+        types: ["string","string","number"]
+      }
     }
   },
   Line: {
@@ -90,6 +96,12 @@ const EditorTools = {
         c.strokeStyle = "hotpink";
         drawLine(this.x,this.y,Pointer.camX(),Pointer.camY());
       }
+    },
+    getPropStrings: function() {
+      return {
+        names: ["stroke","lineWidth","collisionType","direction"],
+        types: ["string","number","number","number"]
+      }
     }
   },
   Sprite: {
@@ -113,6 +125,19 @@ const EditorTools = {
     },
     draw: function() {
 
+    },
+    getPropStrings: function() {
+      //let count = SpriteManager.getSpriteValueCount() - 2;
+      let count = 0;
+      let props = {
+        names: [],
+        types: []
+      }
+      for (var i in count) {
+        props.names.push("i");
+        props.types.push("string");
+      }
+      return props;
     }
   },
   init: function() {
@@ -132,10 +157,9 @@ const EditorTools = {
   setMode: function(mode) {
     if (!this.ready) this.init();
     this.mode = mode;
-    this.Box.clear();
-    this.Line.clear();
-    this.Sprite.clear();
     G$("EditorModeText").text = this.getModeText();
+    let p = G$("EditPropBttn");
+    if (p.on) p.states[0].call(p);
     this.setEraserOn(false);
   },
   getModeText: function() {
@@ -143,6 +167,9 @@ const EditorTools = {
   },
   setEraserOn: function(bool) {
     this.eraserOn = !!bool;
+    this.Box.clear();
+    this.Line.clear();
+    this.Sprite.clear();
     this.setCursor();
   },
   setCursor: function() {
@@ -180,6 +207,25 @@ const EditorTools = {
       for (var i in all) {
         if (all[i].isSprite&&all[i].containsPoint(x,y)) return all[i];
       }
+    }
+  },
+  getToolProperties: function(type) {
+    let tool = this[type==void(0)?this.getModeText():type];
+    let strings = tool.getPropStrings();
+    let props = [];
+    let prop = function(name,val,type) {
+      this.name = name;
+      this.val = val;
+      this.type = type;
+      props.push(this);
+    }
+    for (var i in strings.names) new prop(strings.names[i],tool[strings.names[i]],strings.types[i]);
+    return props;
+  },
+  setToolProperty: function(name,val) {
+    let tool = this[this.getModeText()];
+    if (tool[name]!==void(0)) {
+      tool[name] = val;
     }
   },
   draw: function() {
