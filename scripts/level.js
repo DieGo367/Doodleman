@@ -26,42 +26,42 @@ const Level = {
 		terrain: []
 	},
 	addTerrainData: function(data) {
-		let rawProperties = JSON.stringify(data.properties);
-		let found = false;
-		for (var i in this.level.terrain) {
-			let definition = this.level.terrain[i];
-			if (definition.type==data.type) {
-				if (JSON.stringify(definition.properties)==rawProperties) {
-					for (var j in data.pieces) {
-						definition.pieces.push(data.pieces[j]);
-					}
-					found = true;
-					break;
-				}
+		let index = this.findMatchingTerrainDefinitionIndex(data);
+		if (index==-1) this.level.terrain.push(data);
+		else {
+			let definition = this.level.terrain[index];
+			for (var i in data.pieces) {
+				definition.pieces.push(data.pieces[i]);
 			}
 		}
-		if (!found) this.level.terrain.push(data);
 	},
 	removeTerrainData: function(data) {
-		let rawProperties = JSON.stringify(data.properties);
+		let index = this.findMatchingTerrainDefinitionIndex(data);
+		if (index!=-1) {
+			let definition = this.level.terrain[index];
+			for (var i in data.pieces) {
+				let rawPiece = JSON.stringify(data.pieces[i]);
+				for (var j in definition.pieces) {
+					if (JSON.stringify(definition.pieces[j])==rawPiece) {
+						definition.pieces.splice(j,1);
+						break;
+					}
+				}
+			}
+			if (definition.pieces.length==0) this.level.terrain.splice(index,1);
+		}
+	},
+	findMatchingTerrainDefinitionIndex: function(data) {
+		let rawProps = JSON.stringify(data.properties);
 		for (var i in this.level.terrain) {
 			let definition = this.level.terrain[i];
 			if (definition.type==data.type) {
-				if (JSON.stringify(definition.properties)==rawProperties) {
-					for (var j in data.pieces) {
-						let rawPiece = JSON.stringify(data.pieces[j]);
-						for (var k in definition.pieces) {
-							if (JSON.stringify(definition.pieces[k])==rawPiece) {
-								definition.pieces.splice(k,1);
-								break;
-							}
-						}
-					}
-					if (definition.pieces.length==0) this.level.terrain.splice(i,1);
-					break;
+				if (JSON.stringify(definition.properties)==rawProps) {
+					return i;
 				}
 			}
 		}
+		return -1;
 	},
 	addSpriteData: function(data) {
 		this.level.sprites.push(data);
@@ -196,7 +196,7 @@ const TerrainManager = {
 		let construct = [PhysicsBox,SolidLine][terrain.type];
 		let results  = [];
 		for (var i in terrain.pieces) {
-			let piece = terrain.pieces[i];
+			let piece = clone(terrain.pieces[i]);
 			if (terrain.type==0) piece[0] += piece[2]/2;
 			let args = [...piece,...terrain.properties];
 			let obj = construct.create(...args);
