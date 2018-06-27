@@ -235,6 +235,7 @@ const EditorTools = {
   setToolProperty: function(name,val) {
     let tool = this[this.getModeText()];
     if (tool.properties!==void(0)&&typeof name == "number") {
+      if (!isNaN(parseInt(val))) val = parseInt(val);
       tool.properties[name] = val;
     }
     else if (tool[name]!==void(0)) {
