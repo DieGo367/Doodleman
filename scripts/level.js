@@ -14,6 +14,7 @@ const Level = {
 		horScrollBuffer: 240,
 		vertScrollBuffer: 125,
 		minZoom: 1,
+		maxZoom: 1,
 		player1Spawn: {
 			x: 20,
 			y: 310
