@@ -1708,6 +1708,47 @@ var Button = class Button extends GuiElement {
 }
 initClass(Button,GuiElement);
 
+var TextInput = class TextInput extends Button {
+  constructor(name,viewName,x,y,width,height,type,defaultValue,placeholder,promptMsg) {
+    super(name,viewName,x,y,width,height,placeholder);
+    this.type = type;
+    this.defaultValue = defaultValue;
+    this.textVal = (defaultValue===void(0)? "" : defaultValue);
+    this.promptMsg = promptMsg;
+    this.onInputChangeFunc = function() { };
+    this.setOnClick(function() {
+      let response = prompt(this.promptMsg||this.text||"");
+      if (response===void(0)) response = "";
+      if (this.type=="number"&&!isNaN(parseFloat(response))) response = parseFloat(response);
+      if (!this.type || typeof response == this.type) {
+        if (response==="") response = null;
+        this.textVal = response;
+        this.onInputChangeFunc(response);
+      }
+    });
+  }
+  setOnInputChange(func) {
+    this.onInputChangeFunc = func;
+  }
+  customDraw() {
+    ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,32,96);
+    let text = "";
+    if (this.textVal!==""&&this.textVal!=null) {
+      text = "" + this.textVal;
+      c.fillStyle = "black";
+    }
+    else {
+      text = this.text || "";
+      c.fillStyle = "gray";
+    }
+    c.font = this.hovered?"bold 20px Catamaran, sans-serif":"20px Catamaran, sans-serif";
+		let metrics = c.measureText(text);
+    let width = Math.min(metrics.width,this.width)/2;
+    c.fillText(text,this.x+this.width/2-width,this.y+this.height/2+7,this.width);
+  }
+}
+initClass(TextInput,Button);
+
 var TextElement = class TextElement extends GuiElement {
   constructor(name,viewName,x,y,text,font,size,isBold,color,alignment,hasShadow,shadowColor,shadowDistance,hasBorder,borderColor,borderSize,borderSteps,maxWidth) {
     super(name,viewName,x,y);
