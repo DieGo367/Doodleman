@@ -534,9 +534,10 @@ function buildEditorTools() {
 				});
 			}
 			input.show();
-			input.text = props[i].name;
-			input.storedVal = props[i].val;
 			input.type = props[i].type;
+			input.storedVal = props[i].val;
+			input.text = props[i].name;
+			input.promptMsg = "Enter a value for "+props[i].name;
 			view.propNum = i+1;
 			view.height = input.y-20;
 		}

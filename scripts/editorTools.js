@@ -107,6 +107,7 @@ const EditorTools = {
   Sprite: {
     id: 10,
     properties: [],
+    tempSprite: null,
     onClick: function() {
       if (SpriteManager.getSpriteValueNames(this.id).length==0) return;
       let propNum = G$("EditPropView").propNum;
@@ -131,7 +132,18 @@ const EditorTools = {
 
     },
     draw: function() {
-
+      if (this.tempSprite==null) this.refreshTempSprite();
+      if (this.tempSprite!=null) {
+        this.tempSprite.x = Pointer.camX();
+        this.tempSprite.y = Pointer.camY();
+        this.tempSprite.draw();
+      }
+    },
+    refreshTempSprite: function() {
+      if (this.tempSprite!=null) delete this.tempSprite;
+      if (SpriteManager.getSpriteValueNames(this.id).length==0) return this.tempSprite = null;
+      let x = Pointer.camX(), y = Pointer.camY();
+      this.tempSprite = SpriteManager.makeGhostSprite(this.id,x,y,...this.properties);
     },
     getPropStrings: function() {
       // let count = SpriteManager.getSpriteValuesLength(this.id) - 2; //get rid of x and y
@@ -188,7 +200,7 @@ const EditorTools = {
     if (this.eraserOn) Pointer.cursor = POINTER_ERASER;
     else {
       let button = G$(this.getModeText()+"Tool");
-      if (button.on) Pointer.cursor = [POINTER_PENCIL,POINTER_PENCIL,POINTER_CROSSHAIR][this.mode];
+      if (button.on) Pointer.cursor = [POINTER_PENCIL,POINTER_PENCIL,POINTER_NONE][this.mode];
       else Pointer.cursor = POINTER_CROSSHAIR;
     }
   },
@@ -243,11 +255,13 @@ const EditorTools = {
     if (tool==this.Sprite&&sourceIndex>0) {
       if (!isNaN(parseFloat(val))) val = parseFloat(val);
       tool.properties[sourceIndex-1] = val;
+      tool.refreshTempSprite();
     }
     else if (tool[name]!==void(0)) {
       tool[name] = val;
       if (name=="id"&&tool==this.Sprite) {
         tool.properties = [];
+        tool.refreshTempSprite();
         this.propNum = 0;
         let p = G$("EditPropBttn");
         p.states[0].call(p);

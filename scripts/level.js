@@ -184,6 +184,14 @@ const SpriteManager = {
 		}
 		else console.log("Missing sprite ID: "+id);
 	},
+	makeGhostSprite: function(id) {
+		let a = Array.from(arguments);
+		let sprite = this.make(...a);
+		if (sprite) {
+			window[this.spriteData[id].class].removeInstance(sprite);
+		}
+		return sprite;
+	},
 	interpretStr: function(str,props,vals) {
 		var sub = str.substring(0,3), index = parseInt(str.substring(3));
 		if (sub=="val") props.push(vals[index]);
