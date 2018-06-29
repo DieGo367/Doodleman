@@ -1713,7 +1713,7 @@ var TextInput = class TextInput extends Button {
     super(name,viewName,x,y,width,height,placeholder);
     this.type = type;
     this.defaultValue = defaultValue;
-    this.textVal = (defaultValue===void(0)? "" : defaultValue);
+    this.storedVal = (defaultValue===void(0)? "" : defaultValue);
     this.promptMsg = promptMsg;
     this.onInputChangeFunc = function() { };
     this.setOnClick(function() {
@@ -1722,19 +1722,20 @@ var TextInput = class TextInput extends Button {
       if (this.type=="number"&&!isNaN(parseFloat(response))) response = parseFloat(response);
       if (!this.type || typeof response == this.type) {
         if (response==="") response = null;
-        this.textVal = response;
+        this.storedVal = response;
         this.onInputChangeFunc(response);
       }
     });
   }
   setOnInputChange(func) {
     this.onInputChangeFunc = func;
+    return this;
   }
   customDraw() {
     ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,32,96);
     let text = "";
-    if (this.textVal!==""&&this.textVal!=null) {
-      text = "" + this.textVal;
+    if (this.storedVal!==""&&this.storedVal!=null) {
+      text = "" + this.storedVal;
       c.fillStyle = "black";
     }
     else {
