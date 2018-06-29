@@ -4,35 +4,41 @@
     "class": "Player",
     "properties": [
       "val0","val1",19,44,38,4,["val3","Doodleman.json","Blueman.json","Redman.json"],"val2"
-    ]
+    ],
+    "valueNames": ["x","y","skin","playerNumber"]
   },
   {
     "id": 10,
     "class": "PaintMinion",
-    "properties": ["val0","val1"]
+    "properties": ["val0","val1"],
+    "valueNames": ["x","y"]
   },
   {
     "id": 20,
     "class": "MovingPlatform",
     "properties": [
       "val0","val1","val2","val3",["val4",null,"black"],["val5",null,"helloworld.png"],5,"val6","val7"
-    ]
+    ],
+    "valueNames": ["x","y","width","height","hasColorFill","isHello","xVel","yVel"]
   },
   {
     "id": 21,
     "class": "Door",
-    "properties": ["val0","val1","val2","val3"]
+    "properties": ["val0","val1","val2","val3"],
+    "valueNames": ["x","y","id","destination"]
   },
   {
     "id": 22,
     "class": "PhysicsBox",
-    "properties": ["val0","val1",50,40,null,"Box201.png",false,3,true,2]
+    "properties": ["val0","val1",50,40,null,"Box201.png",false,3,true,2],
+    "valueNames": ["x","y"]
   },
   {
     "id":23,
     "class": "MovingPlatform",
     "properties": [
       "val0","val1",282,34,null,"helloworld.png",5,"val2","val3"
-    ]
+    ],
+    "valueNames": ["x","y","velX","velY"]
   }
 ]
