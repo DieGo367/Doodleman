@@ -528,8 +528,8 @@ function buildEditorTools() {
 			let input = G$("EditProp:"+i); //try to find the input for property i
 			if (TextInput.getAll().indexOf(input)==-1) { //if input wasn't found
 				//make the input
-				let x = 10+140*(i%4), y = 80+45*Math.floor(i/4);
-				input = TextInput.create("EditProp:"+i,"EditPropView",x,y,125,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
+				let x = 10+105*(i%6), y = 80+45*Math.floor(i/6);
+				input = TextInput.create("EditProp:"+i,"EditPropView",x,y,99,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
 					EditorTools.setToolProperty(this.text,value);
 				});
 			}
