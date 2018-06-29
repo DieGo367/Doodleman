@@ -525,28 +525,20 @@ function buildEditorTools() {
 		let props = EditorTools.getToolProperties();
 		view.propNum = 0;
 		for (var i = 0; i < props.length; i++) {
-			let button = G$("EditProp:"+i);
-			if (Button.getAll().indexOf(button)==-1) {
+			let input = G$("EditProp:"+i); //try to find the input for property i
+			if (TextInput.getAll().indexOf(input)==-1) { //if input wasn't found
+				//make the input
 				let x = 10+140*(i%4), y = 80+45*Math.floor(i/4);
-				button = Button.create("EditProp:"+i,"EditPropView",x,y,125,40,props[i].name+": "+props[i].val).setOnClick(function() {
-					let response = prompt("Enter value to replace ["+this.propVal+"]");
-					if (response===void(0)) response = "";
-					if (this.propType=="number"&&!isNaN(parseInt(response))) response = parseInt(response);
-					if (typeof response==this.propType) {
-						if (response==="") response = null;
-						this.propVal = response;
-						this.text = this.propName+": "+response;
-						EditorTools.setToolProperty(this.propName,response);
-					}
+				input = TextInput.create("EditProp:"+i,"EditPropView",x,y,125,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
+					EditorTools.setToolProperty(this.text,value);
 				});
 			}
-			button.show();
-			button.propName = props[i].name;
-			button.propVal = props[i].val;
-			button.propType = props[i].type;
-			button.text = props[i].name +": "+props[i].val;
+			input.show();
+			input.text = props[i].name;
+			input.storedVal = props[i].val;
+			input.type = props[i].type;
 			view.propNum = i+1;
-			view.height = button.y-20;
+			view.height = input.y-20;
 		}
 		if (view.propNum<view.largestPropNum) {
 			for (var i = view.propNum; i < view.largestPropNum; i++) {
