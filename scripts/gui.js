@@ -530,7 +530,7 @@ function buildEditorTools() {
 				//make the input
 				let x = 10+105*(i%6), y = 80+45*Math.floor(i/6);
 				input = TextInput.create("EditProp:"+i,"EditPropView",x,y,99,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
-					EditorTools.setToolProperty(this.text,value);
+					EditorTools.setToolProperty(this.text,value,parseInt(this.name.split(":")[1]));
 				});
 			}
 			input.show();

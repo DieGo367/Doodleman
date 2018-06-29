@@ -108,7 +108,7 @@ const EditorTools = {
     id: 10,
     properties: [],
     onClick: function() {
-      if (SpriteManager.getSpriteValuesLength(this.id)==-1) return;
+      if (SpriteManager.getSpriteValueNames(this.id).length==0) return;
       let propNum = G$("EditPropView").propNum;
       if (propNum>1) {
         for (var i = 1; i < propNum; i++) {
@@ -134,14 +134,20 @@ const EditorTools = {
 
     },
     getPropStrings: function() {
-      let count = SpriteManager.getSpriteValuesLength(this.id) - 2; //get rid of x and y
+      // let count = SpriteManager.getSpriteValuesLength(this.id) - 2; //get rid of x and y
+      let vals = SpriteManager.getSpriteValueNames(this.id);
       let props = {
         names: ["id"],
         types: ["number"]
       }
-      for (var i = 0; i < count; i++) {
-        props.names.push(i);
-        props.types.push("string");
+      for (var i = 2; i < vals.length; i++) { //start at 2 to skip x and y
+        let name = vals[i];
+        if (name.charAt(0)=="#") {
+          name = name.slice(1);
+          props.types.push("number");
+        }
+        else props.types.push("string");
+        props.names.push(name);
       }
       return props;
     }
@@ -215,28 +221,28 @@ const EditorTools = {
       }
     }
   },
-  getToolProperties: function(type) {
-    let tool = this[type==void(0)?this.getModeText():type];
+  getToolProperties: function() {
+    let tool = this[this.getModeText()];
     let strings = tool.getPropStrings();
     let props = [];
-    let prop = function(tool,name,type) {
+    let prop = function(name,type,index,checkSprite) {
       this.name = name;
-      if (typeof name=="number"&&tool==this.Sprite) {
-        this.val = tool.properties[name];
-        tool.propNum = name+1;
+      if (checkSprite&&index>0) {
+        this.val = tool.properties[index-1];
+        tool.propNum = index;
       }
       else this.val = tool[name];
       this.type = type;
       props.push(this);
     }
-    for (var i in strings.names) new prop(tool,strings.names[i],strings.types[i]);
+    for (var i = 0; i < strings.names.length; i++) new prop(strings.names[i],strings.types[i],i,tool==this.Sprite);
     return props;
   },
-  setToolProperty: function(name,val) {
+  setToolProperty: function(name,val,sourceIndex) {
     let tool = this[this.getModeText()];
-    if (tool.properties!==void(0)&&typeof name == "number") {
-      if (!isNaN(parseInt(val))) val = parseInt(val);
-      tool.properties[name] = val;
+    if (tool==this.Sprite&&sourceIndex>0) {
+      if (!isNaN(parseFloat(val))) val = parseFloat(val);
+      tool.properties[sourceIndex-1] = val;
     }
     else if (tool[name]!==void(0)) {
       tool[name] = val;

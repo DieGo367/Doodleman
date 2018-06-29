@@ -189,27 +189,32 @@ const SpriteManager = {
 		if (sub=="val") props.push(vals[index]);
 		else props.push(str);
 	},
-	getSpriteValuesLength: function(id) {
-		let highestValNum = -1;
-		if (!this.spriteData[id]) return -1;
-		let propSettings = this.spriteData[id].properties;
-		for (var i in propSettings) {
-			if (propSettings[i] instanceof Array) {
-				for (var j in propSettings[i]) {
-					let s  = propSettings[i][j];
-					if (typeof s != "string") continue;
-					let sub = s.substring(0,3), index = parseInt(s.substring(3));
-					if (sub=="val"&&index>highestValNum) highestValNum = index;
-				}
-			}
-			else {
-				let s  = propSettings[i];
-				if (typeof s != "string") continue;
-				let sub = s.substring(0,3), index = parseInt(s.substring(3));
-				if (sub=="val"&&index>highestValNum) highestValNum = index;
-			}
-		}
-		return highestValNum + 1;
+	// getSpriteValuesLength: function(id) {
+	// 	let highestValNum = -1;
+	// 	if (!this.spriteData[id]) return -1;
+	// 	let propSettings = this.spriteData[id].properties;
+	// 	for (var i in propSettings) {
+	// 		if (propSettings[i] instanceof Array) {
+	// 			for (var j in propSettings[i]) {
+	// 				let s  = propSettings[i][j];
+	// 				if (typeof s != "string") continue;
+	// 				let sub = s.substring(0,3), index = parseInt(s.substring(3));
+	// 				if (sub=="val"&&index>highestValNum) highestValNum = index;
+	// 			}
+	// 		}
+	// 		else {
+	// 			let s  = propSettings[i];
+	// 			if (typeof s != "string") continue;
+	// 			let sub = s.substring(0,3), index = parseInt(s.substring(3));
+	// 			if (sub=="val"&&index>highestValNum) highestValNum = index;
+	// 		}
+	// 	}
+	// 	return highestValNum + 1;
+	// }
+	getSpriteValueNames: function(id) {
+		if (!this.spriteData[id]) return [];
+		let vals = this.spriteData[id].valueNames;
+		return vals || [];
 	}
 }
 SpriteManager.init();

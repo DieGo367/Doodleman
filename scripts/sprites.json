@@ -5,7 +5,7 @@
     "properties": [
       "val0","val1",19,44,38,4,["val3","Doodleman.json","Blueman.json","Redman.json"],"val2"
     ],
-    "valueNames": ["x","y","skin","playerNumber"]
+    "valueNames": ["x","y","#skin","#playerNumber"]
   },
   {
     "id": 10,
@@ -19,13 +19,13 @@
     "properties": [
       "val0","val1","val2","val3",["val4",null,"black"],["val5",null,"helloworld.png"],5,"val6","val7"
     ],
-    "valueNames": ["x","y","width","height","hasColorFill","isHello","xVel","yVel"]
+    "valueNames": ["x","y","#width","#height","#hasColorFill","#isHello","#xVel","#yVel"]
   },
   {
     "id": 21,
     "class": "Door",
     "properties": ["val0","val1","val2","val3"],
-    "valueNames": ["x","y","id","destination"]
+    "valueNames": ["x","y","#id","#destination"]
   },
   {
     "id": 22,
@@ -39,6 +39,6 @@
     "properties": [
       "val0","val1",282,34,null,"helloworld.png",5,"val2","val3"
     ],
-    "valueNames": ["x","y","velX","velY"]
+    "valueNames": ["x","y","#velX","#velY"]
   }
 ]
