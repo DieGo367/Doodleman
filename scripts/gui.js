@@ -284,8 +284,8 @@ function buildMapperView() {
 			this.text = GamePad.controllers[ids[0]].name;
 			updateMapText(ids[0]);
 		}
-	}
-	).setOnClick(function() {
+	}).
+	setOnClick(function() {
 		var ids = GamePad.slotsFilled(), names = [];
 		for (var i in ids) names.push(GamePad.controllers[ids[i]].name);
 		buildSelector(names,function(i,item) {
@@ -549,9 +549,82 @@ function buildEditorTools() {
 		else view.largestPropNum = view.propNum;
 	}).largestPropNum = 0;
 
-	View.create("LevelSettingsView",1,0,0,hudWidth,hudHeight,"tint","orange");
+
+	View.create("LevelSettingsView",1,0,0,hudWidth,hudHeight,"tint","purple");
 	Button.create("LevelSettingsClose","LevelSettingsView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("LevelSettingsView").hide();
+	}).
+	setOnViewShown(function() {
+		G$("LS:Dimensions:width").storedVal = Level.level.width;
+		G$("LS:Dimensions:height").storedVal = Level.level.height;
+		G$("LS:CamStart:x").storedVal = Level.level.camStart.x;
+		G$("LS:CamStart:y").storedVal = Level.level.camStart.y;
+		G$("LS:ScrollBuffer:hor").storedVal = Level.level.horScrollBuffer;
+		G$("LS:ScrollBuffer:vert").storedVal = Level.level.vertScrollBuffer;
+		G$("LS:ZoomLimit:min").storedVal = Level.level.minZoom;
+		G$("LS:ZoomLimit:max").storedVal = Level.level.maxZoom;
+		G$("LS:P1:x").storedVal = Level.level.player1Spawn.x;
+		G$("LS:P1:y").storedVal = Level.level.player1Spawn.y;
+		G$("LS:P2:x").storedVal = Level.level.player2Spawn.x;
+		G$("LS:P2:y").storedVal = Level.level.player2Spawn.y;
+		G$("LS:ZoomScale:num").storedVal = Level.level.zoomScale;
+		G$("LS:BGScale:num").storedVal = Level.level.bgScale;
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+	TextElement.create("LS:Title","LevelSettingsView",hudWidth/2,30,"Level Properties","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 
+	TextElement.create("LS:Dimensions","LevelSettingsView",hudWidth/4-150,100+55*0,"Dimensions","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextInput.create("LS:Dimensions:width","LevelSettingsView",hudWidth/2-175,75,100,40,"number",Level.level.width,"width","Enter a width").setOnInputChange(function(val) {
+		Level.level.width = val;
+	}).show();
+	TextInput.create("LS:Dimensions:height","LevelSettingsView",hudWidth/2-70,75,100,40,"number",Level.level.height,"height","Enter a height").setOnInputChange(function(val) {
+		Level.level.height = val;
+	}).show();
+
+	TextElement.create("LS:CamStart","LevelSettingsView",hudWidth/4-150,155,"Camera Start","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextInput.create("LS:CamStart:x","LevelSettingsView",hudWidth/2-175,130,100,40,"number",Level.level.camStart.x,"x","Enter starting x point").setOnInputChange(function(val) {
+		Level.level.camStart.x = val;
+	}).show();
+	TextInput.create("LS:CamStart:y","LevelSettingsView",hudWidth/2-70,130,100,40,"number",Level.level.camStart.y,"y","Enter starting y point").setOnInputChange(function(val) {
+		Level.level.camStart.y = val;
+	}).show();
+
+	TextElement.create("LS:ScrollBuffer","LevelSettingsView",hudWidth/4-150,210,"Scroll Buffer","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextInput.create("LS:ScrollBuffer:hor","LevelSettingsView",hudWidth/2-175,185,100,40,"number",Level.level.horScrollBuffer,"horizontal","Enter horizontal scroll buffer").setOnInputChange(function(val) {
+		Level.level.horScrollBuffer = val;
+	}).show();
+	TextInput.create("LS:ScrollBuffer:vert","LevelSettingsView",hudWidth/2-70,185,100,40,"number",Level.level.vertScrollBuffer,"vertical","Enter vertical scroll buffer").setOnInputChange(function(val) {
+		Level.level.vertScrollBuffer = val;
+	}).show();
+
+	TextElement.create("LS:ZoomLimit","LevelSettingsView",hudWidth/4-150,265,"Zoom Limits","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextInput.create("LS:ZoomLimit:min","LevelSettingsView",hudWidth/2-175,240,100,40,"number",Level.level.minZoom,"min","Enter minimum zoom level").setOnInputChange(function(val) {
+		Level.level.minZoom = val;
+	}).show();
+	TextInput.create("LS:ZoomLimit:max","LevelSettingsView",hudWidth/2-70,240,100,40,"number",Level.level.maxZoom,"max","Enter maximum zoom level").setOnInputChange(function(val) {
+		Level.level.maxZoom = val;
+	}).show();
+
+	TextElement.create("LS:PlayerSpawn","LevelSettingsView",hudWidth/4-150,320,"Player Spawn","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextInput.create("LS:P1:x","LevelSettingsView",hudWidth/2-175,295,100,40,"number",Level.level.player1Spawn.x,"P1 x","Enter Player 1 spawn x").setOnInputChange(function(val) {
+		Level.level.player1Spawn.x = val;
+	}).show();
+	TextInput.create("LS:P1:y","LevelSettingsView",hudWidth/2-70,295,100,40,"number",Level.level.player1Spawn.y,"P1 y","Enter Player 1 spawn y").setOnInputChange(function(val) {
+		Level.level.player1Spawn.y = val;
+	}).show();
+	TextInput.create("LS:P2:x","LevelSettingsView",hudWidth/2+35,295,100,40,"number",Level.level.player2Spawn.x,"P2 x","Enter Player 2 spawn x").setOnInputChange(function(val) {
+		Level.level.player2Spawn.x = val;
+	}).show();
+	TextInput.create("LS:P2:y","LevelSettingsView",hudWidth/2+140,295,100,40,"number",Level.level.player2Spawn.y,"P2 y","Enter Player 3 spawn y").setOnInputChange(function(val) {
+		Level.level.player2Spawn.y = val;
+	}).show();
+
+	TextElement.create("LS:ZoomScale","LevelSettingsView",hudWidth*2/3-50,100,"Zoom Scale","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextInput.create("LS:ZoomScale:num","LevelSettingsView",hudWidth/2+190,75,100,40,"number",Level.level.zoomScale,"zoom scale","Enter preferred zoom level").setOnInputChange(function(val) {
+		Level.level.zoomScale = val;
+	}).show();
+
+	TextElement.create("LS:BGScale","LevelSettingsView",hudWidth*2/3-50,155,"BG Scale","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextInput.create("LS:BGScale:num","LevelSettingsView",hudWidth/2+190,130,100,40,"number",Level.level.bgScale,"bg scale","Enter the background scale").setOnInputChange(function(val) {
+		Level.level.bgScale = val;
+	}).show();
 }
