@@ -99,10 +99,13 @@ const Level = {
 		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
 		if (this.level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",this.level.bgRaw);
 		Camera.reset();
-		addPlayer(0);
-		if (multiplayer) addPlayer(1);
-		G$("LevelSelectView").hide();
-		if (focused) pauseGame(false);
+		if (setting=="game") {
+			addPlayer(0);
+			if (multiplayer) addPlayer(1);
+			G$("LevelSelectView").hide();
+			if (focused) pauseGame(false);
+		}
+		else G$("LevelSettingsView").hide();
 		if (doLog) console.log("Loaded Level "+this.level.name);
 		return true;
 	},
