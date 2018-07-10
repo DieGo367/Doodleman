@@ -18,6 +18,9 @@ const EditorTools = {
       else {
         let xx = Pointer.camX(), yy = Pointer.camY();
         let width = Math.abs(xx-this.x), height = Math.abs(yy-this.y);
+        if (globalKeyboard.pressed("Shift")) {
+          width = height = Math.min(width,height);
+        }
         let x = Math.min(xx,this.x);
         let y = Math.max(yy,this.y);
         let definition = {
@@ -45,7 +48,11 @@ const EditorTools = {
       if (this.x==null||this.y==null) return;
       else {
         c.strokeStyle = "hotpink";
-        c.strokeRect(this.x,this.y,Pointer.camX()-this.x,Pointer.camY()-this.y);
+        let width = Pointer.camX()-this.x, height = Pointer.camY()-this.y;
+        if (globalKeyboard.pressed("Shift")) {
+          width = height = Math.min(width,height);
+        }
+        c.strokeRect(this.x,this.y,width,height);
       }
     },
     getPropStrings: function() {

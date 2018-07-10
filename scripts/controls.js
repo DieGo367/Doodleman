@@ -622,8 +622,8 @@ let gpadGroupings = [
 	"A","B","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"
 ];
 
-Key.ctrlMaps.global = new CtrlMap("GlobalKeyboard",KEYBOARD,["P1","P2","R","\\","up","right","down","left","NumTR","NumTL","NumBR","NumBL","NumB","]"],[82,80,192,220,38,39,40,37,99,97,103,105,98,221],
-[...gameActions,...cameraActions,"snippet","pause-p1","pause-p2"],["P1","R","\\","up","right","down","left","NumTR","NumTL","NumBR","NumBL","NumB","]","P1","P2"]);
+Key.ctrlMaps.global = new CtrlMap("GlobalKeyboard",KEYBOARD,["P1","P2","R","\\","up","right","down","left","NumTR","NumTL","NumBR","NumBL","NumB","]","Shift","Ctrl"],[82,80,192,220,38,39,40,37,99,97,103,105,98,221,16,17],
+[...gameActions,...cameraActions,"snippet","pause-p1","pause-p2","Shift","Ctrl"],["P1","R","\\","up","right","down","left","NumTR","NumTL","NumBR","NumBL","NumB","]","P1","P2","Shift","Ctrl"]);
 
 Key.ctrlMaps[0] = new CtrlMap("WASD",KEYBOARD,dmInputs,[87,71,null,null,null,null,null,null,null,null,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
 Key.ctrlMaps[1] = new CtrlMap("IJKL",KEYBOARD,dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
