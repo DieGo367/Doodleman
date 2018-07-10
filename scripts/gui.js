@@ -461,12 +461,13 @@ function buildDevToolsHud() {
 
 function buildEditorTools() {
 	View.create("EditorToolbar",0,0,0,hudWidth,70,"tint","purple");
-	View.create("EditorHud",0,0,0,70,70).show();
+	View.create("EditorHud",0,0,0,hudWidth,70).show();
 	TextElement.create("EditorModeText","EditorHud",70,40,"Mode","Catamaran, sans-serif",20,false,"fuchsia",LEFT,true,"purple",2);
 
-	Button.create("ExpandButton","EditorHud",10,10,50,50).setToggle(function() {
+	View.create("ExpandButtonView",0,0,0,70,70).show();
+	Button.create("ExpandButton","ExpandButtonView",10,10,50,50).setToggle(function() {
 		G$("EditorToolbar").show();
-		G$("EditorModeText").hide();
+		G$("EditorHud").hide();
 		this.setIcon("GUI-Icons.png",3,0,42,4);
 		this.toggleState = 1;
 	},
@@ -474,6 +475,7 @@ function buildEditorTools() {
 		let p = G$("EditPropBttn");
 		if (p.on) p.states[1].call(p,ctrl);
 		G$("EditorToolbar").hide();
+		G$("EditorHud").show();
 		let tools = ["BoxTool","LineTool","SpriteTool"];
 		let found = false;
 		for (var i in tools) {
@@ -483,6 +485,7 @@ function buildEditorTools() {
 			}
 		}
 		if (found) G$("EditorModeText").show();
+		else G$("EditorModeText").hide();
 		this.setIcon("GUI-Icons.png",0,1,42,4);
 		this.toggleState = 0;
 	}).setIcon("GUI-Icons.png",0,1,42,4).show();
@@ -497,14 +500,14 @@ function buildEditorTools() {
 		EditorTools.setMode(2);
 	}).setRadioGroup(["BoxTool","LineTool","EraserTool"]).setIcon("GUI-Icons.png",2,2,42,4).show();
 
-	Button.create("EraserTool","EditorToolbar",hudWidth-200,10,50,50).setOnClick(function() {
+	Button.create("EraserTool","EditorToolbar",hudWidth-130,10,50,50).setOnClick(function() {
 		this.on = !this.on;
 		let button = G$(EditorTools.getModeText()+"Tool");
 		if (!button.on) this.on = false;
 		EditorTools.setEraserOn(this.on);
 	}).setIcon("GUI-Icons.png",3,2,42,4).show();
 
-	Button.create("EditPropBttn","EditorToolbar",hudWidth-130,10,50,50).setToggle(function() {
+	Button.create("EditPropBttn","EditorToolbar",hudWidth-60,10,50,50).setToggle(function() {
 		G$("EditPropView").show();
 		this.on = true;
 		this.toggleState = 1;
@@ -513,11 +516,7 @@ function buildEditorTools() {
 		G$("EditPropView").hide();
 		this.on = false;
 		this.toggleState = 0;
-	}).setIcon("GUI-Icons.png",1,1,42,4).show();
-
-	Button.create("LevelSettingsBttn","EditorToolbar",hudWidth-60,10,50,50).setOnClick(function() {
-		G$("LevelSettingsView").show();
-	}).setIcon("GUI-Icons.png",1,1,42,4).show();
+	}).setIcon("GUI-Icons.png",2,1,42,4).show();
 
 	View.create("EditPropView",0,0,70,hudWidth,60,"tint","green");
 	Button.create("EditPropOnShown","EditPropView",0,0,0,0).setOnViewShown(function() {
@@ -549,10 +548,15 @@ function buildEditorTools() {
 		else view.largestPropNum = view.propNum;
 	}).largestPropNum = 0;
 
+	Button.create("LevelSettingsBttn","EditorHud",hudWidth-60,10,50,50).setOnClick(function() {
+		G$("LevelSettingsView").show();
+		G$("EditorHud").hide();
+	}).setIcon("GUI-Icons.png",1,1,42,4).show();
 
 	View.create("LevelSettingsView",1,0,0,hudWidth,hudHeight,"tint","purple");
 	Button.create("LevelSettingsClose","LevelSettingsView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("LevelSettingsView").hide();
+		G$("EditorHud").show();
 	}).
 	setOnViewShown(function() {
 		G$("LS:Dimensions:width").storedVal = Level.level.width;
@@ -573,7 +577,7 @@ function buildEditorTools() {
 	TextElement.create("LS:Title","LevelSettingsView",hudWidth/2,30,"Level Properties","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 
 	Button.create("LS:LoadLevel","LevelSettingsView",10,10,150,40,"Load From File").setOnClick(Level.openLocalFile,true).show().setPressDelay(1);
-	
+
 	TextElement.create("LS:Dimensions","LevelSettingsView",hudWidth/4-150,100+55*0,"Dimensions","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
 	TextInput.create("LS:Dimensions:width","LevelSettingsView",hudWidth/2-175,75,100,40,"number",Level.level.width,"width","Enter a width").setOnInputChange(function(val) {
 		Level.level.width = val;
