@@ -17,12 +17,17 @@ const EditorTools = {
       }
       else {
         let xx = Pointer.camX(), yy = Pointer.camY();
-        let width = Math.abs(xx-this.x), height = Math.abs(yy-this.y);
+        let width = xx-this.x, height = yy-this.y;
         if (globalKeyboard.pressed("Shift")) {
-          width = height = Math.min(width,height);
+          let size = Math.min(Math.abs(width),Math.abs(height));
+          width = (xx<this.x?-1:1)*size;
+          height = (yy<this.y?-1:1)*size;
         }
-        let x = Math.min(xx,this.x);
-        let y = Math.max(yy,this.y);
+        let x = this.x, y = this.y;
+        if (width<0) x += width;
+        if (height>0) y += height;
+        width = Math.abs(width);
+        height = Math.abs(height);
         let definition = {
           type: 0,
           properties: [this.color,this.img,true,this.collisionType],
@@ -48,9 +53,12 @@ const EditorTools = {
       if (this.x==null||this.y==null) return;
       else {
         c.strokeStyle = "hotpink";
-        let width = Pointer.camX()-this.x, height = Pointer.camY()-this.y;
+        let xx = Pointer.camX(), yy = Pointer.camY();
+        let width = xx-this.x, height = yy-this.y;
         if (globalKeyboard.pressed("Shift")) {
-          width = height = Math.min(width,height);
+          let size = Math.min(Math.abs(width),Math.abs(height));
+          width = (xx<this.x?-1:1)*size;
+          height = (yy<this.y?-1:1)*size;
         }
         c.strokeRect(this.x,this.y,width,height);
       }
