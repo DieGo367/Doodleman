@@ -101,6 +101,17 @@ const EditorTools = {
       if (this.x==null||this.y==null) return;
       else {
         c.strokeStyle = "hotpink";
+        if (globalKeyboard.pressed("Shift")) {
+          let line = new Line(this.x,this.y,Pointer.camX(),Pointer.camY());
+          let angle = Math.abs(line.angle()*180/Math.PI);
+          if (angle%15<=7) { //round down
+            angle = angle - angle%15;
+          }
+          else { //round up
+            angle = angle + 15 - angle%15;
+          }
+          //now make the new target
+        }
         drawLine(this.x,this.y,Pointer.camX(),Pointer.camY());
       }
     },
