@@ -23,7 +23,7 @@ var canvas, c, output; //canvas and context
 var interval, gameSpeed = 50/3;
 var pixelDensity = 1, hudWidth = 640, hudHeight = 360;
 var heightScale, widthScale;
-var paused = false, pausedBy, focused = true, fullScreen = false;
+var paused = false, pausedBy, focused = true, fullScreen = false, fullScreenChanging = false;
 var viewLock = false, viewAction = function() {};
 var gameMode = 0, multiplayer = false, clickSpawn = false;
 var globalKeyboard;
@@ -629,8 +629,9 @@ function addEvents() {
 	$("#fileInput").on("change",Level.loadLocalFile);
 	$(window).on("resize",function() {
 		fullScreen = getPrefixedProperty(document,"fullscreenElement") || getPrefixedProperty(document,"fullScreenElement");
+		fullScreen = !!fullScreen;
 		G$("FSToggle").on = fullScreen;
-		G$("FSToggle").toggleState = fullScreen?1:0;
+		G$("FSToggle").toggleState = fullScreen+0;
 		if (fullScreen) {
 			widthScale = window.innerWidth/hudWidth;
 			heightScale = window.innerHeight/hudHeight;
