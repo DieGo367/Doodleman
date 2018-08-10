@@ -84,6 +84,11 @@ const EditorTools = {
       }
       else {
         let xx = Pointer.camX(), yy = Pointer.camY();
+        if (globalKeyboard.pressed("Shift")) {
+          let angledPt = this.calcLineSnap();
+          xx = angledPt[0];
+          yy = angledPt[1];
+        }
         let definition = {
           type: 1,
           properties: [this.lineWidth,this.stroke,this.direction],
@@ -110,17 +115,10 @@ const EditorTools = {
       else {
         c.strokeStyle = "hotpink";
         if (globalKeyboard.pressed("Shift")) {
-          let line = new Line(this.x,this.y,Pointer.camX(),Pointer.camY());
-          let angle = Math.abs(line.angle()*180/Math.PI);
-          if (angle%15<=7) { //round down
-            angle = angle - angle%15;
-          }
-          else { //round up
-            angle = angle + 15 - angle%15;
-          }
-          //now make the new target
+          let angledPt = this.calcLineSnap();
+          drawLine(this.x,this.y,angledPt[0],angledPt[1]);
         }
-        drawLine(this.x,this.y,Pointer.camX(),Pointer.camY());
+        else drawLine(this.x,this.y,Pointer.camX(),Pointer.camY());
       }
     },
     getPropStrings: function() {
@@ -128,6 +126,36 @@ const EditorTools = {
         names: ["stroke","lineWidth","collisionType","direction"],
         types: ["string","number","number","number"]
       }
+    },
+    calcLineSnap: function() {
+      // Returns new destination point [xx,yy] for line creation by snapping it to angles of 15 degrees
+
+      let x = this.x, y = this.y, xx = Pointer.camX(), yy = Pointer.camY();
+      let line = new Line(x,y,xx,yy);
+      // find our new angle
+      let angle = toDegrees(line.angle2()) + 180;
+      let newAngle = 0;
+      if (angle%15<=7) { //round down
+        newAngle = Math.round(angle - angle%15);
+      }
+      else { //round up
+        newAngle = Math.round(angle + 15 - angle%15);
+      }
+      //test output
+      c.strokeText(newAngle,Pointer.x+50,Pointer.y+50);
+
+      // convert back to radians
+      let angleDiffRad = toRadians(newAngle-angle);
+      let newAngleRad = toRadians(newAngle);
+
+      // find our new magnitude
+      let oldMag = Math.sqrt(Math.pow(xx-x,2)+Math.pow(yy-y,2));
+      let newMag = oldMag * Math.cos(angleDiffRad);
+
+      // adjust our points to match new line
+      xx = x - newMag * Math.cos(newAngleRad);
+      yy = y - newMag * Math.sin(newAngleRad);
+      return [xx,yy];
     }
   },
   Sprite: {

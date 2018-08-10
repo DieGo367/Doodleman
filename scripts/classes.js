@@ -636,6 +636,11 @@ var Line = class Line extends _c_ {
     var dx = this.x2-this.x;
     return Math.atan(dy/dx);
   }
+  angle2() {
+    var dy = this.y2-this.y;
+    var dx = this.x2-this.x;
+    return Math.atan2(dy,dx);
+  }
   valueAt(input,respectTo) {
   	var slope = this.slope();
   	switch(respectTo) {

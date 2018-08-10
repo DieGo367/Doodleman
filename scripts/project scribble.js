@@ -83,6 +83,12 @@ function averageCoords(e) {
 	}
 	return [tx/e.length,ty/e.length];
 }
+function toDegrees(rad) {
+	return rad/Math.PI*180;
+}
+function toRadians(deg) {
+	return deg/180*Math.PI;
+}
 function drawCircle(x,y,r) {
 	c.beginPath();
 	c.arc(x,y,r,0,2*Math.PI);
