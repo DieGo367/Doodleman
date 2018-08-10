@@ -142,6 +142,28 @@ const Level = {
 	log: function() {
 		let data = JSON.stringify(this.level,null,'\t');
 		console.log(data);
+	},
+	getSnappingPoints: function() {
+		let points = [];
+		for (var i in this.level.terrain) {
+			let definition = this.level.terrain[i];
+			for (var j in definition.pieces) {
+				let piece = definition.pieces[j];
+				switch(definition.type) {
+					case 0:
+						points.push([piece[0],          piece[1]]);
+						points.push([piece[0]+piece[2], piece[1]]);
+						points.push([piece[0]+piece[2], piece[1]-piece[3]]);
+						points.push([piece[0],          piece[1]-piece[3]]);
+						break;
+					case 1:
+						points.push([piece[0],piece[1]]);
+						points.push([piece[2],piece[3]]);
+						break;
+				}
+			}
+		}
+		return points;
 	}
 }
 const BlankLevel = clone(Level.level);
