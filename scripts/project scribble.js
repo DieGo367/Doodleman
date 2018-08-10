@@ -185,6 +185,8 @@ const Pointer = {
 			let closestPoint = null;
 			for (var i in pts) {
 				let pt = pts[i];
+				pt[0] = pt[0] - Camera.x + hudWidth/2;
+				pt[1] = pt[1] - Camera.y + hudHeight/2;
 				let dist = Math.sqrt(Math.pow(pt[0]-x,2)+Math.pow(pt[1]-y,2));
 				if (dist<=minDist) {
 					minDist = dist;
