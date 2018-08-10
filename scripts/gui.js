@@ -576,6 +576,14 @@ function buildEditorTools() {
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 	TextElement.create("LS:Title","LevelSettingsView",hudWidth/2,30,"Level Properties","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 
+	Button.create("FSToggle","LevelSettingsView",hudWidth-130,10,50,50).setToggle(function() {
+		callPrefixedFunction(canvas,"requestFullscreen");
+		callPrefixedFunction(canvas,"requestFullScreen");
+	},
+	function() {
+		callPrefixedFunction(document,"exitFullscreen");
+		callPrefixedFunction(document,"exitFullScreen");
+	},true).setIcon("GUI-Icons.png",2,0,42,4).show();
 	Button.create("LS:LoadLevel","LevelSettingsView",10,10,150,40,"Load From File").setOnClick(Level.openLocalFile,true).show().setPressDelay(1);
 
 	TextElement.create("LS:Dimensions","LevelSettingsView",hudWidth/4-150,100+55*0,"Dimensions","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
