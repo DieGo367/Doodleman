@@ -179,6 +179,23 @@ const Pointer = {
 		if (x<0) x = 0;
 		if (y>hudHeight) y = hudHeight;
 		if (y<0) y = 0;
+		if (EditorTools.enabled&&!globalKeyboard.pressed("Ctrl")) {
+			let pts = Level.getSnappingPoints();
+			let minDist = 5;
+			let closestPoint = null;
+			for (var i in pts) {
+				let pt = pts[i];
+				let dist = Math.sqrt(Math.pow(pt[0]-x,2)+Math.pow(pt[1]-y,2));
+				if (dist<=minDist) {
+					minDist = dist;
+					closestPoint = pt;
+				}
+			}
+			if (closestPoint!=null) {
+				x = closestPoint[0];
+				y = closestPoint[1];
+			}
+		}
 		this.x = Math.round(x), this.y = Math.round(y);
 		Button.callForAll("checkMouse");
 	},
