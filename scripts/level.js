@@ -159,6 +159,7 @@ const Level = {
 					case 1:
 						points.push([piece[0],piece[1]]);
 						points.push([piece[2],piece[3]]);
+						points.push([(piece[0]+piece[2])/2, (piece[1]+piece[3])/2]);
 						break;
 				}
 			}
