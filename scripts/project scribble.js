@@ -48,6 +48,13 @@ function px(densityPixels) {
 function clone(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
+function compareList(a,b) {
+	if (a.length!=b.length) return false;
+	for (var i = 0; i < a.length; i++) {
+		if (a[i]!=b[i]) return false;
+	}
+	return true;
+}
 function setCookie(key,value,expDays) {
 	if (!expDays) expDays = 7;
 	var date = new Date();

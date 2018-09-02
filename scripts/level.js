@@ -255,7 +255,7 @@ const SpriteManager = {
 SpriteManager.init();
 const TerrainManager = {
 	make: function(terrain) {
-		let construct = [PhysicsBox,SolidLine][terrain.type];
+		let construct = [PhysicsBox,Line][terrain.type];
 		let results  = [];
 		for (var i in terrain.pieces) {
 			let piece = clone(terrain.pieces[i]);

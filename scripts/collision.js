@@ -3,68 +3,91 @@ const Collision = {
     PhysicsBox.callForAll("doGroundDrag");
   	PhysicsBox.callForAll("preCollision");
 
-    //get loaded boxes, and classsify them as either terrain or objects
-    var loadedSectors = Sectors.getLoadedSectors();
-    var boxes = this.classify(Sectors.getObjectListFromSectors(loadedSectors));
+    //get loaded objects, and classsify them as either terrain or actors
+    let loadedSectors = Sectors.getLoadedSectors();
+    let objects = this.classify(Sectors.getObjectListFromSectors(loadedSectors));
 
-    //detect intersections only among objects
-    var objXobj = this.detectIntersections(boxes.objs,boxes.objs);//false);
-    this.updateCollisionList(objXobj,false);
+    //detect intersections only among actors
+    let actorsOnly = this.detectIntersections(objects.actors,objects.actors);
+    this.updateCollisionList(actorsOnly,false);
     this.collidePairs(false);
 
-  	var objXterr = this.detectIntersections(boxes.objs,/*true,*/boxes.terrain);
-    this.updateCollisionList(objXterr,true);
+    //now collide actors with the terrain
+  	let actorsWithTerrain = this.detectIntersections(objects.actors,objects.terrain);
+    this.updateCollisionList(actorsWithTerrain,true);
     this.collidePairs(true);
   },
   classify: function(list) {
-    var terrain = [], objects = [], other = [];
+    let terrain = [], actors = [], other = [];
     for (var i in list) {
-      if (list[i] instanceof PhysicsBox) {
-        if (list[i].isTerrain) terrain.push(list[i]);
-        else objects.push(list[i]);
-      }
-      else other.push();
+      if (list[i].isTerrain) terrain.push(list[i]);
+      else if ((list[i] instanceof PhysicsBox) || (list[i] instanceof Line)) actors.push(list[i]);
+      else other.push(list[i]);
     }
-    return {terrain: terrain, objs: objects, other: other};
+    return {terrain: terrain, actors: actors};
   },
   detectIntersections: function(listA,listB) {
-    var intersections = [];
-    // find all intersection pairs, then store temporarily
+    var pairs = []; //intersecting pairs
+    //find all intersecting pairs, then store temporarily
   	for (var i in listA) {
       for (var j in listB) {
   			if (listA[i]==listB[j]) continue;
   			if (listA[i].intersect(listB[j])) {
+          //check if the pair is already in our list
+  				let alreadyExists = false;
+  				for (var k in pairs) {
+            let p = pairs[k], a = [listA[i],listB[j]], b = [listB[j],listA[i]];
+            if (compareList(p,a)||compareList(p,b)) alreadyExists = true;
+          }
           //add the pair to our list if it isn't there already
-  				var alreadyExists = false;
-  				for (var k in intersections) if (intersections[k]==[listA[i],listB[j]]||intersections[k]==[listB[j],listA[i]]) alreadyExists = true;
-  				if (!alreadyExists) intersections.push([listA[i],listB[j]]);
+  				if (!alreadyExists) pairs.push([listA[i],listB[j]]);
   			}
   		}
   	}
-    return intersections;
+    return pairs;
   },
   determineBehavior: function(a,b) {
-    var ac = a.collisionType, bc = b.collisionType;
+    let ac = a.collisionType, bc = b.collisionType;
+
+    //HOLDING
+    //objects ignore what their holding
 		if ((a.held&&a.held==b)||(b.held&&b.held==a)) behavior = 0;
+    //objects ignore what is holding them
 		else if ((a.heldBy&&a.heldBy==b)||(b.heldBy&&b.heldBy==a)) behavior = 0;
+    //objects being held ignore lines
 		else if ((a.heldBy&&bc==C_LINE)||(b.heldBy&&ac==C_LINE)) behavior = 0;
-		else if (ac==C_NONE||bc==C_NONE) behavior = 0;
-		else if (ac==C_LINE&&bc<C_INFINIMASS) behavior = SolidLine.testBehavior(a,b)?9:10;
-		else if (bc==C_LINE&&ac<C_INFINIMASS) behavior = SolidLine.testBehavior(b,a)?8:10;
+
+    //NONE
+    else if (ac==C_NONE||bc==C_NONE) behavior = 0;
+
+    //LINES
+    //box and a line
+    else if (ac<C_INFINIMASS&&bc==C_LINE) behavior = 8;
+		else if (bc<C_INFINIMASS&&ac==C_LINE) behavior = 9;
+    //lines ignore each other
+    else if (ac==C_LINE&&bc==C_LINE) behavior = 0;
+
+    //BOXES
+    //when an immovable object meets an immovable object
 		else if (ac>=C_INFINIMASS&&bc>=C_INFINIMASS) behavior = 0;
+    //infinimass overpowers
 		else if (ac>=C_INFINIMASS) behavior = 1;
 		else if (bc>=C_INFINIMASS) behavior = 2;
+    //equal weight, so equal movement
 		else if (ac==bc) behavior = 3;
+    //higher weight pushes weaker weight
 		else if (ac==C_SOLID||bc==C_SOLID) behavior = ac>bc?4:5;
 		else if (ac==C_WEAK||bc==C_WEAK) behavior = ac>bc?4:5;
 		else {
-			//pushable and entity.
+			//the only things left are pushables and entities
 			if (ac==C_ENT) behavior = 6;
 			else behavior = 7;
 		}
 		return behavior;
     /*behavior types
   		0: no reaction
+
+      boxes:
   		1: a overpowers b
   		2: b overpowers a
   		3: equal movement
@@ -72,9 +95,10 @@ const Collision = {
   		5: b pushes a
   			6: a and push-block b
   			7: b and push-block a
-  			8: a and line b
-  			9: b and line a
-  			10: pending line
+
+      lines:
+			8: box a and line b
+			9: box b and line a
   	*/
   },
   pairs: [],
@@ -115,7 +139,10 @@ const Collision = {
     //mark all previous collision pairs as old
     for (var i in this.pairs) {
       var pair = this.pairs[i];
+      //ignore pairs where an object is unloaded
       if (pair.involvesUnloaded()) continue;
+      // if we're checking terrain and the pair has terrain,
+      // OR if we're not checking terrain and the pair has none, then mark it
       if (checkTerrain==pair.involvesTerrain()) pair.old = true;
     }
 
@@ -177,20 +204,11 @@ class CollisionPair {
     else return true;
   }
   collide() {
+    //safety check, don't collide if they aren't intersecting
     if (!this.a.intersect(this.b)||this.behavior==0) return;
-    switch(this.behavior) {
-      case 8:
-        this.b.line.pushOut(this.a);
-        break;
-      case 9:
-        this.a.line.pushOut(this.b);
-        break;
-      case 10:
-        this.refresh();
-        break;
-      default:
-        PhysicsBox.collide(this.a,this.b,this.behavior);
-    }
+    //behaviors 1-7 lead to PhysicsBox, 8-9 lead to Line
+    if (this.behavior>7) Line.collide(this.a,this.b,this.behavior);
+    else PhysicsBox.collide(this.a,this.b,this.behavior);
   }
 }
 

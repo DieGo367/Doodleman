@@ -89,7 +89,9 @@ var Box = class Box extends _c_ {
   halfW() { return this.width/2 }
   leftX() { return this.x-this.halfW() }
   rightX() { return this.x+this.halfW() }
+  bottomY() { return this.y; }
   topY() { return this.y-this.height }
+  midX() { return this.x; }
   midY() { return this.y-(this.height/2) }
   containsPoint(x,y) {
   	if (x<=this.rightX()&&x>=this.leftX()) {
@@ -99,9 +101,9 @@ var Box = class Box extends _c_ {
   	}
   	return false;
   }
-  intersect(rect) {
-  	if (this.rightX()>=rect.leftX()&&this.leftX()<=rect.rightX()) {
-  		if (this.y>=rect.topY()&&this.topY()<=rect.y) return true;
+  intersect(obj) {
+  	if (obj.leftX()<=this.rightX() && this.leftX()<=obj.rightX()) {
+  		if (obj.topY()<=this.bottomY() && this.topY()<=obj.bottomY()) return true;
   	}
   	return false;
   }
@@ -611,7 +613,7 @@ initClass(MovingPlatform,PhysicsBox);
 
 
 var Line = class Line extends _c_ {
-  constructor(x,y,x2,y2,size,stroke) {
+  constructor(x,y,x2,y2,size,stroke,direction) {
     super();
   	this.x = x;
   	this.y = y;
@@ -619,9 +621,10 @@ var Line = class Line extends _c_ {
   	this.y2 = y2;
   	this.size = size;
   	this.stroke = stroke;
+    this.direction = direction;
   }
-  rightX() { return Math.max(this.x,this.x2); }
   leftX() { return Math.min(this.x,this.x2); }
+  rightX() { return Math.max(this.x,this.x2); }
   bottomY() { return Math.max(this.y,this.y2); }
   topY() { return Math.min(this.y,this.y2); }
   midX() { return this.x+(this.x2-this.x)/2; }
@@ -652,6 +655,12 @@ var Line = class Line extends _c_ {
   			else return 1/slope*(input-this.y)+this.x;
   	}
   }
+  intersect(obj) {
+    if (obj.leftX()<=this.rightX() && this.leftX()<=obj.rightX()) {
+  		if (obj.topY()<=this.bottomY() && this.topY()<=obj.bottomY()) return true;
+  	}
+  	return false;
+  }
 
   update() { }
   draw() {
@@ -669,6 +678,12 @@ var Line = class Line extends _c_ {
   	c.strokeStyle = "red";
   	drawLine(this.x,this.y,this.x2,this.y2);
   	this.draw(true);
+  }
+
+  static collide(a,b,behavior) {
+    let line = behavior==8?b:a;
+    let box = behavior==8?a:b;
+
   }
 }
 initClass(Line,true);

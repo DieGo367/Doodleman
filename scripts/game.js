@@ -23,8 +23,8 @@ function tick() { //GAME UPDATES//
 		Entity.callForAll("animationTick");
 		Door.callForAll("animationTick");
 		Box.callForAll("update");
-		Collision.run();
 		Line.callForAll("update");
+		Collision.run();
 		Particle.callForAll("update");
 
 		Camera.update();
