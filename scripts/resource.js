@@ -9,14 +9,15 @@ const ResourceManager = {
       },0);
     }
     else $.get(url,function(data) {
+      if (typeof data=="object") data = JSON.stringify(data);
       ResourceManager.store(this.url,data);
       if (typeof onComplete=="function") onComplete(data);
     });
   },
   requestGroup: function(groupName,forEach,onComplete) {
-    $.get(groupName+"/_list_.json",function(data) {
+    $.get(groupName+"/_list_.json",function(list) {
       try {
-        var list = JSON.parse(data);
+        if (typeof list != "object") list = JSON.parse(list);
       } catch(err) {
         return console.warn(err);
       }
@@ -26,6 +27,7 @@ const ResourceManager = {
       for (var i in list) {
         if (typeof list[i]!="string") continue;
         $.get(groupName+"/"+list[i],function(item) {
+          if (typeof item=="object") item = JSON.stringify(item);
           ResourceManager.store(this.url,item);
           if (typeof forEach=="function") forEach(item,this.url.split("/")[1]);
           var status = ResourceManager.checkStatus(groupName);
