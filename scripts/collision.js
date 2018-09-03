@@ -5,7 +5,7 @@ const Collision = {
 
     //get loaded objects, and classsify them as either terrain or actors
     let loadedSectors = Sectors.getLoadedSectors();
-    let objects = this.classify(Sectors.getObjectListFromSectors(loadedSectors));
+    let objects = Level.classify(Sectors.getObjectListFromSectors(loadedSectors),true);
 
     //detect intersections only among actors
     let actorsOnly = this.detectIntersections(objects.actors,objects.actors);
@@ -16,15 +16,6 @@ const Collision = {
   	let actorsWithTerrain = this.detectIntersections(objects.actors,objects.terrain);
     this.updateCollisionList(actorsWithTerrain,true);
     this.collidePairs(true);
-  },
-  classify: function(list) {
-    let terrain = [], actors = [], other = [];
-    for (var i in list) {
-      if (list[i].isTerrain) terrain.push(list[i]);
-      else if ((list[i] instanceof PhysicsBox) || (list[i] instanceof Line)) actors.push(list[i]);
-      else other.push(list[i]);
-    }
-    return {terrain: terrain, actors: actors};
   },
   detectIntersections: function(listA,listB) {
     var pairs = []; //intersecting pairs

@@ -76,6 +76,18 @@ const Level = {
 			}
 		}
 	},
+	classify: function(list,requirePhysical) {
+    let terrain = [], actors = [], other = [];
+    for (var i in list) {
+			let o = list[i];
+			if (!requirePhysical||o instanceof PhysicsBox||o instanceof Line) {
+				if (o.isTerrain) terrain.push(o);
+				else if (o.isActor) actors.push(o);
+				else other.push(o);
+			}
+    }
+    return {terrain: terrain, actors: actors, other: other};
+  },
 	load: function(file,doLog) {
 		if (doLog==void(0)) doLog = true;
 		try {
