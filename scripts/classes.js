@@ -667,6 +667,12 @@ var Line = class Line extends _c_ {
     }
     return false;
   }
+  hitboxContainsPoint(x,y) {
+    let yRespectX = this.valueAt(x,'x');
+    let xRespectY = this.valueAt(y,'y');
+    if (this.hasPoint(x,yRespectX) || this.hasPoint(xRespectY,y)) return true;
+    else return false;
+  }
   intersect(obj) {
     if (obj.leftX()<=this.rightX() && this.leftX()<=obj.rightX()) {
   		if (obj.topY()<=this.bottomY() && this.topY()<=obj.bottomY()) return true;
@@ -809,105 +815,6 @@ Line.prototype.remove = Box.prototype.remove;
 Line.prototype.collisionType = C_LINE;
 Line.prototype.hitBoxStroke = "darkGray";
 Line.prototype.drawLayer = -2;
-
-var SolidLine = class SolidLine extends Line {
-  constructor(x,y,x2,y2,size,stroke,direction) {
-    super(x,y,x2,y2,size,stroke);
-  	this.direction = direction;
-  }
-  static onCreate() {
-  	var mag = Math.abs(this.slope())
-    var hitboxY = this.bottomY();
-    var hitboxWidth = Math.abs(this.x-this.x2);
-    var hitboxHeight = Math.abs(this.y-this.y2);
-  	if (mag<0.25) {
-      hitboxY += 15;
-      hitboxHeight += 30;
-    }
-  	else if (1/mag<0.25||this.slope()==Infinity) hitboxWidth += 30;
-    this.hitbox = SolidLineHitBox.create(this.midX(),hitboxY,hitboxWidth,hitboxHeight,this);
-  }
-
-  pushOut(box) {
-  	if (box.collisionType>=C_INFINIMASS||box.defyPhysics||box.heldBy||!this.hitbox.intersect(box)) return;
-  	if (this.hitbox.rightX()>=this.x&&this.hitbox.leftX()<=this.x&&this.hitbox.topY()<=this.y&&this.hitbox.y>=this.y) {
-  		switch(this.direction) {
-  			case LINE_LEFT:
-  				if (box.rightX()>=this.valueAt(box.midY(),'y')) {
-  					box.x = this.valueAt(box.midY(),'y')-box.halfW();
-  					if (box.velX>0) box.velX = 0;
-  					box.cSides.r = C_LINE;
-  				}
-  				break;
-  			case LINE_RIGHT:
-  				if (box.leftX()<=this.valueAt(box.midY(),'y')) {
-  					box.x = this.valueAt(box.midY(),'y')+box.halfW();
-  					if (box.velX<0) box.velX = 0;
-  					box.cSides.l = C_LINE;
-  				}
-  				break;
-  			case LINE_UP:
-  				if (box.y>=this.valueAt(box.x,'x')) {
-  					box.y = this.valueAt(box.x,'x');
-  					if (box.velY>0) box.velY = 0;
-  					box.cSides.d = C_LINE;
-  					box.isGrounded = true;
-  					box.lineGround = this;
-  				}
-  				break;
-  			case LINE_DOWN:
-  				if (box.topY()<=this.valueAt(box.x,'x')) {
-  					if (box.velY<0) box.velY = 0;
-  					box.y = this.valueAt(box.x,'x')+box.height;
-  					box.cSides.u = C_LINE;
-  				}
-  		}
-  	}
-  }
-  remove() {
-  	this.hitbox.remove(true);
-  	super.remove();
-  }
-  drawDebug() {
-  	this.hitbox.drawDebug();
-  	super.drawDebug();
-  }
-
-  static testBehavior(a,b) {
-  	switch(a.line.direction) {
-  		case LINE_UP:
-  			if (b.y>=a.line.valueAt(b.x,'x')) return false;
-  			break;
-  		case LINE_DOWN:
-  			if (b.topY()<=a.line.valueAt(b.x,'x')) return false;
-  			break;
-  		case LINE_LEFT:
-  			if (b.rightX()>=a.line.valueAt(b.y,'y')) return false;
-  			break;
-  		case LINE_RIGHT:
-  			if (b.leftX()<=a.line.valueAt(b.y,'y')) return false;
-  			break;
-  	}
-  	return true;
-  }
-}
-initClass(SolidLine,Line);
-SolidLine.prototype.hitBoxStroke = "limeGreen";
-SolidLine.prototype.drawLayer = 0;
-
-var SolidLineHitBox = class SolidLineHitBox extends PhysicsBox {
-  constructor(x,y,width,height,line) {
-    super(x,y,width,height,null,null,true,C_LINE,false);
-    this.line = line;
-  }
-  remove(fromLine) {
-    if (this.line&&this.line!=null&&!fromLine) this.line.remove();
-    super.remove();
-  }
-}
-SolidLineHitBox.prototype.hitBoxStroke = "lightBlue";
-SolidLineHitBox.prototype.lockSectors = true;
-SolidLineHitBox.prototype.isTerrain = true;
 
 
 var Entity = class Entity extends PhysicsBox {

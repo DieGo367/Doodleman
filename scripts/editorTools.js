@@ -263,13 +263,13 @@ const EditorTools = {
     if (type==0||tryAll) {
       let all = PhysicsBox.getAll().reverse();
       for (var i in all) {
-        if (all[i].isTerrain&&!(all[i] instanceof SolidLineHitBox)&&all[i].containsPoint(x,y)) return all[i];
+        if (all[i].isTerrain&&!(all[i] instanceof Line)&&all[i].containsPoint(x,y)) return all[i];
       }
     }
   	if (type==1||tryAll) {
-      let all = SolidLine.getAll().reverse();
+      let all = Line.getAll().reverse();
   		for (var i in all) {
-  			if (all[i].isTerrain&&all[i].hitbox.containsPoint(x,y)) {
+  			if (all[i].isTerrain&&all[i].hitboxContainsPoint(x,y)) {
   				let lx = all[i].valueAt(y,'y');
   				let ly = all[i].valueAt(x,'x');
   				let diffX = Math.abs(x-lx);

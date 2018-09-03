@@ -583,22 +583,22 @@ function click(ctrl) {
 }
 
 function findTopThing(x,y,type) {
-	var allEnem = Enemy.getAll(), allSl = SolidLine.getAll();
+	var allEnem = Enemy.getAll(), allLine = Line.getAll();
 	if (type==0) {
 		for (var i in allEnem) {
 			if (allEnem[i].containsPoint(x,y)) return allEnem[i];
 		}
 	}
 	else {
-		for (var i in allSl) {
-			if (allSl[i].hitbox.containsPoint(x,y)) {
-				var lx = allSl[i].valueAt(y,'y');
-				var ly = allSl[i].valueAt(x,'x');
+		for (var i in allLine) {
+			if (allLine[i].hitboxContainsPoint(x,y)) {
+				var lx = allLine[i].valueAt(y,'y');
+				var ly = allLine[i].valueAt(x,'x');
 				var diffX = Math.abs(x-lx);
 				var diffY = Math.abs(y-ly);
-				var slope = Math.abs(allSl[i].slope());
-				if ((slope=="vertical tangent"||slope>50)&&diffX<15) return allSl[i];
-				if (diffY<15) return allSl[i];
+				var slope = Math.abs(allLine[i].slope());
+				if ((slope=="vertical tangent"||slope>50)&&diffX<15) return allLine[i];
+				if (diffY<15) return allLine[i];
 			}
 		}
 	}

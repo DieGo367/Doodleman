@@ -15,7 +15,7 @@ const DevTools = {
   	},
   	makeLine: function() {
       var properties = [this.x,this.y,this.xx,this.yy,this.size,this.fill,this.dir];
-  		SolidLine.create(...properties);
+  		Line.create(...properties);
   		this.clear();
   	},
   	makeBox: function() {
