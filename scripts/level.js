@@ -23,7 +23,7 @@ const Level = {
 			x: 620,
 			y: 310
 		},
-		sprites: [],
+		actors: [],
 		terrain: []
 	},
 	addTerrainData: function(data) {
@@ -64,14 +64,14 @@ const Level = {
 		}
 		return -1;
 	},
-	addSpriteData: function(data) {
-		this.level.sprites.push(data);
+	addActorData: function(data) {
+		this.level.actors.push(data);
 	},
-	removeSpriteData: function(data) {
+	removeActorData: function(data) {
 		let raw = JSON.stringify(data);
-		for (var i in this.level.sprites) {
-			if (JSON.stringify(this.level.sprites[i])==raw) {
-				this.level.sprites.splice(i,1);
+		for (var i in this.level.actors) {
+			if (JSON.stringify(this.level.actors[i])==raw) {
+				this.level.actors.splice(i,1);
 				break;
 			}
 		}
@@ -95,7 +95,7 @@ const Level = {
 		Sectors.grid = {};
 		this.level = clone(BlankLevel);
 		for (var p in newLevel) this.level[p] = newLevel[p];
-		for (var s in this.level.sprites) SpriteManager.make(...this.level.sprites[s]);
+		for (var s in this.level.actors) ActorManager.make(...this.level.actors[s]);
 		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
 		if (this.level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",this.level.bgRaw);
 		Camera.reset();
@@ -168,24 +168,24 @@ const Level = {
 	}
 }
 const BlankLevel = clone(Level.level);
-const SpriteManager = {
-	spriteData: [],
+const ActorManager = {
+	actorData: [],
 	init: function() {
-		ResourceManager.request("scripts/sprites.json",function(data) {
+		ResourceManager.request("scripts/actors.json",function(data) {
 			var rawData = JSON.parse(data);
 			for (var i in rawData) {
 				var id = rawData[i].id;
-				SpriteManager.spriteData[id] = rawData[i];
+				ActorManager.actorData[id] = rawData[i];
 			}
 		});
 	},
 	make: function(id) {
 		var vals = Array.from(arguments).slice(1);
-		var sprite = this.spriteData[id];
-		if (sprite) {
+		var actor = this.actorData[id];
+		if (actor) {
 			var props = [];
-			for (var i in sprite.properties) {
-				var p = sprite.properties[i];
+			for (var i in actor.properties) {
+				var p = actor.properties[i];
 				switch(typeof p) {
 					case "string":
 						this.interpretStr(p,props,vals);
@@ -204,55 +204,33 @@ const SpriteManager = {
 						props.push(p);
 				}
 			}
-			let obj = window[sprite.class].create(...props);
-			obj.isSprite = true;
-			obj.rawSpriteData = Array.from(arguments);
+			let obj = window[actor.class].create(...props);
+			obj.isActor = true;
+			obj.rawActorData = Array.from(arguments);
 			return obj;
 		}
-		else console.log("Missing sprite ID: "+id);
+		else console.log("Missing actor ID: "+id);
 	},
-	makeGhostSprite: function(id) {
+	makeGhostActor: function(id) {
 		let a = Array.from(arguments);
-		let sprite = this.make(...a);
-		if (sprite) {
-			window[this.spriteData[id].class].removeInstance(sprite);
+		let actor = this.make(...a);
+		if (actor) {
+			window[this.actorData[id].class].removeInstance(actor);
 		}
-		return sprite;
+		return actor;
 	},
 	interpretStr: function(str,props,vals) {
 		var sub = str.substring(0,3), index = parseInt(str.substring(3));
 		if (sub=="val") props.push(vals[index]);
 		else props.push(str);
 	},
-	// getSpriteValuesLength: function(id) {
-	// 	let highestValNum = -1;
-	// 	if (!this.spriteData[id]) return -1;
-	// 	let propSettings = this.spriteData[id].properties;
-	// 	for (var i in propSettings) {
-	// 		if (propSettings[i] instanceof Array) {
-	// 			for (var j in propSettings[i]) {
-	// 				let s  = propSettings[i][j];
-	// 				if (typeof s != "string") continue;
-	// 				let sub = s.substring(0,3), index = parseInt(s.substring(3));
-	// 				if (sub=="val"&&index>highestValNum) highestValNum = index;
-	// 			}
-	// 		}
-	// 		else {
-	// 			let s  = propSettings[i];
-	// 			if (typeof s != "string") continue;
-	// 			let sub = s.substring(0,3), index = parseInt(s.substring(3));
-	// 			if (sub=="val"&&index>highestValNum) highestValNum = index;
-	// 		}
-	// 	}
-	// 	return highestValNum + 1;
-	// }
-	getSpriteValueNames: function(id) {
-		if (!this.spriteData[id]) return [];
-		let vals = this.spriteData[id].valueNames;
+	getActorValueNames: function(id) {
+		if (!this.actorData[id]) return [];
+		let vals = this.actorData[id].valueNames;
 		return vals || [];
 	}
 }
-SpriteManager.init();
+ActorManager.init();
 const TerrainManager = {
 	make: function(terrain) {
 		let construct = [PhysicsBox,Line][terrain.type];

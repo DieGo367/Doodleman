@@ -476,7 +476,7 @@ function buildEditorTools() {
 		if (p.on) p.states[1].call(p,ctrl);
 		G$("EditorToolbar").hide();
 		G$("EditorHud").show();
-		let tools = ["BoxTool","LineTool","SpriteTool"];
+		let tools = ["BoxTool","LineTool","ActorTool"];
 		let found = false;
 		for (var i in tools) {
 			if (G$(tools[i]).on) {
@@ -492,11 +492,11 @@ function buildEditorTools() {
 
 	Button.create("BoxTool","EditorToolbar",80,10,50,50).setOnClick(function() {
 		EditorTools.setMode(0);
-	}).setRadioGroup(["LineTool","SpriteTool","EraserTool"]).setIcon("GUI-Icons.png",0,2,42,4).show();
+	}).setRadioGroup(["LineTool","ActorTool","EraserTool"]).setIcon("GUI-Icons.png",0,2,42,4).show();
 	Button.create("LineTool","EditorToolbar",150,10,50,50).setOnClick(function() {
 		EditorTools.setMode(1);
-	}).setRadioGroup(["BoxTool","SpriteTool","EraserTool"]).setIcon("GUI-Icons.png",1,2,42,4).show();
-	Button.create("SpriteTool","EditorToolbar",220,10,50,50).setOnClick(function() {
+	}).setRadioGroup(["BoxTool","ActorTool","EraserTool"]).setIcon("GUI-Icons.png",1,2,42,4).show();
+	Button.create("ActorTool","EditorToolbar",220,10,50,50).setOnClick(function() {
 		EditorTools.setMode(2);
 	}).setRadioGroup(["BoxTool","LineTool","EraserTool"]).setIcon("GUI-Icons.png",2,2,42,4).show();
 

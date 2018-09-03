@@ -1,7 +1,7 @@
 const EditorTools = {
   enabled: false,
   ready: false,
-  modes: ["Box","Line","Sprite"],
+  modes: ["Box","Line","Actor"],
   mode: 0,
   eraserOn: false,
   Box: {
@@ -160,12 +160,12 @@ const EditorTools = {
       return [xx,yy];
     }
   },
-  Sprite: {
+  Actor: {
     id: 10,
     properties: [],
-    tempSprite: null,
+    tempActor: null,
     onClick: function() {
-      if (SpriteManager.getSpriteValueNames(this.id).length==0) return;
+      if (ActorManager.getActorValueNames(this.id).length==0) return;
       let propNum = G$("EditPropView").propNum;
       if (propNum>1) {
         for (var i = 1; i < propNum; i++) {
@@ -174,36 +174,35 @@ const EditorTools = {
       }
       let x = Pointer.camX(), y = Pointer.camY();
       let data = [this.id,x,y,...this.properties];
-      SpriteManager.make(...data);
-      Level.addSpriteData(data);
+      ActorManager.make(...data);
+      Level.addActorData(data);
     },
     erase: function() {
-      let sprite = this.parent.findAt(Pointer.camX(),Pointer.camY(),2);
-      if (sprite) {
-        Level.removeSpriteData(sprite.rawSpriteData);
-        sprite.remove();
+      let actor = this.parent.findAt(Pointer.camX(),Pointer.camY(),2);
+      if (actor) {
+        Level.removeActorData(actor.rawActorData);
+        actor.remove();
       }
     },
     clear: function() {
 
     },
     draw: function() {
-      if (this.tempSprite==null) this.refreshTempSprite();
-      if (this.tempSprite!=null) {
-        this.tempSprite.x = Pointer.camX();
-        this.tempSprite.y = Pointer.camY();
-        this.tempSprite.draw();
+      if (this.tempActor==null) this.refreshTempActor();
+      if (this.tempActor!=null) {
+        this.tempActor.x = Pointer.camX();
+        this.tempActor.y = Pointer.camY();
+        this.tempActor.draw();
       }
     },
-    refreshTempSprite: function() {
-      if (this.tempSprite!=null) delete this.tempSprite;
-      if (SpriteManager.getSpriteValueNames(this.id).length==0) return this.tempSprite = null;
+    refreshTempActor: function() {
+      if (this.tempActor!=null) delete this.tempActor;
+      if (ActorManager.getActorValueNames(this.id).length==0) return this.tempActor = null;
       let x = Pointer.camX(), y = Pointer.camY();
-      this.tempSprite = SpriteManager.makeGhostSprite(this.id,x,y,...this.properties);
+      this.tempActor = ActorManager.makeGhostActor(this.id,x,y,...this.properties);
     },
     getPropStrings: function() {
-      // let count = SpriteManager.getSpriteValuesLength(this.id) - 2; //get rid of x and y
-      let vals = SpriteManager.getSpriteValueNames(this.id);
+      let vals = ActorManager.getActorValueNames(this.id);
       let props = {
         names: ["id"],
         types: ["number"]
@@ -249,7 +248,7 @@ const EditorTools = {
     this.eraserOn = !!bool;
     this.Box.clear();
     this.Line.clear();
-    this.Sprite.clear();
+    this.Actor.clear();
     this.setCursor();
   },
   setCursor: function() {
@@ -285,7 +284,7 @@ const EditorTools = {
     if (type==2||tryAll) {
       let all = Box.getAll().reverse();
       for (var i in all) {
-        if (all[i].isSprite&&all[i].containsPoint(x,y)) return all[i];
+        if (all[i].isActor&&all[i].containsPoint(x,y)) return all[i];
       }
     }
   },
@@ -293,9 +292,9 @@ const EditorTools = {
     let tool = this[this.getModeText()];
     let strings = tool.getPropStrings();
     let props = [];
-    let prop = function(name,type,index,checkSprite) {
+    let prop = function(name,type,index,checkActor) {
       this.name = name;
-      if (checkSprite&&index>0) {
+      if (checkActor&&index>0) {
         this.val = tool.properties[index-1];
         tool.propNum = index;
       }
@@ -303,21 +302,21 @@ const EditorTools = {
       this.type = type;
       props.push(this);
     }
-    for (var i = 0; i < strings.names.length; i++) new prop(strings.names[i],strings.types[i],i,tool==this.Sprite);
+    for (var i = 0; i < strings.names.length; i++) new prop(strings.names[i],strings.types[i],i,tool==this.Actor);
     return props;
   },
   setToolProperty: function(name,val,sourceIndex) {
     let tool = this[this.getModeText()];
-    if (tool==this.Sprite&&sourceIndex>0) {
+    if (tool==this.Actor&&sourceIndex>0) {
       if (!isNaN(parseFloat(val))) val = parseFloat(val);
       tool.properties[sourceIndex-1] = val;
-      tool.refreshTempSprite();
+      tool.refreshTempActor();
     }
     else if (tool[name]!==void(0)) {
       tool[name] = val;
-      if (name=="id"&&tool==this.Sprite) {
+      if (name=="id"&&tool==this.Actor) {
         tool.properties = [];
-        tool.refreshTempSprite();
+        tool.refreshTempActor();
         this.propNum = 0;
         let p = G$("EditPropBttn");
         p.states[0].call(p);

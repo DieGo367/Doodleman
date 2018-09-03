@@ -415,7 +415,7 @@ function drawGame() {
 	else if (Level.level.bgType=="raw") ImageFactory.drawImagePattern("BG-LevelRaw",0,0,Level.level.width,Level.level.height,Level.level.bgScale);
 	//objects and elements
 	callOnAllClasses("drawTint");
-	for (var layer = -2; layer<4; layer++) { //layers: -2: bg stuff -1: doors and other bg sprites, 0:ground and lines, 1: entities, 2: players 3: particles
+	for (var layer = -2; layer<4; layer++) { //layers: -2: bg stuff -1: doors and other bg objects, 0:ground and lines, 1: entities, 2: players 3: particles
 		for (var i in DrawableClassList) {
 			var all = DrawableClassList[i].getAll();
 			for (var j in all) {
