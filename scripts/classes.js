@@ -58,8 +58,8 @@ class _c_ {
   drawDebug() {}
   drawHighlighted() {}
 }
-function initClass(cl,arg) {
-  cl.classList = [];
+function initClass(cl,arg,denyList) {
+  if (denyList||(denyList==void(0))) cl.classList = [];
   var type = (typeof arg);
   if (type!="undefined") {
     switch(type) {
@@ -70,6 +70,7 @@ function initClass(cl,arg) {
         cl.parent = arg;
     }
   }
+  if (typeof cl.onInit=="function") cl.onInit();
 }
 
 var Box = class Box extends _c_ {
@@ -164,10 +165,13 @@ var Box = class Box extends _c_ {
   	c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
   	this.draw(true);
   }
+
+  static onInit() {
+    this.prototype.hitBoxStroke = "darkGray";
+    this.prototype.drawLayer = 0;
+  }
 }
 initClass(Box,true);
-Box.prototype.hitBoxStroke = "darkGray";
-Box.prototype.drawLayer = 0;
 
 var Interactable = class Interactable extends Box {
   constructor(x,y,width,height,color,sprite,targetClass,onIntersect,onStopIntersect) {
@@ -238,8 +242,12 @@ var HarmBox = class HarmBox extends Interactable {
   	}
   	super.remove();
   }
+
+  static onInit() {
+    this.prototype.hitBoxStroke = "red";
+  }
 }
-HarmBox.prototype.hitBoxStroke = "red";
+initClass(HarmBox,Interactable,true);
 
 var AttackBox = class AttackBox extends HarmBox {
   constructor(x,y,width,height,attacker,damage,duration,frames,framerate) {
@@ -288,6 +296,7 @@ var AttackBox = class AttackBox extends HarmBox {
     super.remove();
   }
 }
+initClass(AttackBox,HarmBox,true);
 
 var Door = class Door extends Interactable {
   constructor(x,y,linkId,destination) {
@@ -396,11 +405,14 @@ var Door = class Door extends Interactable {
     if (this.doorOpen) this.setAnimation("open");
     else this.setAnimation("closed");
   }
+
+  static onInit() {
+    Animation.applyToClass(this);
+    this.prototype.drawLayer = -1;
+    this.prototype.lockSectors = true;
+  }
 }
 initClass(Door,Interactable);
-Animation.applyToClass(Door);
-Door.prototype.drawLayer = -1;
-Door.prototype.lockSectors = true;
 
 
 var PhysicsBox = class PhysicsBox extends Box {
@@ -596,10 +608,13 @@ var PhysicsBox = class PhysicsBox extends Box {
   	else if (behavior==5) return "a";
   	else return "none";
   }
+
+  static onInit() {
+    this.prototype.hitBoxStroke = "limeGreen";
+    this.prototype.defyGravity = false;
+  }
 }
 initClass(PhysicsBox,Box);
-PhysicsBox.prototype.hitBoxStroke = "limeGreen";
-PhysicsBox.prototype.defyGravity = false;
 
 var MovingPlatform = class MovingPlatform extends PhysicsBox {
   constructor(x,y,width,height,color,sprite,collisionType,velX,velY) {
@@ -628,6 +643,7 @@ var Line = class Line extends _c_ {
   	this.stroke = stroke;
     this.direction = direction;
     this.useBoxCorners = useBoxCorners;
+    this.sectors = [];
   }
   leftX() { return Math.min(this.x,this.x2); }
   rightX() { return Math.max(this.x,this.x2); }
@@ -859,12 +875,16 @@ var Line = class Line extends _c_ {
     }
     return false;
   }
+
+  static onInit() {
+    this.prototype.setSectors = Box.prototype.setSectors;
+    this.prototype.remove = Box.prototype.remove;
+    this.prototype.lockSectors = true;
+    this.prototype.collisionType = C_LINE;
+    this.prototype.drawLayer = -2;
+  }
 }
 initClass(Line,true);
-Line.prototype.setSectors = Box.prototype.setSectors;
-Line.prototype.remove = Box.prototype.remove;
-Line.prototype.collisionType = C_LINE;
-Line.prototype.drawLayer = -2;
 
 
 var Entity = class Entity extends PhysicsBox {
@@ -1046,17 +1066,20 @@ var Entity = class Entity extends PhysicsBox {
     }
     this.currentAttack = null;
   }
+
+  static onInit() {
+    Animation.applyToClass(this);
+    this.prototype.draw = function(preventAnimTick) {
+      if (this.invulnerability%2==1) return;
+      else Animation.protoDraw.call(this,preventAnimTick);
+    };
+    this.prototype.drawLayer = 1;
+    this.prototype.respawnsOnDeath = false;
+    this.prototype.particleColor = null;
+    this.attacks = [];
+  }
 }
 initClass(Entity,PhysicsBox);
-Animation.applyToClass(Entity);
-Entity.prototype.draw = function(preventAnimTick) {
-  if (this.invulnerability%2==1) return;
-  else Animation.protoDraw.call(this,preventAnimTick);
-};
-Entity.prototype.drawLayer = 1;
-Entity.prototype.respawnsOnDeath = false;
-Entity.prototype.particleColor = null;
-Entity.attacks = [];
 
 var chargeAttackReq = 40;
 var Player = class Player extends Entity {
@@ -1357,53 +1380,56 @@ var Player = class Player extends Entity {
   	this[ids][slot] = index=="None"?null:index;
   	this.relinkCtrls();
   }
+
+  static onInit() {
+    this.prototype.drawLayer = 2;
+    this.prototype.respawnsOnDeath = true;
+    this.prototype.lives = 5;
+    this.prototype.deaths = 0;
+    this.prototype.multiJump = false;
+    this.attacks = [];
+    this.slots = [null,null,null,null];
+    this.respawnButtons = [];
+    this.keyIds = [0,1,null,null];
+    this.gpIds = [null,null,null,null];
+    this.tapIds = [0,null,null,null];
+    this.defineAttack("attack",1,20,30);
+    this.defineAttack("attack-charge",2,20,30,true,true,true,function() {
+      this.move(10);
+      this.velY = 0;
+    });
+    this.defineAttack("attack-charge-air",2,20,30,true,true,true,function() {
+      this.move(10);
+      this.velY = 0;
+    });
+    this.defineAttack("attack-upward",1,20,30,true);
+    this.defineAttack("attack-upward-air",1,20,30,false,true,true,function() {
+      this.velY = -6;
+      this.move(5);
+      this.canUpAirAttack = false;
+    },
+    function() {
+      this.attacker.canUpAirAttack = true;
+    });
+    this.defineAttack("attack-down-stab",1,30,60,true,true,false,function() {
+      this.velY = -7;
+    },null,
+    [4,11],[function() {
+      this.velY = 5;
+      this.stun = 40;
+    },
+    function() {
+      if (!this.ground&&!this.lineGround&&this.y!=Level.level.height) {
+        this.attackBox.time++;
+        this.attackBox.frame--;
+        this.animFrame--;
+        this.animLock++;
+        this.attackCooldown++;
+      }
+    }]);
+  }
 }
 initClass(Player,Entity);
-Player.prototype.drawLayer = 2;
-Player.prototype.respawnsOnDeath = true;
-Player.prototype.lives = 5;
-Player.prototype.deaths = 0;
-Player.prototype.multiJump = false;
-Player.attacks = [];
-Player.slots = [null,null,null,null];
-Player.respawnButtons = [];
-Player.keyIds = [0,1,null,null];
-Player.gpIds = [null,null,null,null];
-Player.tapIds = [0,null,null,null];
-Player.defineAttack("attack",1,20,30);
-Player.defineAttack("attack-charge",2,20,30,true,true,true,function() {
-  this.move(10);
-  this.velY = 0;
-});
-Player.defineAttack("attack-charge-air",2,20,30,true,true,true,function() {
-  this.move(10);
-  this.velY = 0;
-});
-Player.defineAttack("attack-upward",1,20,30,true);
-Player.defineAttack("attack-upward-air",1,20,30,false,true,true,function() {
-  this.velY = -6;
-  this.move(5);
-  this.canUpAirAttack = false;
-},
-function() {
-  this.attacker.canUpAirAttack = true;
-});
-Player.defineAttack("attack-down-stab",1,30,60,true,true,false,function() {
-  this.velY = -7;
-},null,
-[4,11],[function() {
-  this.velY = 5;
-  this.stun = 40;
-},
-function() {
-  if (!this.ground&&!this.lineGround&&this.y!=Level.level.height) {
-    this.attackBox.time++;
-    this.attackBox.frame--;
-    this.animFrame--;
-    this.animLock++;
-    this.attackCooldown++;
-  }
-}]);
 
 var Enemy = class Enemy extends Entity {
   constructor(x,y,width,height,health,sheet,duckHeight) {
@@ -1545,11 +1571,14 @@ var Enemy = class Enemy extends Entity {
   	if (this.exclaim!=null&&this.exclaim>=0) ImageFactory.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
     else super.drawElements();
   }
+
+  onInit() {
+    this.prototype.particleColor = "#6a00d8";
+    this.attacks = [];
+    this.defineAttack("attack",1,18,30,false,false,false,function() { this.stun = 30; });
+  }
 }
 initClass(Enemy,Entity);
-Enemy.prototype.particleColor = "#6a00d8";
-Enemy.attacks = [];
-Enemy.defineAttack("attack",1,18,30,false,false,false,function() { this.stun = 30; });
 
 var PaintMinion = class PaintMinion extends Enemy {
   constructor(x,y) {
@@ -1953,6 +1982,9 @@ var Particle = class Particle extends _c_ {
   		particle.velY = Math.sin(newAngle)*newMag;
   	}
   }
+
+  static onInit() {
+    this.prototype.drawLayer = 3;
+  }
 }
 initClass(Particle,true);
-Particle.prototype.drawLayer = 3;
