@@ -121,7 +121,7 @@ var Box = class Box extends _c_ {
         var leftX = Math.floor(this.leftX()/Sectors.size.width);
         var rightX = Math.floor(this.rightX()/Sectors.size.width);
         var topY = Math.floor(this.topY()/Sectors.size.height);
-        var bottomY = Math.floor(this.y/Sectors.size.height);
+        var bottomY = Math.floor(this.bottomY()/Sectors.size.height);
         for (var a = leftX; a <= rightX; a++) {
           for (var b = topY; b <= bottomY; b++) {
             if (a!=sectorX&&b!=sectorY) Sectors.addToSector(this,a,b);
@@ -424,7 +424,6 @@ var PhysicsBox = class PhysicsBox extends Box {
   	this.lineGround = null;
   	//bottom of screen
   	if (this.y>=Level.level.height) {
-      this.cdy += Level.level.height-this.y;
   		this.y = Level.level.height;
   		this.velY = 0;
   		this.isGrounded = true;
@@ -432,9 +431,10 @@ var PhysicsBox = class PhysicsBox extends Box {
   	}
   }
   groundDragLoop(b,loops) {
-  	if (PhysicsBox.getAll().indexOf(b)==-1) return this.ground = null;
-  	this.x += b.dx;
-    this.gddx += b.dx;
+  	if (PhysicsBox.getAll().indexOf(b)==-1&&Line.getAll().indexOf(b)==-1) return this.ground = null;
+    if (!(isNaN(b.dx))) {
+      this.x += b.dx;
+    }
   	if (loops>=10) console.log("Ground drag limit");
   	else if (b.ground!=null) this.groundDragLoop(b.ground,loops+1);
   }
@@ -452,22 +452,19 @@ var PhysicsBox = class PhysicsBox extends Box {
   	if (!this.isGrounded&&!this.defyGravity&&this.velY<50) this.velY +=1;
   	//calculate X
   	if (this.velX!=0) {
-      if (this.lineGround&&this.lineGround.hitbox&&this.intersect(this.lineGround.hitbox)&&!this.ground) {
+      if (this.lineGround&&this.intersect(this.lineGround)&&!this.ground) {
         this.x += Math.cos(this.lineGround.angle())*this.velX;
+        this.y = this.lineGround.valueAt(this.x,'x');
       }
   		else this.x += this.velX;
   		if (Math.abs(this.velX)<0.5) this.velX = 0;
   		else this.velX += this.velX>0? -0.5: 0.5;
   	}
   	//calculate Y
-  	if (this.lineGround&&this.lineGround.hitbox&&!this.ground) {
-  		if (this.x<=this.lineGround.hitbox.rightX()&&this.x>=this.lineGround.hitbox.leftX()&&this.intersect(this.lineGround.hitbox)) this.y = this.lineGround.valueAt(this.x,'x');
-  	}
   	if (this.velY!=0) {
   		this.y += this.velY;
   		if (Math.abs(this.velY)<0.5) this.velY = 0;
   		else this.velY += this.velY>0? -0.5: 0.5;
-
   	}
   	//wrap screen edge
   	if (this.x<-this.width) this.x = Level.level.width+this.width;
@@ -477,7 +474,7 @@ var PhysicsBox = class PhysicsBox extends Box {
     //store change in position during this update
     this.dx = this.x-oldX, this.dy = this.y-oldY;
     //clear values relating to change in position
-    this.gddx = this.gddy = this.cdx = this.cdy = 0;
+    this.prevX = oldX, this.prevY = oldY;
     //clear values relating to ground and side detection
   	this.isGrounded = false;
   	this.cSidesPrev = this.cSides;
@@ -526,7 +523,6 @@ var PhysicsBox = class PhysicsBox extends Box {
   		if (pushResult=="b"&&!b.defyPhysics&&!b.heldBy) b.x = bPushedX;
   		if (pushResult=="=") a.x = aEqualX, b.x = bEqualX;
   		var aDX = a.x-oax, bDX = b.x-obx; //difference between old and new x positions
-      a.cdx += aDX, b.cdx += bDX;
   		if (a.collisionType<C_INFINIMASS&&!a.defyPhysics) {
   			if (aDX<0||a.leftX()==b.rightX()) { //collided on left side
   				a.cSides.l = true;
@@ -554,7 +550,6 @@ var PhysicsBox = class PhysicsBox extends Box {
   		if (pushResult=="b"&&!b.defyPhysics&&!b.heldBy) b.y = bPushedY;
   		if (pushResult=="=") a.y = aEqualY, b.y = bEqualY;
   		var aDY = a.y-oay, bDY = b.y-oby;
-      a.cdy += aDY, b.cdy += bDY;
   		if (a.collisionType<C_INFINIMASS&&!a.defyPhysics) {
   			if (aDY<0||a.y==b.topY()) { //collided on bottom side
   				a.cSides.d = Math.max(a.cSides.d,b.collisionType);
@@ -664,6 +659,14 @@ var Line = class Line extends _c_ {
   			else return 1/slope*(input-this.y)+this.x;
   	}
   }
+  hasPoint(x,y) {
+    if (this.valueAt(x,'x')==y || this.valueAt(y,'y')==x) {
+      if (this.leftX()<x && x<this.rightX()) {
+        if (this.topY()<y && y<this.bottomY()) return true;
+      }
+    }
+    return false;
+  }
   intersect(obj) {
     if (obj.leftX()<=this.rightX() && this.leftX()<=obj.rightX()) {
   		if (obj.topY()<=this.bottomY() && this.topY()<=obj.bottomY()) return true;
@@ -692,10 +695,118 @@ var Line = class Line extends _c_ {
   static collide(a,b,behavior) {
     let line = behavior==8?b:a;
     let box = behavior==8?a:b;
+    if (line.direction==0) return;
 
+    //choose a focus point for the box based on line direction
+    let fp = null;
+    switch(line.direction) {
+      case LINE_LEFT:
+        fp = [box.rightX(),box.midY()];
+        break;
+      case LINE_RIGHT:
+        fp = [box.leftX(),box.midY()];
+        break;
+      case LINE_UP:
+        fp = [box.x,box.y];
+        break;
+      case LINE_DOWN:
+        fp = [box.x,box.topY()];
+        break;
+    }
+
+    //find the box's total movement
+    let dx = box.x-box.prevX;
+    let dy = box.y-box.prevY;
+
+    //a line segment based on box's movement and our focus point
+    let b1 = [fp[0]-dx, fp[1]-dy];
+    let b2 = fp;
+
+    //a line segment based on the line
+    let l1 = [line.x, line.y];
+    let l2 = [line.x2, line.y2];
+
+    //check if the segments cross each other
+    let cross = false;
+    if (line.hasPoint(b1[0],b1[1])) cross = true; //previous location on line
+    else if (line.hasPoint(b2[0],b2[1])) cross = true; //current location on line
+    else if (Line.segmentsIntersect(b1,b2,l1,l2)) cross = true; //locations pass pass through line
+    if (!cross) return;
+
+    //per each line direction
+    //if the focus point is on the 'push' side of the line, then collide
+    switch(line.direction) {
+      case LINE_LEFT:
+        if (fp[0]>=line.valueAt(fp[1],'y')) {
+          box.x = line.valueAt(fp[1],'y')-box.halfW();
+          if (box.velX>0) box.velX = 0;
+          box.cSides.r = C_LINE;
+        }
+        break;
+      case LINE_RIGHT:
+        if (fp[0]<=line.valueAt(fp[1],'y')) {
+          box.x = line.valueAt(fp[1],'y')+box.halfW();
+          if (box.velX<0) box.velX = 0;
+          box.cSides.l = C_LINE;
+        }
+        break;
+      case LINE_UP:
+        if (fp[1]>=line.valueAt(fp[0],'x')) {
+          box.y = line.valueAt(fp[0],'x');
+          if (box.velY>0) box.velY = 0;
+          box.cSides.d = C_LINE;
+          box.isGrounded = true;
+          box.lineGround = line;
+        }
+        break;
+      case LINE_DOWN:
+        if (fp[1]<=line.valueAt(fp[0],'x')) {
+          box.y = line.valueAt(fp[0],'x')+box.height;
+          if (box.velY<0) box.velY = 0;
+          box.cSides.u = C_LINE;
+        }
+    }
+  }
+  static segmentsIntersect(p1,p2,q1,q2) {
+    //check orientations of the points
+    let oPQ1 = Line.pointOrientation(p1,p2,q1);
+    let oPQ2 = Line.pointOrientation(p1,p2,q2);
+    let oQP1 = Line.pointOrientation(q1,q2,p1);
+    let oQP2 = Line.pointOrientation(q1,q2,p2);
+
+    //the general case
+    if (oPQ1!=oPQ2 && oQP1!=oQP2) return true;
+
+    //special cases
+    if (oPQ1==ORIENT_LIN&&Line.colinearPointIsOnSegment(p1,q1,p2)) {console.log("g1"); return true;}
+    if (oPQ2==ORIENT_LIN&&Line.colinearPointIsOnSegment(p1,q2,p2)) {console.log("g2"); return true;}
+    if (oQP1==ORIENT_LIN&&Line.colinearPointIsOnSegment(q1,p1,q2)) {console.log("g3"); return true;}
+    if (oQP1==ORIENT_LIN&&Line.colinearPointIsOnSegment(q1,p2,q2)) {console.log("g4"); return true;}
+
+    //doesn't pass any test
+    return false;
+  }
+  static pointOrientation(a,b,c) {
+    //use the diferences in slope from a to b to c to determine their orientation
+    let slopeDiff = (b[1]-a[1])*(c[0]-b[0]) - (c[1]-b[1])*(b[0]-a[0]);
+    if (slopeDiff==0) return ORIENT_LIN;
+    else if (slopeDiff>0) return ORIENT_CW;
+    else return ORIENT_CCW;
+  }
+  static colinearPointIsOnSegment(s1,c,s2) {
+    //given that c is colinear with s1 and s2, checks if c is on the segment s
+    if (Math.min(s1[0],s2[0]) <= c[0] && c[0] <= Math.max(s1[0],s2[0])) {
+      if (Math.min(s1[1],s2[1]) <= c[1] && c[1] <= Math.max(s1[1],s2[1])) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 initClass(Line,true);
+Line.prototype.setSectors = Box.prototype.setSectors;
+Line.prototype.remove = Box.prototype.remove;
+Line.prototype.collisionType = C_LINE;
 Line.prototype.hitBoxStroke = "darkGray";
 Line.prototype.drawLayer = -2;
 

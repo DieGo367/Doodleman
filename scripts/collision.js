@@ -61,6 +61,9 @@ const Collision = {
     else if (ac==C_NONE||bc==C_NONE) behavior = 0;
 
     //LINES
+    //line with no direction
+    else if (ac==C_LINE&&a.direction==0) behavior = 0;
+    else if (bc==C_LINE&&b.direction==0) behavior = 0;
     //box and a line
     else if (ac<C_INFINIMASS&&bc==C_LINE) behavior = 8;
 		else if (bc<C_INFINIMASS&&ac==C_LINE) behavior = 9;
@@ -218,6 +221,7 @@ const Sectors = {
 	update: function() {
 		for (var i in this.grid) this.grid[i].updateLoadedState();
 		Box.callForAll("setSectors");
+    Line.callForAll("setSectors");
 	},
 	removeFromSector: function(obj,sectorNameOrX,sectorY) {
 		var sector = this.getSector(sectorNameOrX,sectorY);
