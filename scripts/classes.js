@@ -455,6 +455,7 @@ var PhysicsBox = class PhysicsBox extends Box {
       if (this.lineGround&&this.intersect(this.lineGround)&&!this.ground) {
         this.x += Math.cos(this.lineGround.angle())*this.velX;
         this.y = this.lineGround.valueAt(this.x,'x');
+        if (this.lineGround.useBoxCorners) this.y -= Math.sin(this.lineGround.angle())*this.halfW();
       }
   		else this.x += this.velX;
   		if (Math.abs(this.velX)<0.5) this.velX = 0;
