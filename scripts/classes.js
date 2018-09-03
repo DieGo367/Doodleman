@@ -424,6 +424,7 @@ var PhysicsBox = class PhysicsBox extends Box {
   	this.lineGround = null;
   	//bottom of screen
   	if (this.y>=Level.level.height) {
+      this.cdy += Level.level.height-this.y;
   		this.y = Level.level.height;
   		this.velY = 0;
   		this.isGrounded = true;
@@ -433,6 +434,7 @@ var PhysicsBox = class PhysicsBox extends Box {
   groundDragLoop(b,loops) {
   	if (PhysicsBox.getAll().indexOf(b)==-1) return this.ground = null;
   	this.x += b.dx;
+    this.gddx += b.dx;
   	if (loops>=10) console.log("Ground drag limit");
   	else if (b.ground!=null) this.groundDragLoop(b.ground,loops+1);
   }
@@ -470,8 +472,13 @@ var PhysicsBox = class PhysicsBox extends Box {
   	//wrap screen edge
   	if (this.x<-this.width) this.x = Level.level.width+this.width;
   	else if (this.x>Level.level.width+this.width) this.x = -this.width;
-  	//clear values for collision detection
-  	this.dx = this.x-oldX, this.dy = this.y-oldY;
+
+    //prepare values for collision detection
+    //store change in position during this update
+    this.dx = this.x-oldX, this.dy = this.y-oldY;
+    //clear values relating to change in position
+    this.gddx = this.gddy = this.cdx = this.cdy = 0;
+    //clear values relating to ground and side detection
   	this.isGrounded = false;
   	this.cSidesPrev = this.cSides;
   	this.cSides = {u:0,r:0,d:0,l:0};
@@ -519,6 +526,7 @@ var PhysicsBox = class PhysicsBox extends Box {
   		if (pushResult=="b"&&!b.defyPhysics&&!b.heldBy) b.x = bPushedX;
   		if (pushResult=="=") a.x = aEqualX, b.x = bEqualX;
   		var aDX = a.x-oax, bDX = b.x-obx; //difference between old and new x positions
+      a.cdx += aDX, b.cdx += bDX;
   		if (a.collisionType<C_INFINIMASS&&!a.defyPhysics) {
   			if (aDX<0||a.leftX()==b.rightX()) { //collided on left side
   				a.cSides.l = true;
@@ -546,6 +554,7 @@ var PhysicsBox = class PhysicsBox extends Box {
   		if (pushResult=="b"&&!b.defyPhysics&&!b.heldBy) b.y = bPushedY;
   		if (pushResult=="=") a.y = aEqualY, b.y = bEqualY;
   		var aDY = a.y-oay, bDY = b.y-oby;
+      a.cdy += aDY, b.cdy += bDY;
   		if (a.collisionType<C_INFINIMASS&&!a.defyPhysics) {
   			if (aDY<0||a.y==b.topY()) { //collided on bottom side
   				a.cSides.d = Math.max(a.cSides.d,b.collisionType);
