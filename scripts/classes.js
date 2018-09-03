@@ -689,9 +689,29 @@ var Line = class Line extends _c_ {
   	if (this.stroke) drawLine(this.x,this.y,this.x2,this.y2);
   }
   drawDebug() {
+    if (this.direction!=0) {
+      c.lineWidth = 1.5;
+      switch(this.direction) {
+        case LINE_UP:
+        c.strokeStyle = "blue";
+        break;
+        case LINE_DOWN:
+        c.strokeStyle = "red";
+        break;
+        case LINE_RIGHT:
+        c.strokeStyle = "orange";
+        break;
+        case LINE_LEFT:
+        c.strokeStyle = "green";
+        break;
+      }
+      drawLine(this.x,this.y,this.x2,this.y2);
+    }
   	c.lineWidth = 1;
-  	c.strokeStyle = this.hitBoxStroke;
+  	c.strokeStyle = "limeGreen";
+    if (!this.useBoxCorners) c.setLineDash([5]);
   	drawLine(this.x,this.y,this.x2,this.y2);
+    c.setLineDash([]);
   }
   drawHighlighted() {
   	c.lineWidth = 5;
@@ -844,7 +864,6 @@ initClass(Line,true);
 Line.prototype.setSectors = Box.prototype.setSectors;
 Line.prototype.remove = Box.prototype.remove;
 Line.prototype.collisionType = C_LINE;
-Line.prototype.hitBoxStroke = "darkGray";
 Line.prototype.drawLayer = -2;
 
 
