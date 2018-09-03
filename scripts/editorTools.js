@@ -329,7 +329,7 @@ const EditorTools = {
     if (button.on) {
       if (this.eraserOn) {
         let thing = this.findAt(Pointer.camX(),Pointer.camY(),this.mode);
-        if (thing) thing.drawHighlighted();
+        if (thing) thing.drawHighlighted("red");
       }
       else {
         this[this.getModeText()].draw();

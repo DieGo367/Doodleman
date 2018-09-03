@@ -158,9 +158,9 @@ var Box = class Box extends _c_ {
     c.strokeStyle = this.hitBoxStroke;
     c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
   }
-  drawHighlighted() {
+  drawHighlighted(color) {
     c.lineWidth = 5;
-  	c.strokeStyle = "red";
+  	c.strokeStyle = color;
   	c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
   	this.draw(true);
   }
@@ -713,9 +713,9 @@ var Line = class Line extends _c_ {
   	drawLine(this.x,this.y,this.x2,this.y2);
     c.setLineDash([]);
   }
-  drawHighlighted() {
+  drawHighlighted(color) {
   	c.lineWidth = 5;
-  	c.strokeStyle = "red";
+  	c.strokeStyle = color;
   	drawLine(this.x,this.y,this.x2,this.y2);
   	this.draw(true);
   }

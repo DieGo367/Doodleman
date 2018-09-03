@@ -431,7 +431,7 @@ function drawGame() {
 		if (G$("DevEraser").on) {
 			var type = G$("DevSpawnPM").on?0:1;
 			var thing = findTopThing(Pointer.camX(),Pointer.camY(),type);
-			if (thing) thing.drawHighlighted();
+			if (thing) thing.drawHighlighted("red");
 		}
 		for (var i in Sectors.grid) {
 			Sectors.grid[i].drawDebug();
