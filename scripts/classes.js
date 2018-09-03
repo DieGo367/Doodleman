@@ -617,7 +617,7 @@ initClass(MovingPlatform,PhysicsBox);
 
 
 var Line = class Line extends _c_ {
-  constructor(x,y,x2,y2,size,stroke,direction) {
+  constructor(x,y,x2,y2,size,stroke,direction,useBoxCorners) {
     super();
   	this.x = x;
   	this.y = y;
@@ -626,6 +626,7 @@ var Line = class Line extends _c_ {
   	this.size = size;
   	this.stroke = stroke;
     this.direction = direction;
+    this.useBoxCorners = useBoxCorners;
   }
   leftX() { return Math.min(this.x,this.x2); }
   rightX() { return Math.max(this.x,this.x2); }
@@ -703,62 +704,81 @@ var Line = class Line extends _c_ {
     let box = behavior==8?a:b;
     if (line.direction==0) return;
 
-    //choose a focus point for the box based on line direction
-    let fp = null;
-    switch(line.direction) {
-      case LINE_LEFT:
-        fp = [box.rightX(),box.midY()];
-        break;
-      case LINE_RIGHT:
-        fp = [box.leftX(),box.midY()];
-        break;
-      case LINE_UP:
-        fp = [box.x,box.y];
-        break;
-      case LINE_DOWN:
-        fp = [box.x,box.topY()];
-        break;
-    }
-
     //find the box's total movement
     let dx = box.x-box.prevX;
     let dy = box.y-box.prevY;
 
-    //a line segment based on box's movement and our focus point
-    let b1 = [fp[0]-dx, fp[1]-dy];
-    let b2 = fp;
-
-    //a line segment based on the line
-    let l1 = [line.x, line.y];
-    let l2 = [line.x2, line.y2];
-
-    //check if the segments cross each other
+    //choose possible focus point(s) for the box based on line direction
+    let vals = {}, fp = null;
+    let chosenVals = null;
+    vals[LINE_LEFT] = [box.rightX(),box.midY(),box.rightX(),box.topY(),box.rightX(),box.y];
+    vals[LINE_RIGHT] = [box.leftX(),box.midY(),box.leftX(),box.y,box.leftX(),box.topY()];
+    vals[LINE_UP] = [box.x,box.y,box.leftX(),box.y,box.rightX(),box.y];
+    vals[LINE_DOWN] = [box.x,box.topY(),box.rightX(),box.topY(),box.leftX(),box.topY()];
+    chosenVals = vals[line.direction];
     let cross = false;
-    if (line.hasPoint(b1[0],b1[1])) cross = true; //previous location on line
-    else if (line.hasPoint(b2[0],b2[1])) cross = true; //current location on line
-    else if (Line.segmentsIntersect(b1,b2,l1,l2)) cross = true; //locations pass pass through line
+    if (line.useBoxCorners) { //corner-point detection
+      let ca = [chosenVals[2],chosenVals[3]];
+      let cb = [chosenVals[4],chosenVals[5]];
+
+      //choose one
+      let angle = line.angle();
+      //line up
+      if (angle>0) fp = ca;
+      else if (angle<0) fp = cb;
+    }
+    else fp = [chosenVals[0],chosenVals[1]]; //mid-point detection
+
+    //given our focus point(s), check if they collide with the line
+    if (fp!=null) { //single focus point
+      //a line segment based on box's movement and our focus point
+      let b1 = [fp[0]-dx, fp[1]-dy];
+      let b2 = fp;
+      //check if the points cross the line
+      if (Line.pointsCrossLine(b1,b2,line)) cross = true;
+    }
+    else { //two focus points
+      //line segments based on box's movement and our corner points
+      let ca1 = [ca[0]-dx,ca[1]-dy];
+      let ca2 = ca;
+      let cb1 = [cb[0]-dx,cb[1]-dy];
+      let cb2 = cb;
+      //check if either segment crosses the line segment
+      let caSuccess = false, cbSuccess = false;
+      if (Line.pointsCrossLine(ca1,ca2,line)) caSuccess = true;
+      else if (Line.pointsCrossLine(cb1,cb2,line)) cbSuccess = true;
+      if (caSuccess||cbSuccess) {
+        cross = true;
+        //whichever point collided is the one we focus on now
+        fp = caSuccess?ca:cb;
+      }
+    }
+
     if (!cross) return;
+
+    //difference from box position to focus point
+    let dfp = [fp[0]-box.x,fp[1]-box.y];
 
     //per each line direction
     //if the focus point is on the 'push' side of the line, then collide
     switch(line.direction) {
       case LINE_LEFT:
         if (fp[0]>=line.valueAt(fp[1],'y')) {
-          box.x = line.valueAt(fp[1],'y')-box.halfW();
+          box.x = line.valueAt(fp[1],'y')-dfp[0];
           if (box.velX>0) box.velX = 0;
           box.cSides.r = C_LINE;
         }
         break;
       case LINE_RIGHT:
         if (fp[0]<=line.valueAt(fp[1],'y')) {
-          box.x = line.valueAt(fp[1],'y')+box.halfW();
+          box.x = line.valueAt(fp[1],'y')-dfp[0];
           if (box.velX<0) box.velX = 0;
           box.cSides.l = C_LINE;
         }
         break;
       case LINE_UP:
         if (fp[1]>=line.valueAt(fp[0],'x')) {
-          box.y = line.valueAt(fp[0],'x');
+          box.y = line.valueAt(fp[0],'x')-dfp[1];
           if (box.velY>0) box.velY = 0;
           box.cSides.d = C_LINE;
           box.isGrounded = true;
@@ -767,11 +787,21 @@ var Line = class Line extends _c_ {
         break;
       case LINE_DOWN:
         if (fp[1]<=line.valueAt(fp[0],'x')) {
-          box.y = line.valueAt(fp[0],'x')+box.height;
+          box.y = line.valueAt(fp[0],'x')-dfp[1];
           if (box.velY<0) box.velY = 0;
           box.cSides.u = C_LINE;
         }
     }
+  }
+  static pointsCrossLine(p1,p2,line) {
+    //a line segment based on the line
+    let l1 = [line.x, line.y];
+    let l2 = [line.x2, line.y2];
+
+    if (line.hasPoint(p1[0],p1[1])) return true; //previous location on line
+    else if (line.hasPoint(p2[0],p2[1])) return true; //current location on line
+    else if (Line.segmentsIntersect(p1,p2,l1,l2)) return true; //locations pass pass through line
+    else return false;
   }
   static segmentsIntersect(p1,p2,q1,q2) {
     //check orientations of the points

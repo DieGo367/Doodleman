@@ -155,6 +155,8 @@ const EditorTools = {
       // adjust our points to match new line
       xx = x - newMag * Math.cos(newAngleRad);
       yy = y - newMag * Math.sin(newAngleRad);
+
+      c.strokeText(toDegrees(new Line(x,y,xx,yy).angle()),Pointer.x+70,Pointer.y+70);
       return [xx,yy];
     }
   },
