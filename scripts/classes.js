@@ -661,8 +661,8 @@ var Line = class Line extends _c_ {
   }
   hasPoint(x,y) {
     if (this.valueAt(x,'x')==y || this.valueAt(y,'y')==x) {
-      if (this.leftX()<x && x<this.rightX()) {
-        if (this.topY()<y && y<this.bottomY()) return true;
+      if (this.leftX()<=x && x<=this.rightX()) {
+        if (this.topY()<=y && y<=this.bottomY()) return true;
       }
     }
     return false;
@@ -778,10 +778,10 @@ var Line = class Line extends _c_ {
     if (oPQ1!=oPQ2 && oQP1!=oQP2) return true;
 
     //special cases
-    if (oPQ1==ORIENT_LIN&&Line.colinearPointIsOnSegment(p1,q1,p2)) {console.log("g1"); return true;}
-    if (oPQ2==ORIENT_LIN&&Line.colinearPointIsOnSegment(p1,q2,p2)) {console.log("g2"); return true;}
-    if (oQP1==ORIENT_LIN&&Line.colinearPointIsOnSegment(q1,p1,q2)) {console.log("g3"); return true;}
-    if (oQP1==ORIENT_LIN&&Line.colinearPointIsOnSegment(q1,p2,q2)) {console.log("g4"); return true;}
+    if (oPQ1==ORIENT_LIN&&Line.colinearPointIsOnSegment(p1,q1,p2)) return true;
+    if (oPQ2==ORIENT_LIN&&Line.colinearPointIsOnSegment(p1,q2,p2)) return true;
+    if (oQP1==ORIENT_LIN&&Line.colinearPointIsOnSegment(q1,p1,q2)) return true;
+    if (oQP1==ORIENT_LIN&&Line.colinearPointIsOnSegment(q1,p2,q2)) return true;
 
     //doesn't pass any test
     return false;
