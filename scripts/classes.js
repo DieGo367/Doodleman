@@ -760,9 +760,10 @@ var Line = class Line extends _c_ {
 
       //choose one
       let angle = line.angle();
-      //line up
-      if (angle>0) fp = ca;
-      else if (angle<0) fp = cb;
+      if (angle<Infinity&&Math.abs(toDegrees(angle))!=90) {
+        if (angle>0) fp = ca;
+        else if (angle<0) fp = cb;
+      }
     }
     else fp = [chosenVals[0],chosenVals[1]]; //mid-point detection
 
