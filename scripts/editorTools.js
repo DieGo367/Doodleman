@@ -75,8 +75,8 @@ const EditorTools = {
     y: null,
     stroke: "black",
     lineWidth: 1,
-    collisionType: C_LINE,
     direction: LINE_UP,
+    useBoxCorners: true,
     onClick: function() {
       if (this.x==null||this.y==null) {
         this.x = Pointer.camX();
@@ -91,7 +91,7 @@ const EditorTools = {
         }
         let definition = {
           type: 1,
-          properties: [this.lineWidth,this.stroke,this.direction],
+          properties: [this.lineWidth,this.stroke,this.direction,this.useBoxCorners],
           pieces: [[this.x,this.y,xx,yy]]
         };
         TerrainManager.make(definition);
@@ -123,8 +123,8 @@ const EditorTools = {
     },
     getPropStrings: function() {
       return {
-        names: ["stroke","lineWidth","collisionType","direction"],
-        types: ["string","number","number","number"]
+        names: ["stroke","lineWidth","direction","useBoxCorners"],
+        types: ["string","number","number","boolean"]
       }
     },
     calcLineSnap: function() {

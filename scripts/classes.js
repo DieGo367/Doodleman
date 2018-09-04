@@ -1848,6 +1848,11 @@ var TextInput = class TextInput extends Button {
     this.onInputChangeFunc = function() { };
     this.setOnClick(function() {
       if (this.typing||G$("TextInput").visible) return;
+      if (this.type=="boolean") {
+        this.storedVal = !this.storedVal;
+        this.onInputChangeFunc(this.storedVal);
+        return;
+      }
       this.typing = true;
       this.textTypeMode = 1;
       this.typingText = ""+(this.storedVal!=null?this.storedVal:"");
@@ -1862,8 +1867,6 @@ var TextInput = class TextInput extends Button {
     ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,32,96);
     let text = "";
     if (this.typing) {
-      // text = this.typingText;
-      // this.fillStyle = "orange";
       return;
     }
     else if (this.storedVal!==""&&this.storedVal!=null) {
