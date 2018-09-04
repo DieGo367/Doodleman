@@ -6,7 +6,7 @@ const DevTools = {
   	xx: null,
   	yy: null,
   	dir: null,
-  	fill: "",
+  	fill: "black",
   	size: 1,
   	isBuilding: false,
   	clear: function() {
@@ -14,13 +14,13 @@ const DevTools = {
   		this.isBuilding = false;
   	},
   	makeLine: function() {
-      var properties = [this.x,this.y,this.xx,this.yy,this.size,this.fill,this.dir];
-  		Line.create(...properties);
+      var properties = [this.x,this.y,this.xx,this.yy,this.size,this.fill,this.dir,Key.isDown(16)];
+  		Line.create(...properties).isTerrain = true;
   		this.clear();
   	},
   	makeBox: function() {
       var properties = [this.x,this.y,this.xx-this.x,this.yy-this.y,this.fill,null,true,C_INFINIMASS,false,0];
-      PhysicsBox.create(...properties);
+      PhysicsBox.create(...properties).isTerrain = true;
       this.clear();
   	},
   	input: function(x,y) {
