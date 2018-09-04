@@ -118,17 +118,17 @@ var Box = class Box extends _c_ {
       var sectorY = Math.floor(this.y/Sectors.size.height);
       Sectors.addToSector(this,sectorX,sectorY);
 
-      if (this.width>Sectors.size.width||this.height>Sectors.size.height) {
+      // if (this.width>Sectors.size.width||this.height>Sectors.size.height) {
         var leftX = Math.floor(this.leftX()/Sectors.size.width);
         var rightX = Math.floor(this.rightX()/Sectors.size.width);
         var topY = Math.floor(this.topY()/Sectors.size.height);
         var bottomY = Math.floor(this.bottomY()/Sectors.size.height);
         for (var a = leftX; a <= rightX; a++) {
           for (var b = topY; b <= bottomY; b++) {
-            if (a!=sectorX&&b!=sectorY) Sectors.addToSector(this,a,b);
+            if (a!=sectorX||b!=sectorY) Sectors.addToSector(this,a,b);
           }
         }
-      }
+      // }
     }
     if (this.alwaysLoaded) this.isLoaded = true;
     else {
