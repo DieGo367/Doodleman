@@ -148,11 +148,11 @@ const Level = {
 		else alert("Unsupported browser.");
 	},
 	export: function() {
-		let data = JSON.stringify(this.level,null,'\t');
+		let data = niceJSON(this.level);
 		$("#fileOutput").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
 	},
 	log: function() {
-		let data = JSON.stringify(this.level,null,'\t');
+		let data = niceJSON(this.level);
 		console.log(data);
 	},
 	getSnappingPoints: function() {
