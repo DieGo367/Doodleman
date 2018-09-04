@@ -1842,16 +1842,16 @@ var TextInput = class TextInput extends Button {
     this.defaultValue = defaultValue;
     this.storedVal = (defaultValue===void(0)? "" : defaultValue);
     this.promptMsg = promptMsg;
+    this.typing = false;
+    this.typingText = "";
+    this.textTypeMode = 0;
     this.onInputChangeFunc = function() { };
     this.setOnClick(function() {
-      let response = prompt(this.promptMsg||this.text||"");
-      if (response===void(0)) response = "";
-      if (this.type=="number"&&!isNaN(parseFloat(response))) response = parseFloat(response);
-      if (!this.type || typeof response == this.type) {
-        if (response==="") response = null;
-        this.storedVal = response;
-        this.onInputChangeFunc(response);
-      }
+      if (this.typing||G$("TextInput").visible) return;
+      this.typing = true;
+      this.textTypeMode = 1;
+      this.typingText = ""+(this.storedVal!=null?this.storedVal:"");
+      this.setTypingView();
     });
   }
   setOnInputChange(func) {
@@ -1861,7 +1861,12 @@ var TextInput = class TextInput extends Button {
   customDraw() {
     ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,32,96);
     let text = "";
-    if (this.storedVal!==""&&this.storedVal!=null) {
+    if (this.typing) {
+      // text = this.typingText;
+      // this.fillStyle = "orange";
+      return;
+    }
+    else if (this.storedVal!==""&&this.storedVal!=null) {
       text = "" + this.storedVal;
       c.fillStyle = "black";
     }
@@ -1873,6 +1878,74 @@ var TextInput = class TextInput extends Button {
 		let metrics = c.measureText(text);
     let width = Math.min(metrics.width,this.width)/2;
     c.fillText(text,this.x+this.width/2-width,this.y+this.height/2+7,this.width);
+  }
+  setTypingView() {
+    c.font = "20px Catamaran, sans-serif";
+    let tw = c.measureText(this.promptMsg).width;
+    View.create("TextInput",this.view.layer+1,this.x-5,this.y-5,Math.max(this.width,tw)+10,this.height+10+22,"tint","black").show();
+    TextElement.create("TextInput:TE","TextInput",this.x+this.width/2,this.y+this.height/2+7,this.typingText,"Catamaran, sans-serif",20,true,"blue",CENTER).show();
+    TextElement.create("TextInput:NE","TextInput",this.x,this.y+this.height+22,this.promptMsg,"Catamaran, sans-serif",20,false,"white",LEFT).show();
+  }
+  removeTypingView() {
+    G$("TextInput").hide();
+    G$("TextInput:NE").remove();
+    G$("TextInput:TE").remove();
+    G$("TextInput").remove();
+  }
+  onKeypress(keycode) {
+    if (!this.typing) return;
+
+    switch (keycode) {
+      case 13: // Enter key
+        this.typing = false;
+        this.removeTypingView();
+
+        //let response = prompt(this.promptMsg||this.text||"");
+        // if (response===void(0)) response = "";
+        let response = this.typingText;
+        if (this.type=="number"&&!isNaN(parseFloat(response))) response = parseFloat(response);
+        if (!this.type || typeof response == this.type) {
+          if (response==="") response = null;
+          this.storedVal = response;
+          this.onInputChangeFunc(response);
+        }
+        break;
+      case 32: // Space key
+        this.typing = false;
+        this.removeTypingView();
+        break;
+      case 8: // Backspace key
+        if (this.typingText.length>0) {
+          this.typingText = this.typingText.slice(0,this.typingText.length-1);
+          G$("TextInput:TE").text = this.typingText;
+        }
+        break;
+      case 37: //left arrow key
+      case 39: //right arrow key
+        if (this.textTypeMode==1) {
+          G$("TextInput:TE").color = "yellow";
+          this.textTypeMode = 0;
+        }
+        break;
+      default:
+        if (keycode>95&&keycode<106) keycode -= 48; //numpad numbers
+        if (keycode>188&&keycode<191) keycode -= 80;
+        if (keycode>108&&keycode<111) keycode -= 64; //numpad - and .
+        if((keycode>47&&keycode<58) || (keycode>64&&keycode<91) || (keycode>44&&keycode<47)) {
+          let char = String.fromCharCode(keycode);
+          if (keycode>64&&keycode<91&&!Key.isDown(16)) char = char.toLowerCase();
+
+          if (this.textTypeMode==1) {
+            G$("TextInput:TE").text = this.typingText = char;
+            G$("TextInput:TE").color = "yellow";
+            this.textTypeMode = 0;
+          }
+          else {
+            this.typingText += char;
+            G$("TextInput:TE").text = this.typingText;
+          }
+        }
+    }
   }
 }
 initClass(TextInput,Button);
