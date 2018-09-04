@@ -746,7 +746,7 @@ var Line = class Line extends _c_ {
     let dy = box.y-box.prevY;
 
     //choose possible focus point(s) for the box based on line direction
-    let vals = {}, fp = null;
+    let vals = {}, fp = null, ca = null, cb = null;
     let chosenVals = null;
     vals[LINE_LEFT] = [box.rightX(),box.midY(),box.rightX(),box.topY(),box.rightX(),box.y];
     vals[LINE_RIGHT] = [box.leftX(),box.midY(),box.leftX(),box.y,box.leftX(),box.topY()];
@@ -755,8 +755,8 @@ var Line = class Line extends _c_ {
     chosenVals = vals[line.direction];
     let cross = false;
     if (line.useBoxCorners) { //corner-point detection
-      let ca = [chosenVals[2],chosenVals[3]];
-      let cb = [chosenVals[4],chosenVals[5]];
+      ca = [chosenVals[2],chosenVals[3]];
+      cb = [chosenVals[4],chosenVals[5]];
 
       //choose one
       let angle = line.angle();
