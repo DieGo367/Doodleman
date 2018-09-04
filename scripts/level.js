@@ -253,7 +253,11 @@ const TerrainManager = {
 			let args = [...piece,...terrain.properties];
 			let obj = construct.create(...args);
 			obj.isTerrain = true;
-			obj.rawTerrainData = clone(terrain);
+			obj.rawTerrainData = {
+				type: terrain.type,
+				pieces: [clone(terrain.pieces[i])],
+				properties: clone(terrain.properties)
+			};
 			results.push(obj);
 		}
 		return results;
