@@ -66,7 +66,7 @@ const EditorTools = {
     getPropStrings: function() {
       return {
         names: ["color","img","collisionType"],
-        types: ["string","string","number"]
+        types: ["string","string","accessor:C_NONE,C_WEAK,C_PUSHABLE,C_SOLID,C_INFINIMASS"]
       }
     }
   },
@@ -126,7 +126,7 @@ const EditorTools = {
     getPropStrings: function() {
       return {
         names: ["stroke","lineWidth","direction","useBoxCorners"],
-        types: ["string","number","number","boolean"]
+        types: ["string","number","accessor:LINE_UP,LINE_DOWN,LINE_LEFT,LINE_RIGHT","boolean"]
       }
     },
     calcLineSnap: function() {
@@ -226,15 +226,22 @@ const EditorTools = {
       }
       for (var i = 2; i < vals.length; i++) { //start at 2 to skip x and y
         let name = vals[i];
-        if (name.charAt(0)=="#") {
-          name = name.slice(1);
-          props.types.push("number");
+        switch (name.charAt(0)) {
+          case '#':
+            name = name.slice(1);
+            props.types.push("number");
+            break;
+          case '?':
+            name = name.slice(1);
+            props.types.push("boolean");
+            break;
+          case '@':
+            name = name.slice(1).split(":");
+            props.types.push("accessor:"+name[1]);
+            name = name[0];
+          default:
+            props.types.push("string");
         }
-        else if (name.charAt(0)=="?") {
-          name = name.slice(1);
-          props.types.push("boolean");
-        }
-        else props.types.push("string");
         props.names.push(name);
       }
       return props;
@@ -334,6 +341,15 @@ const EditorTools = {
       }
       else this.val = tool[name];
       this.type = type;
+      if (type.split(":")[0]=="accessor") {
+        let options = type.split(":")[1].split(",");
+        for (var i in options) {
+          if (safeConst(options[i])==this.val) {
+            this.val = options[i];
+            break;
+          }
+        }
+      }
       props.push(this);
     }
     for (var i = 0; i < strings.names.length; i++) new prop(strings.names[i],strings.types[i],i,tool==this.Actor);
