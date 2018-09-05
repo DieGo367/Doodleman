@@ -5,7 +5,7 @@
     "properties": [
       "val0","val1",19,44,38,4,["val3","Doodleman.json","Blueman.json","Redman.json"],"val2"
     ],
-    "valueNames": ["x","y","#skin","#playerNumber"]
+    "valueNames": ["x","y","#playerNumber","#skin"]
   },
   {
     "id": 10,

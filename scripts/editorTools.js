@@ -162,7 +162,7 @@ const EditorTools = {
   Actor: {
     id: 10,
     properties: [],
-    tempActor: null,
+    tempActor: null, spawnGhosts: [],
     onClick: function() {
       if (ActorManager.getActorValueNames(this.id).length==0) return;
       let propNum = G$("EditPropView").propNum;
@@ -218,6 +218,18 @@ const EditorTools = {
         props.names.push(name);
       }
       return props;
+    },
+    initSpawnGhosts: function() {
+      this.setSpawnGhost(0,Level.level.player1Spawn.x,Level.level.player1Spawn.y);
+      this.setSpawnGhost(1,Level.level.player2Spawn.x,Level.level.player2Spawn.y);
+    },
+    setSpawnGhost: function(playerNumber,x,y) {
+      if (this.spawnGhosts[playerNumber]) delete this.spawnGhosts[playerNumber];
+      let skin = [0,2][playerNumber];
+      this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,playerNumber,skin);
+    },
+    drawSpawnGhosts: function() {
+      for (var i in this.spawnGhosts) this.spawnGhosts[i].draw();
     }
   },
   init: function() {
@@ -336,5 +348,6 @@ const EditorTools = {
         this[this.getModeText()].draw();
       }
     }
+    this.Actor.drawSpawnGhosts();
   }
 }
