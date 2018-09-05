@@ -35,7 +35,7 @@ const EditorTools = {
         };
         TerrainManager.make(definition);
         Level.addTerrainData(definition);
-        this.clear();
+        this.cancel();
       }
     },
     erase: function() {
@@ -45,7 +45,7 @@ const EditorTools = {
         box.remove();
       }
     },
-    clear: function() {
+    cancel: function() {
       this.x = null;
       this.y = null;
     },
@@ -96,7 +96,7 @@ const EditorTools = {
         };
         TerrainManager.make(definition);
         Level.addTerrainData(definition);
-        this.clear();
+        this.cancel();
       }
     },
     erase: function() {
@@ -106,7 +106,7 @@ const EditorTools = {
         line.remove();
       }
     },
-    clear: function() {
+    cancel: function() {
       this.x = null;
       this.y = null;
     },
@@ -183,9 +183,7 @@ const EditorTools = {
         actor.remove();
       }
     },
-    clear: function() {
-
-    },
+    cancel: function() { },
     draw: function() {
       if (this.tempActor==null) this.refreshTempActor();
       if (this.tempActor!=null) {
@@ -228,9 +226,10 @@ const EditorTools = {
     }
     this.ready = true;
   },
-  onClick: function() {
+  onClick: function(found) {
     let tool = this[this.getModeText()];
     let button = G$(this.getModeText()+"Tool");
+    if (Pointer.focusLayer!=0||found) return tool.cancel();
     if (button.on) {
       if (this.eraserOn) tool.erase();
       else tool.onClick();
@@ -249,9 +248,9 @@ const EditorTools = {
   },
   setEraserOn: function(bool) {
     this.eraserOn = !!bool;
-    this.Box.clear();
-    this.Line.clear();
-    this.Actor.clear();
+    this.Box.cancel();
+    this.Line.cancel();
+    this.Actor.cancel();
     this.setCursor();
   },
   setCursor: function() {

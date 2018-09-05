@@ -612,7 +612,7 @@ function click(ctrl) {
 	}
 	else if (ctrl==Pointer) clearViewLock();
 	if (devEnabled&&!found&&!paused) DevTools.onClick();
-	if (EditorTools.enabled&&!found) EditorTools.onClick();
+	if (EditorTools.enabled) EditorTools.onClick(found);
 	Pointer.move(Pointer.x,Pointer.y);
 }
 
