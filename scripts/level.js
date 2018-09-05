@@ -7,10 +7,7 @@ const Level = {
 		width: 640,
 		height: 360,
 		zoomScale: 1,
-		camStart: {
-			x: 320,
-			y: 180
-		},
+		camStart: {x: 320, y: 180},
 		horScrollBuffer: 240,
 		vertScrollBuffer: 125,
 		minZoom: 1,
