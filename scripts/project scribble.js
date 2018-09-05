@@ -502,7 +502,7 @@ function drawGame() {
 	if (setting=="game") Tap.draw();
 	if (focused&&Tap.touches.length==0) Pointer.draw();
 	//debug hud
-	if (devEnabled&&!viewLock) {
+	if (devEnabled&&!viewLock&&setting=="game") {
 		c.fillStyle = "black";
 		c.font = "12px Consolas";
 		c.fillText("("+Pointer.camX()+","+Pointer.camY()+")",Pointer.x,Pointer.y+12);

@@ -114,11 +114,13 @@ const EditorTools = {
       if (this.x==null||this.y==null) return;
       else {
         c.strokeStyle = "hotpink";
+        let xx = Pointer.camX(), yy = Pointer.camY();
         if (globalKeyboard.pressed("Shift")) {
           let angledPt = this.calcLineSnap();
-          drawLine(this.x,this.y,angledPt[0],angledPt[1]);
+          xx = angledPt[0], yy = angledPt[1];
         }
-        else drawLine(this.x,this.y,Pointer.camX(),Pointer.camY());
+        drawLine(this.x,this.y,Pointer.camX(),Pointer.camY());
+        if (devEnabled) c.strokeText(toDegrees(new Line(this.x,this.y,xx,yy).angle2()),Pointer.x+40,Pointer.y+40);
       }
     },
     getPropStrings: function() {
@@ -141,8 +143,6 @@ const EditorTools = {
       else { //round up
         newAngle = Math.round(angle + 15 - angle%15);
       }
-      //test output
-      c.strokeText(newAngle,Pointer.x+50,Pointer.y+50);
 
       // convert back to radians
       let angleDiffRad = toRadians(newAngle-angle);
@@ -156,7 +156,6 @@ const EditorTools = {
       xx = x - newMag * Math.cos(newAngleRad);
       yy = y - newMag * Math.sin(newAngleRad);
 
-      c.strokeText(toDegrees(new Line(x,y,xx,yy).angle()),Pointer.x+70,Pointer.y+70);
       return [xx,yy];
     }
   },
