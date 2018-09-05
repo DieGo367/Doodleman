@@ -1851,6 +1851,11 @@ var TextInput = class TextInput extends Button {
     this.onInputChangeFunc = function() { };
     this.setOnClick(function() {
       if (this.typing||G$("TextInput").visible) return;
+      if (Key.isDown("18")) {
+        this.storedVal = void(0);
+        this.onInputChangeFunc();
+        return;
+      }
       if (this.type=="boolean") {
         this.storedVal = !this.storedVal;
         this.onInputChangeFunc(this.storedVal);
