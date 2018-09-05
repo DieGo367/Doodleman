@@ -59,19 +59,27 @@ function compareList(a,b) {
 function niceJSON(obj) {
   let myChanges = [];
   let str = JSON.stringify(obj,function(key,val) {
-    if (val instanceof Array) {
-      let arrayString = '[';
+    if (typeof val == "object" && val!=null) {
+			let isArray = (val instanceof Array);
+			console.log(isArray)
+      let arrayString = isArray?'[':'{';
       let compactable = true;
-      for (var i = 0; i < val.length; i++) {
-        if (val[i]!=null&&typeof val[i]=="object") compactable = false;
+			let isFirst = true;
+      for (var i in val) {
+        if (val[i]!=null&&typeof val[i]=="object") {
+					compactable = false;
+					break;
+				}
         if (compactable) {
+					if (!isFirst) arrayString += ', ';
+					isFirst = false;
+					if (!isArray) arrayString += i + ": ";
           if (val[i]==null) arrayString += "null";
           else if (typeof val[i]=="string") arrayString += '"' + val[i] + '"';
           else arrayString += val[i];
-          if (i<val.length-1) arrayString += ',';
         }
       }
-      arrayString += ']';
+      arrayString += isArray?']':'}';
 
       if (compactable) {
         myChanges.push(arrayString);
