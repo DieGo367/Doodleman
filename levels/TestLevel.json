@@ -4,14 +4,10 @@
   "width": 854,
   "height": 480,
   "zoomScale": 1,
-  "player1Spawn": {
-    "x": 20,
-    "y": 310
-  },
-  "player2Spawn": {
-    "x": 834,
-    "y": 310
-  },
+  "playerSpawns": [
+    {"x": 20, "y": 310},
+    {"x": 834, "y": 310}
+  ],
   "camStart": {
     "x": 320,
     "y": 300

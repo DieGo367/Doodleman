@@ -384,10 +384,10 @@ function clearViewLock() {
 //Game Functions
 
 function addPlayer(number) {
-	var sheet = ["Blueman.json","Redman.json"][number];
-	var button = Player.respawnButtons[number];
-	var coords = [[Level.level.player1Spawn.x,Level.level.player1Spawn.y],[Level.level.player2Spawn.x,Level.level.player2Spawn.y]][number];
-	var player = Player.create(coords[0],coords[1],19,44,38,4,multiplayer?sheet:"Doodleman.json",number);
+	let sheet = ["Blueman.json","Redman.json"][number];
+	let button = Player.respawnButtons[number];
+	let coords = Level.level.playerSpawns[number];
+	let player = Player.create(coords.x,coords.y,19,44,38,4,multiplayer?sheet:"Doodleman.json",number);
 	if (multiplayer) button.hide();
 	else G$("RespawnP1Button").hide();
 }

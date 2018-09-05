@@ -6,14 +6,10 @@
   "height": 384,
   "minZoom": 0.9,
   "zoomScale": 1,
-  "player1Spawn": {
-		"x": 71,
-		"y": 335
-	},
-	"player2Spawn": {
-		"x": 44,
-		"y": 335
-	},
+  "playerSpawns": [
+    {"x": 71, "y": 335},
+	  {"x": 44, "y": 335}
+  ],
   "terrain": [
 		{
 			"type": 1,

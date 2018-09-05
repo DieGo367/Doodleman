@@ -15,14 +15,10 @@ const Level = {
 		vertScrollBuffer: 125,
 		minZoom: 1,
 		maxZoom: 1,
-		player1Spawn: {
-			x: 20,
-			y: 310
-		},
-		player2Spawn: {
-			x: 620,
-			y: 310
-		},
+		playerSpawns: [
+			{x: 20, y: 310},
+			{x: 620, y: 310}
+		],
 		actors: [],
 		terrain: []
 	},

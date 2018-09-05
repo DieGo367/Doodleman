@@ -4,14 +4,10 @@
   "bgName": "BG-Paper.png",
   "width": 640,
   "height": 360,
-  "player1Spawn": {
-    "x": 320,
-    "y": 360
-  },
-  "player2Spawn": {
-    "x": 295,
-    "y": 360
-  },
+  "playerSpawns": [
+    {"x": 320, "y": 360},
+    {"x": 295, "y": 360}
+  ],
   "terrain": [
     {
       "type":1,

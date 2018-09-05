@@ -10,14 +10,10 @@
   },
   "horScrollBuffer": 240,
   "vertScrollBuffer": 125,
-  "player1Spawn": {
-    "x": 1754,
-    "y": 1040
-  },
-  "player2Spawn": {
-    "x": 1779,
-    "y": 1040
-  },
+  "playerSpawns": [
+    {"x": 1754, "y": 1040},
+    {"x": 1779, "y": 1040}
+  ],
   "minZoom": 0.3333,
   "actors": [
     [22,135,1080],

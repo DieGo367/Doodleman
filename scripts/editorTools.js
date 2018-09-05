@@ -167,7 +167,8 @@ const EditorTools = {
       if (this.id==0) {
         let playerNumber = this.properties[0];
         if (typeof playerNumber != "number"||playerNumber<0) return;
-        let spawn = Level.level["player"+(playerNumber+1)+"Spawn"];
+        let spawn = Level.level.playerSpawns[playerNumber];
+        if (!spawn) spawn = Level.level.playerSpawns[playerNumber] = {x: 0, y: 0};
         spawn.x = Pointer.camX(), spawn.y = Pointer.camY();
         this.setSpawnGhost(playerNumber,spawn.x,spawn.y);
         return;
@@ -247,12 +248,14 @@ const EditorTools = {
       return props;
     },
     initSpawnGhosts: function() {
-      this.setSpawnGhost(0,Level.level.player1Spawn.x,Level.level.player1Spawn.y);
-      this.setSpawnGhost(1,Level.level.player2Spawn.x,Level.level.player2Spawn.y);
+      for (var i = 0; i < Level.level.playerSpawns.length; i++) {
+        let spawn = Level.level.playerSpawns[i];
+        this.setSpawnGhost(i,spawn.x,spawn.y);
+      }
     },
     setSpawnGhost: function(playerNumber,x,y) {
       if (this.spawnGhosts[playerNumber]) delete this.spawnGhosts[playerNumber];
-      let skin = [0,2][playerNumber];
+      let skin = playerNumber + (playerNumber==0?0:1);
       this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,null,skin);
     },
     drawSpawnGhosts: function() {
