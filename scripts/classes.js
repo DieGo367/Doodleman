@@ -1922,8 +1922,14 @@ var TextInput = class TextInput extends Button {
         break;
       case 8: // Backspace key
         if (this.typingText.length>0) {
-          this.typingText = this.typingText.slice(0,this.typingText.length-1);
-          G$("TextInput:TE").text = this.typingText;
+          if (this.textTypeMode==1) {
+            G$("TextInput:TE").text = this.typingText = "";
+            this.textTypeMode = 0;
+          }
+          else {
+            this.typingText = this.typingText.slice(0,this.typingText.length-1);
+            G$("TextInput:TE").text = this.typingText;
+          }
         }
         break;
       case 37: //left arrow key
