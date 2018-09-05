@@ -1869,10 +1869,7 @@ var TextInput = class TextInput extends Button {
         let thisInput = this;
         buildSelector(this.typeData,function(index,selection) {
           thisInput.storedVal = selection;
-          let removeChars = [' ','(',')','[',']','{','}','"',"'",'+','-','*','/','%','=','&','|','!','$','?',':',',',';'];
-          for (var i in removeChars) selection = selection.split(removeChars[i]).join("");
-          let getVal = Function("return " + selection + ";");
-          thisInput.onInputChangeFunc(getVal());
+          thisInput.onInputChangeFunc(safeConst(selection));
         },null,this.view.layer+1);
       }
       else {

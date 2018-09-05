@@ -57,38 +57,44 @@ function compareList(a,b) {
 	return true;
 }
 function niceJSON(obj) {
-    let myChanges = [];
-    let str = JSON.stringify(obj,function(key,val) {
-      if (val instanceof Array) {
-        let arrayString = '[';
-        let compactable = true;
-        for (var i = 0; i < val.length; i++) {
-          if (val[i]!=null&&typeof val[i]=="object") compactable = false;
-          if (compactable) {
-            if (val[i]==null) arrayString += "null";
-            else if (typeof val[i]=="string") arrayString += '"' + val[i] + '"';
-            else arrayString += val[i];
-            if (i<val.length-1) arrayString += ',';
-          }
-        }
-        arrayString += ']';
-
+  let myChanges = [];
+  let str = JSON.stringify(obj,function(key,val) {
+    if (val instanceof Array) {
+      let arrayString = '[';
+      let compactable = true;
+      for (var i = 0; i < val.length; i++) {
+        if (val[i]!=null&&typeof val[i]=="object") compactable = false;
         if (compactable) {
-          myChanges.push(arrayString);
-          return "{{{" + (myChanges.length-1) + "}}}";
+          if (val[i]==null) arrayString += "null";
+          else if (typeof val[i]=="string") arrayString += '"' + val[i] + '"';
+          else arrayString += val[i];
+          if (i<val.length-1) arrayString += ',';
         }
-        else return val;
+      }
+      arrayString += ']';
+
+      if (compactable) {
+        myChanges.push(arrayString);
+        return "{{{" + (myChanges.length-1) + "}}}";
       }
       else return val;
-    },'\t');
-
-    let split = str.split('"{{{');
-    for (var i = 1; i < split.length; i++) {
-      let subArr = split[i].split('}}}"');
-      split[i] = myChanges[i-1] + subArr[1];
     }
-    return split.join("");
+    else return val;
+  },'\t');
+
+  let split = str.split('"{{{');
+  for (var i = 1; i < split.length; i++) {
+    let subArr = split[i].split('}}}"');
+    split[i] = myChanges[i-1] + subArr[1];
   }
+  return split.join("");
+}
+function safeConst(str) {
+	let removeChars = [' ','(',')','[',']','{','}','"',"'",'+','-','*','/','%','=','&','|','!','$','?',':',',',';'];
+	for (var i in removeChars) str = str.split(removeChars[i]).join("");
+	let getVal = Function("return " + str + ";");
+	return getVal();
+}
 function setCookie(key,value,expDays) {
 	if (!expDays) expDays = 7;
 	var date = new Date();
