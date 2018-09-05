@@ -192,22 +192,32 @@ const ActorManager = {
 		});
 	},
 	make: function(id) {
-		var vals = Array.from(arguments).slice(1);
-		var actor = this.actorData[id];
+		let vals = Array.from(arguments).slice(1);
+		let actor = this.actorData[id];
 		if (actor) {
-			var props = [];
+			let props = [];
 			for (var i in actor.properties) {
-				var p = actor.properties[i];
+				let p = actor.properties[i];
 				switch(typeof p) {
 					case "string":
-						this.interpretStr(p,props,vals);
+						props.push(this.interpretStr(p,vals));
 						break;
 					case "object":
 						if (p!=null&&p[0].substring(0,3)=="val") {
-							var choice = vals[parseInt(p[0].substring(3))] +1; //to ignore 1st index in p, which is this
-							if (choice==0||p[choice]==void(0)) var result = p[1];
-							else var result = p[choice];
-							if (typeof result=="string") this.interpretStr(result,props,vals);
+							//from the vals passed in, choose one to determine how to resolve this array
+							let choice = this.interpretStr(p[0],vals);
+							//interpret the choice
+							let result = p[1]; //default, if our choice isn't valid
+							switch(typeof choice) {
+								case "number":
+									if (choice>0) result = p[choice +1];
+									break;
+								case "boolean":
+									result = choice? p[2]: p[1];
+									break;
+							}
+							//result could be another val string, resolve it if necessary
+							if (typeof result=="string") props.push(this.interpretStr(result,vals));
 							else props.push(result);
 						}
 						else props.push(null);
@@ -231,10 +241,10 @@ const ActorManager = {
 		}
 		return actor;
 	},
-	interpretStr: function(str,props,vals) {
+	interpretStr: function(str,vals) {
 		var sub = str.substring(0,3), index = parseInt(str.substring(3));
-		if (sub=="val") props.push(vals[index]);
-		else props.push(str);
+		if (sub=="val") return vals[index];
+		else return str;
 	},
 	getActorValueNames: function(id) {
 		if (!this.actorData[id]) return [];

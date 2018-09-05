@@ -212,6 +212,10 @@ const EditorTools = {
           name = name.slice(1);
           props.types.push("number");
         }
+        else if (name.charAt(0)=="?") {
+          name = name.slice(1);
+          props.types.push("boolean");
+        }
         else props.types.push("string");
         props.names.push(name);
       }
