@@ -202,14 +202,15 @@ const ActorManager = {
 						props.push(this.interpretStr(p,vals));
 						break;
 					case "object":
-						if (p!=null&&p[0].substring(0,3)=="val") {
+						let choice = null;
+						if (p!=null) {
 							//from the vals passed in, choose one to determine how to resolve this array
 							let choice = this.interpretStr(p[0],vals);
 							//interpret the choice
 							let result = p[1]; //default, if our choice isn't valid
 							switch(typeof choice) {
 								case "number":
-									if (choice>0) result = p[choice +1];
+									if (choice>0&&choice<p.length-1) result = p[choice +1];
 									break;
 								case "boolean":
 									result = choice? p[2]: p[1];
