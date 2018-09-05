@@ -1841,7 +1841,12 @@ initClass(Button,GuiElement);
 var TextInput = class TextInput extends Button {
   constructor(name,viewName,x,y,width,height,type,defaultValue,placeholder,promptMsg) {
     super(name,viewName,x,y,width,height,placeholder);
-    this.type = type;
+    this.type = type; //supported: string, number, boolean, accessor
+    if (type.split(":").length>1) {
+      let split = type.split(":");
+      this.type = split[0];
+      this.typeData = split[1].split(",");
+    }
     this.defaultValue = defaultValue;
     this.storedVal = (defaultValue===void(0)? "" : defaultValue);
     this.promptMsg = promptMsg;
@@ -1854,17 +1859,28 @@ var TextInput = class TextInput extends Button {
       if (Key.isDown("18")) {
         this.storedVal = void(0);
         this.onInputChangeFunc();
-        return;
       }
-      if (this.type=="boolean") {
+      else if (this.type=="boolean") {
         this.storedVal = !this.storedVal;
         this.onInputChangeFunc(this.storedVal);
-        return;
       }
-      this.typing = true;
-      this.textTypeMode = 1;
-      this.typingText = ""+(this.storedVal!=null?this.storedVal:"");
-      this.setTypingView();
+      else if (this.type=="accessor") {
+        if (!this.typeData) return;
+        let thisInput = this;
+        buildSelector(this.typeData,function(index,selection) {
+          thisInput.storedVal = selection;
+          let removeChars = [' ','(',')','[',']','{','}','"',"'",'+','-','*','/','%','=','&','|','!','$','?',':',',',';'];
+          for (var i in removeChars) selection = selection.split(removeChars[i]).join("");
+          let getVal = Function("return " + selection + ";");
+          thisInput.onInputChangeFunc(getVal());
+        },null,this.view.layer+1);
+      }
+      else {
+        this.typing = true;
+        this.textTypeMode = 1;
+        this.typingText = ""+(this.storedVal!=null?this.storedVal:"");
+        this.setTypingView();
+      }
     });
   }
   setOnInputChange(func) {
