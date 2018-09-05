@@ -567,10 +567,6 @@ function buildEditorTools() {
 		G$("LS:ScrollBuffer:vert").storedVal = Level.level.vertScrollBuffer;
 		G$("LS:ZoomLimit:min").storedVal = Level.level.minZoom;
 		G$("LS:ZoomLimit:max").storedVal = Level.level.maxZoom;
-		G$("LS:P1:x").storedVal = Level.level.player1Spawn.x;
-		G$("LS:P1:y").storedVal = Level.level.player1Spawn.y;
-		G$("LS:P2:x").storedVal = Level.level.player2Spawn.x;
-		G$("LS:P2:y").storedVal = Level.level.player2Spawn.y;
 		G$("LS:ZoomScale:num").storedVal = Level.level.zoomScale;
 		G$("LS:BGScale:num").storedVal = Level.level.bgScale;
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
