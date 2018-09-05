@@ -392,7 +392,7 @@ function addPlayer(number) {
 	else G$("RespawnP1Button").hide();
 }
 
-function addPM(x,y) { PaintMinion.create(x,y); }
+function addPM(x,y) { PaintMinion.create(x,y).isActor = true; }
 
 var wave = 0;
 
