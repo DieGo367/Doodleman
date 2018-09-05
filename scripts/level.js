@@ -117,7 +117,10 @@ const Level = {
 			G$("LevelSelectView").hide();
 			if (focused) pauseGame(false);
 		}
-		else G$("LevelSettingsClose").onClickFunction();
+		else {
+			G$("LevelSettingsClose").onClickFunction();
+			EditorTools.Actor.initSpawnGhosts();
+		}
 		if (doLog) console.log("Loaded Level "+this.level.name);
 		return true;
 	},
