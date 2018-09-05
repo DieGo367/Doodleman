@@ -615,7 +615,7 @@ let dmActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack","pause
 
 let playerActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack"];
 let gameActions = ["pause","respawn","showInfo"];
-let cameraActions = ["camUp","camRight","camDown","camLeft","camZoomIn","camZoomOut","camRotateCW","camRotateCCW","camReset"];
+let cameraActions = ["camUp","camRight","camDown","camLeft","camZoomIn","camZoomOut","camZoomReset","camRotateCW","camRotateCCW","camReset"];
 let pointerActions = ["pointerMoveX","pointerMoveY","click"];
 
 let gpadGroupings = [
@@ -624,8 +624,11 @@ let gpadGroupings = [
 	"A","B","Start","Select","BumperL","BumperR","AnalogR_X","AnalogR_Y"
 ];
 
-Key.ctrlMaps.global = new CtrlMap("GlobalKeyboard",KEYBOARD,["P1","P2","R","\\","up","right","down","left","NumTR","NumTL","NumBR","NumBL","NumB","]","Shift","Ctrl"],[82,80,192,220,38,39,40,37,99,97,103,105,98,221,16,17],
-[...gameActions,...cameraActions,"snippet","pause-p1","pause-p2","Shift","Ctrl"],["P1","R","\\","up","right","down","left","NumTR","NumTL","NumBR","NumBL","NumB","]","P1","P2","Shift","Ctrl"]);
+Key.ctrlMaps.global = new CtrlMap("GlobalKeyboard",KEYBOARD,
+["P1","P2","R","\\","up","right","down","left","NumTR","NumTL","NumBR","NumBL","NumB","[","]","=","Shift","Ctrl","F12","`"],
+[82,80,192,220,38,39,40,37,99,97,103,105,98,219,221,187,16,17,223,192],
+[...gameActions,...cameraActions,"snippet","pause-p1","pause-p2","Shift","Ctrl"],
+["P1","R","\\","up","right","down","left","]","[","=","NumBL","NumBR","`","F12","P1","P2","Shift","Ctrl"]);
 
 Key.ctrlMaps[0] = new CtrlMap("WASD",KEYBOARD,dmInputs,[87,71,null,null,null,null,null,null,null,null,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
 Key.ctrlMaps[1] = new CtrlMap("IJKL",KEYBOARD,dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);

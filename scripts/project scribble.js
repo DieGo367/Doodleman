@@ -577,14 +577,15 @@ function doGlobalControls(controller) {
 	else {
 		if (!multiplayer&&controller.ready("respawn")) { PhysicsBox.callForAll("respawn"); controller.use("respawn"); }
 		if ((devEnabled||setting=="editor")&&controller.type==KEYBOARD&&Pointer.focusLayer==0) {
-			if (controller.pressed("camRotateCW")) myAngle += 0.01;
-			if (controller.pressed("camRotateCCW")) myAngle -= 0.01;
+			// if (controller.pressed("camRotateCW")) myAngle += 0.01;
+			// if (controller.pressed("camRotateCCW")) myAngle -= 0.01;
 			if (controller.pressed("camLeft")) Camera.x -= 5;
 			if (controller.pressed("camRight")) Camera.x += 5;
 			if (controller.pressed("camDown")) Camera.y += 5;
 			if (controller.pressed("camUp")) Camera.y -= 5;
 			if (controller.pressed("camZoomIn")) Camera.zoom += 0.01;
 			if (controller.pressed("camZoomOut")) Camera.zoom -= 0.01;
+			if (controller.pressed("camZoomReset")) Camera.zoom = Camera.requestedZoom;
 			if (controller.pressed("camReset")) {
 				myAngle = 0;
 				Camera.reset();
