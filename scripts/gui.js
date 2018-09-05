@@ -618,20 +618,6 @@ function buildEditorTools() {
 		Level.level.maxZoom = val;
 	}).show();
 
-	TextElement.create("LS:PlayerSpawn","LevelSettingsView",hudWidth/4-150,320,"Player Spawn","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
-	TextInput.create("LS:P1:x","LevelSettingsView",hudWidth/2-175,295,100,40,"number",Level.level.player1Spawn.x,"P1 x","Enter Player 1 spawn x").setOnInputChange(function(val) {
-		Level.level.player1Spawn.x = val;
-	}).show();
-	TextInput.create("LS:P1:y","LevelSettingsView",hudWidth/2-70,295,100,40,"number",Level.level.player1Spawn.y,"P1 y","Enter Player 1 spawn y").setOnInputChange(function(val) {
-		Level.level.player1Spawn.y = val;
-	}).show();
-	TextInput.create("LS:P2:x","LevelSettingsView",hudWidth/2+35,295,100,40,"number",Level.level.player2Spawn.x,"P2 x","Enter Player 2 spawn x").setOnInputChange(function(val) {
-		Level.level.player2Spawn.x = val;
-	}).show();
-	TextInput.create("LS:P2:y","LevelSettingsView",hudWidth/2+140,295,100,40,"number",Level.level.player2Spawn.y,"P2 y","Enter Player 3 spawn y").setOnInputChange(function(val) {
-		Level.level.player2Spawn.y = val;
-	}).show();
-
 	TextElement.create("LS:ZoomScale","LevelSettingsView",hudWidth*2/3-50,100,"Zoom Scale","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
 	TextInput.create("LS:ZoomScale:num","LevelSettingsView",hudWidth/2+190,75,100,40,"number",Level.level.zoomScale,"zoom scale","Enter preferred zoom level").setOnInputChange(function(val) {
 		Level.level.zoomScale = val;
