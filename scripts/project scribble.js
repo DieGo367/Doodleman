@@ -502,15 +502,17 @@ function drawGame() {
 	if (setting=="game") Tap.draw();
 	if (focused&&Tap.touches.length==0) Pointer.draw();
 	//debug hud
-	if (devEnabled&&!viewLock&&setting=="game") {
+	if (devEnabled&&!viewLock) {
 		c.fillStyle = "black";
 		c.font = "12px Consolas";
 		c.fillText("("+Pointer.camX()+","+Pointer.camY()+")",Pointer.x,Pointer.y+12);
-		var textGroup = [], allPlayers = Player.getAll();
-		for (var i in allPlayers) textGroup.push(allPlayers[i].slot+1+"XY: "+allPlayers[i].x+", "+allPlayers[i].y);
-		textGroup.push("LastPressedKey: "+keyText,"LastPressedButton: "+buttonText,"Entities: "+Entity.getAll().length,"Misc: "+hudText);
-		var textY = 42+(24*(allPlayers.length-1));
-		for (var i in textGroup) c.fillText(textGroup[i],10,textY+(14*i));
+		if (setting=="game") {
+			var textGroup = [], allPlayers = Player.getAll();
+			for (var i in allPlayers) textGroup.push(allPlayers[i].slot+1+"XY: "+allPlayers[i].x+", "+allPlayers[i].y);
+			textGroup.push("LastPressedKey: "+keyText,"LastPressedButton: "+buttonText,"Entities: "+Entity.getAll().length,"Misc: "+hudText);
+			var textY = 42+(24*(allPlayers.length-1));
+			for (var i in textGroup) c.fillText(textGroup[i],10,textY+(14*i));
+		}
 	}
 
 	//normalPixels
