@@ -1011,6 +1011,7 @@ var Entity = class Entity extends PhysicsBox {
   static defineAttack(name,damage,duration,cooldown,lockMovement,lockActions,defyGravity,prep,onHurt,specialFrames,specialFuncs) {
     // defines an attack and stores it in this class's attack list
     if (!name) return;
+    if (!this.attacks) this.attacks = [];
     this.attacks.push({ // default parameters provided as well
       name: name,
       damage: damage||0,
@@ -1027,6 +1028,7 @@ var Entity = class Entity extends PhysicsBox {
   }
   static getAttack(name) { //returns attack obj from the class's (or parents') list of attack
     if (!name) return console.log("missing attack: "+name);
+    if (!this.attacks) this.attacks = [];
     for (var i in this.attacks) {
       if (this.attacks[i].name==name) return this.attacks[i]; //found attack
     }
@@ -1447,17 +1449,17 @@ var Enemy = class Enemy extends Entity {
 
   handleTarget() {
     this.faceTo(this.target);
-    var dist = this.distanceTo(this.target);
-    var distY = Math.abs(this.y-this.target.y);
+    let dist = this.distanceTo(this.target);
+    let distY = Math.abs(this.y-this.target.y);
     if (this.exclaim<=0) {
-      var frontBox = new Box(this.calcXPosInFront(15/2),this.y-1,15,this.height-2);
+      let frontBox = new Box(this.calcXPosInFront(15/2),this.y-1,15,this.height-2);
       if (dist>30) {
         //follow
         if (!this.stun) this.move(2.5);
         //jump
-        var isBlocked = false, objs = PhysicsBox.getLoaded();
+        let isBlocked = false, objs = PhysicsBox.getLoaded();
         for (var i in objs) {
-          var box = objs[i];
+          let box = objs[i];
           if (box==this||box==this.target) continue; //self and target should't trigger a jump
           if (box.collisionType==C_LINE&&(box.line.direction==LINE_UP||box.line.direction==LINE_DOWN)) continue; //don't trigger jump from lines
           if (box.intersect(frontBox)) isBlocked = true;
@@ -1574,7 +1576,7 @@ var Enemy = class Enemy extends Entity {
     else super.drawElements();
   }
 
-  onInit() {
+  static onInit() {
     this.prototype.particleColor = "#6a00d8";
     this.attacks = [];
     this.defineAttack("attack",1,18,30,false,false,false,function() { this.stun = 30; });
