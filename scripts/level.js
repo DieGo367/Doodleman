@@ -117,7 +117,7 @@ const Level = {
 			G$("LevelSelectView").hide();
 			if (focused) pauseGame(false);
 		}
-		else G$("LevelSettingsView").hide();
+		else G$("LevelSettingsClose").onClickFunction();
 		if (doLog) console.log("Loaded Level "+this.level.name);
 		return true;
 	},
