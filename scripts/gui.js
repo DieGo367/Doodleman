@@ -533,7 +533,7 @@ function buildEditorTools() {
 				});
 			}
 			input.show();
-			input.type = props[i].type;
+			input.setType(props[i].type);
 			input.storedVal = props[i].val;
 			input.text = props[i].name;
 			input.promptMsg = "Enter a value for "+props[i].name;

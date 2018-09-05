@@ -1841,12 +1841,7 @@ initClass(Button,GuiElement);
 var TextInput = class TextInput extends Button {
   constructor(name,viewName,x,y,width,height,type,defaultValue,placeholder,promptMsg) {
     super(name,viewName,x,y,width,height,placeholder);
-    this.type = type; //supported: string, number, boolean, accessor
-    if (type.split(":").length>1) {
-      let split = type.split(":");
-      this.type = split[0];
-      this.typeData = split[1].split(",");
-    }
+    this.setType(type); //supported: string, number, boolean, accessor
     this.defaultValue = defaultValue;
     this.storedVal = (defaultValue===void(0)? "" : defaultValue);
     this.promptMsg = promptMsg;
@@ -1879,6 +1874,17 @@ var TextInput = class TextInput extends Button {
         this.setTypingView();
       }
     });
+  }
+  setType(type) {
+    let split = type.split(":");
+    if (split.length>1) {
+      this.type = split[0];
+      this.typeData = split[1].split(",");
+    }
+    else {
+      this.type = type;
+      this.typeData = [];
+    }
   }
   setOnInputChange(func) {
     this.onInputChangeFunc = func;
