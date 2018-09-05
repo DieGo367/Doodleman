@@ -164,6 +164,14 @@ const EditorTools = {
     properties: [],
     tempActor: null, spawnGhosts: [],
     onClick: function() {
+      if (this.id==0) {
+        let playerNumber = this.properties[0];
+        if (typeof playerNumber != "number"||playerNumber<0) return;
+        let spawn = Level.level["player"+(playerNumber+1)+"Spawn"];
+        spawn.x = Pointer.camX(), spawn.y = Pointer.camY();
+        this.setSpawnGhost(playerNumber,spawn.x,spawn.y);
+        return;
+      }
       if (ActorManager.getActorValueNames(this.id).length==0) return;
       let propNum = G$("EditPropView").propNum;
       if (propNum>1) {
@@ -189,20 +197,32 @@ const EditorTools = {
       if (this.tempActor!=null) {
         this.tempActor.x = Pointer.camX();
         this.tempActor.y = Pointer.camY();
+        c.globalAlpha = 0.5;
         this.tempActor.draw();
+        c.globalAlpha = 1;
       }
     },
     refreshTempActor: function() {
       if (this.tempActor!=null) delete this.tempActor;
       if (ActorManager.getActorValueNames(this.id).length==0) return this.tempActor = null;
       let x = Pointer.camX(), y = Pointer.camY();
-      this.tempActor = ActorManager.makeGhostActor(this.id,x,y,...this.properties);
+      if (this.id==0) {
+        let slot = this.properties[0];
+        if (slot>=0) this.tempActor = ActorManager.makeGhostActor(0,x,y,null,[0,2][slot]);
+      }
+      else this.tempActor = ActorManager.makeGhostActor(this.id,x,y,...this.properties);
     },
     getPropStrings: function() {
       let vals = ActorManager.getActorValueNames(this.id);
       let props = {
         names: ["id"],
         types: ["number"]
+      }
+      if (this.id==0) {
+        this.properties[0] = 0;
+        props.names.push("playerSlot");
+        props.types.push("number");
+        return props;
       }
       for (var i = 2; i < vals.length; i++) { //start at 2 to skip x and y
         let name = vals[i];
@@ -226,7 +246,7 @@ const EditorTools = {
     setSpawnGhost: function(playerNumber,x,y) {
       if (this.spawnGhosts[playerNumber]) delete this.spawnGhosts[playerNumber];
       let skin = [0,2][playerNumber];
-      this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,playerNumber,skin);
+      this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,null,skin);
     },
     drawSpawnGhosts: function() {
       for (var i in this.spawnGhosts) this.spawnGhosts[i].draw();
