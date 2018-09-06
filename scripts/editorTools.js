@@ -119,7 +119,7 @@ const EditorTools = {
           let angledPt = this.calcLineSnap();
           xx = angledPt[0], yy = angledPt[1];
         }
-        drawLine(this.x,this.y,Pointer.camX(),Pointer.camY());
+        drawLine(this.x,this.y,xx,yy);
         if (devEnabled) c.strokeText(toDegrees(new Line(this.x,this.y,xx,yy).angle2()),Pointer.x+40,Pointer.y+40);
       }
     },
