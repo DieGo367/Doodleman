@@ -569,10 +569,10 @@ function buildEditorTools() {
 		G$("LS:ZoomLimit:max").storedVal = Level.level.maxZoom;
 		G$("LS:ZoomScale:num").storedVal = Level.level.zoomScale;
 		G$("LS:BGScale:num").storedVal = Level.level.bgScale;
-		G$("LS:Edge:top").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.edge.top];
-		G$("LS:Edge:bottom").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.edge.bottom];
-		G$("LS:Edge:left").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.edge.left];
-		G$("LS:Edge:right").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.edge.right];
+		G$("LS:Edge:top").storeAccessor(Level.level.edge.top);
+		G$("LS:Edge:bottom").storeAccessor(Level.level.edge.bottom);
+		G$("LS:Edge:left").storeAccessor(Level.level.edge.left);
+		G$("LS:Edge:right").storeAccessor(Level.level.edge.right);
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 	TextElement.create("LS:Title","LevelSettingsView",hudWidth/2,30,"Level Properties","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 

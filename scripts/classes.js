@@ -1889,7 +1889,7 @@ var TextInput = class TextInput extends Button {
         let thisInput = this;
         buildSelector(this.typeData,function(index,selection) {
           thisInput.storedVal = selection;
-          thisInput.onInputChangeFunc(safeConst(selection));
+          thisInput.onInputChangeFunc(thisInput.accessValue(selection));
         },null,this.view.layer+1);
       }
       else {
@@ -1904,12 +1904,25 @@ var TextInput = class TextInput extends Button {
     let split = type.split(":");
     if (split.length>1) {
       this.type = split[0];
-      this.typeData = split[1].split(",");
+      this.setTypeData(split[1].split(","));
     }
     else {
       this.type = type;
-      this.typeData = [];
+      this.setTypeData([]);
     }
+  }
+  setTypeData(data) {
+    this.typeData = data;
+    if (this.type=="accessor") Constants.storeList(data);
+  }
+  accessValue(accessorStr) {
+    return Constants.read(accessorStr);
+  }
+  toAccessorString(val) {
+    return Constants.getKey(val,this.typeData);
+  }
+  storeAccessor(val) {
+    this.storedVal = this.toAccessorString(val);
   }
   setOnInputChange(func) {
     this.onInputChangeFunc = func;

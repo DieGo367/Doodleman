@@ -98,12 +98,6 @@ function niceJSON(obj) {
   }
   return split.join("");
 }
-function safeConst(str) {
-	let removeChars = [' ','(',')','[',']','{','}','"',"'",'+','-','*','/','%','=','&','|','!','$','?',':',',',';'];
-	for (var i in removeChars) str = str.split(removeChars[i]).join("");
-	let getVal = Function("return " + str + ";");
-	return getVal();
-}
 function setCookie(key,value,expDays) {
 	if (!expDays) expDays = 7;
 	var date = new Date();
@@ -367,6 +361,34 @@ const User = {
 		window.location = this.logUrl;
 	}
 };
+const Constants = {
+	stored: {},
+	store: function(str) {
+		if (this.stored[str]!==void(0)) return this.stored[str];
+		let removeChars = [' ','(',')','[',']','{','}','"',"'",'+','-','*','/','%','=','&','|','!','$','?',':',',',';'];
+		for (var i in removeChars) str = str.split(removeChars[i]).join("");
+		let getVal = Function("return " + str + ";");
+		return this.stored[str] = getVal();
+	},
+	read: function(str) {
+		let val = this.stored[str];
+		if (val===void(0)) val = this.store(str);
+		return val;
+	},
+	storeList: function(list) {
+		for (var i in list) this.store(list[i]);
+	},
+	getKey: function(val,hints) {
+		if (hints) {
+			for (var i in hints) {
+				if (this.read(hints[i])==val) return hints[i];
+			}
+		}
+		for (var i in this.stored) {
+			if (this.stored[i]==val) return i;
+		}
+	}
+}
 
 var DrawableClassList = [];
 function callOnAllClasses (method) {

@@ -345,13 +345,7 @@ const EditorTools = {
       else this.val = tool[name];
       this.type = type;
       if (type.split(":")[0]=="accessor") {
-        let options = type.split(":")[1].split(",");
-        for (var i in options) {
-          if (safeConst(options[i])==this.val) {
-            this.val = options[i];
-            break;
-          }
-        }
+        this.val = Constants.getKey(this.val,type.split(":")[1].split(","));
       }
       props.push(this);
     }
