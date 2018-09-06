@@ -2,15 +2,14 @@ const Level = {
 	level: {
 		bgType: "name", //name = image, raw = b64
 		bgName: "none",
-		bgRaw: "",
 		bgScale: 1,
 		width: 640,
 		height: 360,
 		edge: {top: EDGE_NONE, bottom: EDGE_SOLID, left: EDGE_WRAP, right: EDGE_WRAP},
-		zoomScale: 1,
 		camStart: {x: 320, y: 180},
 		horScrollBuffer: 240,
 		vertScrollBuffer: 125,
+		zoomScale: 1,
 		minZoom: 1,
 		maxZoom: 1,
 		playerSpawns: [
@@ -18,7 +17,8 @@ const Level = {
 			{x: 620, y: 310}
 		],
 		actors: [],
-		terrain: []
+		terrain: [],
+		bgRaw: ""
 	},
 	addTerrainData: function(data) {
 		let index = this.findMatchingTerrainDefinitionIndex(data);

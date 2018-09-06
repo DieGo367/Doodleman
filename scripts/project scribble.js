@@ -74,7 +74,7 @@ function niceJSON(obj) {
         if (compactable) {
 					if (!isFirst) arrayString += ', ';
 					isFirst = false;
-					if (!isArray) arrayString += i + ": ";
+					if (!isArray) arrayString += '"' + i + '": ';
           if (val[i]==null) arrayString += "null";
           else if (typeof val[i]=="string") arrayString += '"' + val[i] + '"';
           else arrayString += val[i];
