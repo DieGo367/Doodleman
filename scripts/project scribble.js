@@ -39,6 +39,7 @@ const C_NONE = 0, C_WEAK = 1, C_PUSHABLE = 2, C_ENT = 3, C_SOLID = 4, C_INFINIMA
 const BUTTON_NO = 0, BUTTON_NORMAL = 1, BUTTON_TOGGLE = 2;
 const POINTER_NONE = 0, POINTER_CROSSHAIR = 1, POINTER_PENCIL = 2, POINTER_ERASER = 3;
 const ORIENT_LIN = 0, ORIENT_CW = 1, ORIENT_CCW = -1;
+const EDGE_NONE = 0, EDGE_SOLID = 1, EDGE_WRAP = 2, EDGE_KILL = 3;
 //helper functions
 function dp(pixels) {
 	return pixels*pixelDensity;

@@ -569,6 +569,8 @@ function buildEditorTools() {
 		G$("LS:ZoomLimit:max").storedVal = Level.level.maxZoom;
 		G$("LS:ZoomScale:num").storedVal = Level.level.zoomScale;
 		G$("LS:BGScale:num").storedVal = Level.level.bgScale;
+		G$("LS:EdgeBehavior:hor").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.horEdgeBehavior];
+		G$("LS:EdgeBehavior:vert").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.vertEdgeBehavior];
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 	TextElement.create("LS:Title","LevelSettingsView",hudWidth/2,30,"Level Properties","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 
@@ -612,6 +614,14 @@ function buildEditorTools() {
 	}).show();
 	TextInput.create("LS:ZoomLimit:max","LevelSettingsView",hudWidth/2-70,240,100,40,"number",Level.level.maxZoom,"max","Enter maximum zoom level").setOnInputChange(function(val) {
 		Level.level.maxZoom = val;
+	}).show();
+
+	TextElement.create("LS:EdgeBehavior","LevelSettingsView",hudWidth/4-150,320,"Edge Behavior","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextInput.create("LS:EdgeBehavior:hor","LevelSettingsView",hudWidth/2-175,295,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_WRAP,"horizontal","Enter horizontal screen edge behavior").setOnInputChange(function(val) {
+		Level.level.horEdgeBehavior = val;
+	}).show();
+	TextInput.create("LS:EdgeBehavior:vert","LevelSettingsView",hudWidth/2-70,295,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_KILL,"vertical","Enter vertical screen edge behavior").setOnInputChange(function(val) {
+		Level.level.vertEdgeBehavior = val;
 	}).show();
 
 	TextElement.create("LS:ZoomScale","LevelSettingsView",hudWidth*2/3-50,100,"Zoom Scale","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();

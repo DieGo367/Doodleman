@@ -6,6 +6,8 @@ const Level = {
 		bgScale: 1,
 		width: 640,
 		height: 360,
+		horEdgeBehavior: EDGE_WRAP,
+		vertEdgeBehavior: EDGE_SOLID,
 		zoomScale: 1,
 		camStart: {x: 320, y: 180},
 		horScrollBuffer: 240,
