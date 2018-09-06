@@ -435,9 +435,7 @@ var PhysicsBox = class PhysicsBox extends Box {
   	this.ground = null;
   	this.lineGround = null;
   	//bottom of screen
-  	if (this.y>=Level.level.height) {
-  		this.y = Level.level.height;
-  		this.velY = 0;
+  	if (Level.level.edge.bottom==EDGE_SOLID&&this.y>=Level.level.height) {
   		this.isGrounded = true;
   		this.cSides.d = true;
   	}
@@ -455,6 +453,31 @@ var PhysicsBox = class PhysicsBox extends Box {
   	if (this.ground!=null) this.groundDragLoop(this.ground,0);
   }
 
+  edge(edge,axis,sign,boundNeg,boundPos,sideNeg,sidePos,spacer,focusOffset) {
+    let pos = this[axis];
+    switch(Level.level.edge[edge]) {
+      case EDGE_SOLID:
+        if (sign<0&&sideNeg<boundNeg) {
+          this[axis] = boundNeg + spacer + focusOffset;
+          this["vel"+axis.toUpperCase()] = 0;
+        }
+        else if (sign>0&&sidePos>boundPos) {
+          this[axis] = boundPos - spacer + focusOffset;
+          this["vel"+axis.toUpperCase()] = 0;
+        }
+        break;
+      case EDGE_WRAP:
+        if (sign<0&&pos<boundNeg-spacer*2) this[axis] = boundPos + spacer*2 - 5 + focusOffset;
+        else if (sign>0&&pos>boundPos+spacer*2) this[axis] = boundNeg - spacer*2 + 5 + focusOffset;
+        break;
+      case EDGE_KILL:
+        if (sign<0&&pos<boundNeg-spacer*2) this.die? this.die(): this.remove();
+        else if (sign>0&&pos>boundPos+spacer*2) this.die? this.die(): this.remove();
+        break;
+      case EDGE_NONE:
+        break;
+    }
+  }
   update() {
     super.update();
     if (!this.isLoaded) return;
@@ -479,9 +502,11 @@ var PhysicsBox = class PhysicsBox extends Box {
   		if (Math.abs(this.velY)<0.5) this.velY = 0;
   		else this.velY += this.velY>0? -0.5: 0.5;
   	}
-  	//wrap screen edge
-  	if (this.x<-this.width) this.x = Level.level.width+this.width;
-  	else if (this.x>Level.level.width+this.width) this.x = -this.width;
+  	//screen edge behavior
+    this.edge("left",'x',-1,0,Level.level.width,this.leftX(),this.rightX(),this.halfW(),0);
+    this.edge("right",'x',1,0,Level.level.width,this.leftX(),this.rightX(),this.halfW(),0);
+    this.edge("top",'y',-1,0,Level.level.height,this.topY(),this.bottomY(),this.height/2,this.height/2);
+    this.edge("bottom",'y',1,0,Level.level.height,this.topY(),this.bottomY(),this.height/2,this.height/2);
 
     //prepare values for collision detection
     //store change in position during this update
@@ -1090,7 +1115,7 @@ var Player = class Player extends Entity {
     super(x,y,width,height,duckHeight,health,sheet);
     this.canBeCarried = true;
     this.thrownDamage = 0;
-    this.alwaysLoaded = true;
+    // this.alwaysLoaded = true;
   	this.slot = slot; //new for players
   	if (slot!=null) Player.setSlot(slot,this);
   	this.attackCooldown = 0;

@@ -6,6 +6,7 @@
   "height": 384,
   "minZoom": 0.9,
   "zoomScale": 1,
+  "edge": {"top": 0, "bottom": 3, "left": 2, "right": 2},
   "playerSpawns": [
     {"x": 71, "y": 335},
 	  {"x": 44, "y": 335}

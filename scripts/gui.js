@@ -569,8 +569,10 @@ function buildEditorTools() {
 		G$("LS:ZoomLimit:max").storedVal = Level.level.maxZoom;
 		G$("LS:ZoomScale:num").storedVal = Level.level.zoomScale;
 		G$("LS:BGScale:num").storedVal = Level.level.bgScale;
-		G$("LS:EdgeBehavior:hor").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.horEdgeBehavior];
-		G$("LS:EdgeBehavior:vert").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.vertEdgeBehavior];
+		G$("LS:Edge:top").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.edge.top];
+		G$("LS:Edge:bottom").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.edge.bottom];
+		G$("LS:Edge:left").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.edge.left];
+		G$("LS:Edge:right").storedVal = ["EDGE_NONE","EDGE_SOLID","EDGE_WRAP","EDGE_KILL"][Level.level.edge.right];
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 	TextElement.create("LS:Title","LevelSettingsView",hudWidth/2,30,"Level Properties","Catamaran, sans-serif",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
 
@@ -616,12 +618,18 @@ function buildEditorTools() {
 		Level.level.maxZoom = val;
 	}).show();
 
-	TextElement.create("LS:EdgeBehavior","LevelSettingsView",hudWidth/4-150,320,"Edge Behavior","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
-	TextInput.create("LS:EdgeBehavior:hor","LevelSettingsView",hudWidth/2-175,295,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_WRAP,"horizontal","Enter horizontal screen edge behavior").setOnInputChange(function(val) {
-		Level.level.horEdgeBehavior = val;
+	TextElement.create("LS:Edge","LevelSettingsView",hudWidth/4-150,320,"Edge Behavior","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextInput.create("LS:Edge:top","LevelSettingsView",hudWidth/2-175,295,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_NONE,"top","Enter top edge behavior").setOnInputChange(function(val) {
+		Level.level.edge.top = val;
 	}).show();
-	TextInput.create("LS:EdgeBehavior:vert","LevelSettingsView",hudWidth/2-70,295,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_KILL,"vertical","Enter vertical screen edge behavior").setOnInputChange(function(val) {
-		Level.level.vertEdgeBehavior = val;
+	TextInput.create("LS:Edge:bottom","LevelSettingsView",hudWidth/2-70,295,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_SOLID,"bottom","Enter bottom edge behavior").setOnInputChange(function(val) {
+		Level.level.edge.bottom = val;
+	}).show();
+	TextInput.create("LS:Edge:left","LevelSettingsView",hudWidth/2+35,295,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_WRAP,"left","Enter left edge behavior").setOnInputChange(function(val) {
+		Level.level.edge.left = val;
+	}).show();
+	TextInput.create("LS:Edge:right","LevelSettingsView",hudWidth/2+140,295,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_WRAP,"right","Enter right edge behavior").setOnInputChange(function(val) {
+		Level.level.edge.right = val;
 	}).show();
 
 	TextElement.create("LS:ZoomScale","LevelSettingsView",hudWidth*2/3-50,100,"Zoom Scale","Catamaran, sans-serif",20,false,"yellow",LEFT,true,"darkOrange",2).show();
