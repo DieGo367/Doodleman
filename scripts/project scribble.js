@@ -229,14 +229,14 @@ const Pointer = {
 		if (x<0) x = 0;
 		if (y>hudHeight) y = hudHeight;
 		if (y<0) y = 0;
-		if (EditorTools.enabled&&!globalKeyboard.pressed("Ctrl")) {
+		if (EditorTools.enabled&&!globalKeyboard.pressed("Ctrl")&&G$(EditorTools.getModeText()+"Tool").on) {
 			let pts = Level.getSnappingPoints();
 			let minDist = 5;
 			let closestPoint = null;
 			for (var i in pts) {
 				let pt = pts[i];
-				pt[0] = pt[0] - Camera.x + hudWidth/2;
-				pt[1] = pt[1] - Camera.y + hudHeight/2;
+				pt[0] = (pt[0] - Camera.x)*Camera.zoom + hudWidth/2;
+				pt[1] = (pt[1] - Camera.y)*Camera.zoom + hudHeight/2;
 				let dist = Math.sqrt(Math.pow(pt[0]-x,2)+Math.pow(pt[1]-y,2));
 				if (dist<=minDist) {
 					minDist = dist;
