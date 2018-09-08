@@ -130,8 +130,8 @@ var Box = class Box extends _c_ {
         }
       // }
     }
-    if (this.alwaysLoaded) this.isLoaded = true;
-    else {
+    // if (this.alwaysLoaded) this.isLoaded = true;
+    // else {
       this.isLoaded = false;
       for (var i in this.sectors) {
         if (Sectors.getSector(this.sectors[i]).loaded) {
@@ -139,7 +139,7 @@ var Box = class Box extends _c_ {
           break;
         }
       }
-    }
+    // }
   }
   remove() {
     for (var i in this.sectors) {
@@ -1264,7 +1264,7 @@ var Player = class Player extends Entity {
     super(x,y,width,height,duckHeight,health,sheet);
     this.canBeCarried = true;
     this.thrownDamage = 0;
-    // this.alwaysLoaded = true;
+    this.alwaysLoaded = true;
     if (direction!=void(0)) this.direction = direction;
     this.spawnDirection = this.direction;
   	this.slot = slot; //new for players
