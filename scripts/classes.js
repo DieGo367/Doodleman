@@ -882,9 +882,10 @@ var Line = class Line extends _c_ {
           break;
       }
 
+      let allEndpoints = this.getAllEndpoints();
       //check if passing line's endpoints
-      this.collideEndpoint(line,box,line.x,line.y,dirs);
-      this.collideEndpoint(line,box,line.x2,line.y2,dirs);
+      this.collideEndpoint(line,box,line.x,line.y,dirs,allEndpoints);
+      this.collideEndpoint(line,box,line.x2,line.y2,dirs,allEndpoints);
     }
   }
   static pointsCrossLine(p1,p2,line) {
@@ -933,13 +934,13 @@ var Line = class Line extends _c_ {
     return false;
   }
 
-  static collideEndpoint(line,box,x,y,directions) {
-    // let doSpecial = (Level.endpointCountAt(x,y)==0);
-    let endpoints = Level.endpointsAt(x,y);
+  static collideEndpoint(line,box,x,y,directions,endpoints) {
     let doSpecial = true;
     let foundMatch = false;
     for (var i in endpoints) {
-      if (endpoints[i][2]==line.direction) {
+      let ep = endpoints[i];
+      if (ep.x!=x||ep.y!=y) continue;
+      if (ep.direction==line.direction) {
         if (!foundMatch) foundMatch = true;
         else {
           doSpecial = false;
@@ -983,70 +984,16 @@ var Line = class Line extends _c_ {
       }
     }
   }
-
-  static checkEndpoint(ax,ay,bx,by,axis,list) {
-    if (ax==bx && ay==by) list.push({x: ax, y: ay, axis: axis});
-  }
-  static doEndpointCollision(terrain,actors) {
-    let list = [];
-    for (var i in terrain) {
-      if (terrain[i] instanceof Line) list.push(terrain[i]);
-    }
-    //find all endpoints shared by these two lines
+  static getAllEndpoints() {
+    let lines = this.getAll();
     let points = [];
-    for (var i = 0; i < list.length; i++) {
-      for (var j = i+1; j < list.length; j++) {
-        if (i==j) continue;
-        if (list[i].direction!= -list[j].direction) continue;
-        if (!list[i].useBoxCorners || !list[j].useBoxCorners) continue;
-        let col = null;
-        if (Math.abs(list[i].direction)==1) col = 'y';
-        else if (Math.abs(list[i].direction)==2) col = 'x';
-        if (!col) continue;
-        if (list[i].intersect(list[j])) {
-          this.checkEndpoint(list[i].x,list[i].y,list[j].x,list[j].y,col,points);
-          this.checkEndpoint(list[i].x,list[i].y,list[j].x2,list[j].y2,col,points);
-          this.checkEndpoint(list[i].x2,list[i].y2,list[j].x,list[j].y,col,points);
-          this.checkEndpoint(list[i].x2,list[i].y2,list[j].x2,list[j].y2,col,points);
-          console.log("opp touch")
-        }
-      }
+    for (var i in lines) {
+      let l = lines[i];
+      if (l.direction==void(0)) continue;
+      points.push({x: l.x, y: l.y, direction: l.direction});
+      points.push({x: l.x2, y: l.y2, direction: l.direction});
     }
-    console.log(points.length)
-    //now collide actors against these points
-    for (var i in actors) {
-      if (!(actors[i] instanceof PhysicsBox)) continue;
-      for (var j in points) {
-        let act = actors[i];
-        let pt = points[j];
-        if (pt.axis=='x') {
-          if (act.containsPoint(act.x,pt.y)) {
-            console.log("xxx")
-            if (act.prevX+act.halfW()<=pt.x && act.rightX()>=pt.x) {
-              act.x = pt.x-act.halfW();
-              act.velX = 0;
-            }
-            else if (act.prevX-act.halfW()>=pt.x && act.leftX()<=pt.x) {
-              act.x = pt.x+act.halfW();
-              act.velX = 0;
-            }
-          }
-        }
-        else if (pt.axis=='y') {
-          console.log("yyy")
-          if (act.containsPoint(pt.x,act.y)) {
-            if (act.prevY<pt.y && act.y>pt.y) {
-              act.y = pt.y;
-              act.velY = 0;
-            }
-            else if (act.prevY-act.height>pt.y && act.topY()<pt.y) {
-              act.y = pt.y+act.height;
-              act.velY = 0;
-            }
-          }
-        }
-      }
-    }
+    return points;
   }
 
   static onInit() {
