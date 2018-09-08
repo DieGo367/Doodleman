@@ -17,10 +17,10 @@ function addGui() {
 function initEditor() {
   canvas = $("#paper")[0], c = canvas.getContext("2d");
 	setPrefixedProperty(c,"imageSmoothingEnabled",false);
+  devEnabled = true;
   addEvents();
   addGui();
   EditorTools.enabled = true;
-  devEnabled = true;
   EditorTools.Actor.initSpawnGhosts();
   globalKeyboard = new Ctrl(KEYBOARD,"global");
 	setInterval(tick,1000/60);
