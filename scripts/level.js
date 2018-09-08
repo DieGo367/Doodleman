@@ -152,7 +152,7 @@ const Level = {
 		let data = niceJSON(this.level);
 		console.log(data);
 	},
-	getSnappingPoints: function() {
+	getSnappingPoints: function(cancelMidpoints) {
 		let points = [];
 		for (var i in this.level.terrain) {
 			let definition = this.level.terrain[i];
@@ -168,12 +168,20 @@ const Level = {
 					case 1:
 						points.push([piece[0],piece[1]]);
 						points.push([piece[2],piece[3]]);
-						points.push([(piece[0]+piece[2])/2, (piece[1]+piece[3])/2]);
+						if (!cancelMidpoints) points.push([(piece[0]+piece[2])/2, (piece[1]+piece[3])/2]);
 						break;
 				}
 			}
 		}
 		return points;
+	},
+	endpointCountAt: function(x,y) {
+		let points = this.getSnappingPoints(true);
+		let count = 0;
+		for (var i in points) {
+			if (points[i][0]==x&&points[i][1]==y) count++;
+		}
+		return count;
 	}
 }
 const BlankLevel = clone(Level.level);

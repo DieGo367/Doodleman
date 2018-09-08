@@ -116,6 +116,13 @@ const Collision = {
   removePair: function(index) {
     this.pairs.splice(index,1);
   },
+  findAllPairsWith: function(obj) {
+    let list = [];
+    for (var i in this.pairs) {
+      if (obj==this.pairs[i].a||obj==this.pairs[i].b) list.push(this.pairs[i]);
+    }
+    return list;
+  },
   removeAllPairsWith: function(box) {
     for (var i = 0; i < this.pairs.length; i++) {
       if (this.pairs[i].a==box||this.pairs[i].b==box) {

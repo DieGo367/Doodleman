@@ -817,43 +817,74 @@ var Line = class Line extends _c_ {
       }
     }
 
-    if (!cross) return;
+    if (cross) {
+      //difference from box position to focus point
+      let dfp = [fp[0]-box.x,fp[1]-box.y];
 
-    //difference from box position to focus point
-    let dfp = [fp[0]-box.x,fp[1]-box.y];
+      //per each line direction
+      //if the focus point is on the 'push' side of the line, then collide
+      switch(line.direction) {
+        case LINE_LEFT:
+          if (fp[0]>=line.valueAt(fp[1],'y')) {
+            box.x = line.valueAt(fp[1],'y')-dfp[0];
+            if (box.velX>0) box.velX = 0;
+            box.cSides.r = C_LINE;
+          }
+          break;
+        case LINE_RIGHT:
+          if (fp[0]<=line.valueAt(fp[1],'y')) {
+            box.x = line.valueAt(fp[1],'y')-dfp[0];
+            if (box.velX<0) box.velX = 0;
+            box.cSides.l = C_LINE;
+          }
+          break;
+        case LINE_UP:
+          if (fp[1]>=line.valueAt(fp[0],'x')) {
+            box.y = line.valueAt(fp[0],'x')-dfp[1];
+            if (box.velY>0) box.velY = 0;
+            box.cSides.d = C_LINE;
+            box.isGrounded = true;
+            box.lineGround = line;
+          }
+          break;
+        case LINE_DOWN:
+          if (fp[1]<=line.valueAt(fp[0],'x')) {
+            box.y = line.valueAt(fp[0],'x')-dfp[1];
+            if (box.velY<0) box.velY = 0;
+            box.cSides.u = C_LINE;
+          }
+      }
+    }
+    else if (line.useBoxCorners) {
+      //figure out which directions should be solid
+      let dirs = {u:true, d:true, l:true, r:true};
+      let angle = line.angle();
+      switch (line.direction) {
+        case LINE_UP:
+          dirs.d = false;
+          if (angle<=0) dirs.r = 0.5;
+          if (angle>=0) dirs.l = 0.5;
+          break;
+        case LINE_DOWN:
+          dirs.u = false;
+          if (angle<=0) dirs.l = 0.5;
+          if (angle>=0) dirs.r = 0.5;
+          break;
+        case LINE_LEFT:
+          dirs.r = false;
+          if (angle<=0||Math.abs(angle)==90) dirs.d = 0.5;
+          if (angle>=0||Math.abs(angle)==90) dirs.u = 0.5;
+          break;
+        case LINE_RIGHT:
+          dirs.l = false;
+          if (angle<=0||Math.abs(angle)==90) dirs.u = 0.5;
+          if (angle>=0||Math.abs(angle)==90) dirs.d = 0.5;
+          break;
+      }
 
-    //per each line direction
-    //if the focus point is on the 'push' side of the line, then collide
-    switch(line.direction) {
-      case LINE_LEFT:
-        if (fp[0]>=line.valueAt(fp[1],'y')) {
-          box.x = line.valueAt(fp[1],'y')-dfp[0];
-          if (box.velX>0) box.velX = 0;
-          box.cSides.r = C_LINE;
-        }
-        break;
-      case LINE_RIGHT:
-        if (fp[0]<=line.valueAt(fp[1],'y')) {
-          box.x = line.valueAt(fp[1],'y')-dfp[0];
-          if (box.velX<0) box.velX = 0;
-          box.cSides.l = C_LINE;
-        }
-        break;
-      case LINE_UP:
-        if (fp[1]>=line.valueAt(fp[0],'x')) {
-          box.y = line.valueAt(fp[0],'x')-dfp[1];
-          if (box.velY>0) box.velY = 0;
-          box.cSides.d = C_LINE;
-          box.isGrounded = true;
-          box.lineGround = line;
-        }
-        break;
-      case LINE_DOWN:
-        if (fp[1]<=line.valueAt(fp[0],'x')) {
-          box.y = line.valueAt(fp[0],'x')-dfp[1];
-          if (box.velY<0) box.velY = 0;
-          box.cSides.u = C_LINE;
-        }
+      //check if passing line's endpoints
+      this.collideEndpoint(line,box,line.x,line.y,dirs);
+      this.collideEndpoint(line,box,line.x2,line.y2,dirs);
     }
   }
   static pointsCrossLine(p1,p2,line) {
@@ -900,6 +931,110 @@ var Line = class Line extends _c_ {
       }
     }
     return false;
+  }
+
+  static collideEndpoint(line,box,x,y,directions) {
+    let doSpecial = (Level.endpointCountAt(x,y)==0);
+    let dirs = clone(directions);
+    for (var i in dirs) if (dirs[i]==0.5) {
+      dirs[i] = doSpecial;
+    }
+
+    if (box.containsPoint(box.x,y)) {
+      if (dirs.l && box.prevX+box.halfW()<= x && x <=box.rightX()) {
+        box.x = x-box.halfW();
+        if (box.velX>0) box.velX = 0;
+        box.cSides.r = C_LINE;
+        // console.log("l")
+      }
+      if (dirs.r && box.leftX()<= x && x <=box.prevX-box.halfW()) {
+        box.x = x+box.halfW();
+        if (box.velX<0) box.velX = 0;
+        box.cSides.l = C_LINE;
+        // console.log("r")
+      }
+    }
+    if (box.containsPoint(x,box.y)) {
+      if (dirs.u && box.prevY<= y && y <=box.y) {
+        box.y = y;
+        if (box.velY>0) box.velY = 0;
+        box.cSides.d = C_LINE;
+        box.isGrounded = true;
+        //don't add lineGround because we don't want angle-walking on the end of the line anyway
+        // console.log("u")
+      }
+      if (dirs.d && box.topY()<= y && y <=box.prevY-box.height) {
+        box.y = y+box.height;
+        if (box.velY<0) box.velY = 0;
+        box.cSides.u = C_LINE;
+        // console.log("d")
+      }
+    }
+  }
+
+  static checkEndpoint(ax,ay,bx,by,axis,list) {
+    if (ax==bx && ay==by) list.push({x: ax, y: ay, axis: axis});
+  }
+  static doEndpointCollision(terrain,actors) {
+    let list = [];
+    for (var i in terrain) {
+      if (terrain[i] instanceof Line) list.push(terrain[i]);
+    }
+    //find all endpoints shared by these two lines
+    let points = [];
+    for (var i = 0; i < list.length; i++) {
+      for (var j = i+1; j < list.length; j++) {
+        if (i==j) continue;
+        if (list[i].direction!= -list[j].direction) continue;
+        if (!list[i].useBoxCorners || !list[j].useBoxCorners) continue;
+        let col = null;
+        if (Math.abs(list[i].direction)==1) col = 'y';
+        else if (Math.abs(list[i].direction)==2) col = 'x';
+        if (!col) continue;
+        if (list[i].intersect(list[j])) {
+          this.checkEndpoint(list[i].x,list[i].y,list[j].x,list[j].y,col,points);
+          this.checkEndpoint(list[i].x,list[i].y,list[j].x2,list[j].y2,col,points);
+          this.checkEndpoint(list[i].x2,list[i].y2,list[j].x,list[j].y,col,points);
+          this.checkEndpoint(list[i].x2,list[i].y2,list[j].x2,list[j].y2,col,points);
+          console.log("opp touch")
+        }
+      }
+    }
+    console.log(points.length)
+    //now collide actors against these points
+    for (var i in actors) {
+      if (!(actors[i] instanceof PhysicsBox)) continue;
+      for (var j in points) {
+        let act = actors[i];
+        let pt = points[j];
+        if (pt.axis=='x') {
+          if (act.containsPoint(act.x,pt.y)) {
+            console.log("xxx")
+            if (act.prevX+act.halfW()<=pt.x && act.rightX()>=pt.x) {
+              act.x = pt.x-act.halfW();
+              act.velX = 0;
+            }
+            else if (act.prevX-act.halfW()>=pt.x && act.leftX()<=pt.x) {
+              act.x = pt.x+act.halfW();
+              act.velX = 0;
+            }
+          }
+        }
+        else if (pt.axis=='y') {
+          console.log("yyy")
+          if (act.containsPoint(pt.x,act.y)) {
+            if (act.prevY<pt.y && act.y>pt.y) {
+              act.y = pt.y;
+              act.velY = 0;
+            }
+            else if (act.prevY-act.height>pt.y && act.topY()<pt.y) {
+              act.y = pt.y+act.height;
+              act.velY = 0;
+            }
+          }
+        }
+      }
+    }
   }
 
   static onInit() {
