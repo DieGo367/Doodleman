@@ -1260,11 +1260,13 @@ initClass(Entity,PhysicsBox);
 
 var chargeAttackReq = 40;
 var Player = class Player extends Entity {
-  constructor(x,y,width,height,duckHeight,health,sheet,slot) {
+  constructor(x,y,width,height,duckHeight,health,sheet,slot,direction) {
     super(x,y,width,height,duckHeight,health,sheet);
     this.canBeCarried = true;
     this.thrownDamage = 0;
     // this.alwaysLoaded = true;
+    if (direction!=void(0)) this.direction = direction;
+    this.spawnDirection = this.direction;
   	this.slot = slot; //new for players
   	if (slot!=null) Player.setSlot(slot,this);
   	this.attackCooldown = 0;
@@ -1507,6 +1509,7 @@ var Player = class Player extends Entity {
   }
   respawn() {
   	if (this.door) this.door.forgetPlayer();
+    this.direction = this.spawnDirection;
   	super.respawn();
   }
 

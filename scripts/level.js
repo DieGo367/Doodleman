@@ -13,8 +13,8 @@ const Level = {
 		minZoom: 1,
 		maxZoom: 1,
 		playerSpawns: [
-			{x: 20, y: 310},
-			{x: 620, y: 310}
+			{x: 20, y: 310, direction: RIGHT},
+			{x: 620, y: 310, direction: LEFT}
 		],
 		actors: [],
 		terrain: [],
