@@ -20,6 +20,7 @@ function initEditor() {
   addEvents();
   addGui();
   EditorTools.enabled = true;
+  devEnabled = true;
   EditorTools.Actor.initSpawnGhosts();
   globalKeyboard = new Ctrl(KEYBOARD,"global");
 	setInterval(tick,1000/60);
