@@ -166,8 +166,8 @@ const Level = {
 						points.push([piece[0],          piece[1]-piece[3]]);
 						break;
 					case 1:
-						points.push([piece[0],piece[1]]);
-						points.push([piece[2],piece[3]]);
+						points.push([piece[0],piece[1],definition.properties[2]]);
+						points.push([piece[2],piece[3],definition.properties[2]]);
 						if (!cancelMidpoints) points.push([(piece[0]+piece[2])/2, (piece[1]+piece[3])/2]);
 						break;
 				}
@@ -175,13 +175,13 @@ const Level = {
 		}
 		return points;
 	},
-	endpointCountAt: function(x,y) {
+	endpointsAt: function(x,y) {
 		let points = this.getSnappingPoints(true);
-		let count = 0;
+		let endpoints = [];
 		for (var i in points) {
-			if (points[i][0]==x&&points[i][1]==y) count++;
+			if (points[i][0]==x&&points[i][1]==y) endpoints.push(points[i]);
 		}
-		return count;
+		return endpoints;
 	}
 }
 const BlankLevel = clone(Level.level);

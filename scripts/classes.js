@@ -862,23 +862,23 @@ var Line = class Line extends _c_ {
       switch (line.direction) {
         case LINE_UP:
           dirs.d = false;
-          if (angle<=0) dirs.r = 0.5;
-          if (angle>=0) dirs.l = 0.5;
+           dirs.r = 0.5;
+           dirs.l = 0.5;
           break;
         case LINE_DOWN:
           dirs.u = false;
-          if (angle<=0) dirs.l = 0.5;
-          if (angle>=0) dirs.r = 0.5;
+           dirs.l = 0.5;
+           dirs.r = 0.5;
           break;
         case LINE_LEFT:
           dirs.r = false;
-          if (angle<=0||Math.abs(angle)==90) dirs.d = 0.5;
-          if (angle>=0||Math.abs(angle)==90) dirs.u = 0.5;
+           dirs.d = 0.5;
+           dirs.u = 0.5;
           break;
         case LINE_RIGHT:
           dirs.l = false;
-          if (angle<=0||Math.abs(angle)==90) dirs.u = 0.5;
-          if (angle>=0||Math.abs(angle)==90) dirs.d = 0.5;
+           dirs.u = 0.5;
+           dirs.d = 0.5;
           break;
       }
 
@@ -934,7 +934,19 @@ var Line = class Line extends _c_ {
   }
 
   static collideEndpoint(line,box,x,y,directions) {
-    let doSpecial = (Level.endpointCountAt(x,y)==0);
+    // let doSpecial = (Level.endpointCountAt(x,y)==0);
+    let endpoints = Level.endpointsAt(x,y);
+    let doSpecial = true;
+    let foundMatch = false;
+    for (var i in endpoints) {
+      if (endpoints[i][2]==line.direction) {
+        if (!foundMatch) foundMatch = true;
+        else {
+          doSpecial = false;
+          break;
+        }
+      }
+    }
     let dirs = clone(directions);
     for (var i in dirs) if (dirs[i]==0.5) {
       dirs[i] = doSpecial;
