@@ -153,8 +153,8 @@ const EditorTools = {
       let newMag = oldMag * Math.cos(angleDiffRad);
 
       // adjust our points to match new line
-      xx = x - newMag * Math.cos(newAngleRad);
-      yy = y - newMag * Math.sin(newAngleRad);
+      xx = Math.round(x - newMag * Math.cos(newAngleRad));
+      yy = Math.round(y - newMag * Math.sin(newAngleRad));
 
       return [xx,yy];
     }
