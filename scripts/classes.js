@@ -452,7 +452,6 @@ var PhysicsBox = class PhysicsBox extends Box {
   	if (this.defyPhysics||this.heldBy) return;
   	if (this.ground!=null) this.groundDragLoop(this.ground,0);
   }
-
   edge(edge,axis,sign,boundNeg,boundPos,sideNeg,sidePos,spacer,focusOffset) {
     let pos = this[axis];
     switch(Level.level.edge[edge]) {
@@ -477,6 +476,18 @@ var PhysicsBox = class PhysicsBox extends Box {
       case EDGE_NONE:
         break;
     }
+  }
+
+  intersect(obj) {
+    if (obj instanceof Line) return this.intersectLine(obj);
+    else return super.intersect(obj);
+  }
+  intersectLine(obj) {
+    let bufferX = Math.abs(this.velX), bufferY = Math.abs(this.velY);
+    if (this.leftX()<=obj.rightX()+bufferX && obj.leftX()-bufferX<=this.rightX()) {
+  		if (this.topY()<=obj.bottomY()+bufferY && obj.topY()-bufferY<=this.bottomY()) return true;
+  	}
+  	return false;
   }
   update() {
     super.update();
@@ -717,8 +728,16 @@ var Line = class Line extends _c_ {
     else return false;
   }
   intersect(obj) {
+    if (obj instanceof PhysicsBox) return this.intersectPhysicsBox(obj);
     if (obj.leftX()<=this.rightX() && this.leftX()<=obj.rightX()) {
   		if (obj.topY()<=this.bottomY() && this.topY()<=obj.bottomY()) return true;
+  	}
+  	return false;
+  }
+  intersectPhysicsBox(obj) {
+    let bufferX = Math.abs(obj.velX), bufferY = Math.abs(obj.velY);
+    if (obj.leftX()<=this.rightX()+bufferX && this.leftX()-bufferX<=obj.rightX()) {
+  		if (obj.topY()<=this.bottomY()+bufferY && this.topY()-bufferY<=obj.bottomY()) return true;
   	}
   	return false;
   }
