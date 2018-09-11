@@ -220,6 +220,7 @@ const Sectors = {
 		for (var i in this.grid) this.grid[i].updateLoadedState();
 		Box.callForAll("setSectors");
     Line.callForAll("setSectors");
+    for (var i in this.grid) if (this.grid[i].objects.length==0) delete this.grid[i];
 	},
 	removeFromSector: function(obj,sectorNameOrX,sectorY) {
 		var sector = this.getSector(sectorNameOrX,sectorY);
