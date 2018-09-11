@@ -69,7 +69,7 @@ var GamePad = {
 		delete this.globalCtrls[gp.index];
 		var slot = Player.gpIds.indexOf(gp.index);
 		if (slot!=-1) {
-			changeControlSlots(slot,GAMEPAD,"None");
+			Player.changeControlSlots(slot,GAMEPAD,"None");
 			console.log("Disconnected Gamepad "+gp.index+" from slot "+slot+": "+gp.id);
 		}
 	},

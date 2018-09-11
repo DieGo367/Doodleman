@@ -292,6 +292,7 @@ function buildMapperView() {
 			var b = G$("MapperGPSelect");
 			b.text = item;
 			b.selectedId = ids[i];
+			updateMapText(ids[i]);
 		},null,2);
 	}).show();
 
@@ -304,6 +305,7 @@ function buildMapperView() {
 		var id = G$("MapperGPSelect").selectedId;
 		if (!GamePad.controllers[id]) G$("MapperClose").onClickFunction();
 		else this.setOnClick(function() {
+			let id = G$("MapperGPSelect").selectedId;
 			G$("MapperTool").selectedId = id;
 			G$("MapperTool").show();
 		});
@@ -399,7 +401,7 @@ function mapperStep(gpId,step,titles,type,mappings) {
 		G$("MapperToolText").text = "done";
 		G$("MapperToolSkip").setOnClick(function() {
 			G$("MapperToolClose").onClickFunction();
-			G$("MapperView").hide().show();
+			updateMapText(gpId);
 		}).text = "Done";
 		let c = new CtrlMap("custom-"+GamePad.customMaps.length,GAMEPAD,dmInputs,mappings,dmActions,gpadGroupings);
 		GamePad.customMaps.push(c);
