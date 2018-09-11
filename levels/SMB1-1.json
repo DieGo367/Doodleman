@@ -4,7 +4,7 @@
   "bgScale": 1.5,
   "width": 5076,
   "height": 384,
-  "minZoom": 0.9,
+  "minZoom": 0.9375,
   "zoomScale": 1,
   "edge": {"top": 0, "bottom": 3, "left": 2, "right": 2},
   "playerSpawns": [
