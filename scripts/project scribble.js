@@ -309,7 +309,7 @@ const Camera = {
 	},
 	approachZoom: function(goal) {
 		var value = Math.max(goal,Level.level.minZoom);
-		value = Math.min(goal,Level.level.maxZoom);
+		value = Math.min(value,Level.level.maxZoom);
 		var diff = value-this.zoom;
 		var step = diff/20;
 		if (Math.abs(step)<0.0003) this.zoom = value;
