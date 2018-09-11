@@ -280,40 +280,56 @@ const Camera = {
 	rightPx: function() { return this.x+this.width()/2; },
 	topPx: function() { return this.y-this.height()/2; },
 	bottomPx: function() { return this.y+this.height()/2; },
+	halfW: function() { return this.width()/2; },
+	halfH: function() { return this.height()/2; },
+	getLeftLimit: function() { return 0+this.halfW(); },
+	getRightLimit: function() { return Level.level.width-this.halfW(); },
+	getTopLimit: function() { return 0+this.halfH(); },
+	getBottomLimit: function() { return Level.level.height-this.halfH(); },
 	approachX: function(goal) {
-		if (this.leftPx()<0) this.x = this.width()/2;
-		if (this.rightPx()>Level.level.width) this.x = Level.level.width-this.width()/2;
-		var value = Math.min(goal,Level.level.width-this.width()/2);
-		value = Math.max(this.width()/2,value);
-		var diff = value-this.x;
-		var step = diff/10;
-		if (Math.abs(step)<1) {
-			if (Math.abs(diff)<3) this.setX(value);
-			else this.setX(this.x+Math.abs(diff)/diff);
-
+		let limitL = this.getLeftLimit(), limitR = this.getRightLimit();
+		if (this.x<limitL) this.x = limitL;
+		if (this.x>limitR) this.x = limitR;
+		if (goal!=void(0)) {
+			let value = Math.min(goal,limitR);
+			value = Math.max(limitL,value);
+			let diff = value-this.x;
+			let step = diff/10;
+			if (Math.abs(step)<1) {
+				if (Math.abs(diff)<3) this.setX(value);
+				else this.setX(this.x+Math.abs(diff)/diff);
+			}
+			else this.setX(this.x+step);
 		}
-		else this.setX(this.x+step);
 	},
 	approachY: function(goal) {
-		if (this.topPx()<0) this.y = this.height()/2;
-		if (this.bottomPx()>Level.level.height) this.y = Level.level.height-this.height()/2;
-		var value = Math.min(goal,Level.level.height-this.height()/2);
-		value = Math.max(this.height()/2,value);
-		var diff = value-this.y;
-		var step = diff/10;
-		if (Math.abs(step)<1) {
-			if (Math.abs(diff)<3) this.setY(value);
-			else this.setY(this.y+Math.abs(diff)/diff);
+		let limitT = this.getTopLimit(), limitB = this.getBottomLimit();
+		if (this.y<limitT) this.y = limitT;
+		if (this.y>limitB) this.y = limitB;
+		if (goal!=void(0)) {
+			let value = Math.min(goal,limitB);
+			value = Math.max(limitT,value);
+			let diff = value-this.y;
+			let step = diff/10;
+			if (Math.abs(step)<1) {
+				if (Math.abs(diff)<3) this.setY(value);
+				else this.setY(this.y+Math.abs(diff)/diff);
+			}
+			else this.setY(this.y+step);
 		}
-		else this.setY(this.y+step);
 	},
 	approachZoom: function(goal) {
+		if (this.zoom<Level.level.minZoom) this.zoom = Level.level.minZoom;
+		if (this.zoom>Level.level.maxZoom) this.zoom = Level.level.maxZoom;
 		var value = Math.max(goal,Level.level.minZoom);
 		value = Math.min(value,Level.level.maxZoom);
 		var diff = value-this.zoom;
 		var step = diff/20;
 		if (Math.abs(step)<0.0003) this.zoom = value;
 		else this.zoom += step;
+		//get camera back in bounds in case we zoomed out too much
+		this.approachX();
+		this.approachY();
 	},
 	update: function() {
 		var allP = Player.getAll();
@@ -325,11 +341,9 @@ const Camera = {
 
 				if (targetX>this.rightPx()-Level.level.horScrollBuffer/this.zoom) this.approachX(targetX+(Level.level.horScrollBuffer-hudWidth/2)/this.zoom);
 				else if (targetX<this.leftPx()+Level.level.horScrollBuffer/this.zoom) this.approachX(targetX-(Level.level.horScrollBuffer-hudWidth/2)/this.zoom);
-				else this.approachX(this.x);
 
 				if (targetY>this.bottomPx()-Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY+(Level.level.vertScrollBuffer-hudHeight/2)/this.zoom);
 				else if (targetY<this.topPx()+Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY-(Level.level.vertScrollBuffer-hudHeight/2)/this.zoom);
-				else this.approachY(this.y);
 			}
 			else {
 				this.approachX(targetX);
@@ -343,8 +357,6 @@ const Camera = {
 				maxDist += 60;
 				if (maxDist+5>hudHeight/2/this.requestedZoom) this.approachZoom(hudHeight/2/(maxDist));
 				else this.approachZoom(this.requestedZoom);
-				this.approachX(this.x);
-				this.approachY(this.y);
 			}
 		}
 	}
