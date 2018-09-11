@@ -183,11 +183,12 @@ var GamePad = {
 	},
 	changeMap: function(id,map) {
 		if (!map) return;
-		var gp = this.controllers[id];
+		let gp = this.controllers[id];
 		if (!gp) return console.warn("Invalid id");
 		this.ctrlMaps[id] = map;
-		for (var i in this.ctrls) {
-			var ctrl = this.ctrls[i];
+		let list = this.ctrls.concat(this.globalCtrls);
+		for (var i in list) {
+			let ctrl = list[i];
 			if (ctrl.gamepad()==gp) {
 				ctrl.actions = map.actions;
 				ctrl.mappings = map.mappings;

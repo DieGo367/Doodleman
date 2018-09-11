@@ -405,8 +405,7 @@ function mapperStep(gpId,step,titles,type,mappings) {
 		}).text = "Done";
 		let c = new CtrlMap("custom-"+GamePad.customMaps.length,GAMEPAD,dmInputs,mappings,dmActions,gpadGroupings);
 		GamePad.customMaps.push(c);
-		GamePad.ctrlMaps[gpId] = c;
-		Player.relinkCtrls();
+		GamePad.changeMap(gpId,c);
 	}
 	skip.finish = finish;
 
