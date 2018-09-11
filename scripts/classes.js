@@ -1457,6 +1457,7 @@ var Player = class Player extends Entity {
   respawn() {
   	if (this.door) this.door.forgetPlayer();
     this.direction = this.spawnDirection;
+    this.attackHeld = 0;
   	super.respawn();
   }
 
