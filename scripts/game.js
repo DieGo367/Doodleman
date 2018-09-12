@@ -1,6 +1,6 @@
 const setting = "game";
 const Game = {
-	gamemode: 0,
+	gamemode: null,
 	modeObjects: [],
 	get: function() { return this.modeObjects[this.gamemode]; },
 	get mode() { return this.gamemode; },
@@ -74,26 +74,30 @@ function addGui() {
 }
 
 function initGame() {
-	canvas = $("#paper")[0], c = canvas.getContext("2d");
-	setPrefixedProperty(c,"imageSmoothingEnabled",false);
-	output = $("#output");
-	output.hide();
-
 	addEvents();
 	addGui();
 
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
 	Player.respawnButtons = [G$("AddP1Button"),G$("AddP2Button"),null,null];
-	addPlayer(0);
 
 	setGameSpeed(gameSpeed);
+	Game.mode = GAME_SANDBOX;
 }
 
 function loadLoop() {
-	if (ResourceManager.pendingRequests()==0) initGame();
+	if (ResourceManager.pendingRequests()==0) {
+		clearInterval(canvas.loadInterval);
+		initGame();
+	}
 	else window.requestAnimationFrame(loadLoop);
 }
 $(window).on("load",function() {
+	canvas = $("#paper")[0], c = canvas.getContext("2d");
+	setPrefixedProperty(c,"imageSmoothingEnabled",false);
+	output = $("#output");
+	output.hide();
+	setupLoadScreen();
+
 	ResourceManager.requestGroup("res",function(item,name) {
 		ImageFactory.loadImage(name);
 	});
