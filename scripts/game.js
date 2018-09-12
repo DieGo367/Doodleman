@@ -16,7 +16,8 @@ const Game = {
 		this.get().start();
 		return this.gamemode;
 	},
-	start: function() { this.get().start(); }
+	start: function() { this.get().start(); },
+	onLevelLoad: function() { this.get().onLevelLoad(); }
 }
 
 function tick() { //GAME UPDATES//

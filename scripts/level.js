@@ -109,7 +109,7 @@ const Level = {
 		if (this.level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",this.level.bgRaw);
 		Camera.reset();
 		if (setting=="game") {
-			Game.start();
+			Game.onLevelLoad();
 			G$("LevelSelectView").hide();
 			if (focused) pauseGame(false);
 		}
