@@ -138,13 +138,13 @@ const Level = {
 						if (Level.load(e.target.result,false)) console.log('Loaded Level "'+file.name+'" from local file');
 						else console.log('Failed to load Level "'+file.name+'" from local file');
 					}
-					else alert("Not the right file type!");
+					else gameAlert("Not the right file type!",120);
 				}
 				reader.readAsText(file);
 			}
-			else alert("No file selected.");
+			else gameAlert("No file selected.",120);
 		}
-		else alert("Unsupported browser.");
+		else gameAlert("Unsupported browser.",120);
 	},
 	export: function() {
 		let data = niceJSON(this.level);
