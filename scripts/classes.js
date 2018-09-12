@@ -1973,7 +1973,7 @@ var Button = class Button extends GuiElement {
   	ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,x,y);
   	if (this.useIcon) ImageFactory.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
   	else {
-  		c.font = this.hovered?"bold 20px Catamaran, sans-serif":"20px Catamaran, sans-serif";
+  		c.font = this.hovered?"bold 20px Fredoka One":"20px Fredoka One";
   		var metrics = c.measureText(this.text);
       let width = Math.min(metrics.width,this.width)/2;
   		drawStrokedText(this.text,this.x+this.width/2-width,this.y+this.height/2+7,"white","black",2,8,this.width);
@@ -2061,17 +2061,17 @@ var TextInput = class TextInput extends Button {
       text = this.text || "";
       c.fillStyle = "gray";
     }
-    c.font = this.hovered?"bold 20px Catamaran, sans-serif":"20px Catamaran, sans-serif";
+    c.font = this.hovered?"bold 20px Fredoka One":"20px Fredoka One";
 		let metrics = c.measureText(text);
     let width = Math.min(metrics.width,this.width)/2;
     c.fillText(text,this.x+this.width/2-width,this.y+this.height/2+7,this.width);
   }
   setTypingView() {
-    c.font = "20px Catamaran, sans-serif";
+    c.font = "20px Fredoka One";
     let tw = c.measureText(this.promptMsg).width;
     View.create("TextInput",this.view.layer+1,this.x-5,this.y-5,Math.max(this.width,tw)+10,this.height+10+22,"tint","black").show();
-    TextElement.create("TextInput:TE","TextInput",this.x+this.width/2,this.y+this.height/2+7,this.typingText,"Catamaran, sans-serif",20,true,"blue",CENTER).show();
-    TextElement.create("TextInput:NE","TextInput",this.x,this.y+this.height+22,this.promptMsg,"Catamaran, sans-serif",20,false,"white",LEFT).show();
+    TextElement.create("TextInput:TE","TextInput",this.x+this.width/2,this.y+this.height/2+7,this.typingText,"Fredoka One",20,true,"blue",CENTER).show();
+    TextElement.create("TextInput:NE","TextInput",this.x,this.y+this.height+22,this.promptMsg,"Fredoka One",20,false,"white",LEFT).show();
   }
   removeTypingView() {
     G$("TextInput").hide();

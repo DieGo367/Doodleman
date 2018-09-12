@@ -1,8 +1,7 @@
 body {
   background-color: black;
   color: white;
-  font-family: Catamaran, sans-serif;
-  font-weight: 700;
+  font-family: Gochi Hand;
   text-align: center;
   margin: 0px;
   overflow: hidden;
@@ -11,6 +10,13 @@ body {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+h1 {
+  font-weight: normal;
+  font-size: 2.25em;
+}
+p {
+  font-size: 1.25em;
 }
 canvas {
   cursor: none;
