@@ -1,3 +1,4 @@
+//gui query shorthand
 function G$(query) {
 	var v = View.getAll(), g = GuiElement.getAll();
 	for (var i in v) {
@@ -17,6 +18,7 @@ G$.on = function(q) {
 	}
 }
 
+//useful game functions
 function buildSelector(list,onSelect,onCancel,viewLayer) {
 	View.create("_Selector_",viewLayer===void(0)?1:viewLayer,0,0,hudWidth,hudHeight,"tint","darkBlue").show();
 	for (var i in list) {
@@ -32,6 +34,7 @@ function buildSelector(list,onSelect,onCancel,viewLayer) {
 		view.hide().remove();
 	}).setClose(true).show();
 }
+
 function attemptUserAction(action,src) {
 	if (src==Pointer) {
 		action(src);
@@ -54,6 +57,26 @@ function clearViewLock() {
 	uav.children[0].remove();
 	uav.hide().remove();
 }
+
+function gameConfirm(text,onResponse) {
+	let a = View.create("_Confirm_",Pointer.focusLayer+1,15,15,hudWidth-30,hudHeight-30,"window");
+	TextElement.create("_ConfirmText_","_Confirm_",hudWidth/2,hudHeight/2,text,"Fredoka One",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	let close = function() {
+		for (var i in a.children) a.children[i].remove();
+		a.hide().remove();
+	}
+	Button.create("_ConfirmYes_","_Confirm_",hudWidth/2-105,hudHeight-150,100,40,"OK!").setOnClick(function() {
+		close();
+		onResponse(true);
+	}).show();
+	Button.create("_ConfirmNo_","_Confirm_",hudWidth/2+5,hudHeight-150,100,40,"No").setClose(true).setOnClick(function() {
+		close();
+		onResponse(false);
+	}).show();
+	a.show();
+}
+
+//just definining menus and their functions
 
 function buildMainHud() {
   View.create("Hud",0,0,0,hudWidth,hudHeight).show();
