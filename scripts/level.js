@@ -82,6 +82,13 @@ const Level = {
     }
     return {terrain: terrain, actors: actors, other: other};
   },
+	clearLevel: function() {
+		Box.killAll();
+		Line.killAll();
+		Garbage.clear();
+		this.level = clone(BlankLevel);
+		Camera.reset();
+	},
 	load: function(file,doLog) {
 		if (doLog==void(0)) doLog = true;
 		try {
@@ -95,19 +102,14 @@ const Level = {
 			return false;
 		}
 		pauseGame(true);
-		Box.killAll();
-		Line.killAll();
-		Garbage.clear();
-		Sectors.grid = {};
-		this.level = clone(BlankLevel);
+		this.clearLevel();
 		for (var p in newLevel) this.level[p] = newLevel[p];
 		for (var s in this.level.actors) ActorManager.make(...this.level.actors[s]);
 		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
 		if (this.level.bgRaw!="") ImageFactory.initImageB64("BG-LevelRaw",this.level.bgRaw);
 		Camera.reset();
 		if (setting=="game") {
-			addPlayer(0);
-			if (multiplayer) addPlayer(1);
+			Game.start();
 			G$("LevelSelectView").hide();
 			if (focused) pauseGame(false);
 		}

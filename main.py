@@ -31,6 +31,10 @@ scripts = [
   "devTools.js",
   "editorTools.js"
 ]
+gamemodes = [
+  "sandbox.js",
+  "survival.js"
+]
 
 def get_user_vars():
     # user = users.get_current_user()
@@ -48,6 +52,8 @@ class MainHandler(webapp2.RequestHandler):
         script_html = "<script src=\"scripts/game.js\"></script>"
         for script in scripts:
             script_html += "<script src=\"scripts/%s\"></script>" % (script)
+        for script in gamemodes:
+            script_html += "<script src=\"scripts/gamemodes/%s\"></script>" % (script)
 
         temp_vars = get_user_vars()
         temp_vars["scripts"] = script_html

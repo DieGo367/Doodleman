@@ -40,6 +40,7 @@ const BUTTON_NO = 0, BUTTON_NORMAL = 1, BUTTON_TOGGLE = 2;
 const POINTER_NONE = 0, POINTER_CROSSHAIR = 1, POINTER_PENCIL = 2, POINTER_ERASER = 3;
 const ORIENT_LIN = 0, ORIENT_CW = 1, ORIENT_CCW = -1;
 const EDGE_NONE = 0, EDGE_SOLID = 1, EDGE_WRAP = 2, EDGE_KILL = 3;
+const GAME_SANDBOX = 0, GAME_SURVIVAL = 1;
 //helper functions
 function dp(pixels) {
 	return pixels*pixelDensity;
@@ -441,30 +442,6 @@ function isOdd(n) {
 function spawnWave(wave) {
 	while(wave-->0) {
 		PaintMinion.create(Level.level.width/4+(isEven(wave)?Level.level.width/2:0),0);
-	}
-}
-
-function setGameMode(mode) {
-	if (gameMode==mode) return;
-	gameMode = mode;
-	if (gameMode>1) gameMode = 0;
-	Entity.killAll();
-	Garbage.clear();
-	PhysicsBox.callForAll("respawn");
-	addPlayer(0);
-	if (multiplayer) addPlayer(1);
-	G$("RespawnP1Button").hide();
-	G$("AddP1Button").hide();
-	G$("AddP2Button").hide();
-	switch(gameMode) {
-		case 0: //sandbox and battle
-			G$("GameModeToggle").text = "Sandbox Mode";
-			if (!multiplayer) PaintMinion.create(Level.level.width*3/4,30);
-			break;
-		case 1: //dungeon mode
-			G$("GameModeToggle").text = "Dungeon Mode";
-
-			break;
 	}
 }
 

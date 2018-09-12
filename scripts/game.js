@@ -1,4 +1,24 @@
 const setting = "game";
+const Game = {
+	gamemode: 0,
+	modeObjects: [],
+	get: function() { return this.modeObjects[this.gamemode]; },
+	get mode() { return this.gamemode; },
+	set mode(mode) {
+		if (this.gamemode==mode) return;
+		this.gamemode = Math.min(Math.max(0,mode),this.modeObjects.length-1);
+		Box.killAll();
+		Line.killAll();
+		Garbage.clear();
+		G$("RespawnP1Button").hide();
+		G$("AddP1Button").hide();
+		G$("AddP2Button").hide();
+		this.get().start();
+		return this.gamemode;
+	},
+	start: function() { this.get().start(); }
+}
+
 function tick() { //GAME UPDATES//
 	//update button states
 	GamePad.checkButtons();
