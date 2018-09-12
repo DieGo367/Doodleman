@@ -75,6 +75,25 @@ function gameConfirm(text,onResponse) {
 	}).show();
 	a.show();
 }
+function gameAlert(text,duration) {
+	if (typeof duration != "number" || duration <= 0) return;
+	let v = G$("_Alert_"), t = G$("_AlertText_");
+	if (!v.visible) v = View.create("_Alert_",Pointer.focusLayer+1,0,hudHeight*7/8,hudWidth,hudHeight/8,"tint","black");
+	if (!t.visible) {
+		t = TextElement.create("_AlertText_","_Alert_",hudWidth/2,hudHeight*7/8+30,text,"Fredoka One",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+		t.update = function() {
+			this.time--;
+			if (this.time<=0) {
+				let v = this.view;
+				this.remove();
+				v.hide().remove();
+			}
+		}
+	}
+	else t.text = text;
+	t.time = duration;
+	v.show();
+}
 
 //just definining menus and their functions
 
