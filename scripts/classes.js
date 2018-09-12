@@ -1759,7 +1759,7 @@ var View = class View extends _c_ {
   hide() {
     this.visible = false;
     if (this.layer>0)
-    Pointer.focusLayer-=1;
+    Pointer.focusLayer = this.layer-1;
     return this;
   }
   drawHud() {
