@@ -7,9 +7,6 @@ function tick() {
 }
 
 function addGui() {
-	View.create("UserActionView",1,15,15,hudWidth-30,hudHeight-30,"window");
-	TextElement.create("UAVText","UserActionView",hudWidth/2,hudHeight/2,"Press any key or click the screen to continue.","Fredoka One",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
-
 	buildDevToolsHud();
   buildEditorTools();
 }

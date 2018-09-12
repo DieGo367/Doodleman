@@ -24,7 +24,7 @@ var interval, gameSpeed = 50/3;
 var pixelDensity = 1, hudWidth = 640, hudHeight = 360;
 var heightScale, widthScale;
 var paused = false, pausedBy, focused = true, fullScreen = false, fullScreenChanging = false;
-var viewLock = false, viewAction = function() {};
+var viewLock = false;
 var gameMode = 0, multiplayer = false, clickSpawn = false;
 var globalKeyboard;
 var selectedElement;
@@ -183,19 +183,6 @@ function callPrefixedFunction(source,strFunc) {
 	else if (typeof source["webkit"+capFunc]!='undefined') source["webkit"+capFunc](...useArgs);
 	else if (typeof source["ms"+capFunc]!='undefined') source["ms"+capFunc](...useArgs);
 	else if (typeof source["moz"+capFunc]!='undefined') source["moz"+capFunc](...useArgs);
-}
-function attemptUserAction(action,src) {
-	if (src==Pointer) {
-		action(src);
-		return true;
-	}
-	else {
-		viewLock = true;
-		viewAction = action;
-		G$("UserActionView").show();
-		pauseGame(true);
-		return false;
-	}
 }
 
 //helper objects
@@ -410,13 +397,6 @@ function callOnAllClasses (method) {
 	}
 }
 
-function clearViewLock() {
-	viewLock = false;
-	viewAction();
-	viewAction = function() {};
-	G$("UserActionView").hide();
-}
-
 //Game Functions
 
 function addPlayer(number) {
@@ -528,7 +508,7 @@ function drawGame() {
 	if (setting=="game") Tap.draw();
 	if (focused&&Tap.touches.length==0) Pointer.draw();
 	//debug hud
-	if (devEnabled&&!viewLock) {
+	if (devEnabled) {
 		c.fillStyle = "black";
 		c.font = "12px Consolas";
 		c.fillText("("+Pointer.camX()+","+Pointer.camY()+")",Pointer.x,Pointer.y+12);

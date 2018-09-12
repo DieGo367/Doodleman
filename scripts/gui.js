@@ -17,6 +17,44 @@ G$.on = function(q) {
 	}
 }
 
+function buildSelector(list,onSelect,onCancel,viewLayer) {
+	View.create("_Selector_",viewLayer===void(0)?1:viewLayer,0,0,hudWidth,hudHeight,"tint","darkBlue").show();
+	for (var i in list) {
+		Button.create("_Selector_::"+i,"_Selector_",hudWidth/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
+			if (typeof onSelect=="function") onSelect(this.name.split("::")[1],this.text);
+			G$("_SelectorClose_").onClickFunction();
+		}).show();
+	}
+	Button.create("_SelectorClose_","_Selector_",hudWidth/2-150,hudHeight-70,300,40,"Cancel").setOnClick(function() {
+		if (typeof onCancel=="function") onCancel();
+		let view = G$("_Selector_");
+		for (var i in view.children) view.children[i].remove();
+		view.hide().remove();
+	}).setClose(true).show();
+}
+function attemptUserAction(action,src) {
+	if (src==Pointer) {
+		action(src);
+		return true;
+	}
+	else {
+		viewLock = true;
+		pauseGame(true);
+		let uav = View.create("_UAV_",Pointer.focusLayer+1,15,15,hudWidth-30,hudHeight-30,"window");
+		uav.action = action;
+		TextElement.create("_UAText_","_UAV_",hudWidth/2,hudHeight/2,"Press any key or click the screen to continue.","Fredoka One",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+		uav.show();
+		return false;
+	}
+}
+function clearViewLock() {
+	viewLock = false;
+	let uav = G$("_UAV_");
+	uav.action();
+	uav.children[0].remove();
+	uav.hide().remove();
+}
+
 function buildMainHud() {
   View.create("Hud",0,0,0,hudWidth,hudHeight).show();
 	Button.create("RespawnP1Button","Hud",hudWidth/2-50,50,100,40,"Respawn").setOnClick(function() {
@@ -208,22 +246,6 @@ function buildControllerSelector(list,type,sourceButton) {
 		sourceButton.text = item;
 		Player.changeControlSlots(sourceButton.playerSlot,type,finalList[i]);
 	},null,2);
-}
-
-function buildSelector(list,onSelect,onCancel,viewLayer) {
-	View.create("Selector",viewLayer===void(0)?1:viewLayer,0,0,hudWidth,hudHeight,"tint","darkBlue").show();
-	for (var i in list) {
-		Button.create("Selector::"+i,"Selector",hudWidth/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
-			if (typeof onSelect=="function") onSelect(this.name.split("::")[1],this.text);
-			G$("SelectorClose").onClickFunction();
-		}).show();
-	}
-	Button.create("SelectorClose","Selector",hudWidth/2-150,hudHeight-70,300,40,"Cancel").setOnClick(function() {
-		if (typeof onCancel=="function") onCancel();
-		var view = G$("Selector");
-		for (var i in view.children) view.children[i].remove();
-		view.hide().remove();
-	}).setClose(true).show();
 }
 
 function buildHelpPage() {
