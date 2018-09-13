@@ -744,15 +744,18 @@ function setupLoadScreen() {
 		let scroll = canvas.time % (hudWidth/8);
 		let alpha = canvas.time % 120;
 		c.save();
-		c.translate(scroll,0);
-			c.fillStyle = canvas.loadPattern;
-			c.fillRect(-hudWidth/8,0,hudWidth*9/8,hudHeight);
+		c.scale(dp(1),dp(1));
+			c.save();
+			c.translate(scroll,0);
+				c.fillStyle = canvas.loadPattern;
+				c.fillRect(-hudWidth/8,0,hudWidth*9/8,hudHeight);
+			c.restore();
+			c.fillStyle = "#f0f0ff";
+			c.font = "40px Fredoka One";
+			c.globalAlpha = Math.abs(60-alpha)/60;
+				c.fillText("Loading...",10,hudHeight-20);
+			c.globalAlpha = 1;
 		c.restore();
-		c.fillStyle = "#f0f0ff";
-		c.font = "40px Fredoka One";
-		c.globalAlpha = Math.abs(60-alpha)/60;
-			c.fillText("Loading...",10,hudHeight-20);
-		c.globalAlpha = 1;
 	}
 	canvas.showLoadScreen = function() {
 		canvas.isInLoadScreen = true;
