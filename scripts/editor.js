@@ -12,14 +12,13 @@ function addGui() {
 }
 
 function initEditor() {
-  canvas = $("#paper")[0], c = canvas.getContext("2d");
-	setPrefixedProperty(c,"imageSmoothingEnabled",false);
   devEnabled = true;
   addEvents();
   addGui();
   EditorTools.enabled = true;
   EditorTools.Actor.initSpawnGhosts();
   globalKeyboard = new Ctrl(KEYBOARD,"global");
+  canvas.clearLoadScreen();
 	setInterval(tick,1000/60);
 }
 
@@ -28,6 +27,9 @@ function loadLoop() {
 	else window.requestAnimationFrame(loadLoop);
 }
 $(window).on("load",function() {
+  canvas = $("#paper")[0], c = canvas.getContext("2d");
+	setPrefixedProperty(c,"imageSmoothingEnabled",false);
+  setupLoadScreen();
   ResourceManager.requestGroup("res",function(item,name) {
 		ImageFactory.loadImage(name);
 	});
