@@ -434,6 +434,7 @@ function spawnWave(wave) {
 -debug and outlines
 */
 function drawGame() {
+	if (canvas.isInLoadScreen) return;
 	//densityPixels
 	c.save();
 	c.scale(dp(1),dp(1));
@@ -736,7 +737,7 @@ function setupLoadScreen() {
 	canvas.height = hudHeight;
 	c.fillStyle = canvas.loadPattern;
 	c.fillRect(0,0,canvas.width,canvas.height);
-	canvas.loadInterval = setInterval(function() {
+	canvas.drawLoadScreen = function() {
 		if (canvas.time==void(0)) canvas.time = 0;
 		canvas.time++;
 		let scroll = canvas.time % (hudWidth/8);
@@ -751,5 +752,15 @@ function setupLoadScreen() {
 		c.globalAlpha = Math.abs(60-alpha)/60;
 			c.fillText("Loading...",10,hudHeight-20);
 		c.globalAlpha = 1;
-	},1000/60);
+	}
+	canvas.showLoadScreen = function() {
+		canvas.isInLoadScreen = true;
+		canvas.time = 0;
+		canvas.loadInterval = setInterval(canvas.drawLoadScreen,1000/60);
+	}
+	canvas.clearLoadScreen = function() {
+		canvas.isInLoadScreen = false;
+		clearInterval(canvas.loadInterval);
+	}
+	canvas.showLoadScreen();
 }

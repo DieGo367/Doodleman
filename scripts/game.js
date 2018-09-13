@@ -80,13 +80,13 @@ function initGame() {
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
 	Player.respawnButtons = [G$("AddP1Button"),G$("AddP2Button"),null,null];
 
+	canvas.clearLoadScreen();
 	setGameSpeed(gameSpeed);
 	Game.mode = GAME_SANDBOX;
 }
 
 function loadLoop() {
 	if (ResourceManager.pendingRequests()==0) {
-		clearInterval(canvas.loadInterval);
 		initGame();
 	}
 	else window.requestAnimationFrame(loadLoop);
