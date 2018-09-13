@@ -1113,7 +1113,7 @@ var Entity = class Entity extends PhysicsBox {
   }
   respawn() {
   	this.breakConnections();
-    this.completeAttack();
+    if (this.currentAttack!=null) this.completeAttack();
     this.animLock = 0;
   	super.respawn();
   }
