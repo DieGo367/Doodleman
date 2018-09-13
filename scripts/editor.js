@@ -30,6 +30,7 @@ $(window).on("load",function() {
   canvas = $("#paper")[0], c = canvas.getContext("2d");
 	setPrefixedProperty(c,"imageSmoothingEnabled",false);
   setupLoadScreen();
+
   ResourceManager.requestGroup("res",function(item,name) {
 		ImageFactory.loadImage(name);
 	});

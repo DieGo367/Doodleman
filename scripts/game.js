@@ -86,17 +86,15 @@ function initGame() {
 }
 
 function loadLoop() {
-	if (ResourceManager.pendingRequests()==0) {
-		initGame();
-	}
+	if (ResourceManager.pendingRequests()==0) initGame();
 	else window.requestAnimationFrame(loadLoop);
 }
 $(window).on("load",function() {
 	canvas = $("#paper")[0], c = canvas.getContext("2d");
 	setPrefixedProperty(c,"imageSmoothingEnabled",false);
+	setupLoadScreen();
 	output = $("#output");
 	output.hide();
-	setupLoadScreen();
 
 	ResourceManager.requestGroup("res",function(item,name) {
 		ImageFactory.loadImage(name);
