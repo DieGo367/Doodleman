@@ -613,6 +613,7 @@ function doGlobalControls(controller) {
 }
 
 function click(ctrl) {
+	if (canvas.isInLoadScreen) return;
 	var found = false;
 	if (!viewLock) {
 		for (var i in Button.classList) {
