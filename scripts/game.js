@@ -17,7 +17,8 @@ const Game = {
 		return this.gamemode;
 	},
 	start: function() { this.get().start(); },
-	onLevelLoad: function() { this.get().onLevelLoad(); }
+	onLevelLoad: function() { this.get().onLevelLoad(); },
+	tick: function() { this.get().tick(); }
 }
 
 function tick() { //GAME UPDATES//
@@ -39,6 +40,8 @@ function tick() { //GAME UPDATES//
 	//update all objects
 	if (!paused) {
 		Garbage.clear();
+
+		Game.tick();
 
 		Collision.checkRequests();
 		Entity.callForAll("animationTick");

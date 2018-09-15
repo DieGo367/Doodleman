@@ -7,6 +7,9 @@ const SurvivalMode = {
   onLevelLoad: function() {
     addPlayer(0);
     if (multiplayer) addPlayer(1);
+  },
+  tick: function() {
+    
   }
 }
 Game.modeObjects.push(SurvivalMode);
