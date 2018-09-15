@@ -126,6 +126,12 @@ function setGameSpeed(speed) {
 	interval = setInterval(tick,speed);
 	gameSpeed = speed;
 }
+function isEven(n) {
+	return n==0 || !(n%2);
+}
+function isOdd(n) {
+	return !isEven(n);
+}
 function averageCoords(e) {
 	var tx = 0, ty = 0;
 	for (var i in e) {
@@ -409,21 +415,6 @@ function addPlayer(number) {
 }
 
 function addPM(x,y) { PaintMinion.create(x,y).isActor = true; }
-
-var wave = 0;
-
-function isEven(n) {
-	return n==0 || !(n%2);
-}
-function isOdd(n) {
-	return !isEven(n);
-}
-
-function spawnWave(wave) {
-	while(wave-->0) {
-		PaintMinion.create(Level.level.width/4+(isEven(wave)?Level.level.width/2:0),0);
-	}
-}
 
 /* DRAW ORDER:
 -gray and BG
