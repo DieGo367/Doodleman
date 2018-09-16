@@ -9,8 +9,7 @@ const SandboxMode = {
     addPlayer(0);
     if (multiplayer) addPlayer(1);
   },
-  tick: function() {
-
-  }
+  tick: function() {},
+  onDeath: function(ent,attacker) {}
 }
 Game.modeObjects.push(SandboxMode);

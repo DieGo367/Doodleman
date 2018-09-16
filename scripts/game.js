@@ -10,7 +10,8 @@ const Game = {
 	    });
 	  },
 		onLevelLoad: function() {},
-		tick: function() {}
+		tick: function() {},
+		onDeath: function() {}
 	}],
 	get: function() { return this.modeObjects[this.gamemode]; },
 	get mode() { return this.gamemode; },
@@ -34,7 +35,8 @@ const Game = {
 	},
 	start: function() { this.attempt("start"); },
 	onLevelLoad: function() { this.attempt("onLevelLoad"); },
-	tick: function() { this.attempt("tick"); }
+	tick: function() { this.attempt("tick"); },
+	onDeath: function() { this.attempt("onDeath"); }
 }
 
 function tick() { //GAME UPDATES//

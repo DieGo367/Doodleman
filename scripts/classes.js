@@ -1120,6 +1120,7 @@ var Entity = class Entity extends PhysicsBox {
   	super.respawn();
   }
   die(attacker) {
+    Game.onDeath(this,attacker);
   	if (this.respawnsOnDeath) {
   		this.health = this.maxHealth;
   		this.respawn();
