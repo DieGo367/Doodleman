@@ -8,11 +8,11 @@
 		{{scripts}}
 	</head>
 	<body>
-		<h1>Doodleman</h1>
-		<canvas id="paper" width='640' height='360'></canvas>
-		{% block editor %}{% endblock %}
-		<p>&copy; 2018 DieGo.</p>
-		<input hidden type="file" id="fileInput"/>
-		<a hidden download="Doodleman Level.json" id="fileOutput"></a>
+		<div>
+			<canvas id="paper" width='640' height='360'></canvas>
+			{% block editor %}{% endblock %}
+			<input hidden type="file" id="fileInput"/>
+			<a hidden download="Doodleman Level.json" id="fileOutput"></a>
+		</div>
 	</body>
 </html>
