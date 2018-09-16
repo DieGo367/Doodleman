@@ -23,6 +23,7 @@ const Game = {
 		G$("RespawnP1Button").hide();
 		G$("AddP1Button").hide();
 		G$("AddP2Button").hide();
+		pauseGame(false);
 		this.get().start();
 		return this.gamemode;
 	},
