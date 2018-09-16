@@ -1,7 +1,17 @@
 const setting = "game";
 const Game = {
-	gamemode: null,
-	modeObjects: [],
+	gamemode: 0,
+	modeObjects: [{
+		start: function() {
+	    G$("Hud").hide();
+			G$("Title").show();
+			ResourceManager.request("levels/Title.json",function(data) {
+	      Level.load(data);
+	    });
+	  },
+		onLevelLoad: function() {},
+		tick: function() {}
+	}],
 	get: function() { return this.modeObjects[this.gamemode]; },
 	get mode() { return this.gamemode; },
 	set mode(mode) {
@@ -16,9 +26,14 @@ const Game = {
 		this.get().start();
 		return this.gamemode;
 	},
-	start: function() { this.get().start(); },
-	onLevelLoad: function() { this.get().onLevelLoad(); },
-	tick: function() { this.get().tick(); }
+	attempt: function(method) {
+		let mode = this.get();
+		if (mode&&mode[method]) mode[method]();
+		else console.warn("Couldn't run "+method+" method of "+mode);
+	},
+	start: function() { this.attempt("start"); },
+	onLevelLoad: function() { this.attempt("onLevelLoad"); },
+	tick: function() { this.attempt("tick"); }
 }
 
 function tick() { //GAME UPDATES//
@@ -66,6 +81,7 @@ function tick() { //GAME UPDATES//
 }
 
 function addGui() {
+	buildTitleScreen();
 	buildMainHud();
 	buildPauseMenu();
 	buildLevelSelectMenu();
@@ -85,7 +101,7 @@ function initGame() {
 
 	canvas.clearLoadScreen();
 	setGameSpeed(gameSpeed);
-	Game.mode = GAME_SANDBOX;
+	Game.start();
 }
 
 function loadLoop() {

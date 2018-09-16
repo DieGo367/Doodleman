@@ -97,8 +97,23 @@ function gameAlert(text,duration) {
 
 //just definining menus and their functions
 
+function buildTitleScreen() {
+	View.create("Title",0,0,0,hudWidth,hudHeight);
+	TextElement.create("TitleLogo","Title",hudWidth/2,hudHeight*11/36,"Doodleman","Gochi Hand",100,false,"black",CENTER,false,null,null,true,"white",5,9,hudWidth).show();
+	TextElement.create("TitleYear","Title",10,hudHeight-10,"\u00A92018 DieGo","Gochi Hand",20,false,"black",LEFT,false,null,null,true,"white",5,9,hudWidth).show();
+
+	Button.create("TitleMode:Survival","Title",hudWidth/2-100,hudHeight/2-30,200,60,"Survival").setOnClick(function() {
+		this.view.hide();
+		Game.mode = GAME_SURVIVAL;
+	}).show();
+	Button.create("TitleMode:Sandbox","Title",hudWidth/2-100,hudHeight/2+50,200,60,"Sandbox").setOnClick(function() {
+		this.view.hide();
+		Game.mode = GAME_SANDBOX;
+	}).show();
+}
+
 function buildMainHud() {
-  View.create("Hud",0,0,0,hudWidth,hudHeight).show();
+  View.create("Hud",0,0,0,hudWidth,hudHeight);
 	Button.create("RespawnP1Button","Hud",hudWidth/2-50,50,100,40,"Respawn").setOnClick(function() {
 		addPlayer(0);
 	});
@@ -133,9 +148,10 @@ function buildPauseMenu() {
 		G$("PauseMenu").hide();
 	}).show().setPressDelay(1);
 
-	Button.create("GameModeToggle","PauseMenu",hudWidth-150,hudHeight-60,130,40,"Sandbox Mode")./*setOnClick(function(ctrl) {
-		setGameMode(gameMode+1);
-	}).*/show();
+	Button.create("QuitGame","PauseMenu",hudWidth-150,hudHeight-60,130,40,"Quit to Title").setOnClick(function(ctrl) {
+		pauseGame(false);
+		Game.mode = GAME_TITLE;
+	}).show();
 
   Button.create("MPToggle","PauseMenu",hudWidth-150,hudHeight-120,130,40,"Singleplayer").setOnClick(function(ctrl) {
 		multiplayer = !multiplayer;

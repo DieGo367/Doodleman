@@ -40,7 +40,7 @@ const BUTTON_NO = 0, BUTTON_NORMAL = 1, BUTTON_TOGGLE = 2;
 const POINTER_NONE = 0, POINTER_CROSSHAIR = 1, POINTER_PENCIL = 2, POINTER_ERASER = 3;
 const ORIENT_LIN = 0, ORIENT_CW = 1, ORIENT_CCW = -1;
 const EDGE_NONE = 0, EDGE_SOLID = 1, EDGE_WRAP = 2, EDGE_KILL = 3;
-const GAME_SANDBOX = 0, GAME_SURVIVAL = 1;
+const GAME_TITLE = 0, GAME_SANDBOX = 1, GAME_SURVIVAL = 2;
 //helper functions
 function dp(pixels) {
 	return pixels*pixelDensity;
@@ -530,9 +530,11 @@ function pauseGame(pause,player) {
 		if (!pause&&Pointer.focusLayer==0&&focused&&(player==pausedBy||player==null||pausedBy==null||!multiplayer)) {
 			for (var i in Key.ctrls) { Key.ctrls[i].loadPausedCache(); }
 			for (var i in GamePad.ctrls) { GamePad.ctrls[i].loadPausedCache(); }
-			G$("PauseMenu").hide();
-			G$("Hud").show();
-			if (devEnabled) G$("DevTools").show();
+			if (Game.mode!=GAME_TITLE) {
+				G$("PauseMenu").hide();
+				G$("Hud").show();
+				if (devEnabled) G$("DevTools").show();
+			}
 			paused = false;
 			pausedBy = null;
 		}
@@ -541,9 +543,11 @@ function pauseGame(pause,player) {
 		if (pause) {
 			for (var i in Key.ctrls) { Key.ctrls[i].makePausedCache(); }
 			for (var i in GamePad.ctrls) { GamePad.ctrls[i].makePausedCache(); }
-			G$("PauseMenu").show();
-			G$("Hud").hide();
-			G$("DevTools").hide();
+			if (Game.mode!=GAME_TITLE) {
+				G$("PauseMenu").show();
+				G$("Hud").hide();
+				G$("DevTools").hide();
+			}
 			paused = true;
 			pausedBy = player;
 		}
@@ -693,15 +697,17 @@ function addEvents() {
 	});
 	$(window).on("blur",function() {
 		focused = false;
-		G$("PauseFocusMsg").show();
 		$(canvas).css({cursor: 'auto'});
-		if (setting=="game") pauseGame(true);
+		if (setting=="game"&&Game.mode!=GAME_TITLE) {
+			G$("PauseFocusMsg").show();
+			pauseGame(true);
+		}
 		window.requestAnimationFrame(drawGame);
 	});
 	$(window).on("focus",function() {
 		focused = true;
-		G$("PauseFocusMsg").hide();
 		$(canvas).css({cursor: 'none'});
+		if (setting=="game") G$("PauseFocusMsg").hide();
 	});
 }
 
