@@ -149,8 +149,12 @@ function buildPauseMenu() {
 	}).show().setPressDelay(1);
 
 	Button.create("QuitGame","PauseMenu",hudWidth-150,hudHeight-60,130,40,"Quit to Title").setOnClick(function(ctrl) {
-		pauseGame(false);
-		Game.mode = GAME_TITLE;
+		gameConfirm("Are you sure you want to quit?",function(response) {
+			if (response) {
+				pauseGame(false);
+				Game.mode = GAME_TITLE;
+			}
+		})
 	}).show();
 
   Button.create("MPToggle","PauseMenu",hudWidth-150,hudHeight-120,130,40,"Singleplayer").setOnClick(function(ctrl) {
