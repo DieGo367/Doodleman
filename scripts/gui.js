@@ -214,11 +214,7 @@ function buildLevelSelectMenu() {
 			var y = Math.floor(i/2);
 			var x = i%2==0?20:240;
 			Button.create("LSLevel"+i,"LevelSelectView",x,50+y*60,200,40,name).setOnClick(function() {
-				canvas.showLoadScreen();
-				ResourceManager.request("levels/"+this.text+".json",function(data) {
-					Level.load(data);
-					canvas.clearLoadScreen();
-				});
+				Level.loadLevel(this.text+".json");
 			}).show();
 		}
 	});

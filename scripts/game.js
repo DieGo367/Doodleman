@@ -5,9 +5,7 @@ const Game = {
 		start: function() {
 	    G$("Hud").hide();
 			G$("Title").show();
-			ResourceManager.request("levels/Title.json",function(data) {
-	      Level.load(data);
-	    });
+			Level.loadLevel("Title.json");
 	  },
 		onLevelLoad: function() {},
 		tick: function() {},

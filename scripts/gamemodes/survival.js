@@ -6,9 +6,7 @@ const SurvivalMode = {
     this.ready = false;
     this.wave = 0;
     this.score = 0;
-    ResourceManager.request("levels/Dungeon-0.json",function(data) {
-      Level.load(data);
-    });
+    Level.loadLevel("Dungeon-0.json");
   },
   onLevelLoad: function() {
     addPlayer(0);

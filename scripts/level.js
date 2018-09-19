@@ -146,6 +146,13 @@ const Level = {
 		}
 		else gameAlert("Unsupported browser.",120);
 	},
+	loadLevel: function(levelName) {
+		canvas.showLoadScreen();
+		ResourceManager.request("levels/"+levelName,function(data) {
+      Level.load(data);
+			canvas.clearLoadScreen();
+    });
+	},
 	export: function() {
 		let data = niceJSON(this.level);
 		$("#fileOutput").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
