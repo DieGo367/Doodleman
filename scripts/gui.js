@@ -1,22 +1,20 @@
 //gui query shorthand
-function G$(query) {
-	var v = View.getAll(), g = GuiElement.getAll();
-	for (var i in v) {
-		if (v[i].name==query) return v[i];
-	}
-	for (var i in g) {
-		if (g[i].name==query) return g[i];
-	}
-	return {hide:function(){}, show:function(){}, on:function(){return false;}}
+const G$ = function G$(query) {
+	let g = G$.all[query];
+	if (g) return g;
+	else return {hide:function(){}, show:function(){}, on:function(){return false;}}
 }
-G$.hide = function(q) { return this(q).hide(); }
-G$.show = function(q) { return this(q).show(); }
+G$.all = {};
+G$.store = function(name,elem) { this.all[name] = elem; };
+G$.delete = function(name) { delete this.all[name]; };
+G$.hide = function(q) { return this(q).hide(); };
+G$.show = function(q) { return this(q).show(); };
 G$.on = function(q) {
 	var g = this(q);
 	if (g instanceof GuiElement) {
 		return g.on;
 	}
-}
+};
 
 //useful game functions
 function buildSelector(list,onSelect,onCancel,viewLayer) {

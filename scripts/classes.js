@@ -1752,6 +1752,7 @@ var View = class View extends _c_ {
   	this.fill = fill;
   	this.visible = false;
   	this.children = [];
+    G$.store(name,this);
   }
   show() {
   	this.visible = true;
@@ -1778,6 +1779,11 @@ var View = class View extends _c_ {
   			ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,0,96);
   	}
   }
+  remove() {
+    this.hide();
+    G$.delete(this.name);
+    super.remove();
+  }
 }
 initClass(View);
 
@@ -1791,6 +1797,7 @@ var GuiElement = class GuiElement extends _c_ {
   	this.y = y;
   	this.visible = false;
   	this.neighbors = {up:null, right:null, down:null, left:null};
+    G$.store(name,this);
   }
   show() { this.visible = true; return this; }
   hide() { this.visible = false; return this; }
@@ -1798,9 +1805,13 @@ var GuiElement = class GuiElement extends _c_ {
   drawHud() {
   	if (this.isVisible()) this.customDraw();
   }
-  customDraw() { };
-  update() { };
-  onViewShown() { };
+  customDraw() { }
+  update() { }
+  remove() {
+    G$.delete(this.name);
+    super.remove();
+  }
+  onViewShown() { }
   setNeighbors(up,right,down,left) {
     this.neighbors = {up:up, right:right, down:down, left:left};
   }
