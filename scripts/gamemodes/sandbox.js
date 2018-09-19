@@ -1,15 +1,13 @@
-const SandboxMode = {
-  start: function() {
-    Level.clearLevel();
+const SandboxMode = new GameMode();
+GameManager.addMode(SandboxMode);
+SandboxMode.start = function() {
     G$("Hud").show();
-    addPlayer(0);
-    if (multiplayer) addPlayer(1);
-  },
-  onLevelLoad: function() {
-    addPlayer(0);
-    if (multiplayer) addPlayer(1);
-  },
-  tick: function() {},
-  onDeath: function(ent,attacker) {}
-}
-Game.modeObjects.push(SandboxMode);
+    this.onLevelLoad();
+};
+SandboxMode.quit = function() {
+  G$("Hud").hide();
+};
+SandboxMode.onLevelLoad = function() {
+  addPlayer(0);
+  if (multiplayer) addPlayer(1);
+};

@@ -1,41 +1,38 @@
 const setting = "game";
-const Game = {
-	gamemode: 0,
-	modeObjects: [{
-		start: function() {
-	    G$("Hud").hide();
-			G$("Title").show();
-			Level.loadLevel("Title.json");
-	  },
-		onLevelLoad: function() {},
-		tick: function() {},
-		onDeath: function() {}
-	}],
-	get: function() { return this.modeObjects[this.gamemode]; },
-	get mode() { return this.gamemode; },
-	set mode(mode) {
-		if (this.gamemode==mode) return;
-		this.gamemode = Math.min(Math.max(0,mode),this.modeObjects.length-1);
-		Box.killAll();
-		Line.killAll();
-		Garbage.clear();
-		G$("RespawnP1Button").hide();
-		G$("AddP1Button").hide();
-		G$("AddP2Button").hide();
+const GameManager = {
+	mode: null,
+	modes: [],
+	getMode: function() { return this.modes[this.mode]; },
+	setMode: function(mode) {
+		let newMode = Math.min(Math.max(0,mode),this.modes.length-1);
+		if (this.mode==newMode) return;
+		let oldMode = this.getMode();
+		if (oldMode) oldMode.quit();
+		this.mode = newMode;
+		Level.clearLevel();
 		pauseGame(false);
-		this.get().start();
-		return this.gamemode;
+		Game = this.getMode();
+		Game.start();
+		return this.mode;
 	},
-	attempt: function(method,args) {
-		let mode = this.get();
-		if (mode&&mode[method]) mode[method].apply(mode,args);
-		else console.warn("Couldn't run "+method+" method of "+mode);
-	},
-	start: function() { this.attempt("start"); },
-	onLevelLoad: function() { this.attempt("onLevelLoad"); },
-	tick: function() { this.attempt("tick"); },
-	onDeath: function() { this.attempt("onDeath",[...arguments]); }
+	addMode: function(mode) {
+		this.modes.push(mode);
+	}
 }
+class GameMode {
+	get mode() {
+		return GameManager.mode;
+	}
+	set mode(mode) {
+		return GameManager.setMode(mode);
+	}
+	start() {}
+	quit() {}
+	tick() {}
+	onLevelLoad() {}
+	onDeath(ent,attacker) {}
+}
+var Game = new GameMode();
 
 function tick() { //GAME UPDATES//
 	//update button states
@@ -102,7 +99,7 @@ function initGame() {
 
 	canvas.clearLoadScreen();
 	setGameSpeed(gameSpeed);
-	Game.start();
+	Game.mode = 0;
 }
 
 function loadLoop() {

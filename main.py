@@ -32,6 +32,7 @@ scripts = [
   "editorTools.js"
 ]
 gamemodes = [
+  "title.js",
   "sandbox.js",
   "survival.js"
 ]
