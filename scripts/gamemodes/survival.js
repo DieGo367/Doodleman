@@ -4,10 +4,13 @@ SurvivalMode.start = function() {
   this.ready = false;
   this.wave = 0;
   this.score = 0;
+  if (!this.built) buildSurvivalGui();
+  G$("ScoreText").show();
   G$("Hud").show();
   Level.loadLevel("Dungeon-0.json");
 };
 SurvivalMode.quit = function() {
+  G$("ScoreText").hide();
   G$("Hud").hide();
 };
 SurvivalMode.tick = function() {
@@ -24,9 +27,13 @@ SurvivalMode.onLevelLoad = function() {
   this.ready = true;
 };
 SurvivalMode.onDeath = function(ent,attacker) {
-  if (ent instanceof Enemy) this.score += 10;
+  if (ent instanceof Enemy) this.addScore(ent.maxHealth);
 };
 
+SurvivalMode.addScore = function(amt) {
+  this.score += amt;
+  G$("ScoreText").text = "Score: "+this.score;
+};
 SurvivalMode.spawnWave = function(num) {
   while(num-->0) {
     //spawn an enemy at random coords
@@ -35,3 +42,8 @@ SurvivalMode.spawnWave = function(num) {
     ActorManager.make(10,x,y);
   }
 };
+
+function buildSurvivalGui() {
+  TextElement.create("ScoreText","Hud",hudWidth/2,55,"Score: 0","Fredoka One",30,false,"black",CENTER);
+  SurvivalMode.built = true;
+}
