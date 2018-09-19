@@ -21,7 +21,9 @@ const SurvivalMode = {
       this.spawnWave(this.wave);
     }
   },
-  onDeath: function(ent,attacker) {},
+  onDeath: function(ent,attacker) {
+    if (ent instanceof Enemy) this.score += 10;
+  },
 
   spawnWave: function(num) {
     while(num-->0) {

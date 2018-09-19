@@ -28,15 +28,15 @@ const Game = {
 		this.get().start();
 		return this.gamemode;
 	},
-	attempt: function(method) {
+	attempt: function(method,args) {
 		let mode = this.get();
-		if (mode&&mode[method]) mode[method]();
+		if (mode&&mode[method]) mode[method].apply(mode,args);
 		else console.warn("Couldn't run "+method+" method of "+mode);
 	},
 	start: function() { this.attempt("start"); },
 	onLevelLoad: function() { this.attempt("onLevelLoad"); },
 	tick: function() { this.attempt("tick"); },
-	onDeath: function() { this.attempt("onDeath"); }
+	onDeath: function() { this.attempt("onDeath",[...arguments]); }
 }
 
 function tick() { //GAME UPDATES//
