@@ -1,25 +1,5 @@
-function printErr(err) {
-	alert("Oh noes everything broke!\n"+err.stack);
-	console.log("Oh noes everything broke!\n"+err.stack);
-}
-function printFunc(func) {
-	var result = func.toString();
-	if (confirm(result)) {
-		console.log(result);
-		result = result.split("\n");
-		var pTags = "";
-		for (var i in result) pTags += "<p>"+result[i].split("//")[0]+"</p>";
-		output.html(pTags);
-		output.show();
-	}
-	else output.hide();
-}
-function printFuncName(func) {
-	var str = func.toString();
-	return str.split(" ")[1];
-}
 //variables
-var canvas, c, output; //canvas and context
+var canvas, c; //canvas and context
 var interval, gameSpeed = 50/3;
 var pixelDensity = 1, hudWidth = 640, hudHeight = 360;
 var heightScale, widthScale;
