@@ -50,11 +50,12 @@ def get_user_vars():
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        script_html = "<script src=\"scripts/game.js\"></script>"
+        script_html = "<script src=\"scripts/loadSetup.js\"></script>"
+        script_html += "<script defer src=\"scripts/game.js\"></script>"
         for script in scripts:
-            script_html += "<script src=\"scripts/%s\"></script>" % (script)
+            script_html += "<script defer src=\"scripts/%s\"></script>" % (script)
         for script in gamemodes:
-            script_html += "<script src=\"scripts/gamemodes/%s\"></script>" % (script)
+            script_html += "<script defer src=\"scripts/gamemodes/%s\"></script>" % (script)
 
         temp_vars = get_user_vars()
         temp_vars["scripts"] = script_html
@@ -63,9 +64,10 @@ class MainHandler(webapp2.RequestHandler):
 
 class EditorHandler(webapp2.RequestHandler):
     def get(self):
-        script_html = "<script src=\"scripts/editor.js\"></script>"
+        script_html = "<script src=\"scripts/loadSetup.js\"></script>"
+        script_html += "<script defer src=\"scripts/editor.js\"></script>"
         for script in scripts:
-            script_html += "<script src=\"scripts/%s\"></script>" % (script)
+            script_html += "<script defer src=\"scripts/%s\"></script>" % (script)
 
         temp_vars = get_user_vars()
         temp_vars["scripts"] = script_html
