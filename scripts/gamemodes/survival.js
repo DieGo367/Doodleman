@@ -27,7 +27,7 @@ SurvivalMode.onLevelLoad = function() {
   this.ready = true;
 };
 SurvivalMode.onDeath = function(ent,attacker) {
-  if (ent instanceof Enemy) this.addScore(ent.maxHealth);
+  if (ent instanceof Enemy&&attacker instanceof Player) this.addScore(ent.maxHealth);
 };
 
 SurvivalMode.addScore = function(amt) {
