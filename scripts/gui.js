@@ -43,7 +43,7 @@ function attemptUserAction(action,src) {
 		pauseGame(true);
 		let uav = View.create("_UAV_",Pointer.focusLayer+1,15,15,hudWidth-30,hudHeight-30,"window");
 		uav.action = action;
-		TextElement.create("_UAText_","_UAV_",hudWidth/2,hudHeight/2,"Press any key or click the screen to continue.","Fredoka One",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+		TextElement.create("_UAText_","_UAV_",hudWidth/2,hudHeight/2,fontMenuTitle,"Press any key or click the screen to continue.",hudWidth-30,CENTER).show();
 		uav.show();
 		return false;
 	}
@@ -58,7 +58,7 @@ function clearViewLock() {
 
 function gameConfirm(text,onResponse) {
 	let a = View.create("_Confirm_",Pointer.focusLayer+1,15,15,hudWidth-30,hudHeight-30,"window");
-	TextElement.create("_ConfirmText_","_Confirm_",hudWidth/2,hudHeight/2,text,"Fredoka One",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("_ConfirmText_","_Confirm_",hudWidth/2,hudHeight/2,fontMenuTitle,text,hudWidth-30,CENTER).show();
 	let close = function() {
 		for (var i in a.children) a.children[i].remove();
 		a.hide().remove();
@@ -78,7 +78,7 @@ function gameAlert(text,duration) {
 	let v = G$("_Alert_"), t = G$("_AlertText_");
 	if (!v.visible) v = View.create("_Alert_",Pointer.focusLayer+1,0,hudHeight*7/8,hudWidth,hudHeight/8,"tint","black");
 	if (!t.visible) {
-		t = TextElement.create("_AlertText_","_Alert_",hudWidth/2,hudHeight*7/8+30,text,"Fredoka One",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+		t = TextElement.create("_AlertText_","_Alert_",hudWidth/2,hudHeight*7/8+30,fontMenuTitle,text,hudWidth,CENTER).show();
 		t.update = function() {
 			this.time--;
 			if (this.time<=0) {
@@ -97,8 +97,8 @@ function gameAlert(text,duration) {
 
 function buildTitleScreen() {
 	View.create("Title",0,0,0,hudWidth,hudHeight);
-	TextElement.create("TitleLogo","Title",hudWidth/2,hudHeight*11/36,"Doodleman","Gochi Hand",100,false,"black",CENTER,false,null,null,true,"white",5,9,hudWidth).show();
-	TextElement.create("TitleYear","Title",10,hudHeight-10,"\u00A92018 DieGo","Gochi Hand",20,false,"black",LEFT,false,null,null,true,"white",5,9,hudWidth).show();
+	TextElement.create("TitleLogo","Title",hudWidth/2,hudHeight*11/36,fontLogo,"Doodleman",hudWidth,CENTER).show();
+	TextElement.create("TitleYear","Title",10,hudHeight-10,fontCredit,"\u00A92018 DieGo",hudWidth,LEFT).show();
 
 	Button.create("TitleMode:Survival","Title",hudWidth/2-100,hudHeight/2-30,200,60,"Survival").setOnClick(function() {
 		this.view.hide();
@@ -129,8 +129,8 @@ function buildMainHud() {
 function buildPauseMenu() {
   View.create("PauseMenu",0,0,0,hudWidth,hudHeight,"tint","black");
 
-	TextElement.create("PauseText","PauseMenu",hudWidth/2,hudHeight/2,"Paused","Fredoka One",60,true,"yellow",CENTER,true,"darkOrange",5,true,"orange",3,8).show();
-	TextElement.create("PauseFocusMsg","PauseMenu",hudWidth/2,hudHeight/2+55,"Click to focus","Fredoka One",30,false,"#ff6f6b",CENTER,false,"#ad2f2b",3,true,"#ad2f2b",3,8);
+	TextElement.create("PauseText","PauseMenu",hudWidth/2,hudHeight/2,fontPaused,"Paused",hudWidth,CENTER).show();
+	TextElement.create("PauseFocusMsg","PauseMenu",hudWidth/2,hudHeight/2+55,fontFocus,"Click to focus",hudWidth,CENTER);
 
   Button.create("PauseClose","PauseMenu",hudWidth-60,10,50,50).setOnClick(function() {
 		pauseGame(false);
@@ -200,7 +200,7 @@ function buildPauseMenu() {
 function buildLevelSelectMenu() {
   View.create("LevelSelectView",1,0,0,hudWidth,hudHeight,"tint","black");
 
-  TextElement.create("LSText","LevelSelectView",hudWidth/2,30,"Select a level","Fredoka One",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+  TextElement.create("LSText","LevelSelectView",hudWidth/2,30,fontMenuTitle,"Select a level",hudWidth,CENTER).show();
 
 	Button.create("LSClose","LevelSelectView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("LevelSelectView").hide();
@@ -224,15 +224,15 @@ function buildLevelSelectMenu() {
 
 function buildControllerSettingsMenu() {
   View.create("CtrlSettingsView",1,0,0,hudWidth,hudHeight,"tint","black");
-	TextElement.create("CtrlSettingsText","CtrlSettingsView",hudWidth/2,30,"Controller Settings","Fredoka One",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("CtrlSettingsText","CtrlSettingsView",hudWidth/2,30,fontMenuTitle,"Controller Settings",hudWidth,CENTER).show();
 
   Button.create("CtrlSettingsClose","CtrlSettingsView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("CtrlSettingsView").hide();
 		G$("PauseMenu").show();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
-  TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/2-135,100,"Player 1","Fredoka One",20,false,"yellow",CENTER,true,"darkOrange",2,false).show();
-	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth/2+135,100,"Player 2","Fredoka One",20,false,"yellow",CENTER,true,"darkOrange",2,false).show();
+	TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/2-135,100,fontMenuItem,"Player 1",hudWidth,CENTER).show();
+	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth/2+135,100,fontMenuItem,"Player 2",hudWidth,CENTER).show();
 
   Button.create("CtrlP1Keyboard","CtrlSettingsView",hudWidth/2-260,130,250,40,"Keyboard").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(KEYBOARD,Player.keyIds[0]);
@@ -320,7 +320,7 @@ function buildHelpPage() {
 		buildControlList(this.b,this.a);
 	}
 
-	TextElement.create("HelpTitle","HelpView",hudWidth/2,30,"Controls","Fredoka One",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("HelpTitle","HelpView",hudWidth/2,30,fontMenuTitle,"Controls",hudWidth,CENTER).show();
 	var bWasd = Button.create("WASDPage","HelpView",10,100,100,40,"WASD").setOnClick(onClick).setRadioGroup(["IJKLPage","MovesPage"]).show();
 	bWasd.b = ["A / D", "W", "S", "G", "E"], bWasd.a = actions; bWasd.on = true;
 	var bIjkl = Button.create("IJKLPage","HelpView",10,150,100,40,"IJKL").setOnClick(onClick).setRadioGroup(["WASDPage","MovesPage"]).show();
@@ -336,7 +336,7 @@ function buildControlList(buttons,actions) {
 	for (var i in actions) {
 		var te = G$("HelpItem-A::"+i);
 		if (te instanceof TextElement) te.text = actions[i];
-		else TextElement.create("HelpItem-A::"+i,"HelpView",hudWidth/2-50,100+55*i,actions[i],"Fredoka One",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+		else TextElement.create("HelpItem-A::"+i,"HelpView",hudWidth/2-50,100+55*i,fontMenuItem,actions[i],hudWidth/2+50,LEFT,true,"darkOrange",2).show();
 	}
 	for (var i in buttons) {
 		var te = G$("HelpItem-B::"+i);
@@ -348,14 +348,14 @@ function buildControlList(buttons,actions) {
 function buildMapperView() {
   View.create("MapperView",1,0,0,hudWidth,hudHeight,"tint","black");
 	// ImgElement.create("MapperImg","MapperView",hudWidth/2,hudHeight/2,"GUI-Controller.png",640,360).show();
-	TextElement.create("MapperTitle","MapperView",hudWidth/2,30,"Gamepad Mapper","Fredoka One",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("MapperTitle","MapperView",hudWidth/2,30,fontMenuTitle,"Gamepad Mapper",hudWidth,CENTER).show();
 
 	Button.create("MapperClose","MapperView",hudWidth-60,10,50,50).setOnClick(function() {
 		G$("MapperView").hide();
 		G$("CtrlSettingsView").show();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
-	TextElement.create("MapperSelectText","MapperView",hudWidth/3-5,115,"Settings for: ","Fredoka One",20,false,"yellow",RIGHT,true,"darkOrange",2).show();
+	TextElement.create("MapperSelectText","MapperView",hudWidth/3-5,115,fontMenuItem,"Settings for: ",hudWidth,RIGHT).show();
 	Button.create("MapperGPSelect","MapperView",hudWidth/3+5,90,300,40).setOnViewShown(function() {
 		var ids = GamePad.slotsFilled();
 		if (ids.length==0) G$("MapperClose").onClickFunction();
@@ -376,10 +376,10 @@ function buildMapperView() {
 		},null,2);
 	}).show();
 
-	TextElement.create("MapperCurrentMapText","MapperView",hudWidth/3-5,165,"Current Mapping: ","Fredoka One",20,false,"yellow",RIGHT,true,"darkOrange",2).show();
-	TextElement.create("MapperMappingName","MapperView",hudWidth/3+5,165,"__","Fredoka One",20,false,"yellow",LEFT,true,"darkOrange",2).show();
-	TextElement.create("MapperMappingDetails","MapperView",hudWidth/2,205,"none","Fredoka One",20,false,"lime",CENTER,true,"darkGreen",2,null,null,null,null,hudWidth-20).show();
-	TextElement.create("MapperMappingDetails2","MapperView",hudWidth/2,245,"","Fredoka One",20,false,"lime",CENTER,true,"darkGreen",2,null,null,null,null,hudWidth-20).show();
+	TextElement.create("MapperCurrentMapText","MapperView",hudWidth/3-5,165,fontMenuItem,"Current Mapping: ",hudWidth,RIGHT).show();
+	TextElement.create("MapperMappingName","MapperView",hudWidth/3+5,165,fontMenuItem,"__",hudWidth,LEFT).show();
+	TextElement.create("MapperMappingDetails","MapperView",hudWidth/2,205,fontMenuData,"none",hudWidth-20,CENTER).show();
+	TextElement.create("MapperMappingDetails2","MapperView",hudWidth/2,245,fontMenuData,"",hudWidth-20,CENTER).show();
 
 	Button.create("MapperRemap","MapperView",hudWidth/3-100,hudHeight-90,200,40,"Change Mappings").setOnViewShown(function() {
 		var id = G$("MapperGPSelect").selectedId;
@@ -438,7 +438,7 @@ function buildMapperTool() {
 	var titles = ["Press Button 0","Press Button 1","Press Start","Press Select","Press Left Bumper","Press Right Bumper",
 	"Move Left Stick Left/Right","Move Left Stick Up/Down","Move Right Stick Left/Right","Move Right Up/Down",
 	"Press on the DPad","Press Up","Press Down","Press Left","Press Right"];
-	TextElement.create("MapperToolText","MapperTool",hudWidth/2,150,"Press A","Fredoka One",30,true,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("MapperToolText","MapperTool",hudWidth/2,150,fontMenuTitle,"Press A",hudWidth-140,CENTER).show();
 	Button.create("MapperToolSkip","MapperTool",hudWidth/2-50,hudHeight-150,100,40,"Skip").setOnViewShown(function() {
 		var id = G$("MapperTool").selectedId;
 		if (!GamePad.controllers[id]) G$("MapperToolClose").onClickFunction();
@@ -543,7 +543,7 @@ function buildDevToolsHud() {
 function buildEditorTools() {
 	View.create("EditorToolbar",0,0,0,hudWidth,70,"tint","purple");
 	View.create("EditorHud",0,0,0,hudWidth,70).show();
-	TextElement.create("EditorModeText","EditorHud",70,40,"Mode","Fredoka One",20,false,"fuchsia",LEFT,true,"purple",2);
+	TextElement.create("EditorModeText","EditorHud",70,40,fontMenuEdit,"Mode",hudWidth,LEFT);
 
 	View.create("ExpandButtonView",0,0,0,70,70).show();
 	Button.create("ExpandButton","ExpandButtonView",10,10,50,50).setToggle(function() {
@@ -655,7 +655,7 @@ function buildEditorTools() {
 		G$("LS:Edge:left").storeAccessor(Level.level.edge.left);
 		G$("LS:Edge:right").storeAccessor(Level.level.edge.right);
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
-	TextElement.create("LS:Title","LevelSettingsView",hudWidth/2,30,"Level Properties","Fredoka One",30,false,"white",CENTER,true,"gray",5,true,"black",3,8).show();
+	TextElement.create("LS:Title","LevelSettingsView",hudWidth/2,30,fontMenuTitle,"Level Properties",hudWidth,CENTER).show();
 
 	Button.create("FSToggle","LevelSettingsView",hudWidth-130,10,50,50).setToggle(function() {
 		callPrefixedFunction(canvas,"requestFullscreen");
@@ -667,7 +667,7 @@ function buildEditorTools() {
 	},true).setIcon("GUI-Icons.png",2,0,42,4).show();
 	Button.create("LS:LoadLevel","LevelSettingsView",10,10,150,40,"Load From File").setOnClick(Level.openLocalFile,true).show().setPressDelay(1);
 
-	TextElement.create("LS:Dimensions","LevelSettingsView",hudWidth/4-150,100+55*0,"Dimensions","Fredoka One",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextElement.create("LS:Dimensions","LevelSettingsView",hudWidth/4-150,100+55*0,fontMenuItem,"Dimensions",hudWidth,LEFT).show();
 	TextInput.create("LS:Dimensions:width","LevelSettingsView",hudWidth/2-175,75,100,40,"number",Level.level.width,"width","Enter a width").setOnInputChange(function(val) {
 		Level.level.width = val;
 	}).show();
@@ -675,7 +675,7 @@ function buildEditorTools() {
 		Level.level.height = val;
 	}).show();
 
-	TextElement.create("LS:CamStart","LevelSettingsView",hudWidth/4-150,155,"Camera Start","Fredoka One",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextElement.create("LS:CamStart","LevelSettingsView",hudWidth/4-150,155,fontMenuItem,"Camera Start",hudWidth,LEFT).show();
 	TextInput.create("LS:CamStart:x","LevelSettingsView",hudWidth/2-175,130,100,40,"number",Level.level.camStart.x,"x","Enter starting x point").setOnInputChange(function(val) {
 		Level.level.camStart.x = val;
 	}).show();
@@ -683,7 +683,7 @@ function buildEditorTools() {
 		Level.level.camStart.y = val;
 	}).show();
 
-	TextElement.create("LS:ScrollBuffer","LevelSettingsView",hudWidth/4-150,210,"Scroll Buffer","Fredoka One",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextElement.create("LS:ScrollBuffer","LevelSettingsView",hudWidth/4-150,210,fontMenuItem,"Scroll Buffer",hudWidth,LEFT).show();
 	TextInput.create("LS:ScrollBuffer:hor","LevelSettingsView",hudWidth/2-175,185,100,40,"number",Level.level.horScrollBuffer,"horizontal","Enter horizontal scroll buffer").setOnInputChange(function(val) {
 		Level.level.horScrollBuffer = val;
 	}).show();
@@ -691,7 +691,7 @@ function buildEditorTools() {
 		Level.level.vertScrollBuffer = val;
 	}).show();
 
-	TextElement.create("LS:ZoomLimit","LevelSettingsView",hudWidth/4-150,265,"Zoom Limits","Fredoka One",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextElement.create("LS:ZoomLimit","LevelSettingsView",hudWidth/4-150,265,fontMenuItem,"Zoom Limits",hudWidth,LEFT).show();
 	TextInput.create("LS:ZoomLimit:min","LevelSettingsView",hudWidth/2-175,240,100,40,"number",Level.level.minZoom,"min","Enter minimum zoom level").setOnInputChange(function(val) {
 		Level.level.minZoom = val;
 	}).show();
@@ -699,7 +699,7 @@ function buildEditorTools() {
 		Level.level.maxZoom = val;
 	}).show();
 
-	TextElement.create("LS:Edge","LevelSettingsView",hudWidth/4-150,320,"Edge Behavior","Fredoka One",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextElement.create("LS:Edge","LevelSettingsView",hudWidth/4-150,320,fontMenuItem,"Edge Behavior",hudWidth,LEFT).show();
 	TextInput.create("LS:Edge:top","LevelSettingsView",hudWidth/2-175,295,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_NONE,"top","Enter top edge behavior").setOnInputChange(function(val) {
 		Level.level.edge.top = val;
 	}).show();
@@ -713,12 +713,12 @@ function buildEditorTools() {
 		Level.level.edge.right = val;
 	}).show();
 
-	TextElement.create("LS:ZoomScale","LevelSettingsView",hudWidth*2/3-50,100,"Zoom Scale","Fredoka One",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextElement.create("LS:ZoomScale","LevelSettingsView",hudWidth*2/3-50,100,fontMenuItem,"Zoom Scale",hudWidth,LEFT).show();
 	TextInput.create("LS:ZoomScale:num","LevelSettingsView",hudWidth/2+190,75,100,40,"number",Level.level.zoomScale,"zoom scale","Enter preferred zoom level").setOnInputChange(function(val) {
 		Level.level.zoomScale = val;
 	}).show();
 
-	TextElement.create("LS:BGScale","LevelSettingsView",hudWidth*2/3-50,155,"BG Scale","Fredoka One",20,false,"yellow",LEFT,true,"darkOrange",2).show();
+	TextElement.create("LS:BGScale","LevelSettingsView",hudWidth*2/3-50,155,fontMenuItem,"BG Scale",LEFT).show();
 	TextInput.create("LS:BGScale:num","LevelSettingsView",hudWidth/2+190,130,100,40,"number",Level.level.bgScale,"bg scale","Enter the background scale").setOnInputChange(function(val) {
 		Level.level.bgScale = val;
 	}).show();

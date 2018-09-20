@@ -1987,10 +1987,8 @@ var Button = class Button extends GuiElement {
   	ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,x,y);
   	if (this.useIcon) ImageFactory.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
   	else {
-  		c.font = this.hovered?"bold 20px Fredoka One":"20px Fredoka One";
-  		var metrics = c.measureText(this.text);
-      let width = Math.min(metrics.width,this.width)/2;
-  		drawStrokedText(this.text,this.x+this.width/2-width,this.y+this.height/2+7,"white","black",2,8,this.width);
+      let font = this.hovered?fontButtonBold:fontButton;
+      font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7,this.width,CENTER);
   	}
   }
 }
@@ -2063,29 +2061,23 @@ var TextInput = class TextInput extends Button {
   }
   customDraw() {
     ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,32,96);
-    let text = "";
-    if (this.typing) {
-      return;
-    }
-    else if (this.storedVal!==""&&this.storedVal!=null) {
-      text = "" + this.storedVal;
-      c.fillStyle = "black";
-    }
+    if (this.typing) return;
     else {
-      text = this.text || "";
-      c.fillStyle = "gray";
+      let text = "", font = fontInput;
+      if (this.storedVal!==""&&this.storedVal!=null) text = "" + this.storedVal;
+      else {
+        text = this.text || "";
+        font = fontInputEmpty;
+      }
+      let fontCopy = Font.copy(font,null,null,this.hovered);
+      fontCopy.draw(text,this.x+this.width/2,this.y+this.height/2+7,this.width,CENTER);
     }
-    c.font = this.hovered?"bold 20px Fredoka One":"20px Fredoka One";
-		let metrics = c.measureText(text);
-    let width = Math.min(metrics.width,this.width)/2;
-    c.fillText(text,this.x+this.width/2-width,this.y+this.height/2+7,this.width);
   }
   setTypingView() {
-    c.font = "20px Fredoka One";
-    let tw = c.measureText(this.promptMsg).width;
+    let tw = fontInputDesc.measureWidth(this.promptMsg);
     View.create("TextInput",this.view.layer+1,this.x-5,this.y-5,Math.max(this.width,tw)+10,this.height+10+22,"tint","black").show();
-    TextElement.create("TextInput:TE","TextInput",this.x+this.width/2,this.y+this.height/2+7,this.typingText,"Fredoka One",20,true,"blue",CENTER).show();
-    TextElement.create("TextInput:NE","TextInput",this.x,this.y+this.height+22,this.promptMsg,"Fredoka One",20,false,"white",LEFT).show();
+    TextElement.create("TextInput:TE","TextInput",this.x+this.width/2,this.y+this.height/2+7,fontInputSelect,this.typingText,this.width,CENTER).show();
+    TextElement.create("TextInput:NE","TextInput",this.x,this.y+this.height+22,fontInputDesc,this.promptMsg,tw,LEFT).show();
   }
   removeTypingView() {
     G$("TextInput").hide();
@@ -2116,7 +2108,6 @@ var TextInput = class TextInput extends Button {
         if (this.typingText.length>0) {
           if (this.textTypeMode==1) {
             G$("TextInput:TE").text = this.typingText = "";
-            this.textTypeMode = 0;
           }
           else {
             this.typingText = this.typingText.slice(0,this.typingText.length-1);
@@ -2127,7 +2118,7 @@ var TextInput = class TextInput extends Button {
       case 37: //left arrow key
       case 39: //right arrow key
         if (this.textTypeMode==1) {
-          G$("TextInput:TE").color = "yellow";
+          G$("TextInput:TE").font = fontInputType;
           this.textTypeMode = 0;
         }
         break;
@@ -2143,7 +2134,7 @@ var TextInput = class TextInput extends Button {
 
           if (this.textTypeMode==1) {
             G$("TextInput:TE").text = this.typingText = char;
-            G$("TextInput:TE").color = "yellow";
+            G$("TextInput:TE").font = fontInputType;
             this.textTypeMode = 0;
           }
           else {
@@ -2157,48 +2148,15 @@ var TextInput = class TextInput extends Button {
 initClass(TextInput,Button);
 
 var TextElement = class TextElement extends GuiElement {
-  constructor(name,viewName,x,y,text,font,size,isBold,color,alignment,hasShadow,shadowColor,shadowDistance,hasBorder,borderColor,borderSize,borderSteps,maxWidth) {
+  constructor(name,viewName,x,y,font,text,maxWidth,alignment) {
     super(name,viewName,x,y);
     this.text = text;
-  	this.font = font||"Times New Roman";
-  	this.size = size||10;
-  	this.isBold = isBold||false;
-  	this.color = color||"black";
-  	this.alignment = alignment===void(0)?LEFT:alignment;
-  	this.hasShadow = hasShadow||false;
-  	this.shadowColor = shadowColor||"darkGray";
-  	this.shadowDistance = shadowDistance||3;
-  	this.hasBorder = hasBorder||false;
-  	this.borderColor = borderColor||"white";
-  	this.borderSize = borderSize||2;
-  	this.borderSteps = borderSteps||8;
+  	this.font = font;
     this.maxWidth = maxWidth;
+    this.alignment = alignment;
   }
   customDraw() {
-  	c.font = (this.isBold?"bold ":"")+this.size+"px "+this.font;
-  	if (this.hasShadow) {
-  		c.fillStyle = this.shadowColor;
-  		this.drawText(this.shadowDistance,true);
-  	}
-  	c.fillStyle = this.color;
-  	this.drawText(0,false);
-  }
-  drawText(yOffset,isShadow) {
-  	var metrics = c.measureText(this.text);
-    if (this.maxWidth&&metrics.width>this.maxWidth) metrics = {width: this.maxWidth};
-  	var xOffset;
-  	switch(this.alignment) {
-  		case LEFT:
-  			xOffset = 0;
-  			break;
-  		case CENTER:
-  			xOffset = -metrics.width/2;
-  			break;
-  		case RIGHT:
-  			xOffset = -metrics.width;
-  	}
-  	if (this.hasBorder) drawStrokedText(this.text,this.x+xOffset,this.y+yOffset,isShadow?this.shadowColor:this.color,isShadow?this.shadowColor:this.borderColor,this.borderSize,this.borderSteps,this.maxWidth);
-  	else c.fillText(this.text,this.x+xOffset,this.y+yOffset,this.maxWidth);
+    this.font.draw(this.text,this.x,this.y,this.maxWidth,this.alignment);
   }
 }
 initClass(TextElement,GuiElement);

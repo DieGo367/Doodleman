@@ -44,6 +44,6 @@ SurvivalMode.spawnWave = function(num) {
 };
 
 function buildSurvivalGui() {
-  TextElement.create("ScoreText","Hud",hudWidth/2,55,"Score: 0","Fredoka One",30,false,"black",CENTER);
+  TextElement.create("ScoreText","Hud",hudWidth/2,55,fontHudScore,"Score: 0",hudWidth,CENTER);
   SurvivalMode.built = true;
 }
