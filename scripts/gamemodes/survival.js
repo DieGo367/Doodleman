@@ -2,10 +2,7 @@ const SurvivalMode = new GameMode();
 GameManager.addMode(SurvivalMode);
 SurvivalMode.start = function() {
   this.ready = false;
-  this.wave = 0;
-  this.score = 0;
   if (!this.built) buildSurvivalGui();
-  G$("ScoreText").show();
   G$("Hud").show();
   Level.loadLevel("Dungeon-0.json");
 };
@@ -22,6 +19,9 @@ SurvivalMode.tick = function() {
   }
 };
 SurvivalMode.onLevelLoad = function() {
+  this.wave = 0;
+  this.score = 0;
+  G$("ScoreText").show().text = "Score: 0";
   addPlayer(0);
   if (multiplayer) addPlayer(1);
   this.ready = true;
