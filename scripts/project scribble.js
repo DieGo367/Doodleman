@@ -376,12 +376,11 @@ const Constants = {
 	}
 }
 class Font {
-	constructor(family,size,isBold,color,alignment) {
+	constructor(family,size,isBold,color) {
 		this.family = family || "Arial";
 		this.size = size || 0;
 		this.isBold = !!isBold;
 		this.color = color || "black";
-		this.alignment = alignment || CENTER;
 		this.hasShadow = false;
 		this.shadowColor = "black";
 		this.shadowDistance = 0;
@@ -407,12 +406,13 @@ class Font {
 		}
 		return this;
 	}
-	draw(text,x,y,maxWidth) {
+	draw(text,x,y,maxWidth,alignment) {
 		c.save();
 		c.font = (this.isBold?"bold ":"")+this.size+"px "+this.family;
 		let width = c.measureText(text).width;
-		if (width>maxWidth) width = maxWidth;
-		c.textAlign = ["left","center","right"][[LEFT,CENTER,RIGHT].indexOf(this.alignment)];
+		if (maxWidth!=void(0) && width>maxWidth) width = maxWidth;
+		if (alignment==void(0)) alignment = CENTER;
+		c.textAlign = ["left","center","right"][[LEFT,CENTER,RIGHT].indexOf(alignment)];
 		c.lineWidth = this.strokeSize;
 		c.lineJoin = "round";
 		if (this.hasShadow) {
