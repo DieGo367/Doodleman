@@ -375,6 +375,59 @@ const Constants = {
 		}
 	}
 }
+class Font {
+	constructor(family,size,isBold,color,alignment) {
+		this.family = family || "Arial";
+		this.size = size || 0;
+		this.isBold = !!isBold;
+		this.color = color || "black";
+		this.alignment = alignment || CENTER;
+		this.hasShadow = false;
+		this.shadowColor = "black";
+		this.shadowDistance = 0;
+		this.hasStroke = false;
+		this.strokeColor = "black";
+		this.strokeSize = 0;
+	}
+	setShadow(color,distance) {
+		if (color===false) this.hasShadow = false;
+		else {
+			this.hasShadow = true;
+			this.shadowColor = color || "black";
+			this.shadowDistance = distance || 0;
+		}
+		return this;
+	}
+	setStroke(color,size) {
+		if (color===false) this.hasStroke = false;
+		else {
+			this.hasStroke = true;
+			this.strokeColor = color || "black";
+			this.strokeSize = size || 0;
+		}
+		return this;
+	}
+	draw(text,x,y,maxWidth) {
+		c.save();
+		c.font = (this.isBold?"bold ":"")+this.size+"px "+this.family;
+		let width = c.measureText(text).width;
+		if (width>maxWidth) width = maxWidth;
+		c.textAlign = ["left","center","right"][[LEFT,CENTER,RIGHT].indexOf(this.alignment)];
+		c.lineWidth = this.strokeSize;
+		c.lineJoin = "round";
+		if (this.hasShadow) {
+			if (this.hasStroke) this.drawStep("stroke",this.shadowColor,text,x,y+this.shadowDistance,width);
+			this.drawStep("fill",this.shadowColor,text,x,y+this.shadowDistance,width);
+		}
+		if (this.hasStroke) this.drawStep("stroke",this.strokeColor,text,x,y,width);
+		this.drawStep("fill",this.color,text,x,y,width);
+		c.restore();
+	}
+	drawStep(mode,color,text,x,y,maxWidth,strokeSize) {
+		c[mode+"Style"] = color;
+		c[mode+"Text"](text,x,y,maxWidth);
+	}
+}
 
 var DrawableClassList = [];
 function callOnAllClasses (method) {
