@@ -431,28 +431,31 @@ class Font {
 		c.font = (this.isBold?"bold ":"")+this.size+"px "+this.family;
 		return c.measureText(text).width;
 	}
-	static copy(font,family,size,isBold,color) {
-		let f = new this(family||font.family,size||font.size,isBold==void(0)?font.isBold:isBold,color||font.color);
+	static copy(font,options) {
+		if (!options) options = {};
+		let f = new this(options.family||font.family,options.size||font.size,
+			options.isBold==void(0)?font.isBold:options.isBold,
+			options.color||font.color);
 		if (font.hasShadow) f.setShadow(font.shadowColor,font.shadowDistance);
 		if (font.hasStroke) f.setStroke(font.strokeColor,font.strokeSize);
 		return f;
 	}
 }
 var fontLogo = new Font("Gochi Hand",100,false,"black").setStroke("white",15);
-var fontCredit = Font.copy(fontLogo,null,20);
+var fontCredit = Font.copy(fontLogo,{size:20});
 var fontButton = new Font("Fredoka One",20,false,"white").setStroke("black",6);
-var fontButtonBold = Font.copy(fontButton,null,null,true);
+var fontButtonBold = Font.copy(fontButton,{isBold:true});
 var fontPaused = new Font("Fredoka One",60,true,"yellow").setStroke("orange",9).setShadow("darkOrange",5);
 var fontFocus = new Font("Fredoka One",30,false,"#ff6f6b").setStroke("#ad2f2b",9);
 var fontMenuTitle = new Font("Fredoka One",30,true,"white").setStroke("black",9).setShadow("gray",5);
 var fontMenuItem = new Font("Fredoka One",20,false,"yellow").setShadow("darkOrange",2);
-var fontMenuData = Font.copy(fontMenuItem,null,null,null,"lime").setShadow("darkGreen",2);
-var fontMenuEdit = Font.copy(fontMenuItem,null,null,null,"fuchsia").setShadow("purple",2);
+var fontMenuData = Font.copy(fontMenuItem,{color:"lime"}).setShadow("darkGreen",2);
+var fontMenuEdit = Font.copy(fontMenuItem,{color:"fuchsia"}).setShadow("purple",2);
 var fontInput = new Font("Fredoka One",20,false,"black");
-var fontInputEmpty = Font.copy(fontInput,null,null,null,"gray");
-var fontInputSelect = Font.copy(fontInput,null,null,null,"blue");
-var fontInputType = Font.copy(fontInput,null,null,null,"yellow");
-var fontInputDesc = Font.copy(fontInput,null,null,null,"white");
+var fontInputEmpty = Font.copy(fontInput,{color:"gray"});
+var fontInputSelect = Font.copy(fontInput,{color:"blue"});
+var fontInputType = Font.copy(fontInput,{color:"yellow"});
+var fontInputDesc = Font.copy(fontInput,{color:"white"});
 var fontHudScore = new Font("Fredoka One",30,false,"black");
 
 var DrawableClassList = [];
