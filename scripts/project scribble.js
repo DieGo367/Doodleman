@@ -427,8 +427,8 @@ class Font {
 		c[mode+"Style"] = color;
 		c[mode+"Text"](text,x,y,maxWidth);
 	}
-	static copy(font) {
-		let f = new this(font.family,font.size,font.isBold,font.color);
+	static copy(font,family,size,isBold,color) {
+		let f = new this(family||font.family,size||font.size,isBold==void(0)?font.isBold:isBold,color||font.color);
 		if (font.hasShadow) f.setShadow(font.shadowColor,font.shadowDistance);
 		if (font.hasStroke) f.setStroke(font.strokeColor,font.strokeSize);
 		return f;
