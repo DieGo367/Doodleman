@@ -427,6 +427,12 @@ class Font {
 		c[mode+"Style"] = color;
 		c[mode+"Text"](text,x,y,maxWidth);
 	}
+	static copy(font) {
+		let f = new this(font.family,font.size,font.isBold,font.color);
+		if (font.hasShadow) f.setShadow(font.shadowColor,font.shadowDistance);
+		if (font.hasStroke) f.setStroke(font.strokeColor,font.strokeSize);
+		return f;
+	}
 }
 
 var DrawableClassList = [];
