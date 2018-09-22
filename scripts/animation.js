@@ -1,5 +1,7 @@
 var ImageFactory = {
 	imgData: {}, filter: null,
+	subCanvas: document.createElement("canvas"),
+	sc: null,
 	initImageB64: function(name,b64) {
 		this.imgData[name] = new Image();
 		this.imgData[name].src = "data:image/png;base64, "+b64;
@@ -66,34 +68,31 @@ var ImageFactory = {
 		c.restore();
 	},
 	setFilter: function(filter) {
-		if (!filter||filter=="none") this.filter = c.filter = "none";
-		else this.filter = c.filter = filter;
+		if (!this.sc) this.sc = this.subCanvas.getContext("2d");
+		if (!filter||filter=="none") this.filter = this.sc.filter = "none";
+		else this.filter = this.sc.filter = filter;
 		if (this.filter=="none") this.filter = null;
-		c.filter = "none";
+		this.sc.filter = "none";
 		return this.filter;
 	},
 	getFilteredImage: function(imageName) {
 		let img = this.imgData[imageName];
 		let filter = this.filter;
-		if (!img||img.width==0||img.height==0) return;
+		if (!img||!img.complete||img.width==0||img.height==0) return;
 		if (!img.filtered) img.filtered = {};
 		let imgF = img.filtered[filter];
-		if (!imgF) {
-			let subCanvas = document.createElement("canvas");
-			subCanvas.width = img.width;
-			subCanvas.height = img.height;
-			let sc = subCanvas.getContext("2d");
-			sc.filter = filter;
-			sc.drawImage(img,0,0,img.width,img.height);
-			let promise = createImageBitmap(subCanvas);
-			promise.then(function(data) {
-				ImageFactory.imgData[imageName].filtered[filter] = data;
-			});
-			img.filtered[this.filter] = promise;
-			return img;
-		}
-		else if (imgF instanceof ImageBitmap) return imgF;
-		else return img;
+		if (!imgF) return this.filterImage(img,imageName,filter);
+		else return imgF;
+	},
+	filterImage: function(img,name,filter) {
+		this.subCanvas.width = img.width;
+		this.subCanvas.height = img.height;
+		this.sc.filter = filter;
+		this.sc.drawImage(img,0,0,img.width,img.height);
+		let imgF = new Image();
+		imgF.src = this.subCanvas.toDataURL();
+		img.filtered[filter] = imgF;
+		return imgF;
 	}
 }
 
