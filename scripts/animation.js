@@ -75,20 +75,37 @@ var ImageFactory = {
 		this.sc.filter = "none";
 		return this.filter;
 	},
+	addFilteredLayer: function(filter) {
+		let mainFilter = this.filter;
+		if (mainFilter==null) return this.setFilter(filter);
+		this.setFilter(filter);
+		if (this.filter!=null) {
+			return this.filter += ":" + mainFilter;
+		}
+	},
+	removeFilteredLayer: function(filter) {
+		if (this.filter==null) return;
+		let filters = this.filter.split(":");
+		if (filters.length<2) return this.setFilter("none");
+		else return this.filter = filters.slice(1).join(":");
+	},
 	getFilteredImage: function(imageName) {
 		let img = this.imgData[imageName];
 		let filter = this.filter;
 		if (!img||!img.complete||img.width==0||img.height==0) return;
 		if (!img.filtered) img.filtered = {};
 		let imgF = img.filtered[filter];
-		if (!imgF) return this.filterImage(img,imageName,filter);
+		if (!imgF) return this.filterImage(img,filter);
 		else return imgF;
 	},
-	filterImage: function(img,name,filter) {
+	filterImage: function(img,filter) {
 		this.subCanvas.width = img.width;
 		this.subCanvas.height = img.height;
-		this.sc.filter = filter;
-		this.sc.drawImage(img,0,0,img.width,img.height);
+		let filters = filter.split(":");
+		for (var i = filters.length-1; i >= 0; i--) {
+			this.sc.filter = filters[i];
+			this.sc.drawImage(img,0,0,img.width,img.height);
+		}
 		let imgF = new Image();
 		imgF.src = this.subCanvas.toDataURL();
 		img.filtered[filter] = imgF;
