@@ -58,10 +58,10 @@ const Images = {
 		this.drawImage(imageName,x+bp,y+bp,width-(2*bp),height-(2*bp),ox+bp,oy+bp,center,center);
 	},
 	drawImagePattern: function(imageName,x,y,width,height,scale) {
-		var img = this.getImage(imageName);
-		if (img==null) return;
-		var pattern = c.createPattern(img,"repeat");
-		c.fillStyle = pattern;
+		let img = this.getImage(imageName);
+		if (!img||!img.complete||img.width==0||img.height==0) return;
+		if (!img.pattern) img.pattern = c.createPattern(img,"repeat");
+		c.fillStyle = img.pattern;
 		c.save();
 		c.scale(scale,scale);
 		c.fillRect(x,y,width/scale,height/scale);
