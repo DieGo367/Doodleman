@@ -2,7 +2,7 @@ const Images = {
 	imgData: {}, filter: null,
 	subCanvas: document.createElement("canvas"),
 	sc: null,
-	initImageB64: function(name,b64) {
+	loadImageB64: function(name,b64) {
 		this.imgData[name] = new Image();
 		this.imgData[name].src = "data:image/png;base64, "+b64;
 	},
