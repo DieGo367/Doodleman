@@ -1,4 +1,4 @@
-var ImageFactory = {
+const Images = {
 	imgData: {}, filter: null,
 	subCanvas: document.createElement("canvas"),
 	sc: null,
@@ -150,7 +150,7 @@ var Animation = {
 				if (frameAlpha==null) frameAlpha = animation.alphas[0]!=null?animation.alphas[0]:1;
 			}
 			else var frameAlpha = 1;
-			var img = ImageFactory.getImage(sheet.pages[0]);
+			var img = Images.getImage(sheet.pages[0]);
 			if (frameX>img.width||frameY>img.height) {
 				if (sheet.defaultAnimation&&sheet.defaultAnimation!=animationName) Animation.drawFromSheet(sheet,x,y,sheet.defaultAnimation,time,direction,entity);
 				else Animation.drawMissing(entity);
@@ -158,7 +158,7 @@ var Animation = {
 			else {
 				var alpha = c.globalAlpha;
 				c.globalAlpha *= frameAlpha;
-				c.drawImage(ImageFactory.getImage(sheet.pages[animPage||0]),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.drawOffset.x,y+sheet.drawOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
+				c.drawImage(Images.getImage(sheet.pages[animPage||0]),frameX,frameY,sheet.spriteWidth,sheet.spriteHeight,x+sheet.drawOffset.x,y+sheet.drawOffset.y,sheet.spriteWidth,-sheet.spriteHeight);
 				c.globalAlpha = alpha;
 			}
 		}

@@ -70,7 +70,7 @@ $(window).on("load",function() {
 	setPrefixedProperty(c,"imageSmoothingEnabled",false);
 
 	ResourceManager.requestGroup("res",function(item,name) {
-		ImageFactory.loadImage(name);
+		Images.loadImage(name);
 	});
 
 	ResourceManager.requestGroup("animations",function(item,name) {

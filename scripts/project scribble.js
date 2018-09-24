@@ -218,7 +218,7 @@ const Pointer = {
 	camX: function() { return Math.floor(Camera.x+(this.x-hudWidth/2)/Camera.zoom); },
 	camY: function() { return Math.floor(Camera.y+(this.y-hudHeight/2)/Camera.zoom); },
 	draw: function() {
-		ImageFactory.drawImage("GUI-HUD-Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(this.cursor),0,32,32);
+		Images.drawImage("GUI-HUD-Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(this.cursor),0,32,32);
 	}
 };
 const Camera = {
@@ -493,8 +493,8 @@ function drawGame() {
 	//background
 	c.fillStyle = "lightGray";
 	c.fillRect(0,0,Level.level.width,Level.level.height);
-	if (Level.level.bgType=="name"&&Level.level.bgName!="none") ImageFactory.drawImagePattern(Level.level.bgName,0,0,Level.level.width,Level.level.height,Level.level.bgScale);
-	else if (Level.level.bgType=="raw") ImageFactory.drawImagePattern("BG-LevelRaw",0,0,Level.level.width,Level.level.height,Level.level.bgScale);
+	if (Level.level.bgType=="name"&&Level.level.bgName!="none") Images.drawImagePattern(Level.level.bgName,0,0,Level.level.width,Level.level.height,Level.level.bgScale);
+	else if (Level.level.bgType=="raw") Images.drawImagePattern("BG-LevelRaw",0,0,Level.level.width,Level.level.height,Level.level.bgScale);
 	//objects and elements
 	callOnAllClasses("drawTint");
 	for (var layer = -2; layer<4; layer++) { //layers: -2: bg stuff -1: doors and other bg objects, 0:ground and lines, 1: entities, 2: players 3: particles

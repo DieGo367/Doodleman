@@ -152,7 +152,7 @@ var Box = class Box extends _c_ {
     if (!this.isLoaded) return;
     c.fillStyle = this.color;
     if (this.color!=null) c.fillRect(Math.round(this.leftX()),Math.round(this.y),this.width,-(this.height));
-    if (this.sprite!=null) ImageFactory.drawImage(this.sprite,Math.round(this.leftX()),Math.round(this.topY()),this.width,this.height);
+    if (this.sprite!=null) Images.drawImage(this.sprite,Math.round(this.leftX()),Math.round(this.topY()),this.width,this.height);
   }
   drawDebug() {
     c.lineWidth = 1;
@@ -1147,7 +1147,7 @@ var Entity = class Entity extends PhysicsBox {
   drawElements() {
   	var startX = Math.round(this.x-((8*this.health)-1));
   	for (var i = 0; i < this.health; i++) {
-  		ImageFactory.drawImage("GUI-HUD-Hearts.png",startX+(16*i),Math.round(this.y-this.fullHeight-17),14,12,0,0,14,12);
+  		Images.drawImage("GUI-HUD-Hearts.png",startX+(16*i),Math.round(this.y-this.fullHeight-17),14,12,0,0,14,12);
   	}
   }
 
@@ -1494,13 +1494,13 @@ var Player = class Player extends Entity {
   }
   drawHud() {
   	var playerNumber = Player.getAll().indexOf(this);
-  	ImageFactory.drawImage(this.sheet.pages[this.animPage],10,10+(24*playerNumber),19,19,0,0,19,19);
+  	Images.drawImage(this.sheet.pages[this.animPage],10,10+(24*playerNumber),19,19,0,0,19,19);
   	c.font = "bold 20px Arial";
   	c.fillStyle = "black";
   	c.fillText("/ "+this.lives,35,27+(24*playerNumber));
   }
   drawElements() {
-  	if (this.attackHeld>=chargeAttackReq&&!this.held) ImageFactory.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
+  	if (this.attackHeld>=chargeAttackReq&&!this.held) Images.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
   	else super.drawElements();
   }
 
@@ -1719,7 +1719,7 @@ var Enemy = class Enemy extends Entity {
   	super.drawDebug();
   }
   drawElements() {
-  	if (this.exclaim!=null&&this.exclaim>=0) ImageFactory.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
+  	if (this.exclaim!=null&&this.exclaim>=0) Images.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
     else super.drawElements();
   }
 
@@ -1776,7 +1776,7 @@ var View = class View extends _c_ {
   			c.globalAlpha = 1;
   			break;
   		case "window":
-  			ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,0,96);
+  			Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,0,96);
   	}
   }
   remove() {
@@ -1984,8 +1984,8 @@ var Button = class Button extends GuiElement {
   	if (this.on) x+= 32;
     if (this.mode==BUTTON_NO) x = 32*3;
     if (this.isCloseButton) x = 32*2;
-  	ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,x,y);
-  	if (this.useIcon) ImageFactory.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
+  	Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,x,y);
+  	if (this.useIcon) Images.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
   	else {
       let font = this.hovered?fontButtonBold:fontButton;
       font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7,this.width,CENTER);
@@ -2060,7 +2060,7 @@ var TextInput = class TextInput extends Button {
     return this;
   }
   customDraw() {
-    ImageFactory.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,32,96);
+    Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,32,96);
     if (this.typing) return;
     else {
       let text = "", font = fontInput;
@@ -2169,7 +2169,7 @@ var ImgElement = class ImgElement extends GuiElement {
   	this.img = img;
   }
   customDraw() {
-  	ImageFactory.drawImage(this.img,this.x-this.width/2,this.y-this.height/2,this.width,this.height);
+  	Images.drawImage(this.img,this.x-this.width/2,this.y-this.height/2,this.width,this.height);
   }
 }
 initClass(ImgElement,GuiElement);
