@@ -6,10 +6,6 @@ const Images = {
 		this.imgData[name] = new Image();
 		this.imgData[name].src = "data:image/png;base64, "+b64;
 	},
-	initImage: function(name,url) {
-		this.imgData[name] = new Image();
-		this.imgData[name].src = url;
-	},
 	loadImage: function(name) {
 		this.imgData[name] = new Image();
 		this.imgData[name].src = "res/"+name;
