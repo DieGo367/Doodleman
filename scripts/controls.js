@@ -1,6 +1,6 @@
 const NULLCTRL = 0, KEYBOARD = 1, GAMEPAD = 2, TOUCH = 3;
 
-var Key = {
+const Key = {
 	pressedKeys: [],
 	ctrlMaps: [],
 	ctrls: [],
@@ -34,7 +34,7 @@ var Key = {
 		return 0;
 	}
 };
-var GamePad = {
+const GamePad = {
 	controllers: [],
 	ctrlMaps: [],
 	snapshots: [],
@@ -206,7 +206,7 @@ var GamePad = {
 		this.axisListeners.push({gpIndex: gpIndex, callback: callback});
 	}
 };
-var Tap = {
+const Tap = {
 	active: false,
 	ctrlMaps: [],
 	ctrls: [],
@@ -304,7 +304,7 @@ var Tap = {
 	}
 };
 
-var TouchAnalog = class TouchAnalog {
+class TouchAnalog {
 	constructor(x,y,radius,senseX,senseY,id) {
 		this.x = x;
 		this.y = y;
@@ -350,7 +350,7 @@ var TouchAnalog = class TouchAnalog {
 		c.lineWidth = 1;
 	}
 }
-var TouchButton = class TouchButton {
+class TouchButton {
 	constructor(x,y,width,height,slidable,id) {
 		this.x = x;
 		this.y = y;
@@ -396,26 +396,23 @@ Tap.analogs[0] = new TouchAnalog(hudWidth/8,hudHeight-hudWidth/8,hudWidth/16,1,1
 Tap.buttons[0] = new TouchButton(hudWidth*7/8-35-30,hudHeight-hudWidth/8-35+30,60,60,false,0);
 Tap.buttons[1] = new TouchButton(hudWidth*7/8-35+35,hudHeight-hudWidth/8-35-30,60,60,true,1);
 
-var CtrlMap = function(name,type,inputs,mappings,actions,groups) {
-	this.name = name;
-	this.type = type;
-	this.inputs = inputs; //Ex: ["A","B","Dpad","Up","Down","AnalogL_X","AnalogL_Y"];
-	this.mappings = mappings; //Ex: [ 0, 1, 'a9', 13, 14, 'a0', 'a1' ];
-	this.actions = actions; //Ex: ["jump","moveRight","crouch"];
-	this.groups = groups; //Ex: ["A",["Right","AnalogL_X::+","Dpad::R"],["Down","AnalogL_Y::+","Dpad::D"]];
-};
-var Ctrl = class Ctrl {
+class CtrlMap {
+	constructor(name,type,inputs,mappings,actions,groups) {
+		this.name = name;
+		this.type = type;
+		this.inputs = inputs; //Ex: ["A","B","Dpad","Up","Down","AnalogL_X","AnalogL_Y"];
+		this.mappings = mappings; //Ex: [ 0, 1, 'a9', 13, 14, 'a0', 'a1' ];
+		this.actions = actions; //Ex: ["jump","moveRight","crouch"];
+		this.groups = groups; //Ex: ["A",["Right","AnalogL_X::+","Dpad::R"],["Down","AnalogL_Y::+","Dpad::D"]];
+	}
+}
+class Ctrl extends CtrlMap {
 	constructor(type,index) {
 		if (type==null||type=="None"||index==void(0)) return new NullCtrl();
 		let manager = [NullCtrl,Key,GamePad,Tap][type];
 		let ctrlMap = manager.ctrlMaps[index];
-		this.name = ctrlMap.name;
-		this.type = ctrlMap.type;
+		super(ctrlMap.name,ctrlMap.type,ctrlMap.inputs,ctrlMap.mappings,ctrlMap.actions,ctrlMap.groups);
 		this.index = index;
-		this.inputs = ctrlMap.inputs;
-		this.mappings = ctrlMap.mappings;
-		this.actions = ctrlMap.actions;
-		this.groups = ctrlMap.groups;
 		this.usedActions = {};
 		this.justReleasedActions = {};
 		this.usedActionsPaused = {};
@@ -596,7 +593,7 @@ var Ctrl = class Ctrl {
 	}
 }
 
-var NullCtrl = class NullCtrl extends Ctrl {
+class NullCtrl extends Ctrl {
 	constructor() {
 		super(NULLCTRL,0);
 	}
