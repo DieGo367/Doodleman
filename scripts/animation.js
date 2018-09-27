@@ -110,7 +110,7 @@ const Images = {
 }
 
 
-var Animation = {
+const Animation = {
 	drawFromSheet: function(sheet,x,y,animationName,time,direction,entity,animPage) {
 		var animation = sheet.getAnimation(animationName);
 		if (animationName=="none") {
