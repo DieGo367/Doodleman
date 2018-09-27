@@ -233,7 +233,7 @@ const ActorManager = {
 						props.push(p);
 				}
 			}
-			let obj = window[actor.class].create(...props);
+			let obj = Constants.read(actor.class).create(...props);
 			obj.isActor = true;
 			obj.rawActorData = Array.from(arguments);
 			return obj;

@@ -73,7 +73,7 @@ function initClass(cl,arg,denyList) {
   if (typeof cl.onInit=="function") cl.onInit();
 }
 
-var Box = class Box extends _c_ {
+class Box extends _c_ {
   constructor(x,y,width,height,color,sprite) {
     super();
   	this.x = x;
@@ -174,7 +174,7 @@ var Box = class Box extends _c_ {
 }
 initClass(Box,true);
 
-var Interactable = class Interactable extends Box {
+class Interactable extends Box {
   constructor(x,y,width,height,color,sprite,targetClass,onIntersect,onStopIntersect) {
     super(x,y,width,height,color,sprite);
   	this.targetClass = targetClass;
@@ -203,7 +203,7 @@ var Interactable = class Interactable extends Box {
 }
 initClass(Interactable,Box);
 
-var HarmBox = class HarmBox extends Interactable {
+class HarmBox extends Interactable {
   constructor(x,y,width,height,attacker,damage,duration,formulaX,formulaY,endCheck) {
   	super(x,y,width,height,void(0),void(0),Entity);
   	this.attacker = attacker;
@@ -250,7 +250,7 @@ var HarmBox = class HarmBox extends Interactable {
 }
 initClass(HarmBox,Interactable,true);
 
-var AttackBox = class AttackBox extends HarmBox {
+class AttackBox extends HarmBox {
   constructor(x,y,width,height,attacker,damage,duration,frames,framerate) {
     var formulaX = function(ent) {
       var frameIndex = Math.floor(this.frame*this.framerate);
@@ -299,7 +299,7 @@ var AttackBox = class AttackBox extends HarmBox {
 }
 initClass(AttackBox,HarmBox,true);
 
-var Door = class Door extends Interactable {
+class Door extends Interactable {
   constructor(x,y,linkId,destination) {
     super(x,y,32,55,void(0),void(0),Player);
   	this.linkId = linkId;
@@ -416,7 +416,7 @@ var Door = class Door extends Interactable {
 initClass(Door,Interactable);
 
 
-var PhysicsBox = class PhysicsBox extends Box {
+class PhysicsBox extends Box {
   constructor(x,y,width,height,color,sprite,defyPhysics,collisionType,canBeCarried,thrownDamage) {
   	super(x,y,width,height,color,sprite);
   	this.defyPhysics = defyPhysics;
@@ -653,7 +653,7 @@ var PhysicsBox = class PhysicsBox extends Box {
 }
 initClass(PhysicsBox,Box);
 
-var MovingPlatform = class MovingPlatform extends PhysicsBox {
+class MovingPlatform extends PhysicsBox {
   constructor(x,y,width,height,color,sprite,collisionType,velX,velY) {
   	super(x,y,width,height,color,sprite,true,collisionType,false,false);
   	this.velX = this.dx = velX;
@@ -669,7 +669,7 @@ var MovingPlatform = class MovingPlatform extends PhysicsBox {
 initClass(MovingPlatform,PhysicsBox);
 
 
-var Line = class Line extends _c_ {
+class Line extends _c_ {
   constructor(x,y,x2,y2,size,stroke,direction,useBoxCorners) {
     super();
   	this.x = x;
@@ -1028,7 +1028,7 @@ var Line = class Line extends _c_ {
 initClass(Line,true);
 
 
-var Entity = class Entity extends PhysicsBox {
+class Entity extends PhysicsBox {
   constructor(x,y,width,height,duckHeight,health,sheet) {
     super(x,y,width,height,void(0),void(0),false,C_ENT,false,false);
   	this.fullHeight = height;
@@ -1228,7 +1228,7 @@ var Entity = class Entity extends PhysicsBox {
 initClass(Entity,PhysicsBox);
 
 var chargeAttackReq = 40;
-var Player = class Player extends Entity {
+class Player extends Entity {
   constructor(x,y,width,height,duckHeight,health,sheet,slot,direction) {
     super(x,y,width,height,duckHeight,health,sheet);
     this.canBeCarried = true;
@@ -1582,7 +1582,7 @@ var Player = class Player extends Entity {
 }
 initClass(Player,Entity);
 
-var Enemy = class Enemy extends Entity {
+class Enemy extends Entity {
   constructor(x,y,width,height,health,sheet,duckHeight) {
     super(x,y,width,height,duckHeight,health,sheet);
     this.canBeCarried = true; //overwrites
@@ -1731,7 +1731,7 @@ var Enemy = class Enemy extends Entity {
 }
 initClass(Enemy,Entity);
 
-var PaintMinion = class PaintMinion extends Enemy {
+class PaintMinion extends Enemy {
   constructor(x,y) {
     super(x,y,19,44,2,"PaintMinion.json",38);
   }
@@ -1739,7 +1739,7 @@ var PaintMinion = class PaintMinion extends Enemy {
 initClass(PaintMinion,Enemy);
 
 
-var View = class View extends _c_ {
+class View extends _c_ {
   constructor(name,layer,x,y,width,height,style,fill) {
     super();
     this.name = name;
@@ -1787,7 +1787,7 @@ var View = class View extends _c_ {
 }
 initClass(View);
 
-var GuiElement = class GuiElement extends _c_ {
+class GuiElement extends _c_ {
   constructor(name,viewName,x,y) {
     super();
     this.name = name;
@@ -1832,7 +1832,7 @@ var GuiElement = class GuiElement extends _c_ {
 }
 initClass(GuiElement);
 
-var Button = class Button extends GuiElement {
+class Button extends GuiElement {
   constructor(name,viewName,x,y,width,height,text) {
     super(name,viewName,x,y);
   	this.width = width;
@@ -1994,7 +1994,7 @@ var Button = class Button extends GuiElement {
 }
 initClass(Button,GuiElement);
 
-var TextInput = class TextInput extends Button {
+class TextInput extends Button {
   constructor(name,viewName,x,y,width,height,type,defaultValue,placeholder,promptMsg) {
     super(name,viewName,x,y,width,height,placeholder);
     this.setType(type); //supported: string, number, boolean, accessor
@@ -2147,7 +2147,7 @@ var TextInput = class TextInput extends Button {
 }
 initClass(TextInput,Button);
 
-var TextElement = class TextElement extends GuiElement {
+class TextElement extends GuiElement {
   constructor(name,viewName,x,y,font,text,maxWidth,alignment) {
     super(name,viewName,x,y);
     this.text = text;
@@ -2161,7 +2161,7 @@ var TextElement = class TextElement extends GuiElement {
 }
 initClass(TextElement,GuiElement);
 
-var ImgElement = class ImgElement extends GuiElement {
+class ImgElement extends GuiElement {
   constructor(name,viewName,x,y,img,width,height) {
     super(name,viewName,x,y);
   	this.width = width;
@@ -2175,7 +2175,7 @@ var ImgElement = class ImgElement extends GuiElement {
 initClass(ImgElement,GuiElement);
 
 
-var Particle = class Particle extends _c_ {
+class Particle extends _c_ {
   constructor(x,y,id,size,duration,defyGravity,color) {
     super();
     this.x = x;
