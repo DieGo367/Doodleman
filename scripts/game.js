@@ -79,7 +79,6 @@ function tick() { //GAME UPDATES//
 }
 
 function addGui() {
-	buildTitleScreen();
 	buildMainHud();
 	buildPauseMenu();
 	buildLevelSelectMenu();
