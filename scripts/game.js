@@ -74,24 +74,9 @@ function tick() { //GAME UPDATES//
 	if (focused) window.requestAnimationFrame(drawGame);
 }
 
-function addGui() {
-	buildMainHud();
-	buildPauseMenu();
-	buildLevelSelectMenu();
-	buildControllerSettingsMenu();
-	buildMapperView();
-	buildMapperTool();
-	buildHelpPage();
-	buildDevToolsHud();
-}
-
 function init() {
 	addEvents();
-	addGui();
-
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
-	Player.respawnButtons = [G$("AddP1Button"),G$("AddP2Button"),null,null];
-
 	canvas.clearLoadScreen();
 	setGameSpeed(gameSpeed);
 	Game.mode = 0;

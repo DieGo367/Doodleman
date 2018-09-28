@@ -2,13 +2,12 @@ const SurvivalMode = new GameMode();
 GameManager.addMode(SurvivalMode);
 SurvivalMode.start = function() {
   this.ready = false;
-  if (!this.built) buildSurvivalGui();
+  this.addGui();
   G$("Hud").show();
   Level.loadLevel("Dungeon-0.json");
 };
 SurvivalMode.quit = function() {
-  G$("ScoreText").hide();
-  G$("Hud").hide();
+  this.removeGui();
 };
 SurvivalMode.tick = function() {
   if (!this.ready) return;
@@ -43,7 +42,26 @@ SurvivalMode.spawnWave = function(num) {
   }
 };
 
-function buildSurvivalGui() {
+SurvivalMode.addGui = function() {
+  buildMainHud();
   TextElement.create("ScoreText","Hud",hudWidth/2,55,fontHudScore,"Score: 0",hudWidth,CENTER);
-  SurvivalMode.built = true;
-}
+	buildPauseMenu();
+	buildLevelSelectMenu();
+	buildControllerSettingsMenu();
+	buildMapperView();
+	buildMapperTool();
+	buildHelpPage();
+	buildDevToolsHud();
+  Player.respawnButtons = [G$("AddP1Button"),G$("AddP2Button"),null,null];
+};
+SurvivalMode.removeGui = function() {
+  G$("Hud").remove();
+  G$("PauseMenu").remove();
+  G$("LevelSelectView").remove();
+  G$("CtrlSettingsView").remove();
+  G$("MapperView").remove();
+  G$("MapperTool").remove();
+  G$("HelpView").remove();
+  G$("DevTools").remove();
+  Player.respawnButtons = [null,null,null,null];
+};
