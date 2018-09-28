@@ -1781,6 +1781,7 @@ class View extends _c_ {
   }
   remove() {
     this.hide();
+    for (var i in this.children) this.children[i].remove();
     G$.delete(this.name);
     super.remove();
   }
