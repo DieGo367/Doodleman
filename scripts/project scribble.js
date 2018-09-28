@@ -162,20 +162,6 @@ function callPrefixedFunction(source,strFunc) {
 }
 
 //helper objects
-const Garbage = {
-	list: [],
-	add: function(obj) {
-		this.list.push(obj);
-	},
-	clear: function() {
-		for (var i in this.list) {
-			var g = this.list[i];
-			g.constructor.removeInstance(g);
-			delete g;
-		}
-		this.list = [];
-	}
-};
 const Pointer = {
 	x:0,y:0,
 	focusLayer: 0, cursor: POINTER_CROSSHAIR,

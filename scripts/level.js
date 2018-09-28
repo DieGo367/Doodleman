@@ -85,7 +85,6 @@ const Level = {
 	clearLevel: function() {
 		Box.killAll();
 		Line.killAll();
-		Garbage.clear();
 		this.level = clone(BlankLevel);
 		Camera.reset();
 	},

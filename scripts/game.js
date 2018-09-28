@@ -52,8 +52,6 @@ function tick() { //GAME UPDATES//
 	}
 	//update all objects
 	if (!paused) {
-		Garbage.clear();
-
 		Game.tick();
 
 		Collision.checkRequests();
@@ -66,8 +64,6 @@ function tick() { //GAME UPDATES//
 
 		Camera.update();
 		Sectors.update();
-
-		Garbage.clear();
 	}
 	GuiElement.callForAll("update");
 	//DevTools Line Maker
