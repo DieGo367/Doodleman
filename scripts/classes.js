@@ -1,36 +1,32 @@
 class _c_ {
   static create() {
     var newInstance = new this(...arguments);
+    newInstance.uid = "u"+(uid++);
 		this.addInstance(newInstance);
 		if (this.onCreate) this.onCreate.call(newInstance);
 		return newInstance;
   }
   static addInstance(instance) {
     if (this.parent!=null) this.parent.addInstance(instance);
-    this.classList.push(instance);
+    this.classList[instance.uid] = instance;
   }
   static removeInstance(instance) {
     if (this.parent!=null) this.parent.removeInstance(instance);
-    this.classList.splice(this.classList.indexOf(instance),1);
+    delete this.classList[instance.uid];
   }
   static getAll() {
-    var list = [];
-		var all = [].concat(this.classList);
-		for (var i in all) if (all[i]&&!all[i].deleted) list.push(all[i]);
-		return list;
+    let list = [];
+    for (var c in this.classList) list.push(this.classList[c]);
+    return list;
   }
   static getLoaded() {
-    var list = [];
-    var all = this.getAll();
-    for (var i in all) if (all[i].isLoaded) list.push(all[i]);
+    let list = [];
+    for (var c in this.classList) if (this.classList[c].isLoaded) list.push(this.classList[c]);
     return list;
   }
   static killAll() {
-    var list = [].concat(this.classList);
-		var i = list.length;
-		while (i-->0) {
-			if (list[i]&&!list[i].deleted) list[i].remove();
-		}
+    let list = this.getAll();
+		for (var i in list) list[i].remove();
   }
   static callForAll(method) {
     var all = this.getAll();
@@ -45,11 +41,10 @@ class _c_ {
 		}
   }
   remove() {
-    var deletedFrom = this.constructor;
-		for (var property in this) this[property] = undefined;
+    this.constructor.removeInstance(this);
+		for (var property in this) delete this[property];
 		this.deleted = true;
-		this.constructor = deletedFrom;
-		Garbage.add(this);
+    if (uid==++uidDeleted) uid = uidDeleted = 0;
   }
   drawTint() {}
   draw() {}
@@ -59,7 +54,7 @@ class _c_ {
   drawHighlighted() {}
 }
 function initClass(cl,arg,denyList) {
-  if (denyList||(denyList==void(0))) cl.classList = [];
+  if (denyList||(denyList==void(0))) cl.classList = {};
   var type = (typeof arg);
   if (type!="undefined") {
     switch(type) {

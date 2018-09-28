@@ -8,6 +8,7 @@ var viewLock = false;
 var gameMode = 0, multiplayer = false, clickSpawn = false;
 var globalKeyboard;
 var selectedElement;
+var uid = 0, uidDeleted = 0;
 var myAngle = 0;
 var hudText = 0, coords = "", keyText = "", buttonText = "";
 var devEnabled = false;
