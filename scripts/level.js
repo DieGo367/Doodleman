@@ -106,7 +106,7 @@ const Level = {
 		for (var p in newLevel) this.level[p] = newLevel[p];
 		for (var s in this.level.actors) ActorManager.make(...this.level.actors[s]);
 		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
-		if (this.level.bgRaw!="") ImageFactory.loadImageB64("BG-LevelRaw",this.level.bgRaw);
+		if (this.level.bgRaw!="") Images.loadImageB64("BG-LevelRaw",this.level.bgRaw);
 		Camera.reset();
 		if (setting=="game") {
 			Game.onLevelLoad();
