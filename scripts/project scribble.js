@@ -434,10 +434,14 @@ var fontInputType = Font.copy(fontInput,{color:"yellow"});
 var fontInputDesc = Font.copy(fontInput,{color:"white"});
 var fontHudScore = new Font("Fredoka One",30,false,"black");
 
-var DrawableClassList = [];
-function callOnAllClasses (method) {
-	for (var i in DrawableClassList) {
-		DrawableClassList[i].callForAll(method);
+const DrawableClasses = [];
+DrawableClasses.forAll = function(method) {
+	for (var i = 0; i < this.length; i++) {
+		if (typeof method=="string") this[i].callForAll(method);
+		else if (typeof method=="function") {
+			let all = this[i].getAll();
+			for (var j in all) method(all[j]);
+		}
 	}
 }
 
@@ -483,19 +487,16 @@ function drawGame() {
 	if (Level.level.bgType=="name"&&Level.level.bgName!="none") Images.drawImagePattern(Level.level.bgName,0,0,Level.level.width,Level.level.height,Level.level.bgScale);
 	else if (Level.level.bgType=="raw") Images.drawImagePattern("BG-LevelRaw",0,0,Level.level.width,Level.level.height,Level.level.bgScale);
 	//objects and elements
-	callOnAllClasses("drawTint");
+	DrawableClasses.forAll("drawTint");
 	for (var layer = -2; layer<4; layer++) { //layers: -2: bg stuff -1: doors and other bg objects, 0:ground and lines, 1: entities, 2: players 3: particles
-		for (var i in DrawableClassList) {
-			var all = DrawableClassList[i].getAll();
-			for (var j in all) {
-				if (layer==all[j].drawLayer) all[j].draw();
-			}
-		}
+		DrawableClasses.forAll(function(obj) {
+			if (layer==obj.drawLayer) obj.draw();
+		});
 	}
 	//in game debug and elements
-	callOnAllClasses("drawElements");
+	DrawableClasses.forAll("drawElements");
 	if (devEnabled) {
-		callOnAllClasses("drawDebug");
+		DrawableClasses.forAll("drawDebug");
 		//devTool eraser highlight
 		if (G$("DevEraser").on) {
 			var type = G$("DevSpawnPM").on?0:1;
@@ -525,7 +526,7 @@ function drawGame() {
 		}
 	}
 	//hud
-	callOnAllClasses("drawHud");
+	DrawableClasses.forAll("drawHud");
 	allViews = View.getAll();
 	for (var layer = 0; layer<3; layer++) {
 		for (var i in allViews) {

@@ -59,7 +59,7 @@ function initClass(cl,arg,denyList) {
   if (type!="undefined") {
     switch(type) {
       case "boolean":
-        if (arg) DrawableClassList.push(cl);
+        if (arg) DrawableClasses.push(cl);
         break;
       case "function":
         cl.parent = arg;
