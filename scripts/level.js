@@ -243,7 +243,7 @@ const ActorManager = {
 		let a = Array.from(arguments);
 		let actor = this.make(...a);
 		if (actor) {
-			window[this.actorData[id].class].removeInstance(actor);
+			Constants.read(this.actorData[id].class).removeInstance(actor);
 		}
 		return actor;
 	},
