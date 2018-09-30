@@ -57,7 +57,6 @@ SurvivalMode.addGui = function() {
 	buildMapperTool();
 	buildHelpPage();
 	buildDevToolsHud();
-  Player.respawnButtons = [G$("AddP1Button"),G$("AddP2Button"),null,null];
 };
 SurvivalMode.removeGui = function() {
   G$("Hud").remove();
@@ -68,5 +67,4 @@ SurvivalMode.removeGui = function() {
   G$("MapperTool").remove();
   G$("HelpView").remove();
   G$("DevTools").remove();
-  Player.respawnButtons = [null,null,null,null];
 };

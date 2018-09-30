@@ -1505,8 +1505,6 @@ class Player extends Entity {
   static clearFromSlot(player) {
   	if (this.slots[player.slot]==player) {
   		this.slots[player.slot] = null;
-  		if (multiplayer) this.respawnButtons[player.slot].show();
-  		else G$("RespawnP1Button").show();
   	}
   }
   static relinkCtrls() {
@@ -1535,7 +1533,6 @@ class Player extends Entity {
     this.prototype.multiJump = false;
     this.attacks = [];
     this.slots = [null,null,null,null];
-    this.respawnButtons = [];
     this.keyIds = [0,1,null,null];
     this.gpIds = [null,null,null,null];
     this.tapIds = [0,null,null,null];

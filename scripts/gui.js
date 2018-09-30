@@ -97,15 +97,6 @@ function gameAlert(text,duration) {
 
 function buildMainHud() {
   View.create("Hud",0,0,0,hudWidth,hudHeight);
-	Button.create("RespawnP1Button","Hud",hudWidth/2-50,50,100,40,"Respawn").setOnClick(function() {
-		addPlayer(0);
-	});
-	Button.create("AddP1Button","Hud",hudWidth/2-110,50,100,40,"P1 Start").setOnClick(function() {
-		addPlayer(0);
-	});
-	Button.create("AddP2Button","Hud",hudWidth/2+10,50,100,40,"P2 Start").setOnClick(function() {
-		addPlayer(1);
-	});
 	Button.create("PauseButton","Hud",hudWidth-60,10,50,50).setOnClick(function() {
 		pauseGame(true);
 	}).setIcon("GUI-Icons.png",0,0,42,4).show();

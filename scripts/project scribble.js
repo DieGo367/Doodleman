@@ -449,11 +449,8 @@ DrawableClasses.forAll = function(method) {
 
 function addPlayer(number) {
 	let sheet = ["Blueman.json","Redman.json"][number];
-	let button = Player.respawnButtons[number];
 	let spawn = Level.level.playerSpawns[number];
 	let player = Player.create(spawn.x,spawn.y,19,44,38,4,multiplayer?sheet:"Doodleman.json",number,spawn.direction!=null?spawn.direction:RIGHT);
-	if (multiplayer) button.hide();
-	else G$("RespawnP1Button").hide();
 }
 
 function addPM(x,y) { PaintMinion.create(x,y).isActor = true; }
