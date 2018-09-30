@@ -46,6 +46,11 @@ SurvivalMode.addGui = function() {
   buildMainHud();
   TextElement.create("ScoreText","Hud",hudWidth/2,55,fontHudScore,"Score: 0",hudWidth,CENTER);
 	buildPauseMenu();
+  Button.create("RetryButton","PauseMenu",hudWidth/2-150,hudHeight-120,300,40,"Retry").setOnClick(function() {
+		gameConfirm("Are you sure you want to restart?",function(response) {
+      if (response) Level.loadLevel("Dungeon-0.json");
+    });
+	}).show();
 	buildLevelSelectMenu();
 	buildControllerSettingsMenu();
 	buildMapperView();

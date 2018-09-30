@@ -15,6 +15,10 @@ SandboxMode.onLevelLoad = function() {
 SandboxMode.addGui = function() {
   buildMainHud();
 	buildPauseMenu();
+  Button.create("LevelSelectButton","PauseMenu",hudWidth/2-150,hudHeight-120,300,40,"Level Select").setOnClick(function() {
+		G$("LevelSelectView").show();
+		G$("PauseMenu").hide();
+	}).show().setPressDelay(1);
 	buildLevelSelectMenu();
 	buildControllerSettingsMenu();
 	buildMapperView();

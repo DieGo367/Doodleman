@@ -115,47 +115,18 @@ function buildPauseMenu() {
   View.create("PauseMenu",0,0,0,hudWidth,hudHeight,"tint","black");
 
 	TextElement.create("PauseText","PauseMenu",hudWidth/2,hudHeight/2,fontPaused,"Paused",hudWidth,CENTER).show();
-	TextElement.create("PauseFocusMsg","PauseMenu",hudWidth/2,hudHeight/2+55,fontFocus,"Click to focus",hudWidth,CENTER);
 
   Button.create("PauseClose","PauseMenu",hudWidth-60,10,50,50).setOnClick(function() {
 		pauseGame(false);
 	}).setIcon("GUI-Icons.png",1,0,42,4).show();
 
-  Button.create("MultiJumpToggle","PauseMenu",20,hudHeight-120,130,40,"MultiJump").setOnClick(function() {
-		this.on = !this.on;
-		Player.prototype.multiJump = this.on;
-	}).show();
-
-	Button.create("LevelSelectButton","PauseMenu",20,hudHeight-60,130,40,"Level Select").setOnClick(function() {
-		G$("LevelSelectView").show();
-		G$("PauseMenu").hide();
-	}).show().setPressDelay(1);
-
-	Button.create("QuitGame","PauseMenu",hudWidth-150,hudHeight-60,130,40,"Quit to Title").setOnClick(function(ctrl) {
+	Button.create("QuitGame","PauseMenu",hudWidth/2-150,hudHeight-60,300,40,"Quit to Title").setOnClick(function(ctrl) {
 		gameConfirm("Are you sure you want to quit?",function(response) {
 			if (response) {
 				pauseGame(false);
 				Game.mode = GAME_TITLE;
 			}
 		})
-	}).show();
-
-  Button.create("MPToggle","PauseMenu",hudWidth-150,hudHeight-120,130,40,"Singleplayer").setOnClick(function(ctrl) {
-		multiplayer = !multiplayer;
-		G$("MPToggle").text = multiplayer?"Multiplayer":"Singleplayer";
-		if (multiplayer) {
-			G$("RespawnP1Button").hide();
-			for (var i in Player.slots) {
-				if (!Player.respawnButtons[i]) continue;
-				if (!Player.slots[i]) Player.respawnButtons[i].show();
-				else Player.respawnButtons[i].hide();
-			}
-		}
-		else {
-			for (var i in Player.slots) if (Player.respawnButtons[i]) Player.respawnButtons[i].hide();
-			if (!Player.slots[0]) G$("RespawnP1Button").show();
-			else G$("RespawnP1Button").hide();
-		}
 	}).show();
 
   Button.create("FSToggle","PauseMenu",hudWidth-130,10,50,50).setToggle(function() {
