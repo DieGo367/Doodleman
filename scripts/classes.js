@@ -1730,6 +1730,13 @@ class PaintMinion extends Enemy {
 }
 initClass(PaintMinion,Enemy);
 
+class Skeltal extends Enemy {
+  constructor(x,y) {
+    super(x,y,19,44,3,"Skeltal.json",38);
+  }
+}
+initClass(Skeltal,Enemy);
+
 
 class View extends _c_ {
   constructor(name,layer,x,y,width,height,style,fill) {

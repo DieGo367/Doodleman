@@ -1,0 +1,5 @@
+{
+  "extends": "PaintMinion.json",
+  "pages": ["Skeltal.png"],
+  "errorColor": "orange"
+}
