@@ -12,15 +12,36 @@ TitleMode.addGui = function() {
 	TextElement.create("TitleLogo","Title",hudWidth/2,hudHeight*11/36,fontLogo,"Doodleman",hudWidth,CENTER).show();
 	TextElement.create("TitleYear","Title",10,hudHeight-10,fontCredit,"\u00A92018 DieGo",hudWidth,LEFT).show();
 
-	Button.create("TitleMode:Survival","Title",hudWidth/2-100,hudHeight/2-30,200,60,"Survival").setOnClick(function() {
+  View.create("Option_Mode",0,0,0,hudWidth,hudHeight).show();
+	Button.create("Option_Mode:Survival","Option_Mode",hudWidth/2-100,hudHeight/2-30,200,60,"Survival").setOnClick(function() {
 		this.view.hide();
-		Game.mode = GAME_SURVIVAL;
+		this.view.gamemode = GAME_SURVIVAL;
+    G$("Option_MP").show();
 	}).show();
-	Button.create("TitleMode:Sandbox","Title",hudWidth/2-100,hudHeight/2+50,200,60,"Sandbox").setOnClick(function() {
+	Button.create("Option_Mode:Sandbox","Option_Mode",hudWidth/2-100,hudHeight/2+50,200,60,"Sandbox").setOnClick(function() {
 		this.view.hide();
-		Game.mode = GAME_SANDBOX;
+		this.view.gamemode = GAME_SANDBOX;
+    G$("Option_MP").show();
 	}).show();
+
+  View.create("Option_MP",0,0,0,hudWidth,hudHeight);
+  Button.create("Option_MP:Single","Option_MP",hudWidth/2-100,hudHeight/2-30,200,40,"1 Player").setOnClick(function() {
+    this.view.hide();
+    multiplayer = false;
+    Game.mode = G$("Option_Mode").gamemode;
+  }).show();
+  Button.create("Option_MP:Mult","Option_MP",hudWidth/2-100,hudHeight/2+30,200,40,"2 Player").setOnClick(function() {
+    this.view.hide();
+    multiplayer = true;
+    Game.mode = G$("Option_Mode").gamemode;
+  }).show();
+  Button.create("Option_MP:Cancel","Option_MP",hudWidth/2-100,hudHeight/2+120,200,40,"Back").setOnClick(function() {
+    this.view.hide();
+    G$("Option_Mode").show();
+  }).setClose(true).show();
 };
 TitleMode.removeGui = function() {
   G$("Title").remove();
+  G$("Option_Mode").remove();
+  G$("Option_MP").remove();
 };
