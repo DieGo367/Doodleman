@@ -21,7 +21,6 @@ const BUTTON_NO = 0, BUTTON_NORMAL = 1, BUTTON_TOGGLE = 2;
 const POINTER_NONE = 0, POINTER_CROSSHAIR = 1, POINTER_PENCIL = 2, POINTER_ERASER = 3;
 const ORIENT_LIN = 0, ORIENT_CW = 1, ORIENT_CCW = -1;
 const EDGE_NONE = 0, EDGE_SOLID = 1, EDGE_WRAP = 2, EDGE_KILL = 3;
-const GAME_TITLE = 0, GAME_SANDBOX = 1, GAME_SURVIVAL = 2;
 //helper functions
 function dp(pixels) {
 	return pixels*pixelDensity;

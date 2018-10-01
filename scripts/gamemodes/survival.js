@@ -1,5 +1,6 @@
 const SurvivalMode = new GameMode();
 GameManager.addMode(SurvivalMode);
+const GAME_SURVIVAL = SurvivalMode.id;
 SurvivalMode.start = function() {
   this.ready = false;
   this.addGui();

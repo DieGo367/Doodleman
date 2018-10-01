@@ -1,5 +1,6 @@
 const TitleMode = new GameMode();
 GameManager.addMode(TitleMode);
+const GAME_TITLE = TitleMode.id;
 TitleMode.start = function() {
   this.addGui();
   Level.loadLevel("Title.json");

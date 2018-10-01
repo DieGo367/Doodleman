@@ -1,5 +1,6 @@
 const SandboxMode = new GameMode();
 GameManager.addMode(SandboxMode);
+const GAME_SANDBOX = SandboxMode.id;
 SandboxMode.start = function() {
     this.addGui();
     G$("Hud").show();

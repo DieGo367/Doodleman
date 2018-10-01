@@ -17,6 +17,7 @@ const GameManager = {
 	},
 	addMode: function(mode) {
 		this.modes.push(mode);
+		mode.id = this.modes.length-1;
 	}
 }
 class GameMode {
