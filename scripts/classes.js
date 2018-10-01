@@ -1791,6 +1791,7 @@ class GuiElement extends _c_ {
   	this.visible = false;
   	this.neighbors = {up:null, right:null, down:null, left:null};
     G$.store(name,this);
+    if (this.view.name&&this.view.visible) this.earlyOnViewShown = true;
   }
   show() { this.visible = true; return this; }
   hide() { this.visible = false; return this; }
@@ -1867,6 +1868,10 @@ class Button extends GuiElement {
   }
   setOnViewShown(func) {
     this.onViewShownFunction = func;
+    if (this.earlyOnViewShown) {
+      delete this.earlyOnViewShown;
+      this.onViewShownFunction();
+    }
     return this;
   }
   setPressDelay(ticks) {
