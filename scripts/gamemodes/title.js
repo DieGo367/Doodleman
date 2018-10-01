@@ -11,6 +11,19 @@ TitleMode.addGui = function() {
   View.create("Title",0,0,0,hudWidth,hudHeight).show();
 	TextElement.create("TitleLogo","Title",hudWidth/2,hudHeight*11/36,fontLogo,"Doodleman",hudWidth,CENTER).show();
 	TextElement.create("TitleYear","Title",10,hudHeight-10,fontCredit,"\u00A92018 DieGo",hudWidth,LEFT).show();
+  Button.create("FSToggle","Title",hudWidth-60,hudHeight-60,50,50).setToggle(function() {
+		callPrefixedFunction(canvas,"requestFullscreen");
+		callPrefixedFunction(canvas,"requestFullScreen");
+	}, function() {
+		callPrefixedFunction(document,"exitFullscreen");
+		callPrefixedFunction(document,"exitFullScreen");
+	},true)
+  .setOnViewShown(function() {
+    if (fullScreen) {
+			this.toggleState = 1;
+			this.on = true;
+		}
+  }).setIcon("GUI-Icons.png",2,0,42,4).show();
 
   View.create("Option_Mode",0,0,0,hudWidth,hudHeight).show();
 	Button.create("Option_Mode:Survival","Option_Mode",hudWidth/2-100,hudHeight/2-30,200,60,"Survival").setOnClick(function() {
