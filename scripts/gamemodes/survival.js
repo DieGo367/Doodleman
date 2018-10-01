@@ -13,7 +13,7 @@ SurvivalMode.quit = function() {
 SurvivalMode.tick = function() {
   if (!this.ready) return;
 
-  if (PaintMinion.getAll().length==0) {
+  if (Enemy.getAll().length==0) {
     this.wave++;
     this.spawnWave(this.wave);
   }
@@ -39,7 +39,8 @@ SurvivalMode.spawnWave = function(num) {
     //spawn an enemy at random coords
     let x = Math.round(Math.random()*Level.level.width);
     let y = Math.round(Math.random()*Level.level.height);
-    ActorManager.make(10,x,y);
+    if (currentMonth==9 && Math.random()>0.5) Skeltal.create(x,y).isActor = true;
+    else ActorManager.make(10,x,y);
   }
 };
 

@@ -452,7 +452,11 @@ function addPlayer(number) {
 	let player = Player.create(spawn.x,spawn.y,19,44,38,4,multiplayer?sheet:"Doodleman.json",number,spawn.direction!=null?spawn.direction:RIGHT);
 }
 
-function addPM(x,y) { PaintMinion.create(x,y).isActor = true; }
+let currentMonth = new Date(Date.now()).getMonth();
+function addPM(x,y) {
+	if (currentMonth==9 && Math.random()>0.5) Skeltal.create(x,y).isActor = true;
+	else PaintMinion.create(x,y).isActor = true;
+}
 
 /* DRAW ORDER:
 -gray and BG
