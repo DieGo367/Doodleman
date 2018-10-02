@@ -18,6 +18,13 @@ const GameManager = {
 	addMode: function(mode) {
 		this.modes.push(mode);
 		mode.id = this.modes.length-1;
+	},
+	overrideTick: function(func) {
+		if (!this.tick) this.tick = tick;
+		if (typeof func == "function") tick = func;
+		else tick = this.tick;
+		return tick;
+		setGameSpeed(gameSpeed);
 	}
 }
 class GameMode {
