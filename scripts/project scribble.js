@@ -536,14 +536,14 @@ function drawGame() {
 			}
 		}
 	}
-	if (setting=="game") Tap.draw();
+	if (Game.mode!=GAME_EDITOR) Tap.draw();
 	if (focused&&Tap.touches.length==0) Pointer.draw();
 	//debug hud
 	if (devEnabled) {
 		c.fillStyle = "black";
 		c.font = "12px Consolas";
 		c.fillText("("+Pointer.camX()+","+Pointer.camY()+")",Pointer.x,Pointer.y+12);
-		if (setting=="game") {
+		if (Game.mode!=GAME_TITLE&&Game.mode!=GAME_EDITOR) {
 			var textGroup = [], allPlayers = Player.getAll();
 			for (var i in allPlayers) textGroup.push(allPlayers[i].slot+1+"XY: "+allPlayers[i].x+", "+allPlayers[i].y);
 			textGroup.push("LastPressedKey: "+keyText,"LastPressedButton: "+buttonText,"Entities: "+Entity.getAll().length,"Misc: "+hudText);
@@ -613,13 +613,13 @@ function doGlobalControls(controller) {
 	}
 	if (controller.ready("showInfo")) {
 		G$("CtrlDevMode").on = devEnabled = !devEnabled;
-		if (!paused&&devEnabled&&setting=="game") G$("DevTools").show();
+		if (!paused&&devEnabled&&Game.mode!=GAME_EDITOR) G$("DevTools").show();
 		else G$("DevTools").hide();
 		controller.use("showInfo");
 	}
 	else {
 		if (!multiplayer&&controller.ready("respawn")) { PhysicsBox.callForAll("respawn"); controller.use("respawn"); }
-		if ((devEnabled||setting=="editor")&&controller.type==KEYBOARD&&Pointer.focusLayer==0) {
+		if ((devEnabled||Game.mode==GAME_EDITOR)&&controller.type==KEYBOARD&&Pointer.focusLayer==0) {
 			// if (controller.pressed("camRotateCW")) myAngle += 0.01;
 			// if (controller.pressed("camRotateCCW")) myAngle -= 0.01;
 			if (controller.pressed("camLeft")) Camera.x -= 5;
@@ -737,7 +737,7 @@ function addEvents() {
 	$(window).on("blur",function() {
 		focused = false;
 		$(canvas).css({cursor: 'auto'});
-		if (setting=="game"&&Game.mode!=GAME_TITLE) {
+		if (Game.mode!=GAME_TITLE&&Game.mode!=GAME_EDITOR) {
 			G$("PauseFocusMsg").show();
 			pauseGame(true);
 		}
@@ -746,6 +746,6 @@ function addEvents() {
 	$(window).on("focus",function() {
 		focused = true;
 		$(canvas).css({cursor: 'none'});
-		if (setting=="game") G$("PauseFocusMsg").hide();
+		if (Game.mode!=GAME_TITLE&&Game.mode!=GAME_EDITOR) G$("PauseFocusMsg").hide();
 	});
 }

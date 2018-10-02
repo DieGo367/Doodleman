@@ -107,15 +107,7 @@ const Level = {
 		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
 		if (this.level.bgRaw!="") Images.loadImageB64("BG-LevelRaw",this.level.bgRaw);
 		Camera.reset();
-		if (setting=="game") {
-			Game.onLevelLoad();
-			G$("LevelSelectView").hide();
-			if (focused) pauseGame(false);
-		}
-		else {
-			G$("LevelSettingsClose").onClickFunction();
-			EditorTools.Actor.initSpawnGhosts();
-		}
+		Game.onLevelLoad();
 		if (doLog) console.log("Loaded Level "+this.level.name);
 		return true;
 	},

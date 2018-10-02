@@ -20,6 +20,7 @@ from google.appengine.api import users
 
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 scripts = [
+  "game.js",
   "project scribble.js",
   "resource.js",
   "level.js",
@@ -33,9 +34,18 @@ scripts = [
 ]
 gamemodes = [
   "title.js",
+  "editor.js",
   "sandbox.js",
   "survival.js"
 ]
+
+def get_script_html(launch_mode):
+    script_html = "<script src=\"scripts/loadSetup.js\"></script>"
+    for script in scripts:
+        script_html += "<script defer src=\"scripts/%s\"></script>" % (script)
+    for script in gamemodes:
+        script_html += "<script defer src=\"scripts/gamemodes/%s\"></script>" % (script)
+    return script_html + "<script defer>const GAME_LAUNCH = %s;</script>" % launch_mode
 
 def get_user_vars():
     # user = users.get_current_user()
@@ -50,13 +60,7 @@ def get_user_vars():
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        script_html = "<script src=\"scripts/loadSetup.js\"></script>"
-        script_html += "<script defer src=\"scripts/game.js\"></script>"
-        for script in scripts:
-            script_html += "<script defer src=\"scripts/%s\"></script>" % (script)
-        for script in gamemodes:
-            script_html += "<script defer src=\"scripts/gamemodes/%s\"></script>" % (script)
-
+        script_html = get_script_html(0)
         temp_vars = get_user_vars()
         temp_vars["scripts"] = script_html
         temp = env.get_template("main.html")
@@ -64,11 +68,7 @@ class MainHandler(webapp2.RequestHandler):
 
 class EditorHandler(webapp2.RequestHandler):
     def get(self):
-        script_html = "<script src=\"scripts/loadSetup.js\"></script>"
-        script_html += "<script defer src=\"scripts/editor.js\"></script>"
-        for script in scripts:
-            script_html += "<script defer src=\"scripts/%s\"></script>" % (script)
-
+        script_html = get_script_html(1)
         temp_vars = get_user_vars()
         temp_vars["scripts"] = script_html
         temp = env.get_template("editor.html")

@@ -260,6 +260,10 @@ const EditorTools = {
     },
     drawSpawnGhosts: function() {
       for (var i in this.spawnGhosts) this.spawnGhosts[i].draw();
+    },
+    removeSpawnGhosts: function() {
+      for (var i = this.spawnGhosts.length-1; i >= 0; i--) delete this.spawnGhosts[i];
+      this.spawnGhosts = [];
     }
   },
   init: function() {

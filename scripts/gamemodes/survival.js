@@ -24,6 +24,8 @@ SurvivalMode.onLevelLoad = function() {
   G$("ScoreText").show().text = "Score: 0";
   addPlayer(0);
   if (multiplayer) addPlayer(1);
+  G$("LevelSelectView").hide();
+  if (focused) pauseGame(false);
   this.ready = true;
 };
 SurvivalMode.onDeath = function(ent,attacker) {

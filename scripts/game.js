@@ -1,4 +1,3 @@
-const setting = "game";
 const GameManager = {
 	mode: null,
 	modes: [],
@@ -87,5 +86,5 @@ function init() {
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
 	canvas.clearLoadScreen();
 	setGameSpeed(gameSpeed);
-	Game.mode = 0;
+	Game.mode = GAME_LAUNCH;
 }

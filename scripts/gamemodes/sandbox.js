@@ -12,6 +12,8 @@ SandboxMode.quit = function() {
 SandboxMode.onLevelLoad = function() {
   addPlayer(0);
   if (multiplayer) addPlayer(1);
+  G$("LevelSelectView").hide();
+  if (focused) pauseGame(false);
 };
 SandboxMode.onDeath = function(ent,attacker) {
   if (ent instanceof Player && ent.lives<=0) {
