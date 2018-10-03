@@ -17,6 +17,7 @@ const GameManager = {
 	addMode: function(mode) {
 		this.modes.push(mode);
 		mode.id = this.modes.length-1;
+		return mode.id;
 	},
 	overrideTick: function(func) {
 		if (!this.tick) this.tick = tick;
@@ -27,6 +28,9 @@ const GameManager = {
 	}
 }
 class GameMode {
+	constructor(obj) {
+		if (typeof obj == "object") for (var p in obj) this[p] = obj[p];
+	}
 	get mode() {
 		return GameManager.mode;
 	}
