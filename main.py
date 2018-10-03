@@ -71,7 +71,7 @@ class EditorHandler(webapp2.RequestHandler):
         script_html = get_script_html(1)
         temp_vars = get_user_vars()
         temp_vars["scripts"] = script_html
-        temp = env.get_template("editor.html")
+        temp = env.get_template("main.html")
         self.response.out.write(temp.render(temp_vars))
 
 app = webapp2.WSGIApplication([
