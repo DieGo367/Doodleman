@@ -386,5 +386,10 @@ const EditorTools = {
       }
     }
     this.Actor.drawSpawnGhosts();
+  },
+  testLevel: function(mode) {
+    this.levelCopy = clone(Level.level);
+    Game.mode = mode;
+    Level.load(JSON.stringify(this.levelCopy));
   }
 }

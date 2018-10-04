@@ -115,7 +115,7 @@ function buildPauseMenu() {
 		gameConfirm("Are you sure you want to quit?",function(response) {
 			if (response) {
 				pauseGame(false);
-				Game.mode = GAME_TITLE;
+				Game.mode = GAME_LAUNCH;
 			}
 		})
 	}).show();
