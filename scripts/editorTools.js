@@ -292,6 +292,11 @@ const EditorTools = {
   getModeText: function() {
     return this.modes[this.mode];
   },
+  clearMode: function() {
+    this.setMode(0);
+    G$("BoxTool").on = false;
+    this.setCursor();
+  },
   setEraserOn: function(bool) {
     this.eraserOn = !!bool;
     this.Box.cancel();
@@ -388,6 +393,7 @@ const EditorTools = {
     this.Actor.drawSpawnGhosts();
   },
   testLevel: function(mode) {
+    this.clearMode();
     this.levelCopy = clone(Level.level);
     Game.mode = mode;
     Level.load(JSON.stringify(this.levelCopy));
