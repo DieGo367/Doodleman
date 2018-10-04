@@ -23,8 +23,8 @@ const GameManager = {
 		if (!this.tick) this.tick = tick;
 		if (typeof func == "function") tick = func;
 		else tick = this.tick;
-		return tick;
 		setGameSpeed(gameSpeed);
+		return tick;
 	}
 }
 class GameMode {
