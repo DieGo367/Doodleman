@@ -127,15 +127,15 @@ const Level = {
     });
 	},
 	export: function() {
-		let data = niceJSON(this.level);
+		let data = niceJSON(Level.level);
 		$("#fileOutput").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
 	},
 	log: function() {
-		let data = niceJSON(this.level);
+		let data = niceJSON(Level.level);
 		console.log(data);
 	},
 	copy: function() {
-		let data = niceJSON(this.level);
+		let data = niceJSON(Level.level);
 		$("#clipboard").val(data).select();
 		document.execCommand("copy");
 		gameAlert("Level data copied to clipboard.",120);
