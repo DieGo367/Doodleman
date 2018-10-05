@@ -116,26 +116,10 @@ const Level = {
 		else console.log("Failed to load Level from Base64");
 	},
 	openLocalFile: function() {
-		$("#fileInput").click();
-	},
-	loadLocalFile: function(event) {
-		if (window.File&&window.FileReader&&window.FileList&&window.Blob) {
-			var file = event.target.files[0];
-			if (file) {
-				var reader = new FileReader;
-				reader.onload = function(e) {
-					var fileType = file.name.split(".").pop();
-					if (fileType=="json") {
-						if (Level.load(e.target.result,false)) console.log('Loaded Level "'+file.name+'" from local file');
-						else console.log('Failed to load Level "'+file.name+'" from local file');
-					}
-					else gameAlert("Not the right file type!",120);
-				}
-				reader.readAsText(file);
-			}
-			else gameAlert("No file selected.",120);
-		}
-		else gameAlert("Unsupported browser.",120);
+		FileInput.ask(["json"],"readAsText",function(result,file) {
+			if (Level.load(result,false)) console.log('Loaded Level "'+file.name+'" from local file');
+			else console.log('Failed to load Level "'+file.name+'" from local file');
+		});
 	},
 	loadLevel: function(levelName) {
 		canvas.showLoadScreen();

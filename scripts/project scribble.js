@@ -432,7 +432,6 @@ var fontInputSelect = Font.copy(fontInput,{color:"blue"});
 var fontInputType = Font.copy(fontInput,{color:"yellow"});
 var fontInputDesc = Font.copy(fontInput,{color:"white"});
 var fontHudScore = new Font("Fredoka One",30,false,"black");
-
 const DrawableClasses = [];
 DrawableClasses.forAll = function(method) {
 	for (var i = 0; i < this.length; i++) {
@@ -441,6 +440,46 @@ DrawableClasses.forAll = function(method) {
 			let all = this[i].getAll();
 			for (var j in all) method(all[j]);
 		}
+	}
+}
+const FileInput = {
+	input: $("#fileInput")[0],
+	onChange: function(event) {
+		if (this.successAction||this.failureAction) this.readFile(event,this.extensions,this.readMode,this.successAction,this.failureAction);
+		this.input.value = "";
+		this.input.type = "text";
+		this.input.type = "file";
+	},
+	ask: function(extensions,readMode,success,failure) {
+		this.readMode = (typeof readMode == "string"?readMode:null);
+		this.extensions = (extensions instanceof Array?extensions:null);
+		this.successAction = (typeof success=="function"?success:null);
+		this.failureAction = (typeof failure=="function"?failure:null);
+		this.input.click();
+	},
+	readFile: function(event,extensions,readMode,success,failure) {
+		let fail = function(msg,warn) {
+			if (msg) gameAlert(msg,120);
+			if (warn) console.log(event);
+			if (typeof failure == "function") failure();
+		}
+		if (!event||!event.originalEvent) return fail(null,"No event specified.");
+		if (!(extensions instanceof Array)) extensions = null;
+		if (typeof readMode != "string") readMode = "readAsText";
+		if (window.File&&window.FileReader&&window.FileList&&window.Blob) {
+			let file = event.target.files[0];
+			if (file) {
+				let ext = file.name.split(".").pop();
+				if (extensions&&extensions.indexOf(ext)==-1) return fail("Not the right file type!");
+				let reader = new FileReader;
+				reader.onload = function(e) {
+					if (typeof success == "function") success(e.target.result,file);
+				}
+				reader[readMode](file);
+			}
+			else fail("No file selected.");
+		}
+		else fail("Unsupported browser.");
 	}
 }
 
@@ -712,7 +751,7 @@ function addEvents() {
 		$(canvas).on("touchend",function(event) { Tap.handleEnd(event); });
 		$(canvas).on("touchcancel",function(event) { Tap.handler(event); });
 	}
-	$("#fileInput").on("change",Level.loadLocalFile);
+	$("#fileInput").on("change",function(event) { FileInput.onChange(event); });
 	$(window).on("resize",function() {
 		fullScreen = getPrefixedProperty(document,"fullscreenElement") || getPrefixedProperty(document,"fullScreenElement");
 		fullScreen = !!fullScreen;
