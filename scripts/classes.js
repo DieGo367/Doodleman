@@ -2059,6 +2059,7 @@ class TextInput extends Button {
   }
   storeAccessor(val) {
     this.storedVal = this.toAccessorString(val);
+    return this;
   }
   setOnInputChange(func) {
     this.onInputChangeFunc = func;
