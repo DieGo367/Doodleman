@@ -177,7 +177,13 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     TextElement.create("LS:File:Save","LS:File:Menu",hudWidth/4-150,210,fontMenuItem,"Save Level",hudWidth,LEFT).show();
     Button.create("LS:File:Copy","LS:File:Menu",hudWidth/2-175,185,205,40,"Copy to Clipboard").setOnClick(Level.copy,true).show();
     Button.create("LS:File:Export","LS:File:Menu",hudWidth*2/3-50,185,205,40,"Export Level").setOnClick(Level.export,true).show();
-
+    TextElement.create("LS:File:Test","LS:File:Menu",hudWidth/4-150,265,fontMenuItem,"Test Level",hudWidth,LEFT).show();
+    TextInput.create("LS:File:Test:Mode","LS:File:Menu",hudWidth/2-175,240,100,40,"accessor:GAME_SURVIVAL,GAME_SANDBOX").storeAccessor(GAME_SANDBOX).show();
+    TextInput.create("LS:File:Test:MP","LS:File:Menu",hudWidth/2-70,240,100,40,"boolean",false,"multiplayer").show();
+    Button.create("LS:File:Test:Button","LS:File:Menu",hudWidth*2/3-50,240,205,40,"Test Level").setOnClick(function() {
+      multiplayer = G$("LS:File:Test:MP").storedVal;
+      EditorTools.testLevel(G$("LS:File:Test:Mode").accessValue());
+    }).show();
 
     View.create("LS:Edit:Menu",1,0,0,hudWidth,hudHeight);
     TextElement.create("LS:Dimensions","LS:Edit:Menu",hudWidth/4-150,155+55*0,fontMenuItem,"Dimensions",hudWidth,LEFT).show();
