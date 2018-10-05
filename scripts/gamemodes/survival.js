@@ -3,7 +3,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     this.ready = false;
     this.addGui();
     G$("Hud").show();
-    Level.loadLevel("Dungeon-0.json");
+    if (!EditorTools.levelCopy) Level.loadLevel("Dungeon-0.json");
   },
   quit: function() {
     this.removeGui();
