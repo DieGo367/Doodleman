@@ -4,8 +4,7 @@ const Collision = {
   	PhysicsBox.callForAll("preCollision");
 
     //get loaded objects, and classsify them as either terrain or actors
-    let loadedSectors = Sector.getLoadedSectors();
-    let objects = Level.classify(Sector.getObjectListFromSectors(loadedSectors),true);
+    let objects = Level.classify(Sector.getLoadedObjects(),true);
 
     //detect intersections only among actors
     let actorsOnly = this.detectIntersections(objects.actors,objects.actors);
@@ -210,9 +209,18 @@ class Sector {
 		this.x = sectorX;
 		this.y = sectorY;
 		this.name = sectorX+","+sectorY;
-		this.objects = [];
+		this.objects = {};
+    this.count = 0;
 		this.loaded = true;
 	}
+  add(obj) {
+    this.objects[obj.uid] = obj;
+    this.count++;
+  }
+  remove(obj) {
+    delete this.objects[obj.uid];
+    this.count--;
+  }
 	drawDebug() {
 		c.strokeStyle = "orange";
 		c.strokeRect(this.leftX(),this.topY(),Sector.size.width,Sector.size.height);
@@ -240,19 +248,20 @@ class Sector {
 		for (var i in this.grid) this.grid[i].updateLoadedState();
 		Box.callForAll("setSectors");
     Line.callForAll("setSectors");
-    for (var i in this.grid) if (this.grid[i].objects.length==0) delete this.grid[i];
+    for (var i in this.grid) if (this.grid[i].count==0) delete this.grid[i];
 	}
-	static removeFromSector(obj,sectorNameOrX,sectorY) {
-		let sector = this.getSector(sectorNameOrX,sectorY);
-		sector.objects.splice(sector.objects.indexOf(obj),1);
+	static removeFromSector(obj,sectorX,sectorY) {
+		let sector = this.getSector(sectorX,sectorY);
+		sector.remove(obj);
+    return sector;
 	}
 	static addToSector(obj,sectorX,sectorY) {
 		let sector = this.getSector(sectorX,sectorY);
-		sector.objects.push(obj);
-		obj.sectors.push(sector.name);
+		sector.add(obj);
+    return sector;
 	}
-	static checkIfInSector(obj,sectorNameOrX,sectorY) {
-		let sector = this.getSector(sectorNameOrX,sectorY);
+	static checkIfInSector(obj,sectorX,sectorY) {
+		let sector = this.getSector(sectorX,sectorY);
 		if (obj.rightX()>=sector.leftX()&&obj.leftX()<=sector.rightX()) {
 			if (obj.y>=sector.topY()&&obj.topY()<=sector.bottomY()) return true;
 		}
@@ -274,18 +283,18 @@ class Sector {
     }
     return list;
   }
-  static getObjectListFromSectors(sectors) {
-    var objectCollection = [];
+  static getObjectGroupFromSectors(sectors) {
+    let objGroup = {};
     for (var i in sectors) {
       for (var j in sectors[i].objects) {
-        var obj = sectors[i].objects[j];
-        if (objectCollection.indexOf(obj)==-1) objectCollection.push(obj);
+        let obj = sectors[i].objects[j];
+        objGroup[obj.uid] = obj;
       }
     }
-    return objectCollection;
+    return objGroup;
   }
   static getLoadedObjects() {
-    return this.getObjectListFromSectors(this.getLoadedSectors());
+    return this.getObjectGroupFromSectors(this.getLoadedSectors());
   }
 }
 Sector.init();

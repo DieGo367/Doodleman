@@ -109,32 +109,27 @@ class Box extends _c_ {
     if (!this.lockSectors||this.sectors[0]==null) {
       for (var i in this.sectors) Sector.removeFromSector(this,this.sectors[i]);
       this.sectors = [];
-      var sectorX = Math.floor(this.x/Sector.size.width);
-      var sectorY = Math.floor(this.y/Sector.size.height);
-      Sector.addToSector(this,sectorX,sectorY);
+      let sectorX = Math.floor(this.x/Sector.size.width);
+      let sectorY = Math.floor(this.y/Sector.size.height);
+      this.sectors.push(Sector.addToSector(this,sectorX,sectorY).name);
 
-      // if (this.width>Sector.size.width||this.height>Sector.size.height) {
-        var leftX = Math.floor(this.leftX()/Sector.size.width);
-        var rightX = Math.floor(this.rightX()/Sector.size.width);
-        var topY = Math.floor(this.topY()/Sector.size.height);
-        var bottomY = Math.floor(this.bottomY()/Sector.size.height);
-        for (var a = leftX; a <= rightX; a++) {
-          for (var b = topY; b <= bottomY; b++) {
-            if (a!=sectorX||b!=sectorY) Sector.addToSector(this,a,b);
-          }
-        }
-      // }
-    }
-    // if (this.alwaysLoaded) this.isLoaded = true;
-    // else {
-      this.isLoaded = false;
-      for (var i in this.sectors) {
-        if (Sector.getSector(this.sectors[i]).loaded) {
-          this.isLoaded = true;
-          break;
+      let leftX = Math.floor(this.leftX()/Sector.size.width);
+      let rightX = Math.floor(this.rightX()/Sector.size.width);
+      let topY = Math.floor(this.topY()/Sector.size.height);
+      let bottomY = Math.floor(this.bottomY()/Sector.size.height);
+      for (var a = leftX; a <= rightX; a++) {
+        for (var b = topY; b <= bottomY; b++) {
+          if (a!=sectorX||b!=sectorY) this.sectors.push(Sector.addToSector(this,a,b).name);
         }
       }
-    // }
+    }
+    this.isLoaded = false;
+    for (var i in this.sectors) {
+      if (Sector.getSector(this.sectors[i]).loaded) {
+        this.isLoaded = true;
+        break;
+      }
+    }
   }
   remove() {
     for (var i in this.sectors) {
