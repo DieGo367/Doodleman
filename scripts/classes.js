@@ -211,7 +211,7 @@ class HarmBox extends Interactable {
   	this.harmed = [];
   }
   update() {
-  	if (this.attacker!=null&&Entity.getAll().indexOf(this.attacker!=-1)) {
+  	if (this.attacker!=null&&Entity.classList[this.attacker.uid]) {
   		this.x = this.formulaX(this.attacker,this);
   		this.y = this.formulaY(this.attacker,this);
   	}
@@ -1089,12 +1089,16 @@ class Entity extends PhysicsBox {
   	this.health -= damage;
   	if (this.health<=0) this.die(attacker);
   	else { //knockback
-  		var deltaX = this.x - attacker.x;
-  		var deltaY = this.y - attacker.y;
-  		var angle = Math.atan2(deltaY,deltaX);
+  		let deltaX = this.x - attacker.x;
+  		let deltaY = this.y - attacker.y;
+  		let angle = Math.atan2(deltaY,deltaX);
   		this.velX = Math.cos(angle)*10;
   		this.velY = Math.sin(angle)*10;
   		if (Math.abs(this.velY)<=0.5||this.isGrounded) this.velY -= 10;
+      if (attacker instanceof PhysicsBox) {
+        if (attacker.velX!=0) this.x += attacker.velX + (attacker.velX>0?1:-1);
+        if (attacker.velY!=0) this.y += attacker.velY + (attacker.velY>0?1:-1);
+      }
   		if (this instanceof Player) {
   			this.stun = 5;
   			this.invulnerability = 60;
