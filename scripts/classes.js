@@ -107,20 +107,20 @@ class Box extends _c_ {
   update() { }
   setSectors() {
     if (!this.lockSectors||this.sectors[0]==null) {
-      for (var i in this.sectors) Sectors.removeFromSector(this,this.sectors[i]);
+      for (var i in this.sectors) Sector.removeFromSector(this,this.sectors[i]);
       this.sectors = [];
-      var sectorX = Math.floor(this.x/Sectors.size.width);
-      var sectorY = Math.floor(this.y/Sectors.size.height);
-      Sectors.addToSector(this,sectorX,sectorY);
+      var sectorX = Math.floor(this.x/Sector.size.width);
+      var sectorY = Math.floor(this.y/Sector.size.height);
+      Sector.addToSector(this,sectorX,sectorY);
 
-      // if (this.width>Sectors.size.width||this.height>Sectors.size.height) {
-        var leftX = Math.floor(this.leftX()/Sectors.size.width);
-        var rightX = Math.floor(this.rightX()/Sectors.size.width);
-        var topY = Math.floor(this.topY()/Sectors.size.height);
-        var bottomY = Math.floor(this.bottomY()/Sectors.size.height);
+      // if (this.width>Sector.size.width||this.height>Sector.size.height) {
+        var leftX = Math.floor(this.leftX()/Sector.size.width);
+        var rightX = Math.floor(this.rightX()/Sector.size.width);
+        var topY = Math.floor(this.topY()/Sector.size.height);
+        var bottomY = Math.floor(this.bottomY()/Sector.size.height);
         for (var a = leftX; a <= rightX; a++) {
           for (var b = topY; b <= bottomY; b++) {
-            if (a!=sectorX||b!=sectorY) Sectors.addToSector(this,a,b);
+            if (a!=sectorX||b!=sectorY) Sector.addToSector(this,a,b);
           }
         }
       // }
@@ -129,7 +129,7 @@ class Box extends _c_ {
     // else {
       this.isLoaded = false;
       for (var i in this.sectors) {
-        if (Sectors.getSector(this.sectors[i]).loaded) {
+        if (Sector.getSector(this.sectors[i]).loaded) {
           this.isLoaded = true;
           break;
         }
@@ -138,7 +138,7 @@ class Box extends _c_ {
   }
   remove() {
     for (var i in this.sectors) {
-      Sectors.removeFromSector(this,this.sectors[i]);
+      Sector.removeFromSector(this,this.sectors[i]);
     }
     super.remove();
   }

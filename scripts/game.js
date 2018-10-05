@@ -74,7 +74,7 @@ function tick() { //GAME UPDATES//
 		Particle.callForAll("update");
 
 		Camera.update();
-		Sectors.update();
+		Sector.update();
 	}
 	GuiElement.callForAll("update");
 	//DevTools Line Maker

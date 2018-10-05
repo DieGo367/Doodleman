@@ -4,8 +4,8 @@ const Collision = {
   	PhysicsBox.callForAll("preCollision");
 
     //get loaded objects, and classsify them as either terrain or actors
-    let loadedSectors = Sectors.getLoadedSectors();
-    let objects = Level.classify(Sectors.getObjectListFromSectors(loadedSectors),true);
+    let loadedSectors = Sector.getLoadedSectors();
+    let objects = Level.classify(Sector.getObjectListFromSectors(loadedSectors),true);
 
     //detect intersections only among actors
     let actorsOnly = this.detectIntersections(objects.actors,objects.actors);
@@ -205,60 +205,6 @@ class CollisionPair {
   }
 }
 
-const Sectors = {
-	grid: {},
-	size: {width:320 , height:180 },
-	update: function() {
-		for (var i in this.grid) this.grid[i].updateLoadedState();
-		Box.callForAll("setSectors");
-    Line.callForAll("setSectors");
-    for (var i in this.grid) if (this.grid[i].objects.length==0) delete this.grid[i];
-	},
-	removeFromSector: function(obj,sectorNameOrX,sectorY) {
-		var sector = this.getSector(sectorNameOrX,sectorY);
-		sector.objects.splice(sector.objects.indexOf(obj),1);
-	},
-	addToSector: function(obj,sectorX,sectorY) {
-		var sector = this.getSector(sectorX,sectorY);
-		sector.objects.push(obj);
-		obj.sectors.push(sector.name);
-	},
-	checkIfInSector: function(obj,sectorNameOrX,sectorY) {
-		var sector = this.getSector(sectorNameOrX,sectorY);
-		if (obj.rightX()>=sector.leftX()&&obj.leftX()<=sector.rightX()) {
-			if (obj.y>=sector.topY()&&obj.topY()<=sector.bottomY()) return true;
-		}
-		else return false;
-	},
-	getSector: function(sectorX,sectorY) {
-		if (typeof sectorX=="string") var sectorName = sectorX;
-		else if (typeof sectorX=="number"&&typeof sectorY=="number") var sectorName = sectorX+","+sectorY;
-    else return {objects: []};
-		var sector = this.grid[sectorName];
-		if (!sector) sector = this.grid[sectorName] = new Sector(...sectorName.split(","));
-		return sector;
-	},
-  getLoadedSectors: function() {
-    var list = [];
-    for (var i in this.grid) {
-      if (this.grid[i].loaded) list.push(this.grid[i]);
-    }
-    return list;
-  },
-  getObjectListFromSectors: function(sectors) {
-    var objectCollection = [];
-    for (var i in sectors) {
-      for (var j in sectors[i].objects) {
-        var obj = sectors[i].objects[j];
-        if (objectCollection.indexOf(obj)==-1) objectCollection.push(obj);
-      }
-    }
-    return objectCollection;
-  },
-  getLoadedObjects: function() {
-    return this.getObjectListFromSectors(this.getLoadedSectors());
-  }
-}
 class Sector {
 	constructor(sectorX,sectorY) {
 		this.x = sectorX;
@@ -269,21 +215,77 @@ class Sector {
 	}
 	drawDebug() {
 		c.strokeStyle = "orange";
-		c.strokeRect(this.leftX(),this.topY(),Sectors.size.width,Sectors.size.height);
+		c.strokeRect(this.leftX(),this.topY(),Sector.size.width,Sector.size.height);
 		c.font = "10px Consolas";
 		c.strokeText(this.name,this.leftX(),this.topY()+10);
 	}
-	leftX() { return this.x*Sectors.size.width; }
-	rightX() { return this.leftX()+Sectors.size.width; }
-	topY() { return this.y*Sectors.size.height; }
-	bottomY() { return this.topY()+Sectors.size.height; }
+	leftX() { return this.x*Sector.size.width; }
+	rightX() { return this.leftX()+Sector.size.width; }
+	topY() { return this.y*Sector.size.height; }
+	bottomY() { return this.topY()+Sector.size.height; }
 	updateLoadedState() {
 		this.loaded = false;
     for (var i in this.objects) if (this.objects[i].alwaysLoaded) return this.loaded = true;
-		if (this.rightX()>=Camera.leftPx()-Sectors.size.width&&this.leftX()<=Camera.rightPx()+Sectors.size.width) {
-			if (this.bottomY()>=Camera.topPx()-Sectors.size.height&&this.topY()<=Camera.bottomPx()+Sectors.size.height) {
+		if (this.rightX()>=Camera.leftPx()-Sector.size.width&&this.leftX()<=Camera.rightPx()+Sector.size.width) {
+			if (this.bottomY()>=Camera.topPx()-Sector.size.height&&this.topY()<=Camera.bottomPx()+Sector.size.height) {
 				this.loaded = true;
 			}
 		}
 	}
+	static init() {
+    this.grid = {};
+  	this.size = {width:320 , height:180};
+  }
+	static update() {
+		for (var i in this.grid) this.grid[i].updateLoadedState();
+		Box.callForAll("setSectors");
+    Line.callForAll("setSectors");
+    for (var i in this.grid) if (this.grid[i].objects.length==0) delete this.grid[i];
+	}
+	static removeFromSector(obj,sectorNameOrX,sectorY) {
+		let sector = this.getSector(sectorNameOrX,sectorY);
+		sector.objects.splice(sector.objects.indexOf(obj),1);
+	}
+	static addToSector(obj,sectorX,sectorY) {
+		let sector = this.getSector(sectorX,sectorY);
+		sector.objects.push(obj);
+		obj.sectors.push(sector.name);
+	}
+	static checkIfInSector(obj,sectorNameOrX,sectorY) {
+		let sector = this.getSector(sectorNameOrX,sectorY);
+		if (obj.rightX()>=sector.leftX()&&obj.leftX()<=sector.rightX()) {
+			if (obj.y>=sector.topY()&&obj.topY()<=sector.bottomY()) return true;
+		}
+		else return false;
+	}
+	static getSector(sectorX,sectorY) {
+    let sectorName;
+		if (typeof sectorX=="string") sectorName = sectorX;
+		else if (typeof sectorX=="number"&&typeof sectorY=="number") sectorName = sectorX+","+sectorY;
+    else return;
+		let sector = this.grid[sectorName];
+		if (!sector) sector = this.grid[sectorName] = new this(...sectorName.split(","));
+		return sector;
+	}
+  static getLoadedSectors() {
+    var list = [];
+    for (var i in this.grid) {
+      if (this.grid[i].loaded) list.push(this.grid[i]);
+    }
+    return list;
+  }
+  static getObjectListFromSectors(sectors) {
+    var objectCollection = [];
+    for (var i in sectors) {
+      for (var j in sectors[i].objects) {
+        var obj = sectors[i].objects[j];
+        if (objectCollection.indexOf(obj)==-1) objectCollection.push(obj);
+      }
+    }
+    return objectCollection;
+  }
+  static getLoadedObjects() {
+    return this.getObjectListFromSectors(this.getLoadedSectors());
+  }
 }
+Sector.init();

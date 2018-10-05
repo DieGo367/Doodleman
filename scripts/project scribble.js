@@ -541,8 +541,8 @@ function drawGame() {
 			var thing = findTopThing(Pointer.camX(),Pointer.camY(),type);
 			if (thing) thing.drawHighlighted("red");
 		}
-		for (var i in Sectors.grid) {
-			Sectors.grid[i].drawDebug();
+		for (var i in Sector.grid) {
+			Sector.grid[i].drawDebug();
 		}
 		DevTools.LineMaker.draw();
 	}
