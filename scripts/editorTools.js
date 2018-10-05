@@ -396,6 +396,6 @@ const EditorTools = {
     this.clearMode();
     this.levelCopy = clone(Level.level);
     Game.mode = mode;
-    Level.load(JSON.stringify(this.levelCopy));
+    Level.load(JSON.stringify(this.levelCopy),false);
   }
 }
