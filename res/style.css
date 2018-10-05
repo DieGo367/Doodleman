@@ -34,7 +34,7 @@ canvas:fullscreen, canvas:full-screen, canvas:-webkit-full-screen, canvas:-moz-f
   max-width: 100%;
   max-height: 100%;
 }
-#output {
-  display: none;
-  text-align: left;
+#clipboard {
+  position: absolute;
+  left: -999999px;
 }

@@ -134,6 +134,12 @@ const Level = {
 		let data = niceJSON(this.level);
 		console.log(data);
 	},
+	copy: function() {
+		let data = niceJSON(this.level);
+		$("#clipboard").val(data).select();
+		document.execCommand("copy");
+		gameAlert("Level data copied to clipboard.",120);
+	},
 	getSnappingPoints: function(cancelMidpoints) {
 		let points = [];
 		for (var i in this.level.terrain) {
