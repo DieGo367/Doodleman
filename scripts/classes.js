@@ -2052,7 +2052,7 @@ class TextInput extends Button {
     if (this.type=="accessor") Constants.storeList(data);
   }
   accessValue(accessorStr) {
-    return Constants.read(accessorStr);
+    return Constants.read(accessorStr?accessorStr:this.storedVal);
   }
   toAccessorString(val) {
     return Constants.getKey(val,this.typeData);
