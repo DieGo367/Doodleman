@@ -43,7 +43,6 @@ function niceJSON(obj) {
   let str = JSON.stringify(obj,function(key,val) {
     if (typeof val == "object" && val!=null) {
 			let isArray = (val instanceof Array);
-			console.log(isArray)
       let arrayString = isArray?'[':'{';
       let compactable = true;
 			let isFirst = true;
