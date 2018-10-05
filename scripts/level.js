@@ -128,7 +128,8 @@ const Level = {
 	},
 	export: function() {
 		let data = niceJSON(Level.level);
-		$("#fileOutput").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
+		let name = Level.level.name || "Doodleman Level";
+		$("#fileOutput").attr("download",name+".json").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
 	},
 	log: function() {
 		let data = niceJSON(Level.level);
