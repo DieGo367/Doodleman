@@ -1,5 +1,6 @@
 const Level = {
 	level: {
+		name: null,
 		bgType: "name", //name = image, raw = b64
 		bgName: "none",
 		bgScale: 1,
@@ -94,10 +95,7 @@ const Level = {
 			var newLevel = JSON.parse(file);
 		}
 		catch(err) {
-			if (doLog) {
-				console.log('Failed to load Level "'+file.name+'" from local file');
-				console.log(err);
-			}
+			if (doLog) console.warn('Failed to load Level');
 			return false;
 		}
 		pauseGame(true);
