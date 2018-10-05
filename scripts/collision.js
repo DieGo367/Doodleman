@@ -102,7 +102,6 @@ const Collision = {
     if (testPair) return testPair;
     else testPair = this.pairs[b.uid+"x"+a.uid];
     if (testPair) return testPair;
-    else return "none";
   },
   addPair: function(a,b,behavior) {
     var pair = new CollisionPair(a,b,behavior);
@@ -146,7 +145,7 @@ const Collision = {
     for (var i in newList) {
       var a = newList[i][0], b = newList[i][1];
       var result = this.findPair(a,b);
-      if (result!="none") { //found a previous collision
+      if (result) { //found a previous collision
         result.old = false;
       }
       else { //detected a NEW collision!
@@ -169,7 +168,7 @@ const Collision = {
       r.tick--;
       if (r.tick<=0) {
         var pair = this.findPair(r.a,r.b);
-        if (pair!="none") pair.refresh();
+        if (pair) pair.refresh();
         list.push(r);
       }
     }
