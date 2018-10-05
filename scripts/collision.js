@@ -95,51 +95,46 @@ const Collision = {
 			9: box b and line a
   	*/
   },
-  pairs: [],
+  pairs: {},
   requests: [],
   findPair: function(a,b) {
-    for (var i in this.pairs) {
-      if (a==this.pairs[i].a) {
-        if (b==this.pairs[i].b) return this.pairs[i];
-      }
-      else if (b==this.pairs[i].a) {
-        if (a==this.pairs[i].b) return this.pairs[i];
-      }
-    }
-    return "none";
+    let testPair = this.pairs[a.uid+"x"+b.uid];
+    if (testPair) return testPair;
+    else testPair = this.pairs[b.uid+"x"+a.uid];
+    if (testPair) return testPair;
+    else return "none";
   },
   addPair: function(a,b,behavior) {
     var pair = new CollisionPair(a,b,behavior);
-    this.pairs.push(pair);
+    this.pairs[pair.key] = pair;
     return pair;
   },
-  removePair: function(index) {
-    this.pairs.splice(index,1);
+  removePair: function(pair) {
+    delete this.pairs[pair.key];
   },
   findAllPairsWith: function(obj) {
     let list = [];
-    for (var i in this.pairs) {
-      if (obj==this.pairs[i].a||obj==this.pairs[i].b) list.push(this.pairs[i]);
+    for (var p in this.pairs) {
+      if (obj==this.pairs[p].a||obj==this.pairs[p].b) list.push(this.pairs[p]);
     }
     return list;
   },
   removeAllPairsWith: function(box) {
-    for (var i = 0; i < this.pairs.length; i++) {
-      if (this.pairs[i].a==box||this.pairs[i].b==box) {
-        this.removePair(i);
-        i--;
+    for (var p in this.pairs) {
+      if (this.pairs[p].a==box||this.pairs[p].b==box) {
+        this.removePair(this.pairs[p]);
       }
     }
   },
   collidePairs: function(withTerrain) {
-    for (var i in this.pairs) {
-      if (withTerrain==this.pairs[i].involvesTerrain()) this.pairs[i].collide();
+    for (var p in this.pairs) {
+      if (withTerrain==this.pairs[p].involvesTerrain()) this.pairs[p].collide();
     }
   },
   updateCollisionList: function(newList,checkTerrain) {
     //mark all previous collision pairs as old
-    for (var i in this.pairs) {
-      var pair = this.pairs[i];
+    for (var p in this.pairs) {
+      var pair = this.pairs[p];
       //ignore pairs where an object is unloaded
       if (pair.involvesUnloaded()) continue;
       // if we're checking terrain and the pair has terrain,
@@ -160,11 +155,8 @@ const Collision = {
     }
 
     //remove all old pairs that don't exist now
-    var i = this.pairs.length;
-    while (i-->0) {
-      if (this.pairs[i].old) {
-        this.removePair(i);
-      }
+    for (var p in this.pairs) {
+      if (this.pairs[p].old) this.removePair(this.pairs[p]);
     }
   },
   requestRefresh: function(a,b,ticks) {
@@ -190,6 +182,7 @@ class CollisionPair {
   constructor(a,b,behavior) {
     this.a = a;
     this.b = b;
+    this.key = a.uid + "x" + b.uid;
     this.behavior = behavior;
     this.old = false;
   }
