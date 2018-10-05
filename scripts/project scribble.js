@@ -492,8 +492,8 @@ function addPlayer(number) {
 
 let currentMonth = new Date(Date.now()).getMonth();
 function addPM(x,y) {
-	if (currentMonth==9 && Math.random()>0.5) Skeltal.create(x,y).isActor = true;
-	else PaintMinion.create(x,y).isActor = true;
+	if (currentMonth==9 && Math.random()>0.5) Skeltal.create(x,y);
+	else PaintMinion.create(x,y);
 }
 
 /* DRAW ORDER:

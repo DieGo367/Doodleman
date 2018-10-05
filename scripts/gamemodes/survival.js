@@ -39,7 +39,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       //spawn an enemy at random coords
       let x = Math.round(Math.random()*Level.level.width);
       let y = Math.round(Math.random()*Level.level.height);
-      if (currentMonth==9 && Math.random()>0.5) Skeltal.create(x,y).isActor = true;
+      if (currentMonth==9 && Math.random()>0.5) Skeltal.create(x,y);
       else ActorManager.make(10,x,y);
     }
   },

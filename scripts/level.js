@@ -77,9 +77,9 @@ const Level = {
 			let o = list[i];
 			if (!requirePhysical||o instanceof PhysicsBox||o instanceof Line) {
 				if (o.isTerrain) terrain.push(o);
-				else if (o.isActor) actors.push(o);
-				else other.push(o);
+				else actors.push(o);
 			}
+			else other.push(list);
     }
     return {terrain: terrain, actors: actors, other: other};
   },

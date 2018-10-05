@@ -1256,7 +1256,6 @@ class Player extends Entity {
         this.tap.selfDestruct();
       }
     };
-    this.isActor = true;
   }
 
   handleControls(pad) {
