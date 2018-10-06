@@ -1,27 +1,31 @@
 class _c_ {
   static create() {
     var newInstance = new this(...arguments);
-    newInstance.uid = "u"+(uid++);
+    if (this.listType=="uid") newInstance.uid = "u"+(uid++);
 		this.addInstance(newInstance);
 		if (this.onCreate) this.onCreate.call(newInstance);
 		return newInstance;
   }
   static addInstance(instance) {
     if (this.parent!=null) this.parent.addInstance(instance);
-    this.classList[instance.uid] = instance;
+    if (this.listType=="array") this.classList.push(instance);
+    else if (this.listType=="uid") this.classList[instance.uid] = instance;
   }
   static removeInstance(instance) {
     if (this.parent!=null) this.parent.removeInstance(instance);
-    delete this.classList[instance.uid];
+    if (this.listType=="array") this.classList.splice(this.classList.indexOf(instance),1);
+    else if (this.listType=="uid") delete this.classList[instance.uid];
   }
   static getAll() {
     let list = [];
-    for (var c in this.classList) list.push(this.classList[c]);
+
+    if (this.listType=="array") list = list.concat(this.classList);
+    else if (this.listType=="uid") for (var c in this.classList) list.push(this.classList[c]);
     return list;
   }
   static getLoaded() {
     let list = [];
-    for (var c in this.classList) if (this.classList[c].isLoaded) list.push(this.classList[c]);
+    if (this.listType!="none") for (var c in this.classList) if (this.classList[c].isLoaded) list.push(this.classList[c]);
     return list;
   }
   static killAll() {
@@ -42,9 +46,11 @@ class _c_ {
   }
   remove() {
     this.constructor.removeInstance(this);
+    if (this.uid!=void(0)) {
+      if (uid==++uidDeleted) uid = uidDeleted = 0;
+    }
 		for (var property in this) delete this[property];
 		this.deleted = true;
-    if (uid==++uidDeleted) uid = uidDeleted = 0;
   }
   drawTint() {}
   draw() {}
@@ -53,17 +59,21 @@ class _c_ {
   drawDebug() {}
   drawHighlighted() {}
 }
-function initClass(cl,arg,denyList) {
-  if (denyList||(denyList==void(0))) cl.classList = {};
-  var type = (typeof arg);
-  if (type!="undefined") {
-    switch(type) {
-      case "boolean":
-        if (arg) DrawableClasses.push(cl);
-        break;
-      case "function":
-        cl.parent = arg;
-    }
+function initClass(cl,param) {
+  if (typeof param == "object") {
+    cl.listType = param.listType || "none";
+    if (param.drawable) DrawableClasses.push(cl);
+  }
+  else if (typeof param == "function") {
+    cl.parent = param;
+    cl.listType = cl.parent.listType;
+  }
+  switch(cl.listType) {
+    case "array":
+      cl.classList = [];
+      break;
+    case "uid":
+      cl.classList = {};
   }
   if (typeof cl.onInit=="function") cl.onInit();
 }
@@ -162,7 +172,7 @@ class Box extends _c_ {
     this.prototype.drawLayer = 0;
   }
 }
-initClass(Box,true);
+initClass(Box,{drawable: true, listType: "uid"});
 
 class Interactable extends Box {
   constructor(x,y,width,height,color,sprite,targetClass,onIntersect,onStopIntersect) {
@@ -238,7 +248,7 @@ class HarmBox extends Interactable {
     this.prototype.hitBoxStroke = "red";
   }
 }
-initClass(HarmBox,Interactable,true);
+initClass(HarmBox,Interactable);
 
 class AttackBox extends HarmBox {
   constructor(x,y,width,height,attacker,damage,duration,frames,framerate) {
@@ -287,7 +297,7 @@ class AttackBox extends HarmBox {
     super.remove();
   }
 }
-initClass(AttackBox,HarmBox,true);
+initClass(AttackBox,HarmBox);
 
 class Door extends Interactable {
   constructor(x,y,linkId,destination) {
@@ -1015,7 +1025,7 @@ class Line extends _c_ {
     this.prototype.drawLayer = -2;
   }
 }
-initClass(Line,true);
+initClass(Line,{drawable: true, listType: "uid"});
 
 
 class Entity extends PhysicsBox {
@@ -1783,7 +1793,7 @@ class View extends _c_ {
     super.remove();
   }
 }
-initClass(View);
+initClass(View,{listType: "array"});
 
 class GuiElement extends _c_ {
   constructor(name,viewName,x,y) {
@@ -1829,7 +1839,7 @@ class GuiElement extends _c_ {
   	else if (selected.isVisible()) Pointer.move(selected.x,selected.y);
   }
 }
-initClass(GuiElement);
+initClass(GuiElement,{listType: "array"});
 
 class Button extends GuiElement {
   constructor(name,viewName,x,y,width,height,text) {
@@ -2229,4 +2239,4 @@ class Particle extends _c_ {
     this.prototype.drawLayer = 3;
   }
 }
-initClass(Particle,true);
+initClass(Particle,{drawable: true, listType: "array"});
