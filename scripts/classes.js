@@ -1742,6 +1742,9 @@ class Skeltal extends Enemy {
   constructor(x,y) {
     super(x,y,19,44,3,"Skeltal.json",38);
   }
+  static onInit() {
+    this.prototype.particleColor = "gray";
+  }
 }
 initClass(Skeltal,Enemy);
 
