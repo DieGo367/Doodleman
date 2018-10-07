@@ -57,15 +57,13 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       this.toggleState = 0;
     }).setIcon("GUI-Icons.png",0,1,42,4).show();
 
-    Button.create("BoxTool","EditorToolbar",80,10,50,50).setOnClick(function() {
-      EditorTools.setMode(0);
-    }).setRadioGroup(["LineTool","ActorTool","EraserTool"]).setIcon("GUI-Icons.png",0,2,42,4).show();
-    Button.create("LineTool","EditorToolbar",150,10,50,50).setOnClick(function() {
-      EditorTools.setMode(1);
-    }).setRadioGroup(["BoxTool","ActorTool","EraserTool"]).setIcon("GUI-Icons.png",1,2,42,4).show();
-    Button.create("ActorTool","EditorToolbar",220,10,50,50).setOnClick(function() {
-      EditorTools.setMode(2);
-    }).setRadioGroup(["BoxTool","LineTool","EraserTool"]).setIcon("GUI-Icons.png",2,2,42,4).show();
+    Button.create("BoxTool","EditorToolbar",80,10,50,50).setIcon("GUI-Icons.png",0,2,42,4).show();
+    Button.create("LineTool","EditorToolbar",150,10,50,50).setIcon("GUI-Icons.png",1,2,42,4).show();
+    Button.create("ActorTool","EditorToolbar",220,10,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
+    Button.setRadioGroup(["BoxTool","LineTool","ActorTool"],function() {
+      EditorTools.setMode(this.radioGroupIndex);
+      G$("EraserTool").on = false;
+    },false);
 
     Button.create("EraserTool","EditorToolbar",hudWidth-130,10,50,50).setOnClick(function() {
       this.on = !this.on;
@@ -158,15 +156,15 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       callPrefixedFunction(document,"exitFullScreen");
     },true).setIcon("GUI-Icons.png",2,0,42,4).show();
 
-    let lsMenu = function() {
+    Button.create("LS:File","LevelSettingsView",hudWidth*1/5-50,75,100,40,"File").show().on = true;
+    Button.create("LS:Edit","LevelSettingsView",hudWidth*2/5-50,75,100,40,"Edit").show();
+    Button.create("LS:Cam","LevelSettingsView",hudWidth*3/5-50,75,100,40,"Camera").show();
+    Button.create("LS:BG","LevelSettingsView",hudWidth*4/5-50,75,100,40,"BG").show();
+    Button.setRadioGroup(["LS:File","LS:Edit","LS:Cam","LS:BG"],function() {
       G$(this.view.activeMenu).hide();
       this.view.activeMenu = this.name+":Menu";
       G$(this.view.activeMenu).show();
-    };
-    Button.create("LS:File","LevelSettingsView",hudWidth*1/5-50,75,100,40,"File").setRadioGroup(["LS:Edit","LS:Cam","LS:BG"]).setOnClick(lsMenu).show().on = true;
-    Button.create("LS:Edit","LevelSettingsView",hudWidth*2/5-50,75,100,40,"Edit").setRadioGroup(["LS:File","LS:Cam","LS:BG"]).setOnClick(lsMenu).show();
-    Button.create("LS:Cam","LevelSettingsView",hudWidth*3/5-50,75,100,40,"Camera").setRadioGroup(["LS:File","LS:Edit","LS:BG"]).setOnClick(lsMenu).show();
-    Button.create("LS:BG","LevelSettingsView",hudWidth*4/5-50,75,100,40,"BG").setRadioGroup(["LS:File","LS:Edit","LS:Cam"]).setOnClick(lsMenu).show();
+    },true);
 
     View.create("LS:File:Menu",1,0,0,hudWidth,hudHeight);
     TextElement.create("LS:File:Name","LS:File:Menu",hudWidth/4-150,155,fontMenuItem,"Level Name",hudWidth,LEFT).show();

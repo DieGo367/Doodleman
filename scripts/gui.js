@@ -268,19 +268,18 @@ function buildHelpPage() {
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
 	var actions = ["Move Left / Right", "Jump", "Crouch", "Attack", "Enter Door / Up"];
-	var onClick = function() {
-		this.on = true;
-		buildControlList(this.b,this.a);
-	}
 
 	TextElement.create("HelpTitle","HelpView",hudWidth/2,30,fontMenuTitle,"Controls",hudWidth,CENTER).show();
-	var bWasd = Button.create("WASDPage","HelpView",10,100,100,40,"WASD").setOnClick(onClick).setRadioGroup(["IJKLPage","MovesPage"]).show();
+	var bWasd = Button.create("WASDPage","HelpView",10,100,100,40,"WASD").show();
 	bWasd.b = ["A / D", "W", "S", "G", "E"], bWasd.a = actions; bWasd.on = true;
-	var bIjkl = Button.create("IJKLPage","HelpView",10,150,100,40,"IJKL").setOnClick(onClick).setRadioGroup(["WASDPage","MovesPage"]).show();
+	var bIjkl = Button.create("IJKLPage","HelpView",10,150,100,40,"IJKL").show();
 	bIjkl.b = ["J / L", "I", "K", "'", "O"], bIjkl.a = actions;
-	var bMoves = Button.create("MovesPage","HelpView",10,250,100,40,"Moves").setOnClick(onClick).setRadioGroup(["WASDPage","IJKLPage"]).show();
+	var bMoves = Button.create("MovesPage","HelpView",10,250,100,40,"Moves").show();
 	bMoves.b = ["Lift","Charge","Stab Down","Swipe Up","Air Jab"];
 	bMoves.a = ["[Crouch + Attack] on top of object","Hold [Attack] and release","[Crouch + Attack] when in air","[Up + Attack] or [Crouch] on Charge","[Up + Attack] or [Jump + Attack] in air"];
+	Button.setRadioGroup(["WASDPage","IJKLPage","MovesPage"],function() {
+		buildControlList(this.b,this.a);
+	},true);
 
 	buildControlList(bWasd.b,actions);
 }
@@ -480,12 +479,13 @@ function mapperStep(gpId,step,titles,type,mappings) {
 
 function buildDevToolsHud() {
   View.create("DevTools",0,hudWidth-70,70,70,210,"tint","lightBlue");
-	let setOn = function() {
+	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
+	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setIcon("GUI-Icons.png",1,2,42,4).show();
+	Button.setRadioGroup(["DevPencil","DevSpawnPM"],function() {
 		if (G$("DevPencil").on) Pointer.cursor = POINTER_PENCIL;
 		else Pointer.cursor = POINTER_CROSSHAIR;
-	}
-	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setOnClick(setOn).setRadioGroup(["DevPencil","DevEraser"]).setIcon("GUI-Icons.png",2,2,42,4).show();
-	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setOnClick(setOn).setRadioGroup(["DevSpawnPM","DevEraser"]).setIcon("GUI-Icons.png",1,2,42,4).show();
+		G$("DevEraser").on = false;
+	},false);
 	Button.create("DevEraser","DevTools",hudWidth-60,220,50,50).setOnClick(function() {
 		if (this.on) this.on = false;
 		else if (G$("DevSpawnPM").on||G$("DevPencil").on) this.on = true;
