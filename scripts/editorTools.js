@@ -221,9 +221,6 @@ const EditorTools = {
       }
       if (this.id==0) {
         this.properties[0] = 0, this.properties[1] = RIGHT;
-        props.names.push("playerSlot","direction");
-        props.types.push("number","accessor:LEFT,RIGHT");
-        return props;
       }
       for (var i = 2; i < vals.length; i++) { //start at 2 to skip x and y
         let name = vals[i];
@@ -255,8 +252,7 @@ const EditorTools = {
     },
     setSpawnGhost: function(playerNumber,x,y,direction) {
       if (this.spawnGhosts[playerNumber]) delete this.spawnGhosts[playerNumber];
-      let skin = playerNumber + (playerNumber==0?0:1);
-      this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,null,skin,direction);
+      this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,playerNumber,direction);
     },
     drawSpawnGhosts: function() {
       for (var i in this.spawnGhosts) this.spawnGhosts[i].draw();

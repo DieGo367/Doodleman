@@ -3,9 +3,9 @@
     "id": 0,
     "class": "Player",
     "properties": [
-      "val0","val1",19,44,38,4,["val3","Doodleman.json","Blueman.json","Redman.json"],"val2","val4"
+      "val0","val1",19,44,38,4,["val2","Doodleman.json","Redman.json","Greenman.json","Yellowman.json"],"val2","val3"
     ],
-    "valueNames": ["x","y","#playerNumber","#skin","#direction"]
+    "valueNames": ["x","y","#playerSlot","@direction:LEFT,RIGHT"]
   },
   {
     "id": 10,
