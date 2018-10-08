@@ -39,7 +39,7 @@ const EditorTools = {
       }
     },
     erase: function() {
-      let box = this.parent.findAt(Pointer.camX(),Pointer.camY(),0);
+      let box = this.findAt(Pointer.camX(),Pointer.camY());
       if (box) {
         Level.removeTerrainData(box.rawTerrainData);
         box.remove();
@@ -67,6 +67,12 @@ const EditorTools = {
       return {
         names: ["color","img","collisionType"],
         types: ["string","string","accessor:C_NONE,C_WEAK,C_PUSHABLE,C_SOLID,C_INFINIMASS"]
+      }
+    },
+    findAt: function(x,y) {
+      let all = PhysicsBox.getAll().reverse();
+      for (var i in all) {
+        if (all[i].isTerrain&&!(all[i] instanceof Line)&&all[i].containsPoint(x,y)) return all[i];
       }
     }
   },
@@ -100,7 +106,7 @@ const EditorTools = {
       }
     },
     erase: function() {
-      let line = this.parent.findAt(Pointer.camX(),Pointer.camY(),1);
+      let line = this.findAt(Pointer.camX(),Pointer.camY());
       if (line) {
         Level.removeTerrainData(line.rawTerrainData);
         line.remove();
@@ -128,6 +134,20 @@ const EditorTools = {
         names: ["stroke","lineWidth","direction","useBoxCorners"],
         types: ["string","number","accessor:LINE_UP,LINE_DOWN,LINE_LEFT,LINE_RIGHT","boolean"]
       }
+    },
+    findAt: function(x,y) {
+      let all = Line.getAll().reverse();
+  		for (var i in all) {
+  			if (all[i].isTerrain&&all[i].hitboxContainsPoint(x,y)) {
+  				let lx = all[i].valueAt(y,'y');
+  				let ly = all[i].valueAt(x,'x');
+  				let diffX = Math.abs(x-lx);
+  				let diffY = Math.abs(y-ly);
+  				let slope = Math.abs(all[i].slope());
+  				if ((slope=="vertical tangent"||slope>50)&&diffX<15) return all[i];
+  				if (diffY<15) return all[i];
+  			}
+  		}
     },
     calcLineSnap: function() {
       // Returns new destination point [xx,yy] for line creation by snapping it to angles of 15 degrees
@@ -184,7 +204,7 @@ const EditorTools = {
       }
     },
     erase: function() {
-      let actor = this.parent.findAt(Pointer.camX(),Pointer.camY(),2);
+      let actor = this.findAt(Pointer.camX(),Pointer.camY());
       if (actor) {
         if (this.id==0) {
           this.killSpawnGhost(actor.slot);
@@ -241,6 +261,12 @@ const EditorTools = {
         props.names.push(name);
       }
       return props;
+    },
+    findAt: function(x,y) {
+      let all = (this.id==0? [].concat(this.spawnGhosts).reverse(): Box.getAll().reverse());
+      for (var i in all) {
+        if (all[i]&&all[i].isActor&&all[i].containsPoint(x,y)) return all[i];
+      }
     },
     initSpawnGhosts: function() {
       for (var i = 0; i < Level.level.playerSpawns.length; i++) {
@@ -323,35 +349,6 @@ const EditorTools = {
       else Pointer.cursor = POINTER_CROSSHAIR;
     }
   },
-  findAt: function(x,y,type) {
-    let tryAll = (type==void(0));
-    if (type==0||tryAll) {
-      let all = PhysicsBox.getAll().reverse();
-      for (var i in all) {
-        if (all[i].isTerrain&&!(all[i] instanceof Line)&&all[i].containsPoint(x,y)) return all[i];
-      }
-    }
-  	if (type==1||tryAll) {
-      let all = Line.getAll().reverse();
-  		for (var i in all) {
-  			if (all[i].isTerrain&&all[i].hitboxContainsPoint(x,y)) {
-  				let lx = all[i].valueAt(y,'y');
-  				let ly = all[i].valueAt(x,'x');
-  				let diffX = Math.abs(x-lx);
-  				let diffY = Math.abs(y-ly);
-  				let slope = Math.abs(all[i].slope());
-  				if ((slope=="vertical tangent"||slope>50)&&diffX<15) return all[i];
-  				if (diffY<15) return all[i];
-  			}
-  		}
-  	}
-    if (type==2||tryAll) {
-      let all = (this.Actor.id==0? [].concat(this.Actor.spawnGhosts).reverse(): Box.getAll().reverse());
-      for (var i in all) {
-        if (all[i]&&all[i].isActor&&all[i].containsPoint(x,y)) return all[i];
-      }
-    }
-  },
   getToolProperties: function() {
     let tool = this[this.getModeText()];
     let strings = tool.getPropStrings();
@@ -394,7 +391,7 @@ const EditorTools = {
     let button = G$(this.getModeText()+"Tool");
     if (button.on) {
       if (this.eraserOn) {
-        let thing = this.findAt(Pointer.camX(),Pointer.camY(),this.mode);
+        let thing = this[this.getModeText()].findAt(Pointer.camX(),Pointer.camY());
         if (thing) thing.drawHighlighted("red");
       }
       else {
