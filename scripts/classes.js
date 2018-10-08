@@ -1791,7 +1791,7 @@ class View extends _c_ {
   }
   remove() {
     this.hide();
-    for (var i in this.children) this.children[i].remove();
+    for (var i = this.children.length-1; i >= 0; i--) this.children[i].remove();
     G$.delete(this.name);
     super.remove();
   }
@@ -1820,6 +1820,7 @@ class GuiElement extends _c_ {
   customDraw() { }
   update() { }
   remove() {
+    this.view.children.splice(this.view.children.indexOf(this),1);
     G$.delete(this.name);
     super.remove();
   }

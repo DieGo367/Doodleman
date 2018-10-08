@@ -85,33 +85,20 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 
     View.create("EditPropView",0,0,70,hudWidth,60,"tint","green");
     Button.create("EditPropOnShown","EditPropView",0,0,0,0).setOnViewShown(function() {
-      let view = G$("EditPropView");
+      let view = this.view;
+      //remove all children except the first one (this)
+      for (var i = view.children.length-1; i > 0; i--) view.children[i].remove();
       let props = EditorTools.getToolProperties();
-      view.propNum = 0;
+      view.propNum = props.length;
       for (var i = 0; i < props.length; i++) {
-        let input = G$("EditProp:"+i); //try to find the input for property i
-        if (TextInput.getAll().indexOf(input)==-1) { //if input wasn't found
-          //make the input
-          let x = 10+105*(i%6), y = 80+45*Math.floor(i/6);
-          input = TextInput.create("EditProp:"+i,"EditPropView",x,y,99,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
-            EditorTools.setToolProperty(this.text,value,parseInt(this.name.split(":")[1]));
-          });
-        }
-        input.show();
-        input.setType(props[i].type);
-        input.storedVal = props[i].val;
-        input.text = props[i].name;
-        input.promptMsg = "Enter a value for "+props[i].name;
-        view.propNum = i+1;
+        //make the input
+        let x = 10+105*(i%6), y = 80+45*Math.floor(i/6);
+        input = TextInput.create("EditProp:"+i,"EditPropView",x,y,99,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
+          EditorTools.setToolProperty(this.text,value,parseInt(this.name.split(":")[1]));
+        }).show();
         view.height = input.y-20;
       }
-      if (view.propNum<view.largestPropNum) {
-        for (var i = view.propNum; i < view.largestPropNum; i++) {
-          G$("EditProp:"+i).hide();
-        }
-      }
-      else view.largestPropNum = view.propNum;
-    }).largestPropNum = 0;
+    });
 
     Button.create("LevelSettingsBttn","EditorHud",hudWidth-60,10,50,50).setOnClick(function() {
       G$("LevelSettingsView").show();
