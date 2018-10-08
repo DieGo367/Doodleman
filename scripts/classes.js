@@ -1889,7 +1889,7 @@ class Button extends GuiElement {
     this.onViewShownFunction = func;
     if (this.earlyOnViewShown) {
       delete this.earlyOnViewShown;
-      this.onViewShownFunction();
+      this.onViewShown();
     }
     return this;
   }

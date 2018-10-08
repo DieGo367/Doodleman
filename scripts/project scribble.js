@@ -681,7 +681,10 @@ function click(ctrl) {
 	var found = false;
 	if (!viewLock) {
 		for (var i in Button.classList) {
-			if (Button.classList[i].onClick(ctrl)) found = true;
+			if (Button.classList[i].onClick(ctrl)) {
+				found = true;
+				break;
+			}
 		}
 	}
 	else if (ctrl==Pointer) clearViewLock();
