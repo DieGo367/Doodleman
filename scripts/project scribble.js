@@ -607,26 +607,18 @@ function pauseGame(pause,player) {
 		if (!pause&&Pointer.focusLayer==0&&focused&&(player==pausedBy||player==null||pausedBy==null||!multiplayer)) {
 			for (var i in Key.ctrls) { Key.ctrls[i].loadPausedCache(); }
 			for (var i in GamePad.ctrls) { GamePad.ctrls[i].loadPausedCache(); }
-			if (Game.mode!=GAME_TITLE) {
-				G$("PauseMenu").hide();
-				G$("Hud").show();
-				if (devEnabled) G$("DevTools").show();
-			}
 			paused = false;
 			pausedBy = null;
+			Game.onPause(false);
 		}
 	}
 	else {
 		if (pause) {
 			for (var i in Key.ctrls) { Key.ctrls[i].makePausedCache(); }
 			for (var i in GamePad.ctrls) { GamePad.ctrls[i].makePausedCache(); }
-			if (Game.mode!=GAME_TITLE) {
-				G$("PauseMenu").show();
-				G$("Hud").hide();
-				G$("DevTools").hide();
-			}
 			paused = true;
 			pausedBy = player;
+			Game.onPause(true);
 		}
 	}
 }

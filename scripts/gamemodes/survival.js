@@ -16,6 +16,18 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       this.spawnWave(this.wave);
     }
   },
+  onPause: function(paused) {
+    if (paused) {
+      G$("PauseMenu").show();
+      G$("Hud").hide();
+      G$("DevTools").hide();
+    }
+    else {
+      G$("PauseMenu").hide();
+      G$("Hud").show();
+      if (devEnabled) G$("DevTools").show();
+    }
+  },
   onLevelLoad: function() {
     this.wave = 0;
     this.score = 0;

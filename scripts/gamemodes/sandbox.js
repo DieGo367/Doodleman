@@ -7,6 +7,18 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
   quit: function() {
     this.removeGui();
   },
+  onPause: function(paused) {
+    if (paused) {
+      G$("PauseMenu").show();
+      G$("Hud").hide();
+      G$("DevTools").hide();
+    }
+    else {
+      G$("PauseMenu").hide();
+      G$("Hud").show();
+      if (devEnabled) G$("DevTools").show();
+    }
+  },
   onLevelLoad: function() {
     addPlayer(0);
     if (multiplayer) addPlayer(1);

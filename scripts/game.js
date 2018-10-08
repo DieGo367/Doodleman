@@ -40,6 +40,7 @@ class GameMode {
 	start() {}
 	quit() {}
 	tick() {}
+	onPause(paused) {}
 	onLevelLoad() {}
 	onDeath(ent,attacker) {}
 }
