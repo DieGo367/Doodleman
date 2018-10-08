@@ -1512,7 +1512,7 @@ class Player extends Entity {
   }
 
   static setSlot(slot,player) {
-  	if (!this.slots[slot]) this.slots[slot] = player;
+  	if (!this.slots[slot]&&Game.mode!=GAME_EDITOR) this.slots[slot] = player;
   }
   static clearFromSlot(player) {
   	if (this.slots[player.slot]==player) {

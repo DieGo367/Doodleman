@@ -164,15 +164,6 @@ const EditorTools = {
     properties: [],
     tempActor: null, spawnGhosts: [],
     onClick: function() {
-      if (this.id==0) {
-        let playerNumber = this.properties[0];
-        if (typeof playerNumber != "number"||playerNumber<0) return;
-        let spawn = Level.level.playerSpawns[playerNumber];
-        if (!spawn) spawn = Level.level.playerSpawns[playerNumber] = {x: 0, y: 0, direction: RIGHT};
-        spawn.x = Pointer.camX(), spawn.y = Pointer.camY(), spawn.direction = this.properties[1];
-        this.setSpawnGhost(playerNumber,spawn.x,spawn.y,spawn.direction);
-        return;
-      }
       if (ActorManager.getActorValueNames(this.id).length==0) return;
       let propNum = G$("EditPropView").propNum;
       if (propNum>1) {
@@ -182,13 +173,24 @@ const EditorTools = {
       }
       let x = Pointer.camX(), y = Pointer.camY();
       let data = [this.id,x,y,...this.properties];
-      ActorManager.make(...data);
-      Level.addActorData(data);
+      if (this.id==0) {
+        data.splice(0,1);
+        this.setLevelSpawn(...data);
+        this.setSpawnGhost(...data);
+      }
+      else {
+        ActorManager.make(...data);
+        Level.addActorData(data);
+      }
     },
     erase: function() {
       let actor = this.parent.findAt(Pointer.camX(),Pointer.camY(),2);
       if (actor) {
-        Level.removeActorData(actor.rawActorData);
+        if (this.id==0) {
+          this.killSpawnGhost(actor.slot);
+          this.removeLevelSpawn(actor.slot);
+        }
+        else Level.removeActorData(actor.rawActorData);
         actor.remove();
       }
     },
@@ -207,11 +209,7 @@ const EditorTools = {
       if (this.tempActor!=null) delete this.tempActor;
       if (ActorManager.getActorValueNames(this.id).length==0) return this.tempActor = null;
       let x = Pointer.camX(), y = Pointer.camY();
-      if (this.id==0) {
-        let slot = this.properties[0];
-        if (slot>=0) this.tempActor = ActorManager.makeGhostActor(0,x,y,null,[0,2][slot],this.properties[1]);
-      }
-      else this.tempActor = ActorManager.makeGhostActor(this.id,x,y,...this.properties);
+      this.tempActor = ActorManager.makeGhostActor(this.id,x,y,...this.properties);
     },
     getPropStrings: function() {
       let vals = ActorManager.getActorValueNames(this.id);
@@ -247,19 +245,36 @@ const EditorTools = {
     initSpawnGhosts: function() {
       for (var i = 0; i < Level.level.playerSpawns.length; i++) {
         let spawn = Level.level.playerSpawns[i];
-        this.setSpawnGhost(i,spawn.x,spawn.y,spawn.direction);
+        this.setSpawnGhost(spawn.x,spawn.y,i,spawn.direction);
       }
     },
-    setSpawnGhost: function(playerNumber,x,y,direction) {
-      if (this.spawnGhosts[playerNumber]) delete this.spawnGhosts[playerNumber];
+    setSpawnGhost: function(x,y,playerNumber,direction) {
+      if (this.spawnGhosts[playerNumber]) this.killSpawnGhost(playerNumber);
       this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,playerNumber,direction);
+    },
+    killSpawnGhost: function(slot) {
+      let ghosts = this.spawnGhosts;
+      if (ghosts[slot]) {
+        delete ghosts[slot];
+        while (ghosts.length>0&&ghosts[ghosts.length-1]==null) ghosts.splice(ghosts.length-1);
+      }
     },
     drawSpawnGhosts: function() {
       for (var i in this.spawnGhosts) this.spawnGhosts[i].draw();
     },
     removeSpawnGhosts: function() {
-      for (var i = this.spawnGhosts.length-1; i >= 0; i--) delete this.spawnGhosts[i];
-      this.spawnGhosts = [];
+      for (var i = this.spawnGhosts.length-1; i >= 0; i--) this.killSpawnGhost(i);
+    },
+    setLevelSpawn: function(x,y,playerNumber,direction) {
+      let spawn = Level.level.playerSpawns[playerNumber];
+      if (!spawn) spawn = Level.level.playerSpawns[playerNumber] = {x: 0, y:0, direction: RIGHT};
+      spawn.x = x, spawn.y = y, spawn.direction = direction;
+      return spawn;
+    },
+    removeLevelSpawn: function(playerNumber) {
+      let spawns = Level.level.playerSpawns;
+      delete spawns[playerNumber];
+      while(spawns.length>0&&spawns[spawns.length-1]==null) spawns.splice(spawns.length-1);
     }
   },
   init: function() {
@@ -331,9 +346,9 @@ const EditorTools = {
   		}
   	}
     if (type==2||tryAll) {
-      let all = Box.getAll().reverse();
+      let all = (this.Actor.id==0? [].concat(this.Actor.spawnGhosts).reverse(): Box.getAll().reverse());
       for (var i in all) {
-        if (all[i].isActor&&all[i].containsPoint(x,y)) return all[i];
+        if (all[i]&&all[i].isActor&&all[i].containsPoint(x,y)) return all[i];
       }
     }
   },
