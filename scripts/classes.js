@@ -540,6 +540,10 @@ class PhysicsBox extends Box {
   	this.velX = 0;
   	this.velY = 0;
   }
+  remove() {
+    Collision.removeAllPairsWith(this);
+    super.remove();
+  }
 
   static collide(a,b,behavior) {
   	var ar = a.rightX(), al = a.leftX(), am = a.midY(), aw = a.halfW(), at = a.topY();
@@ -1019,7 +1023,7 @@ class Line extends _c_ {
 
   static onInit() {
     this.prototype.setSectors = Box.prototype.setSectors;
-    this.prototype.remove = Box.prototype.remove;
+    this.prototype.remove = PhysicsBox.prototype.remove;
     this.prototype.lockSectors = true;
     this.prototype.collisionType = C_LINE;
     this.prototype.drawLayer = -2;
