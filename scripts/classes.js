@@ -1930,8 +1930,8 @@ class Button extends GuiElement {
   	this.hovered = false;
     if (this.onViewShownFunction) this.onViewShownFunction();
   }
-  onClick(ctrl) {
-  	if (this.isVisible()&&this.hovered&&this.preventClick==0&&this.mode!=BUTTON_NO) {
+  onClick(ctrl,forceAction) {
+  	if (forceAction||(this.isVisible()&&this.hovered&&this.preventClick==0&&this.mode!=BUTTON_NO)) {
       this.preventClick += this.pressDelay;
   		this.clickSource = ctrl;
       var func;
