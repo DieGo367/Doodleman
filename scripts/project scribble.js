@@ -698,7 +698,7 @@ function click(source) {
 			}
 		}
 	}
-	else if (ctrl==Pointer) clearViewLock();
+	else if (source==Pointer) clearViewLock();
 	if (devEnabled&&!found&&!paused) DevTools.onClick();
 	if (EditorTools.enabled) EditorTools.onClick(found);
 	Pointer.move(Pointer.x,Pointer.y);
