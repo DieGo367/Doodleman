@@ -1864,6 +1864,7 @@ class Button extends GuiElement {
     this.states = [];
   	this.clickSource = null;
   	this.hovered = false;
+    this.heldDown = false;
   	this.preventClick = 0;
     this.pressDelay = 0;
   	this.on = false;
@@ -1965,18 +1966,17 @@ class Button extends GuiElement {
   }
   checkMouse() {
   	if (!this.isVisible()||viewLock) return;
+    this.heldDown = false;
   	if (this.view.layer!=Pointer.focusLayer) {
-  		if (this.hovered) this.hovered = false;
-  		return;
+  		return this.hovered = false;
   	}
-  	if (this.checkCoord(Pointer.x,Pointer.y)) {
-			if (!this.hovered) {
-				this.hovered = true;
-				selectedElement = this;
-			}
-			return;
+    let dp = Pointer.downPoint;
+  	if (this.checkCoord(Pointer.x,Pointer.y)&&(!dp||this.checkCoord(dp[0],dp[1]))) {
+			selectedElement = this;
+      if (dp) this.heldDown = true;
+			return this.hovered = true;
   	}
-  	if (this.hovered) this.hovered = false;
+  	return this.hovered = false;
   }
   update() {
     if (this.preventClick>0) this.preventClick--;
@@ -1984,6 +1984,7 @@ class Button extends GuiElement {
   customDraw() {
   	var x = 0, y = 0;
   	if (this.hovered) y += 32;
+    if (this.heldDown) y += 32;
   	if (this.on) x+= 32;
     if (this.mode==BUTTON_NO) x = 32*3;
     if (this.isCloseButton) x = 32*2;

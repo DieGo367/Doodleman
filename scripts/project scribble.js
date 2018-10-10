@@ -202,6 +202,7 @@ const Pointer = {
 	mousedown: function(event) {
 		this.downPoint = [this.x,this.y];
 		this.downButton = event.which;
+		this.move(this.x,this.y);
 	},
 	mouseup: function(event) {
 		if (!this.downPoint) this.mousedown(event);
@@ -210,6 +211,7 @@ const Pointer = {
 		else click(this);
 		this.downPoint = null;
 		this.downButton = null;
+		this.move(this.x,this.y);
 	},
 	camX: function() { return Math.floor(Camera.x+(this.x-hudWidth/2)/Camera.zoom); },
 	camY: function() { return Math.floor(Camera.y+(this.y-hudHeight/2)/Camera.zoom); },
