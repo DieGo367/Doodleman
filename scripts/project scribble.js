@@ -162,7 +162,7 @@ function callPrefixedFunction(source,strFunc) {
 //helper objects
 const Pointer = {
 	x:0,y:0,
-	focusLayer: 0, cursor: POINTER_CROSSHAIR, downPoint: [],
+	focusLayer: 0, cursor: POINTER_CROSSHAIR, downPoint: null, downButton: null,
 	styles: [POINTER_CROSSHAIR,POINTER_PENCIL,POINTER_ERASER],
 	mousemove: function(event) {
 		var rect = canvas.getBoundingClientRect();
@@ -201,12 +201,15 @@ const Pointer = {
 	},
 	mousedown: function(event) {
 		this.downPoint = [this.x,this.y];
+		this.downButton = event.which;
 	},
 	mouseup: function(event) {
-		if (!this.downPoint) this.downPoint = [this.x,this.y];
+		if (!this.downPoint) this.mousedown(event);
+		if (this.downButton!=event.which) return;
 		if (event.which==3) rightClick(this);
 		else click(this);
 		this.downPoint = null;
+		this.downButton = null;
 	},
 	camX: function() { return Math.floor(Camera.x+(this.x-hudWidth/2)/Camera.zoom); },
 	camY: function() { return Math.floor(Camera.y+(this.y-hudHeight/2)/Camera.zoom); },
@@ -701,7 +704,7 @@ function click(source) {
 	Pointer.move(Pointer.x,Pointer.y);
 }
 function rightClick(source) {
-	
+
 }
 
 function findTopThing(x,y,type) {
