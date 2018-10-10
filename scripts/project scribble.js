@@ -706,7 +706,7 @@ function click(source) {
 	Pointer.move(Pointer.x,Pointer.y);
 }
 function rightClick(source) {
-
+	EditorTools.onRightClick();
 }
 
 function findTopThing(x,y,type) {
@@ -742,7 +742,7 @@ function addEvents() {
 	$(window).on("mousemove",function(event) { Pointer.mousemove(event); });
 	$(window).on("mousedown",function(event) { Pointer.mousedown(event); });
 	$(window).on("mouseup",function(event) { Pointer.mouseup(event); });
-	$(window).on("contextmenu",function(event) { if (!devEnabled) event.preventDefault(); });
+	$(window).on("contextmenu",function(event) { if (!devEnabled||event.which==3) event.preventDefault(); });
 	if ("ongamepadconnected" in window) {
 		GamePad.haveEvents = true;
 		$(window).on("gamepadconnected",function(event) {

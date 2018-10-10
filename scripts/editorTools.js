@@ -318,6 +318,9 @@ const EditorTools = {
       else tool.onClick();
     }
   },
+  onRightClick: function() {
+    this[this.getModeText()].cancel();
+  },
   setMode: function(mode) {
     if (!this.ready) this.init();
     this.mode = mode;
