@@ -1994,10 +1994,10 @@ class Button extends GuiElement {
     if (this.mode==BUTTON_NO) x = 32*3;
     if (this.isCloseButton) x = 32*2;
   	Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,x,y);
-  	if (this.useIcon) Images.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad)+(drawPressed?1:0),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
+  	if (this.useIcon) Images.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad)+(drawPressed?2:0),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
   	else {
       let font = (this.hovered&&!Tap.active)?fontButtonBold:fontButton;
-      font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7+(drawPressed?1:0),this.width,CENTER);
+      font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7+(drawPressed?2:0),this.width,CENTER);
   	}
   }
   static setRadioGroup(group,func,strict) {
