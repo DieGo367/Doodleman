@@ -588,7 +588,7 @@ function drawGame() {
 		}
 	}
 	if (Game.mode!=GAME_EDITOR) Tap.draw();
-	if (focused&&Tap.touches.length==0) Pointer.draw();
+	if (focused&&!Tap.active) Pointer.draw();
 	//debug hud
 	if (devEnabled) {
 		c.fillStyle = "black";

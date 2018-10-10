@@ -214,6 +214,10 @@ const Tap = {
 	targetTouch: null,
 	buttons: [],
 	analogs: [],
+	tryDeactivate: function() {
+		if (this.touches.length>0) return false;
+		else return !(this.active = false);
+	},
 	checkTouches: function() {
 		if (!G$("Hud").visible||!this.active) return;
 		for (var i in this.analogs) this.analogs[i].update();
@@ -246,25 +250,25 @@ const Tap = {
 			newTouch = {x: x, y: y, id:touches[i].identifier};
 			newTouches.push(newTouch);
 			if (check&&!oldTouch) this.handleStart(newTouch,x,y);
+			if (oldTouch&&Pointer.downButton=="t"+newTouch.id) Pointer.move(x,y);
 		}
 		this.touches = newTouches;
 	},
 	handleStart: function(touch,x,y) {
-		var targeted = false;
 		for (var j in this.buttons) {
 			if (this.buttons[j].checkTap(x,y)) {
 				this.buttons[j].targetTouch = touch.id;
-				targeted = true;
-				break;
+				return;
 			}
 		}
-		if (!targeted) for (var j in this.analogs) {
+		for (var j in this.analogs) {
 			if (this.analogs[j].checkTap(x,y)) {
 				this.analogs[j].targetTouch = touch.id;
-				targeted = true;
-				break;
+				return;
 			}
 		}
+		Pointer.move(x,y);
+		Pointer.mousedown({which:"t"+touch.id});
 	},
 	handleEnd: function(event) {
 		var touches = event.originalEvent.touches;
@@ -275,7 +279,8 @@ const Tap = {
 		}
 		var deleted = [];
 		for (var i in this.touches) {
-			if (!this.touches[i].found) {
+			if (this.touches[i].found) delete this.touches[i].found;
+			else {
 				for (var j in this.buttons) {
 					if (this.buttons[j].targetTouch==this.touches[i].id) this.buttons[j].targetTouch = null;
 				}
@@ -283,14 +288,11 @@ const Tap = {
 					if (this.analogs[j].targetTouch==this.touches[i].id) this.analogs[j].targetTouch = null;
 				}
 				Pointer.move(this.touches[i].x,this.touches[i].y);
-				click(Pointer);
-				deleted.push(this.touches[i]);
+				Pointer.mouseup({which:"t"+this.touches[i].id});
+				deleted.push(i);
 			}
 		}
-		for (var i in deleted) {
-			this.touches.splice(this.touches.indexOf(deleted[i]),1);
-		}
-		for (var i in this.touches) delete this.touches[i].found;
+		for (var d in deleted) this.touches.splice(deleted[d],1);
 	},
 	ctrlButtonValue: function(id,ctrl) {
 		return this.buttons[id].pressed?1:0;
@@ -417,7 +419,7 @@ class Ctrl extends CtrlMap {
 		this.justReleasedActions = {};
 		this.usedActionsPaused = {};
 		this.justReleasedActionsPaused = {};
-		this.timestamp = Date.now();
+		this.timestamp = 0;
 		manager.ctrls.push(this);
 	}
 	getCtrlManager() {

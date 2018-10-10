@@ -1265,7 +1265,7 @@ class Player extends Entity {
         var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp];
         var newest = Math.max(...timestamps);
         var mostRecent = [this.key,this.gp,this.tap][timestamps.indexOf(newest)];
-        if (this.tap.type!=NULLCTRL&&mostRecent.type!=TOUCH) Tap.active = false;
+        if (newest!=0&&this.tap.type!=NULLCTRL&&mostRecent.type!=TOUCH) Tap.tryDeactivate();
         return mostRecent;
       },
       selfDestructAll: function() {
@@ -1970,14 +1970,14 @@ class Button extends GuiElement {
   }
   checkMouse() {
   	if (!this.isVisible()||viewLock) return;
-    this.heldDown = false;
   	if (this.view.layer!=Pointer.focusLayer) {
+      this.heldDown = false;
   		return this.hovered = false;
   	}
     let dp = Pointer.downPoint;
   	if (this.checkCoord(Pointer.x,Pointer.y)&&(!dp||this.checkCoord(dp[0],dp[1]))) {
 			selectedElement = this;
-      if (dp) this.heldDown = true;
+      this.heldDown = (dp!=null);
 			return this.hovered = true;
   	}
   	return this.hovered = false;
@@ -1988,15 +1988,16 @@ class Button extends GuiElement {
   customDraw() {
   	var x = 0, y = 0;
   	// if (this.hovered) y += 32;
-    if (this.heldDown) y += 64;
+    let drawPressed = this.heldDown && this.hovered;
+    if (drawPressed) y += 64;
   	if (this.on) x+= 32;
     if (this.mode==BUTTON_NO) x = 32*3;
     if (this.isCloseButton) x = 32*2;
   	Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,x,y);
-  	if (this.useIcon) Images.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad)+(this.heldDown?1:0),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
+  	if (this.useIcon) Images.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad)+(drawPressed?1:0),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
   	else {
-      let font = this.hovered?fontButtonBold:fontButton;
-      font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7+(this.heldDown?1:0),this.width,CENTER);
+      let font = (this.hovered&&!Tap.active)?fontButtonBold:fontButton;
+      font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7+(drawPressed?1:0),this.width,CENTER);
   	}
   }
   static setRadioGroup(group,func,strict) {
