@@ -1983,8 +1983,8 @@ class Button extends GuiElement {
   }
   customDraw() {
   	var x = 0, y = 0;
-  	if (this.hovered) y += 32;
-    if (this.heldDown) y += 32;
+  	// if (this.hovered) y += 32;
+    if (this.heldDown) y += 64;
   	if (this.on) x+= 32;
     if (this.mode==BUTTON_NO) x = 32*3;
     if (this.isCloseButton) x = 32*2;
