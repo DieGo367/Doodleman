@@ -162,7 +162,7 @@ function callPrefixedFunction(source,strFunc) {
 //helper objects
 const Pointer = {
 	x:0,y:0,
-	focusLayer: 0, cursor: POINTER_CROSSHAIR,
+	focusLayer: 0, cursor: POINTER_CROSSHAIR, downPoint: [],
 	styles: [POINTER_CROSSHAIR,POINTER_PENCIL,POINTER_ERASER],
 	mousemove: function(event) {
 		var rect = canvas.getBoundingClientRect();
@@ -199,7 +199,15 @@ const Pointer = {
 		this.x = Math.round(x), this.y = Math.round(y);
 		Button.callForAll("checkMouse");
 	},
-	click: function(event) { click(this); },
+	mousedown: function(event) {
+		this.downPoint = [this.x,this.y];
+	},
+	mouseup: function(event) {
+		if (!this.downPoint) this.downPoint = [this.x,this.y];
+		if (event.which==3) rightClick(this);
+		else click(this);
+		this.downPoint = null;
+	},
 	camX: function() { return Math.floor(Camera.x+(this.x-hudWidth/2)/Camera.zoom); },
 	camY: function() { return Math.floor(Camera.y+(this.y-hudHeight/2)/Camera.zoom); },
 	draw: function() {
@@ -676,12 +684,12 @@ function doGlobalControls(controller) {
 	}
 }
 
-function click(ctrl) {
+function click(source) {
 	if (canvas.isInLoadScreen) return;
 	var found = false;
 	if (!viewLock) {
 		for (var i in Button.classList) {
-			if (Button.classList[i].onClick(ctrl)) {
+			if (Button.classList[i].onClick(source)) {
 				found = true;
 				break;
 			}
@@ -691,6 +699,9 @@ function click(ctrl) {
 	if (devEnabled&&!found&&!paused) DevTools.onClick();
 	if (EditorTools.enabled) EditorTools.onClick(found);
 	Pointer.move(Pointer.x,Pointer.y);
+}
+function rightClick(source) {
+	
 }
 
 function findTopThing(x,y,type) {
@@ -724,7 +735,8 @@ function addEvents() {
 	});
 	$(window).on("keyup",function(event) { Key.onKeyup(event); });
 	$(window).on("mousemove",function(event) { Pointer.mousemove(event); });
-	$(window).on("click",function(e) { click(Pointer); });
+	$(window).on("mousedown",function(event) { Pointer.mousedown(event); });
+	$(window).on("mouseup",function(event) { Pointer.mouseup(event); });
 	$(window).on("contextmenu",function(event) { if (!devEnabled) event.preventDefault(); });
 	if ("ongamepadconnected" in window) {
 		GamePad.haveEvents = true;
