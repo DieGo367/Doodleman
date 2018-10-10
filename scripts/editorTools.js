@@ -324,7 +324,8 @@ const EditorTools = {
   setMode: function(mode) {
     if (!this.ready) this.init();
     this.mode = mode;
-    G$("EditorModeText").text = this.getModeText();
+    let button = G$(this.getModeText()+"Tool");
+    G$("EditorModeText").text = button.on?this.getModeText():"";
     let p = G$("EditPropBttn");
     if (p.on) p.states[0].call(p);
     this.setEraserOn(false);
@@ -408,5 +409,29 @@ const EditorTools = {
     this.levelCopy = clone(Level.level);
     Game.mode = mode;
     Level.load(JSON.stringify(this.levelCopy),false);
+  },
+  doControls: function(ctrl) {
+    if (!ctrl.type==KEYBOARD||viewLock) return;
+    for (var i in this.modes) if (ctrl.ready(this.modes[i]+"Tool")) {
+      G$(this.modes[i]+"Tool").onClick(ctrl,true);
+      ctrl.use(this.modes[i]+"Tool");
+    }
+    if (ctrl.ready("EraserTool")) {
+      G$("EraserTool").onClick(ctrl,true);
+      ctrl.use("EraserTool");
+    }
+    if (ctrl.ready("PropMenu")) {
+      if (!G$("EditorToolbar").visible) G$("ExpandButton").onClick(ctrl,true);
+      else if (!G$("EditPropView").visible) G$("EditPropBttn").onClick(ctrl,true);
+      else {
+        G$("EditPropBttn").onClick(ctrl,true);
+        G$("ExpandButton").onClick(ctrl,true);
+      }
+      ctrl.use("PropMenu");
+    }
+    if (ctrl.ready("fullScreen")) {
+      G$("FSToggle").onClick(ctrl,true);
+      ctrl.use("fullScreen");
+    }
   }
 }

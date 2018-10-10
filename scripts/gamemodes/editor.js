@@ -17,6 +17,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   tick: function() {
     if (focused) window.requestAnimationFrame(drawGame);
     doGlobalControls(globalKeyboard);
+    EditorTools.doControls(globalKeyboard);
     GuiElement.callForAll("update");
     Particle.callForAll("update");
   },
@@ -25,11 +26,23 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     EditorTools.Actor.removeSpawnGhosts();
     EditorTools.Actor.initSpawnGhosts();
   },
+  onPause: function() {
+    if (focused) {
+      if (!G$("LevelSettingsView").visible) {
+        if (G$("EditPropView").visible) G$("EditPropBttn").onClick(null,true);
+        if (G$("EditorToolbar").visible) G$("ExpandButton").onClick(null,true);
+        G$("LevelSettingsBttn").onClick(null,true);
+      }
+      else {
+        G$("LevelSettingsClose").onClick(null,true);
+      }
+    }
+  },
   addGui: function() {
     buildDevToolsHud();
     View.create("EditorToolbar",0,0,0,hudWidth,70,"tint","purple");
     View.create("EditorHud",0,0,0,hudWidth,70).show();
-    TextElement.create("EditorModeText","EditorHud",70,40,fontMenuEdit,"Mode",hudWidth,LEFT);
+    TextElement.create("EditorModeText","EditorHud",70,40,fontMenuEdit,"",hudWidth,LEFT).show();
 
     View.create("ExpandButtonView",0,0,0,70,70).show();
     Button.create("ExpandButton","ExpandButtonView",10,10,50,50).setToggle(function() {
@@ -43,16 +56,6 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       if (p.on) p.states[1].call(p,ctrl);
       G$("EditorToolbar").hide();
       G$("EditorHud").show();
-      let tools = ["BoxTool","LineTool","ActorTool"];
-      let found = false;
-      for (var i in tools) {
-        if (G$(tools[i]).on) {
-          found = true;
-          break;
-        }
-      }
-      if (found) G$("EditorModeText").show();
-      else G$("EditorModeText").hide();
       this.setIcon("GUI-Icons.png",0,1,42,4);
       this.toggleState = 0;
     }).setIcon("GUI-Icons.png",0,1,42,4).show();

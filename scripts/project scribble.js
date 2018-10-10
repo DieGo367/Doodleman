@@ -663,8 +663,6 @@ function doGlobalControls(controller) {
 	else {
 		if (!multiplayer&&controller.ready("respawn")) { PhysicsBox.callForAll("respawn"); controller.use("respawn"); }
 		if ((devEnabled||Game.mode==GAME_EDITOR)&&controller.type==KEYBOARD&&Pointer.focusLayer==0) {
-			// if (controller.pressed("camRotateCW")) myAngle += 0.01;
-			// if (controller.pressed("camRotateCCW")) myAngle -= 0.01;
 			if (controller.pressed("camLeft")) Camera.x -= 5;
 			if (controller.pressed("camRight")) Camera.x += 5;
 			if (controller.pressed("camDown")) Camera.y += 5;
