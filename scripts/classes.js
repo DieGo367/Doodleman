@@ -16,6 +16,10 @@ class _c_ {
     if (this.listType=="array") this.classList.splice(this.classList.indexOf(instance),1);
     else if (this.listType=="uid") delete this.classList[instance.uid];
   }
+  static has(instance) {
+    if (this.listType=="array") return this.classList.indexOf(instance) == -1;
+    else if (this.listType=="uid") return this.classList[instance.uid] != null;
+  }
   static getAll() {
     let list = [];
 
@@ -180,20 +184,20 @@ class Interactable extends Box {
   	this.targetClass = targetClass;
   	this.onIntersect = onIntersect;
   	this.onStopIntersect = onStopIntersect;
-  	this.touches = [];
+  	this.touches = {};
   }
   update() {
     super.update();
   	var all = this.targetClass.getLoaded();
-  	var newTouches = [];
+  	var newTouches = {};
   	for (var i in all) {
   		if (this.intersect(all[i])) {
-  			newTouches.push(all[i]);
-  			if (this.touches.indexOf(all[i])==-1) {
+  			newTouches[all[i].uid] = all[i];
+  			if (!this.touches[all[i].uid]) {
   				if (this.onIntersect) this.onIntersect(all[i]);
   			}
   		}
-  		else if (this.touches.indexOf(all[i])!=-1) {
+  		else if (this.touches[all[i].uid]) {
   			if (this.onStopIntersect) this.onStopIntersect(all[i]);
   		}
   	}
@@ -213,7 +217,7 @@ class HarmBox extends Interactable {
   	this.formulaY = formulaY;
   	if (endCheck) this.endCheck = endCheck;
   	else this.endCheck = function() { return false; };
-  	this.harmed = [];
+  	this.harmed = {};
   }
   update() {
   	if (this.attacker!=null&&Entity.classList[this.attacker.uid]) {
@@ -224,10 +228,10 @@ class HarmBox extends Interactable {
   		super.update();
   		for (var i in this.touches) {
   			var v = this.touches[i];
-  			if (v==this.attacker||this.harmed.indexOf(v)!=-1) continue;
+  			if (v==this.attacker||this.harmed[v.uid]) continue;
   			v.hurt(this.damage,this.attacker!=null?this.attacker:this);
         if (this.onHurt) this.onHurt(v);
-  			if (!v.dead) this.harmed.push(v);
+  			if (!v.dead) this.harmed[v.uid] = v;
   		}
   		this.time -= 1;
   		if (this.time<=0) {
@@ -237,7 +241,7 @@ class HarmBox extends Interactable {
   	else this.remove();
   }
   remove() {
-  	if (Entity.getAll().indexOf(this.attacker)!=-1) {
+  	if (Entity.has(this.attacker)) {
   		this.attacker.setAnimation("stand");
   		this.attacker.attackBox = null;
   	}
@@ -442,7 +446,7 @@ class PhysicsBox extends Box {
   	}
   }
   groundDragLoop(b,loops) {
-  	if (PhysicsBox.getAll().indexOf(b)==-1&&Line.getAll().indexOf(b)==-1) return this.ground = null;
+  	if (!PhysicsBox.has(b)&&!Line.has(b)) return this.ground = null;
     if (!(isNaN(b.dx))) {
       this.x += b.dx;
     }
@@ -1392,7 +1396,7 @@ class Player extends Entity {
       var throwHurt = HarmBox.create(throwing.x,throwing.y+5,throwing.width+10,throwing.height+10,throwing,throwing.thrownDamage,1000,xFunct,yFunct,function(thrownObj,harm) {
         return (thrownObj.velX==0&&thrownObj.velY==0)||thrownObj.isGrounded;
       });
-      throwHurt.harmed.push(this);
+      throwHurt.harmed[this.uid] = this;
     }
     throwing.heldBy = null;
     this.held = null;
@@ -1687,7 +1691,7 @@ class Enemy extends Entity {
 
       //choose which behavior to use based on whether or not target is around
   		if (this.target!=null) {
-  			if (PhysicsBox.getAll().indexOf(this.target)==-1) this.target = null; //lost target
+  			if (!PhysicsBox.has(this.target)) this.target = null; //lost target
   			else this.handleTarget();
   		}
   		else {
