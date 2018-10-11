@@ -21,6 +21,7 @@ const BUTTON_NO = 0, BUTTON_NORMAL = 1, BUTTON_TOGGLE = 2;
 const POINTER_NONE = 0, POINTER_CROSSHAIR = 1, POINTER_PENCIL = 2, POINTER_ERASER = 3;
 const ORIENT_LIN = 0, ORIENT_CW = 1, ORIENT_CCW = -1;
 const EDGE_NONE = 0, EDGE_SOLID = 1, EDGE_WRAP = 2, EDGE_KILL = 3;
+const CANCEL = -1;
 //helper functions
 function dp(pixels) {
 	return pixels*pixelDensity;
@@ -618,20 +619,22 @@ function screenSize(pxDensity) {
 function pauseGame(pause,player) {
 	if (paused) {
 		if (!pause&&Pointer.focusLayer==0&&focused&&(player==pausedBy||player==null||pausedBy==null||!multiplayer)) {
-			for (var i in Key.ctrls) { Key.ctrls[i].loadPausedCache(); }
-			for (var i in GamePad.ctrls) { GamePad.ctrls[i].loadPausedCache(); }
-			paused = false;
-			pausedBy = null;
-			Game.onPause(false);
+			if (Game.onPause(false)!=CANCEL) {
+				for (var i in Key.ctrls) { Key.ctrls[i].loadPausedCache(); }
+				for (var i in GamePad.ctrls) { GamePad.ctrls[i].loadPausedCache(); }
+				paused = false;
+				pausedBy = null;
+			}
 		}
 	}
 	else {
 		if (pause) {
-			for (var i in Key.ctrls) { Key.ctrls[i].makePausedCache(); }
-			for (var i in GamePad.ctrls) { GamePad.ctrls[i].makePausedCache(); }
-			paused = true;
-			pausedBy = player;
-			Game.onPause(true);
+			if (Game.onPause(true)!=CANCEL) {
+				for (var i in Key.ctrls) { Key.ctrls[i].makePausedCache(); }
+				for (var i in GamePad.ctrls) { GamePad.ctrls[i].makePausedCache(); }
+				paused = true;
+				pausedBy = player;
+			}
 		}
 	}
 }
