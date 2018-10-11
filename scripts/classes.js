@@ -241,7 +241,7 @@ class HarmBox extends Interactable {
   	else this.remove();
   }
   remove() {
-  	if (Entity.has(this.attacker)) {
+  	if (this.attacker&&Entity.has(this.attacker)) {
   		this.attacker.setAnimation("stand");
   		this.attacker.attackBox = null;
   	}
