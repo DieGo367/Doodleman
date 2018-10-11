@@ -1,6 +1,7 @@
 const GAME_EDITOR = GameManager.addMode(new GameMode({
   start: function() {
     devEnabled = true;
+    Tap.ctrlEnabled = false;
     this.addGui();
     EditorTools.enabled = true;
     if (EditorTools.levelCopy) Level.load(JSON.stringify(EditorTools.levelCopy),false);
@@ -9,6 +10,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   },
   quit: function() {
     devEnabled = false;
+    Tap.controlEnabled = true;
     this.removeGui();
     EditorTools.enabled = false;
     EditorTools.Actor.removeSpawnGhosts();
