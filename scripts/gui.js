@@ -18,14 +18,14 @@ G$.on = function(q) {
 
 //useful game functions
 function buildSelector(list,onSelect,onCancel,viewLayer) {
-	View.create("_Selector_",viewLayer===void(0)?1:viewLayer,0,0,hudWidth,hudHeight,"tint","darkBlue").show();
+	View.create("_Selector_",viewLayer===void(0)?1:viewLayer,0,0,WIDTH,HEIGHT,"tint","darkBlue").show();
 	for (var i in list) {
-		Button.create("_Selector_::"+i,"_Selector_",hudWidth/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
+		Button.create("_Selector_::"+i,"_Selector_",WIDTH/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
 			if (typeof onSelect=="function") onSelect(this.name.split("::")[1],this.text);
 			G$("_SelectorClose_").onClickFunction();
 		}).show();
 	}
-	Button.create("_SelectorClose_","_Selector_",hudWidth/2-150,hudHeight-70,300,40,"Cancel").setOnClick(function() {
+	Button.create("_SelectorClose_","_Selector_",WIDTH/2-150,HEIGHT-70,300,40,"Cancel").setOnClick(function() {
 		if (typeof onCancel=="function") onCancel();
 		let view = G$("_Selector_");
 		for (var i in view.children) view.children[i].remove();
@@ -41,9 +41,9 @@ function attemptUserAction(action,src) {
 	else {
 		viewLock = true;
 		pauseGame(true);
-		let uav = View.create("_UAV_",Pointer.focusLayer+1,15,15,hudWidth-30,hudHeight-30,"window");
+		let uav = View.create("_UAV_",Pointer.focusLayer+1,15,15,WIDTH-30,HEIGHT-30,"window");
 		uav.action = action;
-		TextElement.create("_UAText_","_UAV_",hudWidth/2,hudHeight/2,fontMenuTitle,"Press any key or click the screen to continue.",hudWidth-30,CENTER).show();
+		TextElement.create("_UAText_","_UAV_",WIDTH/2,HEIGHT/2,fontMenuTitle,"Press any key or click the screen to continue.",WIDTH-30,CENTER).show();
 		uav.show();
 		return false;
 	}
@@ -57,17 +57,17 @@ function clearViewLock() {
 }
 
 function gameConfirm(text,onResponse) {
-	let a = View.create("_Confirm_",Pointer.focusLayer+1,15,15,hudWidth-30,hudHeight-30,"window");
-	TextElement.create("_ConfirmText_","_Confirm_",hudWidth/2,hudHeight/2,fontMenuTitle,text,hudWidth-30,CENTER).show();
+	let a = View.create("_Confirm_",Pointer.focusLayer+1,15,15,WIDTH-30,HEIGHT-30,"window");
+	TextElement.create("_ConfirmText_","_Confirm_",WIDTH/2,HEIGHT/2,fontMenuTitle,text,WIDTH-30,CENTER).show();
 	let close = function() {
 		for (var i in a.children) a.children[i].remove();
 		a.hide().remove();
 	}
-	Button.create("_ConfirmYes_","_Confirm_",hudWidth/2-105,hudHeight-150,100,40,"OK!").setOnClick(function() {
+	Button.create("_ConfirmYes_","_Confirm_",WIDTH/2-105,HEIGHT-150,100,40,"OK!").setOnClick(function() {
 		close();
 		onResponse(true);
 	}).show();
-	Button.create("_ConfirmNo_","_Confirm_",hudWidth/2+5,hudHeight-150,100,40,"No").setClose(true).setOnClick(function() {
+	Button.create("_ConfirmNo_","_Confirm_",WIDTH/2+5,HEIGHT-150,100,40,"No").setClose(true).setOnClick(function() {
 		close();
 		onResponse(false);
 	}).show();
@@ -76,9 +76,9 @@ function gameConfirm(text,onResponse) {
 function gameAlert(text,duration) {
 	if (typeof duration != "number" || duration <= 0) return;
 	let v = G$("_Alert_"), t = G$("_AlertText_");
-	if (!v.visible) v = View.create("_Alert_",Pointer.focusLayer+1,0,hudHeight*7/8,hudWidth,hudHeight/8,"tint","black");
+	if (!v.visible) v = View.create("_Alert_",Pointer.focusLayer+1,0,HEIGHT*7/8,WIDTH,HEIGHT/8,"tint","black");
 	if (!t.visible) {
-		t = TextElement.create("_AlertText_","_Alert_",hudWidth/2,hudHeight*7/8+30,fontMenuTitle,text,hudWidth,CENTER).show();
+		t = TextElement.create("_AlertText_","_Alert_",WIDTH/2,HEIGHT*7/8+30,fontMenuTitle,text,WIDTH,CENTER).show();
 		t.update = function() {
 			this.time--;
 			if (this.time<=0) {
@@ -96,22 +96,22 @@ function gameAlert(text,duration) {
 //just definining menus and their functions
 
 function buildMainHud() {
-  View.create("Hud",0,0,0,hudWidth,hudHeight);
-	Button.create("PauseButton","Hud",hudWidth-60,10,50,50).setOnClick(function() {
+  View.create("Hud",0,0,0,WIDTH,HEIGHT);
+	Button.create("PauseButton","Hud",WIDTH-60,10,50,50).setOnClick(function() {
 		pauseGame(true);
 	}).setIcon("GUI-Icons.png",0,0,42,4).show();
 }
 
 function buildPauseMenu() {
-  View.create("PauseMenu",0,0,0,hudWidth,hudHeight,"tint","black");
+  View.create("PauseMenu",0,0,0,WIDTH,HEIGHT,"tint","black");
 
-	TextElement.create("PauseText","PauseMenu",hudWidth/2,hudHeight/2,fontPaused,"Paused",hudWidth,CENTER).show();
+	TextElement.create("PauseText","PauseMenu",WIDTH/2,HEIGHT/2,fontPaused,"Paused",WIDTH,CENTER).show();
 
-  Button.create("PauseClose","PauseMenu",hudWidth-60,10,50,50).setOnClick(function() {
+  Button.create("PauseClose","PauseMenu",WIDTH-60,10,50,50).setOnClick(function() {
 		pauseGame(false);
 	}).setIcon("GUI-Icons.png",1,0,42,4).show();
 
-	Button.create("QuitGame","PauseMenu",hudWidth/2-150,hudHeight-60,300,40,"Quit to Title").setOnClick(function(ctrl) {
+	Button.create("QuitGame","PauseMenu",WIDTH/2-150,HEIGHT-60,300,40,"Quit to Title").setOnClick(function(ctrl) {
 		gameConfirm("Are you sure you want to quit?",function(response) {
 			if (response) {
 				pauseGame(false);
@@ -120,7 +120,7 @@ function buildPauseMenu() {
 		})
 	}).show();
 
-  Button.create("FSToggle","PauseMenu",hudWidth-130,10,50,50).setToggle(function() {
+  Button.create("FSToggle","PauseMenu",WIDTH-130,10,50,50).setToggle(function() {
 		callPrefixedFunction(canvas,"requestFullscreen");
 		callPrefixedFunction(canvas,"requestFullScreen");
 	}, function() {
@@ -144,18 +144,18 @@ function buildPauseMenu() {
 		G$("PauseMenu").hide();
 	}).show();
 
-  // TextElement.create("UserInfo","PauseMenu",hudWidth/2,hudHeight-30,"Logged in as "+User.name,"Fredoka One",15,false,"white",CENTER)//.show();
-	// Button.create("LoginoutButton","PauseMenu",hudWidth/2-50,hudHeight-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
+  // TextElement.create("UserInfo","PauseMenu",WIDTH/2,HEIGHT-30,"Logged in as "+User.name,"Fredoka One",15,false,"white",CENTER)//.show();
+	// Button.create("LoginoutButton","PauseMenu",WIDTH/2-50,HEIGHT-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
 	// 	User.useLink();
 	// })//.show();
 }
 
 function buildLevelSelectMenu() {
-  View.create("LevelSelectView",1,0,0,hudWidth,hudHeight,"tint","black");
+  View.create("LevelSelectView",1,0,0,WIDTH,HEIGHT,"tint","black");
 
-  TextElement.create("LSText","LevelSelectView",hudWidth/2,30,fontMenuTitle,"Select a level",hudWidth,CENTER).show();
+  TextElement.create("LSText","LevelSelectView",WIDTH/2,30,fontMenuTitle,"Select a level",WIDTH,CENTER).show();
 
-	Button.create("LSClose","LevelSelectView",hudWidth-60,10,50,50).setOnClick(function() {
+	Button.create("LSClose","LevelSelectView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("LevelSelectView").hide();
 		G$("PauseMenu").show();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
@@ -172,64 +172,64 @@ function buildLevelSelectMenu() {
 		}
 	});
 
-	Button.create("LSFileButton","LevelSelectView",hudWidth-170,hudHeight-60,150,40,"Load From File").setOnClick(Level.openLocalFile,true).show().setPressDelay(1);
+	Button.create("LSFileButton","LevelSelectView",WIDTH-170,HEIGHT-60,150,40,"Load From File").setOnClick(Level.openLocalFile,true).show().setPressDelay(1);
 }
 
 function buildControllerSettingsMenu() {
-  View.create("CtrlSettingsView",1,0,0,hudWidth,hudHeight,"tint","black");
-	TextElement.create("CtrlSettingsText","CtrlSettingsView",hudWidth/2,30,fontMenuTitle,"Controller Settings",hudWidth,CENTER).show();
+  View.create("CtrlSettingsView",1,0,0,WIDTH,HEIGHT,"tint","black");
+	TextElement.create("CtrlSettingsText","CtrlSettingsView",WIDTH/2,30,fontMenuTitle,"Controller Settings",WIDTH,CENTER).show();
 
-  Button.create("CtrlSettingsClose","CtrlSettingsView",hudWidth-60,10,50,50).setOnClick(function() {
+  Button.create("CtrlSettingsClose","CtrlSettingsView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("CtrlSettingsView").hide();
 		G$("PauseMenu").show();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
-	TextElement.create("CtrlP1","CtrlSettingsView",hudWidth/2-135,100,fontMenuItem,"Player 1",hudWidth,CENTER).show();
-	TextElement.create("CtrlP2","CtrlSettingsView",hudWidth/2+135,100,fontMenuItem,"Player 2",hudWidth,CENTER).show();
+	TextElement.create("CtrlP1","CtrlSettingsView",WIDTH/2-135,100,fontMenuItem,"Player 1",WIDTH,CENTER).show();
+	TextElement.create("CtrlP2","CtrlSettingsView",WIDTH/2+135,100,fontMenuItem,"Player 2",WIDTH,CENTER).show();
 
-  Button.create("CtrlP1Keyboard","CtrlSettingsView",hudWidth/2-260,130,250,40,"Keyboard").setOnViewShown(function() {
+  Button.create("CtrlP1Keyboard","CtrlSettingsView",WIDTH/2-260,130,250,40,"Keyboard").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(KEYBOARD,Player.keyIds[0]);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
 		buildControllerSelector([0,1],KEYBOARD,this);
 	}).show();
-  Button.create("CtrlP1GamePad","CtrlSettingsView",hudWidth/2-260,180,250,40,"GamePad").setOnViewShown(function() {
+  Button.create("CtrlP1GamePad","CtrlSettingsView",WIDTH/2-260,180,250,40,"GamePad").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(GAMEPAD,Player.gpIds[0]);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
 		buildControllerSelector(GamePad.slotsFilled(),GAMEPAD,this);
 	}).show();
-	Button.create("CtrlP1Touch","CtrlSettingsView",hudWidth/2-260,230,250,40,"Touch Controls").setOnViewShown(function() {
+	Button.create("CtrlP1Touch","CtrlSettingsView",WIDTH/2-260,230,250,40,"Touch Controls").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(TOUCH,Player.tapIds[0]);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
 		buildControllerSelector([0],TOUCH,this);
 	}).show();
 
-  Button.create("CtrlP2Keyboard","CtrlSettingsView",hudWidth/2+10,130,250,40,"Keyboard").setOnViewShown(function() {
+  Button.create("CtrlP2Keyboard","CtrlSettingsView",WIDTH/2+10,130,250,40,"Keyboard").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(KEYBOARD,Player.keyIds[1]);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
 		buildControllerSelector([0,1],KEYBOARD,this);
 	}).show();
-	Button.create("CtrlP2GamePad","CtrlSettingsView",hudWidth/2+10,180,250,40,"GamePad").setOnViewShown(function() {
+	Button.create("CtrlP2GamePad","CtrlSettingsView",WIDTH/2+10,180,250,40,"GamePad").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(GAMEPAD,Player.gpIds[1]);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
 		buildControllerSelector(GamePad.slotsFilled(),GAMEPAD,this);
 	}).show();
-	Button.create("CtrlP2Touch","CtrlSettingsView",hudWidth/2+10,230,250,40,"Touch Controls").setOnViewShown(function() {
+	Button.create("CtrlP2Touch","CtrlSettingsView",WIDTH/2+10,230,250,40,"Touch Controls").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(TOUCH,Player.tapIds[1]);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
 		buildControllerSelector([0],TOUCH,this);
 	}).show();
 
-	Button.create("CtrlDevMode","CtrlSettingsView",hudWidth-15,hudHeight-15,10,10).setOnClick(function() {
+	Button.create("CtrlDevMode","CtrlSettingsView",WIDTH-15,HEIGHT-15,10,10).setOnClick(function() {
 		this.on = devEnabled = !devEnabled;
 	}).show();
 
-	Button.create("CtrlMapperBttn","CtrlSettingsView",5,hudHeight-45,200,40,"Gamepad Mapper").setOnViewShown(function() {
+	Button.create("CtrlMapperBttn","CtrlSettingsView",5,HEIGHT-45,200,40,"Gamepad Mapper").setOnViewShown(function() {
 		var ids = GamePad.slotsFilled();
 		if (ids.length==0) {
 			this.setOnClick(null);
@@ -260,8 +260,8 @@ function buildControllerSelector(list,type,sourceButton) {
 }
 
 function buildHelpPage() {
-	View.create("HelpView",1,0,0,hudWidth,hudHeight,"tint","black");
-	Button.create("HelpClose","HelpView",hudWidth-60,10,50,50).setOnClick(function() {
+	View.create("HelpView",1,0,0,WIDTH,HEIGHT,"tint","black");
+	Button.create("HelpClose","HelpView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("WASDPage").onClickFunction();
 		G$("HelpView").hide();
 		G$("PauseMenu").show();
@@ -269,7 +269,7 @@ function buildHelpPage() {
 
 	var actions = ["Move Left / Right", "Jump", "Crouch", "Attack", "Enter Door / Up"];
 
-	TextElement.create("HelpTitle","HelpView",hudWidth/2,30,fontMenuTitle,"Controls",hudWidth,CENTER).show();
+	TextElement.create("HelpTitle","HelpView",WIDTH/2,30,fontMenuTitle,"Controls",WIDTH,CENTER).show();
 	var bWasd = Button.create("WASDPage","HelpView",10,100,100,40,"WASD").show();
 	bWasd.b = ["A / D", "W", "S", "G", "E"], bWasd.a = actions; bWasd.on = true;
 	var bIjkl = Button.create("IJKLPage","HelpView",10,150,100,40,"IJKL").show();
@@ -288,27 +288,27 @@ function buildControlList(buttons,actions) {
 	for (var i in actions) {
 		var te = G$("HelpItem-A::"+i);
 		if (te instanceof TextElement) te.text = actions[i];
-		else TextElement.create("HelpItem-A::"+i,"HelpView",hudWidth/2-50,100+55*i,fontMenuItem,actions[i],hudWidth/2+50,LEFT,true,"darkOrange",2).show();
+		else TextElement.create("HelpItem-A::"+i,"HelpView",WIDTH/2-50,100+55*i,fontMenuItem,actions[i],WIDTH/2+50,LEFT,true,"darkOrange",2).show();
 	}
 	for (var i in buttons) {
 		var te = G$("HelpItem-B::"+i);
 		if (te instanceof Button) te.text = buttons[i];
-		else Button.create("HelpItem-B::"+i,"HelpView",hudWidth/5+5,70+55*i,120,50,buttons[i]).show();
+		else Button.create("HelpItem-B::"+i,"HelpView",WIDTH/5+5,70+55*i,120,50,buttons[i]).show();
 	}
 }
 
 function buildMapperView() {
-  View.create("MapperView",1,0,0,hudWidth,hudHeight,"tint","black");
-	// ImgElement.create("MapperImg","MapperView",hudWidth/2,hudHeight/2,"GUI-Controller.png",640,360).show();
-	TextElement.create("MapperTitle","MapperView",hudWidth/2,30,fontMenuTitle,"Gamepad Mapper",hudWidth,CENTER).show();
+  View.create("MapperView",1,0,0,WIDTH,HEIGHT,"tint","black");
+	// ImgElement.create("MapperImg","MapperView",WIDTH/2,HEIGHT/2,"GUI-Controller.png",640,360).show();
+	TextElement.create("MapperTitle","MapperView",WIDTH/2,30,fontMenuTitle,"Gamepad Mapper",WIDTH,CENTER).show();
 
-	Button.create("MapperClose","MapperView",hudWidth-60,10,50,50).setOnClick(function() {
+	Button.create("MapperClose","MapperView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("MapperView").hide();
 		G$("CtrlSettingsView").show();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
-	TextElement.create("MapperSelectText","MapperView",hudWidth/3-5,115,fontMenuItem,"Settings for: ",hudWidth,RIGHT).show();
-	Button.create("MapperGPSelect","MapperView",hudWidth/3+5,90,300,40).setOnViewShown(function() {
+	TextElement.create("MapperSelectText","MapperView",WIDTH/3-5,115,fontMenuItem,"Settings for: ",WIDTH,RIGHT).show();
+	Button.create("MapperGPSelect","MapperView",WIDTH/3+5,90,300,40).setOnViewShown(function() {
 		var ids = GamePad.slotsFilled();
 		if (ids.length==0) G$("MapperClose").onClickFunction();
 		else {
@@ -328,12 +328,12 @@ function buildMapperView() {
 		},null,2);
 	}).show();
 
-	TextElement.create("MapperCurrentMapText","MapperView",hudWidth/3-5,165,fontMenuItem,"Current Mapping: ",hudWidth,RIGHT).show();
-	TextElement.create("MapperMappingName","MapperView",hudWidth/3+5,165,fontMenuItem,"__",hudWidth,LEFT).show();
-	TextElement.create("MapperMappingDetails","MapperView",hudWidth/2,205,fontMenuData,"none",hudWidth-20,CENTER).show();
-	TextElement.create("MapperMappingDetails2","MapperView",hudWidth/2,245,fontMenuData,"",hudWidth-20,CENTER).show();
+	TextElement.create("MapperCurrentMapText","MapperView",WIDTH/3-5,165,fontMenuItem,"Current Mapping: ",WIDTH,RIGHT).show();
+	TextElement.create("MapperMappingName","MapperView",WIDTH/3+5,165,fontMenuItem,"__",WIDTH,LEFT).show();
+	TextElement.create("MapperMappingDetails","MapperView",WIDTH/2,205,fontMenuData,"none",WIDTH-20,CENTER).show();
+	TextElement.create("MapperMappingDetails2","MapperView",WIDTH/2,245,fontMenuData,"",WIDTH-20,CENTER).show();
 
-	Button.create("MapperRemap","MapperView",hudWidth/3-100,hudHeight-90,200,40,"Change Mappings").setOnViewShown(function() {
+	Button.create("MapperRemap","MapperView",WIDTH/3-100,HEIGHT-90,200,40,"Change Mappings").setOnViewShown(function() {
 		var id = G$("MapperGPSelect").selectedId;
 		if (!GamePad.controllers[id]) G$("MapperClose").onClickFunction();
 		else this.setOnClick(function() {
@@ -342,7 +342,7 @@ function buildMapperView() {
 			G$("MapperTool").show();
 		});
 	}).show();
-	Button.create("MapperSetDefault","MapperView",hudWidth*2/3-100,hudHeight-90,200,40,"Reset to Default").setOnViewShown(function() {
+	Button.create("MapperSetDefault","MapperView",WIDTH*2/3-100,HEIGHT-90,200,40,"Reset to Default").setOnViewShown(function() {
 		var id = G$("MapperGPSelect").selectedId;
 		if (GamePad.ctrlMaps[id]==GamePad.customMaps[0]) {
 			this.setOnClick(null);
@@ -380,8 +380,8 @@ function genMapDetails(standardMap) {
 }
 
 function buildMapperTool() {
-	View.create("MapperTool",2,70,70,hudWidth-140,hudHeight-140,"window");
-	Button.create("MapperToolClose","MapperTool",hudWidth-130,80,50,50).setOnClick(function() {
+	View.create("MapperTool",2,70,70,WIDTH-140,HEIGHT-140,"window");
+	Button.create("MapperToolClose","MapperTool",WIDTH-130,80,50,50).setOnClick(function() {
 		G$("MapperTool").hide();
 		GamePad.buttonListeners = [];
 		GamePad.axisListeners = [];
@@ -390,8 +390,8 @@ function buildMapperTool() {
 	var titles = ["Press Button 0","Press Button 1","Press Start","Press Select","Press Left Bumper","Press Right Bumper",
 	"Move Left Stick Left/Right","Move Left Stick Up/Down","Move Right Stick Left/Right","Move Right Up/Down",
 	"Press on the DPad","Press Up","Press Down","Press Left","Press Right"];
-	TextElement.create("MapperToolText","MapperTool",hudWidth/2,150,fontMenuTitle,"Press A",hudWidth-140,CENTER).show();
-	Button.create("MapperToolSkip","MapperTool",hudWidth/2-50,hudHeight-150,100,40,"Skip").setOnViewShown(function() {
+	TextElement.create("MapperToolText","MapperTool",WIDTH/2,150,fontMenuTitle,"Press A",WIDTH-140,CENTER).show();
+	Button.create("MapperToolSkip","MapperTool",WIDTH/2-50,HEIGHT-150,100,40,"Skip").setOnViewShown(function() {
 		var id = G$("MapperTool").selectedId;
 		if (!GamePad.controllers[id]) G$("MapperToolClose").onClickFunction();
 		this.mode = BUTTON_NO;
@@ -478,15 +478,15 @@ function mapperStep(gpId,step,titles,type,mappings) {
 }
 
 function buildDevToolsHud() {
-  View.create("DevTools",0,hudWidth-70,70,70,210,"tint","lightBlue");
-	Button.create("DevSpawnPM","DevTools",hudWidth-60,80,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
-	Button.create("DevPencil","DevTools",hudWidth-60,150,50,50).setIcon("GUI-Icons.png",1,2,42,4).show();
+  View.create("DevTools",0,WIDTH-70,70,70,210,"tint","lightBlue");
+	Button.create("DevSpawnPM","DevTools",WIDTH-60,80,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
+	Button.create("DevPencil","DevTools",WIDTH-60,150,50,50).setIcon("GUI-Icons.png",1,2,42,4).show();
 	Button.setRadioGroup(["DevPencil","DevSpawnPM"],function() {
 		if (G$("DevPencil").on) Pointer.cursor = POINTER_PENCIL;
 		else Pointer.cursor = POINTER_CROSSHAIR;
 		G$("DevEraser").on = false;
 	},false);
-	Button.create("DevEraser","DevTools",hudWidth-60,220,50,50).setOnClick(function() {
+	Button.create("DevEraser","DevTools",WIDTH-60,220,50,50).setOnClick(function() {
 		if (this.on) this.on = false;
 		else if (G$("DevSpawnPM").on||G$("DevPencil").on) this.on = true;
 		Pointer.cursor = this.on?POINTER_ERASER:(G$("DevPencil").on?POINTER_PENCIL:POINTER_CROSSHAIR);

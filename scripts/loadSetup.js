@@ -28,8 +28,8 @@ function canvasSetup() {
   canvas.drawLoadScreen = function() {
     let width = canvas.width, height = canvas.height, doScale = false;
     try {
-      width = hudWidth;
-      height = hudHeight;
+      width = WIDTH;
+      height = HEIGHT;
       if (dp) doScale = true;
     } catch(err) {}
     if (canvas.time==void(0)) canvas.time = 0;

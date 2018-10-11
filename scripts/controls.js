@@ -399,9 +399,9 @@ class TouchButton {
 		Images.drawImage("GUI-TouchButton.png",this.x,this.pressed?this.y+2:this.y,this.width,this.height,this.id*32,32,32,32);
 	}
 }
-Tap.analogs[0] = new TouchAnalog(hudWidth/8,hudHeight-hudWidth/8,hudWidth/16,1,1,0);
-Tap.buttons[0] = new TouchButton(hudWidth*7/8-35-30,hudHeight-hudWidth/8-35+30,60,60,false,0);
-Tap.buttons[1] = new TouchButton(hudWidth*7/8-35+35,hudHeight-hudWidth/8-35-30,60,60,true,1);
+Tap.analogs[0] = new TouchAnalog(WIDTH/8,HEIGHT-WIDTH/8,WIDTH/16,1,1,0);
+Tap.buttons[0] = new TouchButton(WIDTH*7/8-35-30,HEIGHT-WIDTH/8-35+30,60,60,false,0);
+Tap.buttons[1] = new TouchButton(WIDTH*7/8-35+35,HEIGHT-WIDTH/8-35-30,60,60,true,1);
 
 class CtrlMap {
 	constructor(name,type,inputs,mappings,actions,groups) {

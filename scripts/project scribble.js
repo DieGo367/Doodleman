@@ -1,8 +1,7 @@
 //variables
 var canvas, c; //canvas and context
 var interval, gameSpeed = 50/3;
-var pixelDensity = 1, hudWidth = 640, hudHeight = 360;
-var heightScale, widthScale;
+var pixelDensity = 1, heightScale, widthScale;
 var paused = false, pausedBy, focused = true, fullScreen = false, fullScreenChanging = false;
 var viewLock = false;
 var gameMode = 0, multiplayer = false, clickSpawn = false;
@@ -13,6 +12,7 @@ var myAngle = 0;
 var hudText = 0, coords = "", keyText = "", buttonText = "";
 var devEnabled = false;
 //constants
+const WIDTH = 640, HEIGHT = 360;
 const GUI_NONE = 0, GUI_WINDOW = 1, GUI_BUTTON = 2, GUI_TINT = 3;
 const LEFT = -1, CENTER = 0, RIGHT = 1, TOP = -1, BOTTOM = 1;
 const LINE_UP = 2, LINE_DOWN = -2, LINE_LEFT = -1, LINE_RIGHT = 1;
@@ -174,9 +174,9 @@ const Pointer = {
 		else this.move(px(event.clientX-rect.left),px(event.clientY-rect.top));
 	},
 	move: function(x,y) {
-		if (x>hudWidth) x = hudWidth;
+		if (x>WIDTH) x = WIDTH;
 		if (x<0) x = 0;
-		if (y>hudHeight) y = hudHeight;
+		if (y>HEIGHT) y = HEIGHT;
 		if (y<0) y = 0;
 		this.x = Math.round(x), this.y = Math.round(y);
 		Button.callForAll("checkMouse");
@@ -197,8 +197,8 @@ const Pointer = {
 		this.downButton = null;
 		this.move(this.x,this.y);
 	},
-	camX: function() { return Math.floor(Camera.x+(this.x-hudWidth/2)/Camera.zoom); },
-	camY: function() { return Math.floor(Camera.y+(this.y-hudHeight/2)/Camera.zoom); },
+	camX: function() { return Math.floor(Camera.x+(this.x-WIDTH/2)/Camera.zoom); },
+	camY: function() { return Math.floor(Camera.y+(this.y-HEIGHT/2)/Camera.zoom); },
 	draw: function() {
 		Images.drawImage("GUI-HUD-Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(this.cursor),0,32,32);
 	}
@@ -219,8 +219,8 @@ const Camera = {
 		this.y = Level.level.camStart.y;
 		this.zoom = this.requestedZoom = 1/Level.level.zoomScale;
 	},
-	width: function() { return hudWidth/this.zoom; },
-	height: function() { return hudHeight/this.zoom; },
+	width: function() { return WIDTH/this.zoom; },
+	height: function() { return HEIGHT/this.zoom; },
 	leftPx: function() { return this.x-this.width()/2; },
 	rightPx: function() { return this.x+this.width()/2; },
 	topPx: function() { return this.y-this.height()/2; },
@@ -284,11 +284,11 @@ const Camera = {
 			if (allP.length==1) {
 				this.approachZoom(this.requestedZoom);
 
-				if (targetX>this.rightPx()-Level.level.horScrollBuffer/this.zoom) this.approachX(targetX+(Level.level.horScrollBuffer-hudWidth/2)/this.zoom);
-				else if (targetX<this.leftPx()+Level.level.horScrollBuffer/this.zoom) this.approachX(targetX-(Level.level.horScrollBuffer-hudWidth/2)/this.zoom);
+				if (targetX>this.rightPx()-Level.level.horScrollBuffer/this.zoom) this.approachX(targetX+(Level.level.horScrollBuffer-WIDTH/2)/this.zoom);
+				else if (targetX<this.leftPx()+Level.level.horScrollBuffer/this.zoom) this.approachX(targetX-(Level.level.horScrollBuffer-WIDTH/2)/this.zoom);
 
-				if (targetY>this.bottomPx()-Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY+(Level.level.vertScrollBuffer-hudHeight/2)/this.zoom);
-				else if (targetY<this.topPx()+Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY-(Level.level.vertScrollBuffer-hudHeight/2)/this.zoom);
+				if (targetY>this.bottomPx()-Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY+(Level.level.vertScrollBuffer-HEIGHT/2)/this.zoom);
+				else if (targetY<this.topPx()+Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY-(Level.level.vertScrollBuffer-HEIGHT/2)/this.zoom);
 			}
 			else {
 				this.approachX(targetX);
@@ -300,7 +300,7 @@ const Camera = {
 					maxDist = Math.max(dist,maxDist);
 				}
 				maxDist += 60;
-				if (maxDist+5>hudHeight/2/this.requestedZoom) this.approachZoom(hudHeight/2/(maxDist));
+				if (maxDist+5>HEIGHT/2/this.requestedZoom) this.approachZoom(HEIGHT/2/(maxDist));
 				else this.approachZoom(this.requestedZoom);
 			}
 		}
@@ -509,10 +509,10 @@ function drawGame() {
 
 	//gray screen
 	c.fillStyle = "gray";
-	c.fillRect(0,0,hudWidth,hudHeight);
+	c.fillRect(0,0,WIDTH,HEIGHT);
 	//camera
 	c.save();
-	c.translate(hudWidth/2,hudHeight/2);
+	c.translate(WIDTH/2,HEIGHT/2);
 	c.scale(Camera.zoom,Camera.zoom);
 	if (devEnabled) c.rotate(myAngle);
 	c.translate(-Camera.x,-Camera.y);
@@ -551,13 +551,13 @@ function drawGame() {
 		var allP = Player.getAll();
 		c.strokeStyle = "turquoise";
 		c.lineWidth = 1;
-		if (allP.length==1) c.strokeRect(Level.level.horScrollBuffer,Level.level.vertScrollBuffer,hudWidth-2*Level.level.horScrollBuffer,hudHeight-2*Level.level.vertScrollBuffer);
+		if (allP.length==1) c.strokeRect(Level.level.horScrollBuffer,Level.level.vertScrollBuffer,WIDTH-2*Level.level.horScrollBuffer,HEIGHT-2*Level.level.vertScrollBuffer);
 		else if (allP.length>1) {
-			drawCircle(hudWidth/2,hudHeight/2,5);
+			drawCircle(WIDTH/2,HEIGHT/2,5);
 			var target = averageCoords(allP);
-			var tx = (target[0]-Camera.x)*Camera.zoom+hudWidth/2, ty = (target[1]-Camera.y)*Camera.zoom+hudHeight/2;
+			var tx = (target[0]-Camera.x)*Camera.zoom+WIDTH/2, ty = (target[1]-Camera.y)*Camera.zoom+HEIGHT/2;
 			drawCircle(tx,ty,5);
-			drawLine(hudWidth/2,hudHeight/2,tx,ty);
+			drawLine(WIDTH/2,HEIGHT/2,tx,ty);
 		}
 	}
 	//hud
@@ -594,8 +594,8 @@ function drawGame() {
 function screenSize(pxDensity) {
 	if (fullScreen) pixelDensity = Math.ceil(pxDensity*window.devicePixelRatio);
 	else pixelDensity = pxDensity;
-	canvas.width = dp(hudWidth);
-	canvas.height = dp(hudHeight);
+	canvas.width = dp(WIDTH);
+	canvas.height = dp(HEIGHT);
 	setPrefixedProperty(c,"imageSmoothingEnabled",false);
 }
 
@@ -753,8 +753,8 @@ function addEvents() {
 		G$("FSToggle").on = fullScreen;
 		G$("FSToggle").toggleState = fullScreen+0;
 		if (fullScreen) {
-			widthScale = window.innerWidth/hudWidth;
-			heightScale = window.innerHeight/hudHeight;
+			widthScale = window.innerWidth/WIDTH;
+			heightScale = window.innerHeight/HEIGHT;
 			var resolution = Math.round(Math.max(widthScale,heightScale));
 			if (resolution<1) resolution = 1;
 			screenSize(resolution);

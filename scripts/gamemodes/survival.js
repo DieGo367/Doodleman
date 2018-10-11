@@ -72,9 +72,9 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 
   addGui: function() {
     buildMainHud();
-    TextElement.create("ScoreText","Hud",hudWidth/2,55,fontHudScore,"Score: 0",hudWidth,CENTER);
+    TextElement.create("ScoreText","Hud",WIDTH/2,55,fontHudScore,"Score: 0",WIDTH,CENTER);
     buildPauseMenu();
-    Button.create("RetryButton","PauseMenu",hudWidth/2-150,hudHeight-120,300,40,"Retry").setOnClick(function() {
+    Button.create("RetryButton","PauseMenu",WIDTH/2-150,HEIGHT-120,300,40,"Retry").setOnClick(function() {
       gameConfirm("Are you sure you want to restart?",function(response) {
         if (response) Level.loadLevel("Dungeon-0.json");
       });
@@ -85,12 +85,12 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     buildMapperTool();
     buildHelpPage();
     buildDevToolsHud();
-    View.create("DeathScreen",1,0,0,hudWidth,hudHeight,"tint","black");
-    TextElement.create("DeathText","DeathScreen",hudWidth/2,hudHeight/4,fontPaused,"Score: ",hudWidth,CENTER).show();
-    Button.create("PlayAgain","DeathScreen",hudWidth/2-150,hudHeight-120,300,40,"Play Again").setOnClick(function() {
+    View.create("DeathScreen",1,0,0,WIDTH,HEIGHT,"tint","black");
+    TextElement.create("DeathText","DeathScreen",WIDTH/2,HEIGHT/4,fontPaused,"Score: ",WIDTH,CENTER).show();
+    Button.create("PlayAgain","DeathScreen",WIDTH/2-150,HEIGHT-120,300,40,"Play Again").setOnClick(function() {
       Level.loadLevel("Dungeon-0.json");
     }).show();
-    Button.create("DeathScreenQuit","DeathScreen",hudWidth/2-150,hudHeight-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
+    Button.create("DeathScreenQuit","DeathScreen",WIDTH/2-150,HEIGHT-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
   },
   removeGui: function() {
     G$("Hud").remove();
