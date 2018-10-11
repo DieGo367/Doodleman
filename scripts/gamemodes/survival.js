@@ -36,7 +36,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     this.wave = 0;
     this.score = 0;
     this.deathEvent = false;
-    G$("ScoreText").show().text = "Score: 0";
+    G$("ScoreText").setVar(0).show();
     addPlayer(0);
     if (multiplayer) addPlayer(1);
     G$("LevelSelectView").hide();
@@ -50,7 +50,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       this.deathEvent = true;
       if (Player.getAll().length<=1) setTimeout(function() {
         G$("Hud").hide();
-        G$("DeathText").text = G$("ScoreText").text;
+        G$("DeathText").setVar(G$("ScoreText").var);
         G$("DeathScreen").show();
       },1000);
     }
@@ -58,7 +58,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 
   addScore: function(amt) {
     this.score += amt;
-    G$("ScoreText").text = "Score: "+this.score;
+    G$("ScoreText").setVar(this.score);
   },
   spawnWave: function(num) {
     while(num-->0) {
@@ -72,7 +72,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 
   addGui: function() {
     buildMainHud();
-    TextElement.create("ScoreText","Hud",WIDTH/2,55,fontHudScore,"Score: 0",WIDTH,CENTER);
+    TextElement.create("ScoreText","Hud",WIDTH/2,55,fontHudScore,"Score: {{var}}",WIDTH,CENTER).setVar(0);
     buildPauseMenu();
     Button.create("RetryButton","PauseMenu",WIDTH/2-150,HEIGHT-120,300,40,"Retry").setOnClick(function() {
       gameConfirm("Are you sure you want to restart?",function(response) {
@@ -86,7 +86,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     buildHelpPage();
     buildDevToolsHud();
     View.create("DeathScreen",1,0,0,WIDTH,HEIGHT,"tint","black");
-    TextElement.create("DeathText","DeathScreen",WIDTH/2,HEIGHT/4,fontPaused,"Score: ",WIDTH,CENTER).show();
+    TextElement.create("DeathText","DeathScreen",WIDTH/2,HEIGHT/4,fontPaused,"Score: {{var}}",WIDTH,CENTER).setVar(0).show();
     Button.create("PlayAgain","DeathScreen",WIDTH/2-150,HEIGHT-120,300,40,"Play Again").setOnClick(function() {
       Level.loadLevel("Dungeon-0.json");
     }).show();

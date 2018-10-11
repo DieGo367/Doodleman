@@ -2207,6 +2207,13 @@ class TextElement extends GuiElement {
   customDraw() {
     this.font.draw(this.text,this.x,this.y,this.maxWidth,this.alignment);
   }
+  setVar(val) {
+    this.var = val;
+    if (!this.baseText) this.baseText = this.text;
+    let strs = this.baseText.split("{{var}}");
+    this.text = strs.join(""+this.var);
+    return this;
+  }
 }
 initClass(TextElement,GuiElement);
 
