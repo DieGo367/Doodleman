@@ -105,20 +105,16 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       this.toggleState = 0;
     }).setIcon("GUI-Icons.png",2,1,42,4).show();
 
-    View.create("EditPropView",0,0,70,WIDTH,60,"tint","green");
-    Button.create("EditPropOnShown","EditPropView",0,0,0,0).setOnViewShown(function() {
-      let view = this.view;
-      //remove all children except the first one (this)
-      for (var i = view.children.length-1; i > 0; i--) view.children[i].remove();
+    View.create("EditPropView",0,0,70,WIDTH,60,"tint","green").setOnShow(function() {
+      this.removeAllChildren();
       let props = EditorTools.getToolProperties();
-      view.propNum = props.length;
       for (var i = 0; i < props.length; i++) {
         //make the input
         let x = 10+105*(i%6), y = 80+45*Math.floor(i/6);
-        input = TextInput.create("EditProp:"+i,"EditPropView",x,y,99,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
+        input = TextInput.create("EditProp:"+i,this.name,x,y,99,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
           EditorTools.setToolProperty(this.text,value,parseInt(this.name.split(":")[1]));
         }).show();
-        view.height = input.y-20;
+        this.height = input.y-20;
       }
     });
 

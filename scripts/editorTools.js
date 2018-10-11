@@ -184,12 +184,10 @@ const EditorTools = {
     properties: [],
     tempActor: null, spawnGhosts: [],
     onClick: function() {
-      if (ActorManager.getActorValueNames(this.id).length==0) return;
-      let propNum = G$("EditPropView").propNum;
-      if (propNum>1) {
-        for (var i = 1; i < propNum; i++) {
-          if (this.properties[i-1]==void(0)) return;
-        }
+      let props = ActorManager.getActorValueNames(this.id);
+      if (props.length==0) return;
+      else for (var i = 0; i < props.length-2; i++) {
+        if (this.properties[i]==void(0)) return;
       }
       let x = Pointer.camX(), y = Pointer.camY();
       let data = [this.id,x,y,...this.properties];
@@ -361,7 +359,6 @@ const EditorTools = {
       this.name = name;
       if (checkActor&&index>0) {
         this.val = tool.properties[index-1];
-        tool.propNum = index;
       }
       else this.val = tool[name];
       this.type = type;
@@ -385,7 +382,6 @@ const EditorTools = {
       if (name=="id"&&tool==this.Actor) {
         tool.properties = [];
         tool.refreshTempActor();
-        this.propNum = 0;
         let p = G$("EditPropBttn");
         p.states[0].call(p);
       }
