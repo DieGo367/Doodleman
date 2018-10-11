@@ -9,7 +9,7 @@ const GameManager = {
 		if (oldMode) oldMode.quit();
 		this.mode = newMode;
 		Level.clearLevel();
-		pauseGame(false);
+		paused = false;
 		Game = this.getMode();
 		Game.start();
 		return this.mode;
