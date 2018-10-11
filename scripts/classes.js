@@ -1770,11 +1770,14 @@ class View extends _c_ {
   	this.fill = fill;
   	this.visible = false;
   	this.children = [];
+    this.onShowFunction = function() {};
+    this.requireUserAction = false;
     G$.store(name,this);
   }
   show() {
   	this.visible = true;
   	Pointer.focusLayer = this.layer;
+    this.onShow();
   	for (var i in this.children) this.children[i].onViewShown();
   	return this;
   }
@@ -1782,6 +1785,18 @@ class View extends _c_ {
     this.visible = false;
     if (this.layer>0)
     Pointer.focusLayer = this.layer-1;
+    return this;
+  }
+  onShow() {
+    if (this.onShowFunction) {
+      if (this.requireUserAction) attemptUserAction(this.onShowFunction);
+      else this.onShowFunction();
+    }
+    return this;
+  }
+  setOnShow(func,requireUserAction) {
+    this.onShowFunction = func;
+    this.requireUserAction = requireUserAction;
     return this;
   }
   drawHud() {
@@ -1797,9 +1812,12 @@ class View extends _c_ {
   			Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,0,96);
   	}
   }
+  removeAllChildren() {
+    for (var i = this.children.length-1; i >= 0; i--) this.children[i].remove();
+  }
   remove() {
     this.hide();
-    for (var i = this.children.length-1; i >= 0; i--) this.children[i].remove();
+    this.removeAllChildren();
     G$.delete(this.name);
     super.remove();
   }
