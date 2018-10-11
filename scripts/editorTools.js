@@ -325,7 +325,7 @@ const EditorTools = {
     let button = G$(this.getModeText()+"Tool");
     G$("EditorModeText").text = button.on?this.getModeText():"";
     let p = G$("EditPropBttn");
-    if (p.on) p.states[0].call(p);
+    if (p.on) p.callToggleState(0);
     this.setEraserOn(false);
   },
   getModeText: function() {

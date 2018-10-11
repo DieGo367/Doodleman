@@ -33,9 +33,9 @@ function buildSelector(list,onSelect,onCancel,viewLayer) {
 	}).setClose(true).show();
 }
 
-function attemptUserAction(action,src) {
+function attemptUserAction(action,src,caller) {
 	if (src==Pointer) {
-		action(src);
+		action.call((caller||this));
 		return true;
 	}
 	else {
@@ -43,6 +43,7 @@ function attemptUserAction(action,src) {
 		pauseGame(true);
 		let uav = View.create("_UAV_",Pointer.focusLayer+1,15,15,WIDTH-30,HEIGHT-30,"window");
 		uav.action = action;
+		uav.caller = caller;
 		TextElement.create("_UAText_","_UAV_",WIDTH/2,HEIGHT/2,fontMenuTitle,"Press any key or click the screen to continue.",WIDTH-30,CENTER).show();
 		uav.show();
 		return false;
@@ -51,9 +52,8 @@ function attemptUserAction(action,src) {
 function clearViewLock() {
 	viewLock = false;
 	let uav = G$("_UAV_");
-	uav.action();
-	uav.children[0].remove();
-	uav.hide().remove();
+	uav.action.call((uav.caller||this));
+	uav.remove();
 }
 
 function gameConfirm(text,onResponse) {

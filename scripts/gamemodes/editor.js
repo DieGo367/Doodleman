@@ -74,7 +74,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     },
     function(ctrl) {
       let p = G$("EditPropBttn");
-      if (p.on) p.states[1].call(p,ctrl);
+      if (p.on) p.callToggleState(1);
       G$("EditorToolbar").hide();
       G$("EditorHud").show();
       this.setIcon("GUI-Icons.png",0,1,42,4);

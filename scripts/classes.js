@@ -1774,10 +1774,10 @@ class View extends _c_ {
     this.requireUserAction = false;
     G$.store(name,this);
   }
-  show() {
+  show(src) {
   	this.visible = true;
   	Pointer.focusLayer = this.layer;
-    this.onShow();
+    this.onShow(src);
   	for (var i in this.children) this.children[i].onViewShown();
   	return this;
   }
@@ -1787,12 +1787,13 @@ class View extends _c_ {
     Pointer.focusLayer = this.layer-1;
     return this;
   }
-  onShow() {
+  onShow(src) {
     if (this.onShowFunction) {
-      if (this.requireUserAction) attemptUserAction(this.onShowFunction);
-      else this.onShowFunction();
+      if (this.requireUserAction) return attemptUserAction(this.onShowFunction,src,this);
+      this.onShowFunction();
+      return true;
     }
-    return this;
+    return false;
   }
   setOnShow(func,requireUserAction) {
     this.onShowFunction = func;
@@ -1913,6 +1914,19 @@ class Button extends GuiElement {
     this.mode = BUTTON_TOGGLE;
     return this;
   }
+  callToggleState(i,src) {
+    let state = this.states[i];
+    if (typeof state == "function") {
+      if (this.requireUserAction) return attemptUserAction(function() {
+        state.call(this);
+      },src,this);
+      else {
+        state.call(this);
+        return true;
+      }
+    }
+    return false;
+  }
   setOnViewShown(func) {
     this.onViewShownFunction = func;
     if (this.earlyOnViewShown) {
@@ -1952,12 +1966,10 @@ class Button extends GuiElement {
   	this.hovered = false;
     if (this.onViewShownFunction) this.onViewShownFunction();
   }
-  onClick(ctrl,forceAction) {
+  onClick(src,forceAction) {
   	if (forceAction||(this.isVisible()&&this.hovered&&this.preventClick==0&&this.mode!=BUTTON_NO)) {
       this.preventClick += this.pressDelay;
-  		this.clickSource = ctrl;
-      var func;
-      if (this.mode==BUTTON_TOGGLE) func = this.states[this.toggleState];
+  		this.clickSource = src;
       if (this.radioGroupNames.length>0) {
         for (var i in this.radioGroupNames) {
           if (i==this.radioGroupIndex) continue;
@@ -1966,15 +1978,10 @@ class Button extends GuiElement {
         if (this.radioGroupStrict) this.on = true;
         else this.on = !this.on;
       }
-  		if (this.requireUserAction) {
-        if (func) return attemptUserAction(func,ctrl);
-  			else return attemptUserAction(this.onClickFunction,ctrl);
-  		}
-  		else {
-        if (func) func.call(this,ctrl);
-  			else this.onClickFunction(ctrl);
-  			return true;
-  		}
+      if (this.mode==BUTTON_TOGGLE) return this.callToggleState(this.toggleState,src);
+  		else if (this.requireUserAction) return attemptUserAction(this.onClickFunction,src,this);
+      this.onClickFunction();
+      return true;
   	}
   	return false;
   }
