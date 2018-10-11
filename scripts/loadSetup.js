@@ -68,6 +68,7 @@ function loadLoop() {
 $(window).on("load",function() {
 	canvas = $("#paper")[0], c = canvas.getContext("2d");
 	setPrefixedProperty(c,"imageSmoothingEnabled",false);
+  addEvents();
 
 	ResourceManager.requestGroup("res",function(item,name) {
 		Images.loadImage(name);

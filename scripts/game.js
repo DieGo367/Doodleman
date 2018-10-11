@@ -90,7 +90,6 @@ function tick() { //GAME UPDATES//
 }
 
 function init() {
-	addEvents();
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
 	canvas.clearLoadScreen();
 	setGameSpeed(gameSpeed);
