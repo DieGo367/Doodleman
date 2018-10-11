@@ -178,27 +178,10 @@ const Pointer = {
 		if (x<0) x = 0;
 		if (y>hudHeight) y = hudHeight;
 		if (y<0) y = 0;
-		if (EditorTools.enabled&&!globalKeyboard.pressed("Ctrl")&&G$(EditorTools.getModeText()+"Tool").on) {
-			let pts = Level.getSnappingPoints();
-			let minDist = 5;
-			let closestPoint = null;
-			for (var i in pts) {
-				let pt = pts[i];
-				pt[0] = (pt[0] - Camera.x)*Camera.zoom + hudWidth/2;
-				pt[1] = (pt[1] - Camera.y)*Camera.zoom + hudHeight/2;
-				let dist = Math.sqrt(Math.pow(pt[0]-x,2)+Math.pow(pt[1]-y,2));
-				if (dist<=minDist) {
-					minDist = dist;
-					closestPoint = pt;
-				}
-			}
-			if (closestPoint!=null) {
-				x = closestPoint[0];
-				y = closestPoint[1];
-			}
-		}
 		this.x = Math.round(x), this.y = Math.round(y);
 		Button.callForAll("checkMouse");
+		let altered = Game.onPointerMove(x,y);
+		if (altered&&altered.x!=null&&altered.y!=null) this.x = altered.x, this.y = altered.y;
 	},
 	mousedown: function(event) {
 		this.downPoint = [this.x,this.y];

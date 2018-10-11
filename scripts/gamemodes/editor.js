@@ -39,6 +39,24 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       G$("LevelSettingsClose").onClick(null,true);
     }
   },
+  onPointerMove: function(x,y) {
+    if (G$(EditorTools.getModeText()+"Tool").on && !globalKeyboard.pressed("Ctrl")) {
+			let pts = Level.getSnappingPoints();
+			let minDist = 5;
+			let closestPoint = null;
+			for (var i in pts) {
+				let pt = pts[i];
+				pt[0] = (pt[0] - Camera.x)*Camera.zoom + hudWidth/2;
+				pt[1] = (pt[1] - Camera.y)*Camera.zoom + hudHeight/2;
+				let dist = Math.sqrt(Math.pow(pt[0]-x,2)+Math.pow(pt[1]-y,2));
+				if (dist<=minDist) {
+					minDist = dist;
+					closestPoint = pt;
+				}
+			}
+			if (closestPoint!=null) return {x: closestPoint[0], y: closestPoint[1]};
+		}
+  },
   addGui: function() {
     buildDevToolsHud();
     View.create("EditorToolbar",0,0,0,hudWidth,70,"tint","purple");

@@ -45,6 +45,7 @@ class GameMode {
 	onDeath(ent,attacker) {}
 	onBlur() {}
 	onFocus() {}
+	onPointerMove() {}
 }
 var Game = new GameMode();
 
