@@ -29,6 +29,9 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       if (devEnabled) G$("DevTools").show();
     }
   },
+  onBlur: function() {
+    if (!this.deathEvent) pauseGame(true);
+  },
   onLevelLoad: function() {
     this.wave = 0;
     this.score = 0;

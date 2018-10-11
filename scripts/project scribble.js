@@ -788,15 +788,12 @@ function addEvents() {
 	$(window).on("blur",function() {
 		focused = false;
 		$(canvas).css({cursor: 'auto'});
-		if (Game.mode!=GAME_TITLE&&Game.mode!=GAME_EDITOR) {
-			G$("PauseFocusMsg").show();
-			pauseGame(true);
-		}
-		window.requestAnimationFrame(drawGame);
+		Game.onBlur();
+		drawGame();
 	});
 	$(window).on("focus",function() {
 		focused = true;
+		Game.onFocus();
 		$(canvas).css({cursor: 'none'});
-		if (Game.mode!=GAME_TITLE&&Game.mode!=GAME_EDITOR) G$("PauseFocusMsg").hide();
 	});
 }

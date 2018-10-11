@@ -43,10 +43,13 @@ class GameMode {
 	onPause(paused) {}
 	onLevelLoad() {}
 	onDeath(ent,attacker) {}
+	onBlur() {}
+	onFocus() {}
 }
 var Game = new GameMode();
 
 function tick() { //GAME UPDATES//
+	if (!focused) return;
 	//update button states
 	GamePad.checkButtons();
 	Tap.checkTouches();
@@ -83,7 +86,7 @@ function tick() { //GAME UPDATES//
 	//prepare keyboard for next frame
 	for (var i in Key.ctrls) Key.ctrls[i].justReleasedButtons = {};
 	//begin drawing
-	if (focused) window.requestAnimationFrame(drawGame);
+	window.requestAnimationFrame(drawGame);
 }
 
 function init() {

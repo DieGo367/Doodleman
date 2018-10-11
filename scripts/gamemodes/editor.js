@@ -15,7 +15,8 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     GameManager.overrideTick(false);
   },
   tick: function() {
-    if (focused) window.requestAnimationFrame(drawGame);
+    if (!focused) return;
+    window.requestAnimationFrame(drawGame);
     doGlobalControls(globalKeyboard);
     EditorTools.doControls(globalKeyboard);
     GuiElement.callForAll("update");
@@ -27,15 +28,13 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     EditorTools.Actor.initSpawnGhosts();
   },
   onPause: function() {
-    if (focused) {
-      if (!G$("LevelSettingsView").visible) {
-        if (G$("EditPropView").visible) G$("EditPropBttn").onClick(null,true);
-        if (G$("EditorToolbar").visible) G$("ExpandButton").onClick(null,true);
-        G$("LevelSettingsBttn").onClick(null,true);
-      }
-      else {
-        G$("LevelSettingsClose").onClick(null,true);
-      }
+    if (!G$("LevelSettingsView").visible) {
+      if (G$("EditPropView").visible) G$("EditPropBttn").onClick(null,true);
+      if (G$("EditorToolbar").visible) G$("ExpandButton").onClick(null,true);
+      G$("LevelSettingsBttn").onClick(null,true);
+    }
+    else {
+      G$("LevelSettingsClose").onClick(null,true);
     }
   },
   addGui: function() {
