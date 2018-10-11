@@ -407,7 +407,7 @@ const EditorTools = {
     Level.load(JSON.stringify(this.levelCopy),false);
   },
   doControls: function(ctrl) {
-    if (!ctrl.type==KEYBOARD||viewLock) return;
+    if (!ctrl.type==KEYBOARD||viewLock||Pointer.focusLayer!=0) return;
     for (var i in this.modes) if (ctrl.ready(this.modes[i]+"Tool")) {
       G$(this.modes[i]+"Tool").onClick(ctrl,true);
       ctrl.use(this.modes[i]+"Tool");

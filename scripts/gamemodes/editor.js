@@ -31,12 +31,14 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   },
   onPause: function() {
     if (!G$("LevelSettingsView").visible) {
-      if (G$("EditPropView").visible) G$("EditPropBttn").onClick(null,true);
-      if (G$("EditorToolbar").visible) G$("ExpandButton").onClick(null,true);
-      G$("LevelSettingsBttn").onClick(null,true);
+      if (Pointer.focusLayer==0) {
+        if (G$("EditPropView").visible) G$("EditPropBttn").onClick(null,true);
+        if (G$("EditorToolbar").visible) G$("ExpandButton").onClick(null,true);
+        G$("LevelSettingsBttn").onClick(null,true);
+      }
     }
     else {
-      G$("LevelSettingsClose").onClick(null,true);
+      if (Pointer.focusLayer==1) G$("LevelSettingsClose").onClick(null,true);
     }
   },
   onPointerMove: function(x,y) {

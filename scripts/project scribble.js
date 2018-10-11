@@ -601,7 +601,7 @@ function screenSize(pxDensity) {
 
 function pauseGame(pause,player) {
 	if (paused) {
-		if (!pause&&Pointer.focusLayer==0&&focused&&(player==pausedBy||player==null||pausedBy==null||!multiplayer)) {
+		if (!pause&&focused&&(player==pausedBy||player==null||pausedBy==null||!multiplayer)) {
 			if (Game.onPause(false)!=CANCEL) {
 				for (var i in Key.ctrls) { Key.ctrls[i].loadPausedCache(); }
 				for (var i in GamePad.ctrls) { GamePad.ctrls[i].loadPausedCache(); }
