@@ -255,16 +255,18 @@ const Tap = {
 		this.touches = newTouches;
 	},
 	handleStart: function(touch,x,y) {
-		for (var j in this.buttons) {
-			if (this.buttons[j].checkTap(x,y)) {
-				this.buttons[j].targetTouch = touch.id;
-				return;
+		if (Pointer.focusLayer==0) {
+			for (var j in this.buttons) {
+				if (this.buttons[j].checkTap(x,y)) {
+					this.buttons[j].targetTouch = touch.id;
+					return;
+				}
 			}
-		}
-		for (var j in this.analogs) {
-			if (this.analogs[j].checkTap(x,y)) {
-				this.analogs[j].targetTouch = touch.id;
-				return;
+			for (var j in this.analogs) {
+				if (this.analogs[j].checkTap(x,y)) {
+					this.analogs[j].targetTouch = touch.id;
+					return;
+				}
 			}
 		}
 		Pointer.move(x,y);
@@ -287,8 +289,10 @@ const Tap = {
 				for (var j in this.analogs) {
 					if (this.analogs[j].targetTouch==this.touches[i].id) this.analogs[j].targetTouch = null;
 				}
-				Pointer.move(this.touches[i].x,this.touches[i].y);
-				Pointer.mouseup({which:"t"+this.touches[i].id});
+				if (Pointer.downButton=="t"+this.touches[i].id) {
+					Pointer.move(this.touches[i].x,this.touches[i].y);
+					Pointer.mouseup({which:"t"+this.touches[i].id});
+				}
 				deleted.push(i);
 			}
 		}
