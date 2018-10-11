@@ -17,6 +17,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     }
   },
   onPause: function(paused) {
+    if (this.deathEvent) return CANCEL;
     if (paused) {
       G$("PauseMenu").show();
       G$("Hud").hide();
@@ -31,15 +32,25 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   onLevelLoad: function() {
     this.wave = 0;
     this.score = 0;
+    this.deathEvent = false;
     G$("ScoreText").show().text = "Score: 0";
     addPlayer(0);
     if (multiplayer) addPlayer(1);
     G$("LevelSelectView").hide();
+    G$("DeathScreen").hide();
     if (focused) pauseGame(false);
     this.ready = true;
   },
   onDeath: function(ent,attacker) {
     if (ent instanceof Enemy&&attacker instanceof Player) this.addScore(ent.maxHealth);
+    else if (ent instanceof Player&&ent.lives<1) {
+      this.deathEvent = true;
+      if (Player.getAll().length<=1) setTimeout(function() {
+        G$("Hud").hide();
+        G$("DeathText").text = G$("ScoreText").text;
+        G$("DeathScreen").show();
+      },1000);
+    }
   },
 
   addScore: function(amt) {
@@ -71,6 +82,12 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     buildMapperTool();
     buildHelpPage();
     buildDevToolsHud();
+    View.create("DeathScreen",1,0,0,hudWidth,hudHeight,"tint","black");
+    TextElement.create("DeathText","DeathScreen",hudWidth/2,hudHeight/4,fontPaused,"Score: ",hudWidth,CENTER).show();
+    Button.create("PlayAgain","DeathScreen",hudWidth/2-150,hudHeight-120,300,40,"Play Again").setOnClick(function() {
+      Level.loadLevel("Dungeon-0.json");
+    }).show();
+    Button.create("DeathScreenQuit","DeathScreen",hudWidth/2-150,hudHeight-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
   },
   removeGui: function() {
     G$("Hud").remove();
@@ -81,5 +98,6 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     G$("MapperTool").remove();
     G$("HelpView").remove();
     G$("DevTools").remove();
+    G$("DeathScreen").remove();
   }
 }));
