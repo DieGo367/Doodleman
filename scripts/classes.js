@@ -2066,7 +2066,17 @@ class TextInput extends Button {
       else if (this.type=="accessor") {
         if (!this.typeData) return;
         let thisInput = this;
-        buildSelector(this.typeData,function(index,selection) {
+        let strs = [], base = null;
+        for (var i in this.typeData) {
+          let split = this.typeData[i].split("_");
+          if (split.length>0) {
+            if (!base) base = split[0];
+            strs[i] = split[1];
+          }
+          else strs[i] = this.typeData[i];
+        }
+        buildSelector(strs,function(index,selection) {
+          if (base!=null) selection = base + "_" + selection;
           thisInput.storedVal = selection;
           thisInput.onInputChangeFunc(thisInput.accessValue(selection));
         },null,this.view.layer+1);
@@ -2113,7 +2123,13 @@ class TextInput extends Button {
     if (this.typing) return;
     else {
       let text = "", font = fontInput;
-      if (this.storedVal!==""&&this.storedVal!=null) text = "" + this.storedVal;
+      if (this.storedVal!==""&&this.storedVal!=null) {
+        text = "" + this.storedVal;
+        if (this.type=="accessor") {
+          text = text.split("_");
+          text = text[text.length-1];
+        }
+      }
       else {
         text = this.text || "";
         font = fontInputEmpty;
