@@ -723,17 +723,19 @@ class Line extends _c_ {
   	}
   }
   hasPoint(x,y) {
-    if (this.valueAt(x,'x')==y || this.valueAt(y,'y')==x) {
-      if (this.leftX()<=x && x<=this.rightX()) {
-        if (this.topY()<=y && y<=this.bottomY()) return true;
+    let pt = new Point(x,y);
+    if (this.valueAt(pt.x,'x')==pt.y || this.valueAt(pt.y,'y')==pt.x) {
+      if (this.leftX()<=pt.x && pt.x<=this.rightX()) {
+        if (this.topY()<=pt.y && pt.y<=this.bottomY()) return true;
       }
     }
     return false;
   }
   hitboxContainsPoint(x,y) {
-    let yRespectX = this.valueAt(x,'x');
-    let xRespectY = this.valueAt(y,'y');
-    if (this.hasPoint(x,yRespectX) || this.hasPoint(xRespectY,y)) return true;
+    let pt = new Point(x,y);
+    let yRespectX = this.valueAt(pt.x,'x');
+    let xRespectY = this.valueAt(pt.y,'y');
+    if (this.hasPoint(pt.x,yRespectX) || this.hasPoint(xRespectY,pt.y)) return true;
     else return false;
   }
   intersect(obj) {
@@ -809,8 +811,8 @@ class Line extends _c_ {
     chosenVals = vals[line.direction];
     let cross = false;
     if (line.useBoxCorners) { //corner-point detection
-      ca = [chosenVals[2],chosenVals[3]];
-      cb = [chosenVals[4],chosenVals[5]];
+      ca = new Point(chosenVals[2],chosenVals[3]);
+      cb = new Point(chosenVals[4],chosenVals[5]);
 
       //choose one
       let angle = line.angle();
@@ -819,21 +821,21 @@ class Line extends _c_ {
         else if (angle<0) fp = cb;
       }
     }
-    else fp = [chosenVals[0],chosenVals[1]]; //mid-point detection
+    else fp = new Point(chosenVals[0],chosenVals[1]); //mid-point detection
 
     //given our focus point(s), check if they collide with the line
     if (fp!=null) { //single focus point
       //a line segment based on box's movement and our focus point
-      let b1 = [fp[0]-dx, fp[1]-dy];
+      let b1 = new Point(fp.x-dx,fp.y-dy);
       let b2 = fp;
       //check if the points cross the line
       if (Line.pointsCrossLine(b1,b2,line)) cross = true;
     }
     else { //two focus points
       //line segments based on box's movement and our corner points
-      let ca1 = [ca[0]-dx,ca[1]-dy];
+      let ca1 = new Point(ca.x-dx,ca.y-dy);
       let ca2 = ca;
-      let cb1 = [cb[0]-dx,cb[1]-dy];
+      let cb1 = new Point(cb.x-dx,cb.y-dy);
       let cb2 = cb;
       //check if either segment crosses the line segment
       let caSuccess = false, cbSuccess = false;
@@ -848,28 +850,27 @@ class Line extends _c_ {
 
     if (cross) {
       //difference from box position to focus point
-      let dfp = [fp[0]-box.x,fp[1]-box.y];
-
+      let dfp = new Point(fp.x-box.x,fp.y-box.y); //[fp[0]-box.x,fp[1]-box.y];
       //per each line direction
       //if the focus point is on the 'push' side of the line, then collide
       switch(line.direction) {
         case LINE_LEFT:
-          if (fp[0]>=line.valueAt(fp[1],'y')) {
-            box.x = line.valueAt(fp[1],'y')-dfp[0];
+          if (fp.x>=line.valueAt(fp.y,'y')) {
+            box.x = line.valueAt(fp.y,'y')-dfp.x;
             if (box.velX>0) box.velX = 0;
             box.cSides.r = C_LINE;
           }
           break;
         case LINE_RIGHT:
-          if (fp[0]<=line.valueAt(fp[1],'y')) {
-            box.x = line.valueAt(fp[1],'y')-dfp[0];
+          if (fp.x<=line.valueAt(fp.y,'y')) {
+            box.x = line.valueAt(fp.y,'y')-dfp.x;
             if (box.velX<0) box.velX = 0;
             box.cSides.l = C_LINE;
           }
           break;
         case LINE_UP:
-          if (fp[1]>=line.valueAt(fp[0],'x')) {
-            box.y = line.valueAt(fp[0],'x')-dfp[1];
+          if (fp.y>=line.valueAt(fp.x,'x')) {
+            box.y = line.valueAt(fp.x,'x')-dfp.y;
             if (box.velY>0) box.velY = 0;
             box.cSides.d = C_LINE;
             box.isGrounded = true;
@@ -877,139 +878,89 @@ class Line extends _c_ {
           }
           break;
         case LINE_DOWN:
-          if (fp[1]<=line.valueAt(fp[0],'x')) {
-            box.y = line.valueAt(fp[0],'x')-dfp[1];
+          if (fp.y<=line.valueAt(fp.x,'x')) {
+            box.y = line.valueAt(fp.x,'x')-dfp.y;
             if (box.velY<0) box.velY = 0;
             box.cSides.u = C_LINE;
           }
       }
     }
     else if (line.useBoxCorners) {
-      //figure out which directions should be solid
-      let dirs = {u:true, d:true, l:true, r:true};
-      let angle = line.angle();
-      switch (line.direction) {
-        case LINE_UP:
-          dirs.d = false;
-           dirs.r = 0.5;
-           dirs.l = 0.5;
-          break;
-        case LINE_DOWN:
-          dirs.u = false;
-           dirs.l = 0.5;
-           dirs.r = 0.5;
-          break;
-        case LINE_LEFT:
-          dirs.r = false;
-           dirs.d = 0.5;
-           dirs.u = 0.5;
-          break;
-        case LINE_RIGHT:
-          dirs.l = false;
-           dirs.u = 0.5;
-           dirs.d = 0.5;
-          break;
-      }
-
       let allEndpoints = this.getAllEndpoints();
       //check if passing line's endpoints
-      this.collideEndpoint(line,box,line.x,line.y,dirs,allEndpoints);
-      this.collideEndpoint(line,box,line.x2,line.y2,dirs,allEndpoints);
+      this.collideEndpoint(line.x,line.y,line,box,allEndpoints);
+      this.collideEndpoint(line.x2,line.y2,line,box,allEndpoints);
     }
   }
   static pointsCrossLine(p1,p2,line) {
-    //a line segment based on the line
-    let l1 = [line.x, line.y];
-    let l2 = [line.x2, line.y2];
+    let l1 = new Point(line.x, line.y);
+    let l2 = new Point(line.x2, line.y2);
 
-    if (line.hasPoint(p1[0],p1[1])) return true; //previous location on line
-    else if (line.hasPoint(p2[0],p2[1])) return true; //current location on line
-    else if (Line.segmentsIntersect(p1,p2,l1,l2)) return true; //locations pass pass through line
-    else return false;
+    if (line.hasPoint(p1)) return true; //previous location was on line
+    else if (line.hasPoint(p2)) return true; //current location is on line
+    else if (p1.x==p2.x&&p1.y==p2.y) return false; //neither on line, no movement
+    else return this.determine(p1,p2,l1,l2); //locations pass pass through line
   }
-  static segmentsIntersect(p1,p2,q1,q2) {
-    //check orientations of the points
-    let oPQ1 = Line.pointOrientation(p1,p2,q1);
-    let oPQ2 = Line.pointOrientation(p1,p2,q2);
-    let oQP1 = Line.pointOrientation(q1,q2,p1);
-    let oQP2 = Line.pointOrientation(q1,q2,p2);
-
-    //the general case
-    if (oPQ1!=oPQ2 && oQP1!=oQP2) return true;
-
-    //special cases
-    if (oPQ1==ORIENT_LIN&&Line.colinearPointIsOnSegment(p1,q1,p2)) return true;
-    if (oPQ2==ORIENT_LIN&&Line.colinearPointIsOnSegment(p1,q2,p2)) return true;
-    if (oQP1==ORIENT_LIN&&Line.colinearPointIsOnSegment(q1,p1,q2)) return true;
-    if (oQP1==ORIENT_LIN&&Line.colinearPointIsOnSegment(q1,p2,q2)) return true;
-
-    //doesn't pass any test
-    return false;
-  }
-  static pointOrientation(a,b,c) {
-    //use the diferences in slope from a to b to c to determine their orientation
-    let slopeDiff = (b[1]-a[1])*(c[0]-b[0]) - (c[1]-b[1])*(b[0]-a[0]);
-    if (slopeDiff==0) return ORIENT_LIN;
-    else if (slopeDiff>0) return ORIENT_CW;
-    else return ORIENT_CCW;
-  }
-  static colinearPointIsOnSegment(s1,c,s2) {
-    //given that c is colinear with s1 and s2, checks if c is on the segment s
-    if (Math.min(s1[0],s2[0]) <= c[0] && c[0] <= Math.max(s1[0],s2[0])) {
-      if (Math.min(s1[1],s2[1]) <= c[1] && c[1] <= Math.max(s1[1],s2[1])) {
-        return true;
-      }
+  static determine(a,b,c,d) {
+    let det, gamma, lambda;
+    det = (b.x - a.x) * (d.y - c.y) - (d.x - c.x) * (b.y - a.y);
+    if (det === 0) return false;
+    else {
+      lambda = ((d.y - c.y) * (d.x - a.x) + (c.x - d.x) * (d.y - a.y)) / det;
+      gamma = ((a.y - b.y) * (d.x - a.x) + (b.x - a.x) * (d.y - a.y)) / det;
+      return (-0.01 < lambda && lambda < 1.01) && (-0.01 < gamma && gamma < 1.01);
     }
-    return false;
   }
-
-  static collideEndpoint(line,box,x,y,directions,endpoints) {
-    let doSpecial = true;
-    let foundMatch = false;
+  static collideEndpoint(x,y,line,box,endpoints) {
+    let opp = false;
     for (var i in endpoints) {
       let ep = endpoints[i];
-      if (ep.x!=x||ep.y!=y) continue;
-      if (ep.direction==line.direction) {
-        if (!foundMatch) foundMatch = true;
-        else {
-          doSpecial = false;
-          break;
-        }
-      }
+      if (ep.x==x && ep.y==y && line.direction == -ep.direction) opp = true;
     }
-    let dirs = clone(directions);
-    for (var i in dirs) if (dirs[i]==0.5) {
-      dirs[i] = doSpecial;
+    let dirs = {u: opp, d: opp, l: opp, r: opp};
+    switch(line.direction) {
+      case LINE_UP:
+        dirs.u = !opp, dirs.d = false;
+        break;
+      case LINE_DOWN:
+        dirs.u = false, dirs.d = !opp;
+        break;
+      case LINE_LEFT:
+        dirs.l = !opp, dirs.r = false;
+        break;
+      case LINE_RIGHT:
+        dirs.l = false, dirs.r = !opp;
+        break;
     }
-
-    if (box.containsPoint(box.x,y)) {
-      if (dirs.l && box.prevX+box.halfW()<= x && x <=box.rightX()) {
+    let diff = new Point(box.x-box.prevX,box.y-box.prevY);
+    let yMin = Math.min(box.topY(),box.topY()-diff.y);
+    let yMax = Math.max(box.y,box.y-diff.y);
+    if (yMin<=y && y<=yMax) {
+      if (dirs.l && box.rightX()-diff.x<=x && x <= box.rightX()) {
         box.x = x-box.halfW();
         if (box.velX>0) box.velX = 0;
         box.cSides.r = C_LINE;
-        // console.log("l")
       }
-      if (dirs.r && box.leftX()<= x && x <=box.prevX-box.halfW()) {
+      if (dirs.r && box.leftX()<= x && x <=box.leftX()-diff.x) {
         box.x = x+box.halfW();
         if (box.velX<0) box.velX = 0;
         box.cSides.l = C_LINE;
-        // console.log("r")
       }
     }
-    if (box.containsPoint(x,box.y)) {
-      if (dirs.u && box.prevY<= y && y <=box.y) {
+    let xMin = Math.min(box.leftX(),box.leftX()-diff.x);
+    let xMax = Math.max(box.rightX(),box.rightX()-diff.x);
+    if (xMin<=x && x<=xMax) {
+      if (dirs.u && box.y-diff.y<= y && y <=box.y) {
         box.y = y;
         if (box.velY>0) box.velY = 0;
         box.cSides.d = C_LINE;
         box.isGrounded = true;
         //don't add lineGround because we don't want angle-walking on the end of the line anyway
-        // console.log("u")
       }
-      if (dirs.d && box.topY()<= y && y <=box.prevY-box.height) {
+      if (dirs.d && box.topY()<= y && y <=box.topY()-diff.y) {
         box.y = y+box.height;
         if (box.velY<0) box.velY = 0;
         box.cSides.u = C_LINE;
-        // console.log("d")
       }
     }
   }
@@ -1019,8 +970,9 @@ class Line extends _c_ {
     for (var i in lines) {
       let l = lines[i];
       if (l.direction==void(0)) continue;
-      points.push({x: l.x, y: l.y, direction: l.direction});
-      points.push({x: l.x2, y: l.y2, direction: l.direction});
+      let p1 = new Point(l.x,l.y), p2 = new Point(l.x2,l.y2);
+      p1.direction = p2.direction = l.direction;
+      points.push(p1,p2);
     }
     return points;
   }
