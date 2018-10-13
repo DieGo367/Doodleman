@@ -120,6 +120,9 @@ function averageCoords(e) {
 	}
 	return [tx/e.length,ty/e.length];
 }
+function angleTo(p1,p2) {
+	return Math.atan2(p2.y-p1.y,p2.x-p1.x);
+}
 function toDegrees(rad) {
 	return rad/Math.PI*180;
 }
@@ -477,6 +480,11 @@ const FileInput = {
 		}
 		else fail("Unsupported browser.");
 	}
+}
+function Point(x,y) {
+	if (x instanceof Point) y = x.y, x = x.x;
+	this.x = x;
+	this.y = y;
 }
 
 //Game Functions
