@@ -24,6 +24,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       G$("DevTools").hide();
     }
     else {
+      if (!G$("PauseMenu").visible) return CANCEL;
       G$("PauseMenu").hide();
       G$("Hud").show();
       if (devEnabled) G$("DevTools").show();
