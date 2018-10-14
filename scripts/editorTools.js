@@ -376,13 +376,12 @@ const EditorTools = {
       tool.properties[sourceIndex-1] = val;
       tool.refreshTempActor();
     }
-    else if (tool[name]!==void(0)) {
+    else if (tool.hasOwnProperty(name)) {
       tool[name] = val;
       if (name=="id"&&tool==this.Actor) {
         tool.properties = [];
         tool.refreshTempActor();
-        let p = G$("EditPropBttn");
-        p.states[0].call(p);
+        G$("EditPropBttn").callToggleState(0);
       }
     }
   },
