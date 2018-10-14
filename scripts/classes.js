@@ -220,7 +220,7 @@ class HarmBox extends Interactable {
   	this.harmed = {};
   }
   update() {
-  	if (this.attacker!=null&&Entity.classList[this.attacker.uid]) {
+  	if (this.attacker!=null&&PhysicsBox.has(this.attacker)) {
   		this.x = this.formulaX(this.attacker,this);
   		this.y = this.formulaY(this.attacker,this);
   	}
