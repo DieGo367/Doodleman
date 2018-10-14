@@ -2021,7 +2021,7 @@ class TextInput extends Button {
         let strs = [], base = null;
         for (var i in this.typeData) {
           let split = this.typeData[i].split("_");
-          if (split.length>0) {
+          if (split.length>1) {
             if (!base) base = split[0];
             strs[i] = split[1];
           }
