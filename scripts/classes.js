@@ -91,6 +91,8 @@ class Background extends _c_ {
     this.drawLayer = drawLayer;
     this.scale = scale;
     this.parallax = parallax;
+    if (!Background.slots[slot]) Background.slots[slot] = this;
+    else this.slot = null;
   }
   draw() {
     let x = Math.max(0,Camera.leftPx());
@@ -99,6 +101,22 @@ class Background extends _c_ {
     let height = Math.min(Level.level.height,Camera.bottomPx()) - y;
     Images.drawImagePattern(this.imgName,x,y,width,height,this.scale);
   }
+  remove() {
+    if (this.slot) Background.clearSlot(this.slot);
+    super.remove();
+  }
+  static onInit() {
+    this.slots = [];
+  }
+  static clearSlot(slot) {
+    let bg = Background.slots[slot];
+    delete Background.slots[slot];
+    if (bg) {
+      bg.slot = null;
+      bg.remove();
+    }
+  }
+
 }
 initClass(Background,{drawable: true, listType: "array"});
 
