@@ -60,7 +60,7 @@ const Images = {
 		c.fillStyle = img.pattern;
 		c.save();
 		c.scale(scale,scale);
-		c.fillRect(x,y,width/scale,height/scale);
+		c.fillRect(x/scale,y/scale,width/scale,height/scale);
 		c.restore();
 	},
 	setFilter: function(filter) {

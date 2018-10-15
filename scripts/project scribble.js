@@ -524,17 +524,22 @@ function drawGame() {
 	c.scale(Camera.zoom,Camera.zoom);
 	if (devEnabled) c.rotate(myAngle);
 	c.translate(-Camera.x,-Camera.y);
-	//background
+	//level space
 	c.fillStyle = "lightGray";
 	c.fillRect(0,0,Level.level.width,Level.level.height);
-	if (Level.level.bgType=="name"&&Level.level.bgName!="none") Images.drawImagePattern(Level.level.bgName,0,0,Level.level.width,Level.level.height,Level.level.bgScale);
-	else if (Level.level.bgType=="raw") Images.drawImagePattern("BG-LevelRaw",0,0,Level.level.width,Level.level.height,Level.level.bgScale);
 	//objects and elements
 	DrawableClasses.forAll("drawTint");
-	for (var layer = -2; layer<4; layer++) { //layers: -2: bg stuff -1: doors and other bg objects, 0:ground and lines, 1: entities, 2: players 3: particles
-		DrawableClasses.forAll(function(obj) {
-			if (layer==obj.drawLayer) obj.draw();
-		});
+	//layers: -2: bg stuff -1: doors and other bg objects, 0:ground and lines, 1: entities, 2: players 3: particles
+	let layers = [], minLayer, maxLayer;
+	DrawableClasses.forAll(function(obj) {
+		if (obj.isLoaded===false) return;
+		if (minLayer==void(0)||minLayer>obj.drawLayer) minLayer = obj.drawLayer;
+		if (maxLayer==void(0)||maxLayer<obj.drawLayer) maxLayer = obj.drawLayer;
+		if (!layers[obj.drawLayer]) layers[obj.drawLayer] = [obj];
+		else layers[obj.drawLayer].push(obj);
+	});
+	for (var i = minLayer; i <= maxLayer; i++) {
+		if (layers[i]) for (var j in layers[i]) layers[i][j].draw();
 	}
 	//in game debug and elements
 	DrawableClasses.forAll("drawElements");

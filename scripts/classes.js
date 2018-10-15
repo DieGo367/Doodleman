@@ -82,6 +82,35 @@ function initClass(cl,param) {
   if (typeof cl.onInit=="function") cl.onInit();
 }
 
+
+class Background extends _c_ {
+  constructor(slot,imgName,drawLayer,scale,parallax) {
+    super();
+    this.slot = slot;
+    this.imgName = imgName;
+    this.drawLayer = drawLayer;
+    this.scale = scale;
+    this.parallax = parallax;
+  }
+  draw() {
+    let x = Math.max(0,Camera.leftPx());
+    let y = Math.max(0,Camera.topPx());
+    let width = Math.min(Level.level.width,Camera.rightPx()) - x;
+    let height = Math.min(Level.level.height,Camera.bottomPx()) - y;
+    Images.drawImagePattern(this.imgName,x,y,width,height,this.scale);
+  }
+}
+initClass(Background,{drawable: true, listType: "array"});
+
+class BackgroundB64 extends Background {
+  constructor(slot,imgRaw,drawLayer,scale,parallax) {
+    Images.loadImageB64("BGRaw:"+slot,imgRaw);
+    super(slot,"BGRaw:"+slot,drawLayer,scale,parallax);
+  }
+}
+initClass(BackgroundB64,Background);
+
+
 class Box extends _c_ {
   constructor(x,y,width,height,color,sprite) {
     super();
@@ -982,7 +1011,7 @@ class Line extends _c_ {
     this.prototype.remove = PhysicsBox.prototype.remove;
     this.prototype.lockSectors = true;
     this.prototype.collisionType = C_LINE;
-    this.prototype.drawLayer = -2;
+    this.prototype.drawLayer = 0;
   }
 }
 initClass(Line,{drawable: true, listType: "uid"});
