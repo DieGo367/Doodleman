@@ -2233,14 +2233,33 @@ class TextElement extends GuiElement {
 initClass(TextElement,GuiElement);
 
 class ImgElement extends GuiElement {
-  constructor(name,viewName,x,y,img,width,height) {
+  constructor(name,viewName,x,y,img,width,height,fit) {
     super(name,viewName,x,y);
   	this.width = width;
   	this.height = height;
   	this.img = img;
+    this.fit = fit || IMAGE_STRETCH;
   }
   customDraw() {
-  	Images.drawImage(this.img,this.x-this.width/2,this.y-this.height/2,this.width,this.height);
+  	switch(this.fit) {
+      case IMAGE_STRETCH:
+        Images.drawImage(this.img,this.x-this.width/2,this.y-this.height/2,this.width,this.height);
+        break;
+      case IMAGE_ZOOM:
+        let img = Images.getImage(this.img);
+        if (!img||img.width==0||img.height==0) return;
+        let imgRatio = img.width/img.height;
+        let x = this.x - this.width/2, y = this.y - this.height/2, width = this.width, height = this.height;
+        if (imgRatio>width/height) {
+          height = width/imgRatio;
+          y = y + this.height/2 - height/2;
+        }
+        else {
+          width = height*imgRatio;
+          x = x + this.width/2 - width/2;
+        }
+        Images.drawImage(this.img,x,y,width,height);
+    }
   }
 }
 initClass(ImgElement,GuiElement);

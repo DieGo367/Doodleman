@@ -22,6 +22,7 @@ const POINTER_NONE = 0, POINTER_CROSSHAIR = 1, POINTER_PENCIL = 2, POINTER_ERASE
 const ORIENT_LIN = 0, ORIENT_CW = 1, ORIENT_CCW = -1;
 const EDGE_NONE = 0, EDGE_SOLID = 1, EDGE_WRAP = 2, EDGE_KILL = 3;
 const CANCEL = -1;
+const IMAGE_STRETCH = 0, IMAGE_ZOOM = 1;
 //helper functions
 function dp(pixels) {
 	return pixels*pixelDensity;
