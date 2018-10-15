@@ -1,9 +1,6 @@
 const Level = {
 	level: {
 		name: null,
-		bgType: "name", //name = image, raw = b64
-		bgName: "none",
-		bgScale: 1,
 		width: 640,
 		height: 360,
 		edge: {top: EDGE_NONE, bottom: EDGE_SOLID, left: EDGE_WRAP, right: EDGE_WRAP},
@@ -19,7 +16,9 @@ const Level = {
 		],
 		actors: [],
 		terrain: [],
-		bgRaw: ""
+		bg: [
+			{type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 0}
+		]
 	},
 	addTerrainData: function(data) {
 		let index = this.findMatchingTerrainDefinitionIndex(data);
@@ -83,6 +82,11 @@ const Level = {
     }
     return {terrain: terrain, actors: actors, other: other};
   },
+	makeBackground: function(data,slot) {
+		if (!data) return;
+		if (data.type=="name") Background.create(slot,data.name,data.layer,data.scale,data.parallax);
+		else if (data.raw!="") BackgroundB64.create(slot,data.raw,data.layer,data.scale,data.parallax);
+	},
 	clearLevel: function() {
 		Box.killAll();
 		Line.killAll();
@@ -105,8 +109,7 @@ const Level = {
 		for (var p in newLevel) this.level[p] = newLevel[p];
 		for (var s in this.level.actors) ActorManager.make(...this.level.actors[s]);
 		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
-		if (this.level.bgType=="name") Background.create(0,this.level.bgName,-2,Level.level.bgScale,0);
-		else if (this.level.bgRaw!="") BackgroundB64.create(0,this.level.bgRaw,-2,Level.level.bgScale,0);
+		for (var b in this.level.bg) this.makeBackground(this.level.bg[b],b);
 		Camera.reset();
 		Game.onLevelLoad();
 		if (doLog) console.log("Loaded Level "+this.level.name);

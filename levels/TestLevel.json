@@ -1,6 +1,5 @@
 {
   "name": "TestLevel",
-  "bgName": "BG-Paper.png",
   "width": 854,
   "height": 480,
   "zoomScale": 1,
@@ -30,5 +29,8 @@
     [10,640.5,40],
     [21,30,480,0,1],
     [21,447,440,1,0]
+  ],
+  "bg": [
+    {"type": "name", "name": "BG-Paper.png", "raw":"", "layer": -2, "scale": 1, "parallax": 0}
   ]
 }

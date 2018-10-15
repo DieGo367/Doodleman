@@ -1,7 +1,5 @@
 {
   "name": "Dungeon-0",
-  "bgType": "name",
-  "bgName": "BG-Paper.png",
   "width": 640,
   "height": 360,
   "playerSpawns": [
@@ -16,5 +14,8 @@
         [0,0,1,1]
       ]
     }
+  ],
+  "bg": [
+    {"type": "name", "name": "BG-Paper.png", "raw":"", "layer": -2, "scale": 1, "parallax": 0}
   ]
 }
