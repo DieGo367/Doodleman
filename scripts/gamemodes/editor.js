@@ -159,7 +159,13 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     function() {
       callPrefixedFunction(document,"exitFullscreen");
       callPrefixedFunction(document,"exitFullScreen");
-    },true).setIcon("GUI-Icons.png",2,0,42,4).show();
+    },true)
+    .setOnViewShown(function() {
+      if (fullScreen) {
+  			this.toggleState = 1;
+  			this.on = true;
+  		}
+    }).setIcon("GUI-Icons.png",2,0,42,4).show();
 
     Button.create("LS:File","LevelSettingsView",WIDTH*1/5-50,75,100,40,"File").show().on = true;
     Button.create("LS:Edit","LevelSettingsView",WIDTH*2/5-50,75,100,40,"Edit").show();
