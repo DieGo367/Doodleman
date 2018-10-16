@@ -40,6 +40,19 @@ function compareList(a,b) {
 	}
 	return true;
 }
+function trimListEnd(list) {
+	for (var i = list.length-1; i>=0; i--) {
+		if (list[i]==void(0)) list.splice(i);
+		else break;
+	}
+	return list;
+}
+function swapListItems(list,i,j) {
+	let temp = list[i];
+	list[i] = list[j];
+	list[j] = temp;
+	return list;
+}
 function niceJSON(obj) {
   let myChanges = [];
   let str = JSON.stringify(obj,function(key,val) {
