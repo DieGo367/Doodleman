@@ -284,6 +284,26 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       this.view.numBG = parseInt(this.text)-1;
       this.view.onShow();
     },true);
+    Button.create("LS:BG:Swap:left","LS:BG:Menu",-10,130,60,40,"L <").setOnClick(function() {
+      let slot = this.view.numBG;
+      let left = (slot>0? slot-1: layerButtons.length-1);
+      Background.swapSlots(slot,left);
+      swapListItems(Level.level.bg,slot,left);
+      trimListEnd(Level.level.bg);
+      G$(layerButtons[left]).onClick(this.clickSource,true);
+      this.view.onShow();
+      gameAlert("Swapped BG Layers "+(slot+1)+" and "+(left+1)+".",60);
+    }).show();
+    Button.create("LS:BG:Swap:right","LS:BG:Menu",WIDTH-50,130,60,40,"> R").setOnClick(function() {
+      let slot = this.view.numBG;
+      let right = (slot<layerButtons.length-1? slot+1: 0);
+      Background.swapSlots(slot,right);
+      swapListItems(Level.level.bg,slot,right);
+      trimListEnd(Level.level.bg);
+      G$(layerButtons[right]).onClick(this.clickSource,true);
+      this.view.onShow();
+      gameAlert("Swapped BG Layers "+(slot+1)+" and "+(right+1)+".",60);
+    }).show();
     TextElement.create("LS:BG:Layer","LS:BG:Menu",WIDTH*2/3-50,210,fontMenuItem,"Draw Layer",WIDTH,LEFT).show();
     TextInput.create("LS:BG:Layer:num","LS:BG:Menu",WIDTH/2+190,185,100,40,"number",null,"layer","Enter the draw layer").setOnInputChange(function(val) {
       this.view.setBGVal("layer",val);

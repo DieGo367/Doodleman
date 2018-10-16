@@ -116,7 +116,11 @@ class Background extends _c_ {
       bg.remove();
     }
   }
-
+  static swapSlots(i,j) {
+    swapListItems(this.slots,i,j);
+    if (this.slots[i]) this.slots[i].slot = i;
+    if (this.slots[j]) this.slots[j].slot = j;
+  }
 }
 initClass(Background,{drawable: true, listType: "array"});
 
