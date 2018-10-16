@@ -350,10 +350,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
           let slot = view.numBG;
           if (bgArr[slot]) Background.clearSlot(slot);
           delete bgArr[slot];
-          for (var i = bgArr.length-1; i>=0; i--) {
-            if (bgArr[i]==void(0)) bgArr.splice(i);
-            else break;
-          }
+          trimListEnd(bgArr);
           view.onShow();
         }
       })

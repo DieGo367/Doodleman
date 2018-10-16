@@ -297,7 +297,7 @@ const EditorTools = {
     removeLevelSpawn: function(playerNumber) {
       let spawns = Level.level.playerSpawns;
       delete spawns[playerNumber];
-      while(spawns.length>0&&spawns[spawns.length-1]==null) spawns.splice(spawns.length-1);
+      trimListEnd(spawns);
     }
   },
   init: function() {
