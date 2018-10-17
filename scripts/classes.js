@@ -94,6 +94,9 @@ class Background extends _c_ {
     if (!Background.slots[slot]) Background.slots[slot] = this;
     else this.slot = null;
   }
+  setSlot(slot) {
+    this.slot = slot;
+  }
   draw() {
     let x = Math.max(0,Camera.leftPx());
     let y = Math.max(0,Camera.topPx());
@@ -118,8 +121,8 @@ class Background extends _c_ {
   }
   static swapSlots(i,j) {
     swapListItems(this.slots,i,j);
-    if (this.slots[i]) this.slots[i].slot = i;
-    if (this.slots[j]) this.slots[j].slot = j;
+    if (this.slots[i]) this.slots[i].setSlot(i)
+    if (this.slots[j]) this.slots[j].setSlot(j);
   }
 }
 initClass(Background,{drawable: true, listType: "array"});
@@ -128,6 +131,12 @@ class BackgroundB64 extends Background {
   constructor(slot,imgRaw,drawLayer,scale,parallax) {
     Images.loadImageB64("BGRaw:"+slot,imgRaw);
     super(slot,"BGRaw:"+slot,drawLayer,scale,parallax);
+    this.imgRaw = imgRaw;
+  }
+  setSlot(slot) {
+    super.setSlot(slot);
+    Images.loadImageB64("BGRaw:"+slot,this.imgRaw);
+    this.imgName = "BGRaw:"+slot;
   }
 }
 initClass(BackgroundB64,Background);
