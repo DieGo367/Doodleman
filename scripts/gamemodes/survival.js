@@ -3,7 +3,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     this.ready = false;
     this.addGui();
     G$("Hud").show();
-    if (!EditorTools.levelCopy) Level.loadLevel("Dungeon-0.json");
+    if (!EditorTools.levelCopy) Level.loadLevel("Room-1.json");
   },
   quit: function() {
     this.removeGui();
@@ -77,7 +77,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     buildPauseMenu();
     Button.create("RetryButton","PauseMenu",WIDTH/2-150,HEIGHT-120,300,40,"Retry").setOnClick(function() {
       gameConfirm("Are you sure you want to restart?",function(response) {
-        if (response) Level.loadLevel("Dungeon-0.json");
+        if (response) Level.loadLevel("Room-1.json");
       });
     }).show();
     buildLevelSelectMenu();
@@ -89,7 +89,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     View.create("DeathScreen",1,0,0,WIDTH,HEIGHT,"tint","black");
     TextElement.create("DeathText","DeathScreen",WIDTH/2,HEIGHT/4,fontPaused,"Score: {{var}}",WIDTH,CENTER).setVar(0).show();
     Button.create("PlayAgain","DeathScreen",WIDTH/2-150,HEIGHT-120,300,40,"Play Again").setOnClick(function() {
-      Level.loadLevel("Dungeon-0.json");
+      Level.loadLevel("Room-1.json");
     }).show();
     Button.create("DeathScreenQuit","DeathScreen",WIDTH/2-150,HEIGHT-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
   },
