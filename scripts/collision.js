@@ -233,6 +233,7 @@ class Sector {
 	bottomY() { return this.topY()+Sector.size.height; }
 	updateLoadedState() {
 		this.loaded = false;
+    if (this.name=="NaN,NaN") return this.loaded = true;
     for (var i in this.objects) if (this.objects[i].alwaysLoaded) return this.loaded = true;
 		if (this.rightX()>=Camera.leftPx()-Sector.size.width&&this.leftX()<=Camera.rightPx()+Sector.size.width) {
 			if (this.bottomY()>=Camera.topPx()-Sector.size.height&&this.topY()<=Camera.bottomPx()+Sector.size.height) {
