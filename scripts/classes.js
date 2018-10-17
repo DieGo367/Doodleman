@@ -99,7 +99,7 @@ class Background extends _c_ {
     let y = Math.max(0,Camera.topPx());
     let width = Math.min(Level.level.width,Camera.rightPx()) - x;
     let height = Math.min(Level.level.height,Camera.bottomPx()) - y;
-    Images.drawImagePattern(this.imgName,x,y,width,height,this.scale);
+    Images.drawImagePattern(this.imgName,x,y,width,height,this.scale,this.parallax);
   }
   remove() {
     if (this.slot) Background.clearSlot(this.slot);

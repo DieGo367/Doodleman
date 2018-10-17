@@ -53,14 +53,17 @@ const Images = {
 
 		this.drawImage(imageName,x+bp,y+bp,width-(2*bp),height-(2*bp),ox+bp,oy+bp,center,center);
 	},
-	drawImagePattern: function(imageName,x,y,width,height,scale) {
+	drawImagePattern: function(imageName,x,y,width,height,scale,parallax) {
 		let img = this.getImage(imageName);
 		if (!img||!img.complete||img.width==0||img.height==0) return;
 		if (!img.pattern) img.pattern = c.createPattern(img,"repeat");
 		c.fillStyle = img.pattern;
+		if (parallax==void(0)) parallax = 1;
+		let dx = (x-x/parallax), dy = (y-y/parallax);
 		c.save();
 		c.scale(scale,scale);
-		c.fillRect(x/scale,y/scale,width/scale,height/scale);
+		c.translate(dx/scale,dy/scale);
+		c.fillRect((x-dx)/scale,(y-dy)/scale,width/scale,height/scale);
 		c.restore();
 	},
 	setFilter: function(filter) {
