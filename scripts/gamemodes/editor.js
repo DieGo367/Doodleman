@@ -270,7 +270,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     })
     .setBGVal = function(key,val,preventRefresh) {
       let bg = Level.level.bg[this.numBG];
-      if (!bg) bg = Level.level.bg[this.numBG] = {type:"none", name:"", raw:"", layer:-2, scale:1, parallax:0};
+      if (!bg) bg = Level.level.bg[this.numBG] = {type:"none", name:"", raw:"", layer:-2, scale:1, parallax:1};
       bg[key] = val;
       if (preventRefresh) return;
       Background.clearSlot(this.numBG);

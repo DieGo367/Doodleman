@@ -1,6 +1,6 @@
 {
   "name": "Title",
   "bg": [
-    {"type": "name", "name": "BG-Paper.png", "raw":"", "layer": -2, "scale": 1, "parallax": 0}
+    {"type": "name", "name": "BG-Paper.png", "raw":"", "layer": -2, "scale": 1, "parallax": 1}
   ]
 }

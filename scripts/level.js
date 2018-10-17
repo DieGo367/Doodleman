@@ -17,7 +17,7 @@ const Level = {
 		actors: [],
 		terrain: [],
 		bg: [
-			// {type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 0}
+			// {type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 1}
 		]
 	},
 	addTerrainData: function(data) {
