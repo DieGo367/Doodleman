@@ -262,7 +262,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
         G$("LS:BG:PreviewWrap").show();
         G$("LS:BG:Preview").show().img = (bg.name || "BGRaw:"+this.numBG);
       }
-      G$("LS:BG:Desc").text = bg.name || ((bg.raw&&bg.raw!="")?"raw base64":"none");
+      G$("LS:BG:Desc").text = bg.name || ((bg.raw&&bg.raw!="")?"imported":"none");
       G$("LS:BG:Name").storedVal = bg.name;
       G$("LS:BG:Layer:num").storedVal = bg.layer;
       G$("LS:BG:Scale:num").storedVal = bg.scale;
@@ -284,24 +284,22 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       this.view.numBG = parseInt(this.text)-1;
       this.view.onShow();
     },true);
-    Button.create("LS:BG:Swap:left","LS:BG:Menu",-10,130,60,40,"L <").setOnClick(function() {
+    Button.create("LS:BG:Swap:left","LS:BG:Menu",-10,130,60,40,"   <").setOnClick(function() {
       let slot = this.view.numBG;
       let left = (slot>0? slot-1: layerButtons.length-1);
       Background.swapSlots(slot,left);
       swapListItems(Level.level.bg,slot,left);
       trimListEnd(Level.level.bg);
       G$(layerButtons[left]).onClick(this.clickSource,true);
-      this.view.onShow();
       gameAlert("Swapped BG Layers "+(slot+1)+" and "+(left+1)+".",60);
     }).show();
-    Button.create("LS:BG:Swap:right","LS:BG:Menu",WIDTH-50,130,60,40,"> R").setOnClick(function() {
+    Button.create("LS:BG:Swap:right","LS:BG:Menu",WIDTH-50,130,60,40,">   ").setOnClick(function() {
       let slot = this.view.numBG;
       let right = (slot<layerButtons.length-1? slot+1: 0);
       Background.swapSlots(slot,right);
       swapListItems(Level.level.bg,slot,right);
       trimListEnd(Level.level.bg);
       G$(layerButtons[right]).onClick(this.clickSource,true);
-      this.view.onShow();
       gameAlert("Swapped BG Layers "+(slot+1)+" and "+(right+1)+".",60);
     }).show();
     TextElement.create("LS:BG:Layer","LS:BG:Menu",WIDTH*2/3-50,210,fontMenuItem,"Draw Layer",WIDTH,LEFT).show();
@@ -343,6 +341,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       });
     }).show();
     Button.create("LS:BG:Delete","LS:BG:Menu",WIDTH/2-70,295,100,40,"Delete").setOnClick(function() {
+      if (!Level.level.bg[this.view.numBG]) return;
       gameConfirm("Delete background layer #"+(this.view.numBG+1)+"?",function(result) {
         if (result) {
           let bgArr = Level.level.bg;
