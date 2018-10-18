@@ -565,6 +565,46 @@ class Door extends Entrance {
 }
 initClass(Door,Entrance);
 
+class SpawnZone extends Entrance {
+  constructor(x,y,width,height) {
+    super(x,y,width,height,void(0),void(0),Enemy,void(0),void(0),false,true);
+  }
+  area() { return this.width*this.height; }
+  drawDebug() {
+    super.drawDebug();
+    Font.copy(fontDebug10,{color:this.hitBoxStroke}).draw("SpawnZone",this.leftX(),this.topY(),this.width,LEFT);
+  }
+  finishEntrance() {
+    let enemy = this.obj;
+    this.forget();
+    enemy.x = this.leftX() + Math.floor(Math.random()*this.width);
+    enemy.y = this.topY() + Math.floor(Math.random()*this.height);
+  }
+  enterAsSpawn(enemy) {
+    this.useEntrance(enemy);
+    this.finishEntrance();
+    enemy.spawnX = enemy.x;
+    enemy.spawnY = enemy.y;
+    enemy.paceTarget = enemy.post = this.x;
+  }
+  static weightedSelection() {
+    let zones = [];
+    let totalArea = 0;
+    for (var u in this.classList) {
+      let zone = this.classList[u];
+      if (zone.isLoaded) {
+        zones.push(zone);
+        totalArea += zone.area();
+      }
+    }
+    let r = Math.floor(Math.random()*totalArea);
+    for (var i = 0; i < zones.length; i++) {
+      if (r<=zones[i].area()) return zones[i];
+      else r -= zones[i].area();
+    }
+  }
+}
+
 class PhysicsBox extends Box {
   constructor(x,y,width,height,color,sprite,defyPhysics,collisionType,canBeCarried,thrownDamage) {
   	super(x,y,width,height,color,sprite);

@@ -40,5 +40,11 @@
       "val0","val1",282,34,null,"helloworld.png",5,"val2","val3"
     ],
     "valueNames": ["x","y","#velX","#velY"]
+  },
+  {
+    "id": 24,
+    "class": "SpawnZone",
+    "properties": ["val0","val1","val2","val3"],
+    "valueNames": ["x","y","#width","#height"]
   }
 ]

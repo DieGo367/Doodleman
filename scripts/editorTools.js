@@ -219,6 +219,7 @@ const EditorTools = {
         this.tempActor.y = Pointer.camY();
         c.globalAlpha = 0.5;
         this.tempActor.draw();
+        if (devEnabled) this.tempActor.drawDebug();
         c.globalAlpha = 1;
       }
     },
