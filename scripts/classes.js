@@ -376,16 +376,20 @@ class Entrance extends Interactable {
   }
   update() {
     super.update();
-    for (var i in this.touches) {
-      let obj = this.touches[i];
-      if (!this.preventExit&&this.objCanExit(obj)) {
-        this.useExit(obj);
-        break;
+    if (!this.obj) {
+      if (!this.preventExit) for (var i in this.touches) {
+        let obj = this.touches[i];
+        if (this.objCanExit(obj)) {
+          this.useExit(obj);
+          break;
+        }
       }
     }
-    if (!this.obj) return;
-    if (this.exitStep>0 && this.obj.exit==this) this.doExitSteps();
-    else if (this.enterStep>0 && this.obj.entrance==this) this.doEnterSteps();
+    else {
+      if (this.exitStep>0 && this.obj.exit==this) this.doExitSteps();
+      else if (this.enterStep>0 && this.obj.entrance==this) this.doEnterSteps();
+      else this.forget();
+    }
   }
   objCanExit(obj) {
     if (obj.exit||obj.entrance) return false;
@@ -444,6 +448,7 @@ class Entrance extends Interactable {
   static onInit() {
     this.prototype.stepCount = 1;
     this.prototype.hitBoxStroke = "purple";
+    this.prototype.lockSectors = true;
   }
   static findEntrance(id,targetClass) {
     for (var u in this.classList) {
@@ -454,122 +459,90 @@ class Entrance extends Interactable {
 }
 initClass(Entrance,Box);
 
-class Door extends Interactable {
-  constructor(x,y,linkId,destination) {
-    super(x,y,32,55,void(0),void(0),Player);
-  	this.linkId = linkId;
-  	this.destination = destination;
-  	this.doorOpen = false;
-  	this.warpStep = 0;
-  	this.player = null;
+class Door extends Entrance {
+  constructor(x,y,linkId,destination,preventEnter,preventExit) {
+    super(x,y,32,55,void(0),void(0),Player,linkId,destination,preventEnter,preventExit);
     this.sheet = Animation.getSpritesheet("Door.json");
+    this.doorOpen = false;
   }
-  static getFromLinkId(linkId) {
-  	var allDoors = this.getAll();
-  	for (var i in allDoors) {
-  		if (allDoors[i].linkId==linkId) return allDoors[i];
-  	}
-  	return -1;
-  }
-  getLink() { return Door.getFromLinkId(this.destination); };
-
-  checkPlayers() {
-  	var linked = this.getLink();
-  	if (this.player||this.doorOpen||this.animCurrent!="closed"||linked==-1||linked.player!=null) return;
-  	for (var i in this.touches) {
-  		var p = this.touches[i];
-      var pad = p.ctrls.mostRecent();
-  		if (pad.pressed("lookUp",0.8)&&p.isGrounded&&p.held==null&&Math.abs(this.y-p.y)<2&&p.door==null) {
-  			this.player = p;
-  			p.door = this;
-  			p.doorEnterTick = 30;
-  			p.doorWaitStep = 1;
-  			p.velX = 0;
-  			p.velY = 0;
-  			p.defyGravity = true;
-  			this.setAnimation("opening",null,"full");
-  			this.doorOpen = true;
-  			this.warpStep = 1;
-  			return;
-  		}
-  	}
-  }
-  receivePlayer(p) {
-  	p.x = this.x;
-  	p.y = this.y;
-  	p.door = this;
-  	p.direction = RIGHT;
-  	this.player = p;
-  	this.warpStep = 4;
-  	this.setAnimation("opening",null,"full");
-  	this.doorOpen = true;
-  }
-  forgetPlayer() {
-  	this.player.defyGravity = false;
-  	this.player.door = null;
-  	this.player.doorWaitStep = 0;
-  	this.player = null;
-  	this.animLock = 0;
-  	this.setAnimation("closing",null,"full");
-  	this.doorOpen = 0;
-  	this.warpStep = 0;
-  }
-
-  doWarp() {
-  	var door = this.getLink();
-  	if (door!=-1&&door.player==null) {
-  		door.receivePlayer(this.player);
-  		this.player = null;
-  		return true;
-  	}
-  	else return false;
-  }
-
   update() {
-  	super.update();
-  	this.checkPlayers();
-  	if ((this.player&&this.player.door==this)/*&&this.doorOpen&&this.animCurrent!="closed"*/) {
-  		switch (this.warpStep) {
-  			case 1:
-  				if (this.animLock==0) this.warpStep = 2;
-  				break;
-  			case 2:
-  				if (this.player.doorWaitStep==3) {
-  					this.setAnimation("closing",null,"full");
-  					this.doorOpen = false;
-  					this.warpStep = 3;
-  				}
-  				break;
-  			case 3:
-  				if (this.animCurrent=="closed") {
-  					if (this.doWarp()) this.warpStep = 0;
-  				}
-  				break;
-
-
-  			case 4:
-  				if (this.animCurrent=="open") {
-  					this.player.doorEnterTick = 30;
-  					this.player.doorWaitStep = 4;
-  					this.warpStep = 5;
-  				}
-  				break;
-  			case 5:
-  				if (this.player.doorWaitStep==5) this.forgetPlayer();
-  		}
-  	}
+    super.update();
     if (this.doorOpen) this.setAnimation("open");
     else this.setAnimation("closed");
   }
-
+  objCanExit(player) {
+    // only accept players when door is closed
+    if (this.animCurrent!="closed") return false;
+    // player must pass every test to be able to exit
+    if (!super.objCanExit(player)) return false; // inherited test
+    let ctrl = player.ctrls.mostRecent();
+    if (!ctrl.pressed("lookUp",0.8)) return false; // must press lookUp
+    if (!player.isGrounded) return false; // must be on ground
+    if (player.held||player.heldBy) return false; // can't be holding anything or be held by something
+    if (Math.abs(this.y-player.y)>=2) return false; // must be within 2 vertical units from door
+    // passed all the tests!
+    return true;
+  }
+  forget() {
+    super.forget();
+    if (this.doorOpen) this.closeDoor();
+  }
+  useExit(player) {
+    super.useExit(player);
+    this.openDoor();
+  }
+  doExitSteps() {
+    switch(this.exitStep) {
+      case 1:
+        if (this.animCurrent=="open") this.exitStep++;
+        break;
+      case 2:
+        if (this.obj.exitStep==3) {
+          this.closeDoor();
+          this.exitStep++;
+        }
+        break;
+      case 3:
+        if (this.animCurrent=="closed") this.exitStep++;
+        break;
+    }
+    super.doExitSteps();
+  }
+  useEntrance(player) {
+    super.useEntrance(player);
+    this.openDoor();
+    player.x = this.x;
+    player.y = this.y;
+  }
+  doEnterSteps() {
+    switch(this.enterStep) {
+      case 1:
+        if (this.animLock==0) this.enterStep++;
+        break;
+      case 2:
+        if (this.obj.enterStep==3) {
+          this.closeDoor();
+          this.enterStep = 4;
+        }
+        break;
+    }
+    super.doEnterSteps();
+  }
+  openDoor() {
+    this.setAnimation("opening",null,"full");
+    this.doorOpen = true;
+  }
+  closeDoor() {
+    this.setAnimation("closing",null,"full");
+    this.doorOpen = false;
+  }
   static onInit() {
     Animation.applyToClass(this);
     this.prototype.drawLayer = -1;
-    this.prototype.lockSectors = true;
+    this.prototype.stepCount = 4;
   }
 }
-initClass(Door,Interactable);
-
+initClass(Door,Entrance);
 
 class PhysicsBox extends Box {
   constructor(x,y,width,height,color,sprite,defyPhysics,collisionType,canBeCarried,thrownDamage) {
@@ -1369,8 +1342,6 @@ class Player extends Entity {
   	if (slot!=null) Player.setSlot(slot,this);
   	this.attackCooldown = 0;
   	this.attackHeld = 0;
-  	this.doorEnterTick = 0;
-  	this.doorWaitStep = 0;
     this.canUpAirAttack = true;
   }
   static onCreate() {
@@ -1444,7 +1415,7 @@ class Player extends Entity {
   }
   chooseAnimation(pad) {
     if (this.held==null) {
-      if (this.door&&this.doorEnterTick<30) this.setAnimation("run");
+      if (this.usingEntrance()&&this.doorTick<30) this.setAnimation("run");
       else if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("jump");
       else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
       else if (this.ducking) this.setAnimation("crouch");
@@ -1457,28 +1428,59 @@ class Player extends Entity {
       else this.setAnimation("carry-stand");
     }
   }
-  doorActions() {
-    switch(this.doorWaitStep) {
+
+  usingEntrance() {
+    return !!(this.entrance||this.exit);
+  }
+  forgetEntrance() {
+    super.forgetEntrance();
+    this.defyGravity = false;
+    this.collisionType = C_ENT;
+    this.invulnerability = 0;
+  }
+  onExitUse(exit) {
+    super.onExitUse(exit);
+    this.doorTick = 30;
+    this.velX = 0;
+    this.velY = 0;
+    this.defyGravity = true;
+    this.collisionType = C_NONE;
+    this.invulnerability = 3;
+  }
+  exitActions() {
+    this.invulnerability = 3;
+    switch(this.exitStep) {
       case 1:
-      this.faceTo(this.door);
-      if (this.door.warpStep==2&&this.door.doorOpen) this.doorWaitStep = 2;
-      break;
+        this.faceTo(this.exit);
+        if (this.exit.exitStep==2) this.exitStep++;
+        break;
       case 2:
-      this.faceTo(this.door);
-      if (this.distanceTo(this.door)>4.5) this.move(1.5);
-      else {
-        this.move(this.distanceTo(this.door)/2);
-        if (this.doorEnterTick>0) {
-          this.doorEnterTick--;
+        this.faceTo(this.exit);
+        if (this.distanceTo(this.exit)>4.5) this.move(1.5);
+        else {
+          this.move(this.distanceTo(this.exit)/2);
+          if (this.doorTick>0) this.doorTick--;
+          else this.exitStep++;
         }
-        else this.doorWaitStep = 3;
-      }
-      break;
-      case 4:
-      if (this.doorEnterTick>0) {
-        this.doorEnterTick--;
-      }
-      else this.doorWaitStep = 5;
+        break;
+    }
+  }
+  onEntranceUse(entrance) {
+    super.onEntranceUse(entrance);
+    this.doorTick = 30;
+    this.defyGravity = true;
+    this.collisionType = C_NONE;
+    this.invulnerability = 3;
+  }
+  entranceActions() {
+    this.invulnerability = 3;
+    switch(this.enterStep) {
+      case 1:
+        if (this.entrance.enterStep==2) this.enterStep++;
+        break;
+      case 2:
+        if (this.doorTick>0) this.doorTick--;
+        else this.enterStep++;
     }
   }
 
@@ -1568,7 +1570,8 @@ class Player extends Entity {
       console.log("missing controller");
     }
 
-  	if (this.door) this.doorActions();
+  	if (this.entrance) this.entranceActions();
+    else if (this.exit) this.exitActions();
 
   	if (this.attackCooldown>0) this.attackCooldown -= 1;
 
@@ -1582,7 +1585,7 @@ class Player extends Entity {
     }
 
     //if not stunned, run controls
-  	if (this.stun==0&&!this.door) this.handleControls(controller);
+  	if (this.stun==0&&!this.usingEntrance()) this.handleControls(controller);
 
   	this.chooseAnimation(controller);
 
@@ -1595,30 +1598,29 @@ class Player extends Entity {
   	if (this.lives<=0) this.respawnsOnDeath = false;
   	super.die();
   }
-  breakConnections() {
-  	if (this.door) this.door.forgetPlayer();
-  	super.breakConnections();
-  }
   remove() {
     this.ctrls.selfDestructAll();
     Player.clearFromSlot(this);
     super.remove();
   }
   respawn() {
-  	if (this.door) this.door.forgetPlayer();
     this.direction = this.spawnDirection;
     this.attackHeld = 0;
   	super.respawn();
   }
 
   draw(preventAnimTick) {
-  	if (this.door) {
-  		if (this.doorWaitStep==2) c.globalAlpha = this.doorEnterTick/30;
-  		else if (this.doorWaitStep==4) c.globalAlpha = 1-this.doorEnterTick/30;
-  		else if (this.doorWaitStep==3) c.globalAlpha = 0;
-  	}
+    c.save();
+  	if (this.exit) {
+      if (this.exitStep==2) c.globalAlpha = this.doorTick/30;
+      else if (this.exitStep==3) c.globalAlpha = 0;
+    }
+    else if (this.entrance) {
+      if (this.enterStep==1) c.globalAlpha = 0;
+      if (this.enterStep==2) c.globalAlpha = 1-this.doorTick/30;
+    }
   	super.draw(preventAnimTick);
-  	c.globalAlpha = 1;
+  	c.restore();
   }
   drawHud() {
   	var playerNumber = Player.getAll().indexOf(this);

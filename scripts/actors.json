@@ -25,7 +25,7 @@
     "id": 21,
     "class": "Door",
     "properties": ["val0","val1","val2","val3"],
-    "valueNames": ["x","y","#id","#destination"]
+    "valueNames": ["x","y","#id","#destination","?preventEnter","?preventExit"]
   },
   {
     "id": 22,
