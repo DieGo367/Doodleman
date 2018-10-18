@@ -239,13 +239,13 @@ class Box extends _c_ {
 initClass(Box,{drawable: true, listType: "uid"});
 
 class Interactable extends Box {
-  constructor(x,y,width,height,color,sprite,targetClass,onIntersect,onStopIntersect) {
+  constructor(x,y,width,height,color,sprite,targetClass) {
     super(x,y,width,height,color,sprite);
   	this.targetClass = targetClass;
-  	this.onIntersect = onIntersect;
-  	this.onStopIntersect = onStopIntersect;
   	this.touches = {};
   }
+  onIntersect(o) { }
+  onStopIntersect(o) { }
   update() {
     super.update();
   	var all = this.targetClass.getLoaded();
@@ -362,6 +362,97 @@ class AttackBox extends HarmBox {
   }
 }
 initClass(AttackBox,HarmBox);
+
+class Entrance extends Interactable {
+  constructor(x,y,width,height,color,sprite,targetClass,linkId,destination,preventEnter,preventExit) {
+    super(x,y,width,height,color,sprite,targetClass);
+    this.linkId = linkId;
+    this.destination = destination;
+    this.preventEnter = !!preventEnter;
+    this.preventExit = !!preventExit;
+    this.enterStep = 0;
+    this.exitStep = 0;
+    this.obj = null;
+  }
+  update() {
+    super.update();
+    for (var i in this.touches) {
+      let obj = this.touches[i];
+      if (!this.preventExit&&this.objCanExit(obj)) {
+        this.useExit(obj);
+        break;
+      }
+    }
+    if (!this.obj) return;
+    if (this.exitStep>0 && this.obj.exit==this) this.doExitSteps();
+    else if (this.enterStep>0 && this.obj.entrance==this) this.doEnterSteps();
+  }
+  objCanExit(obj) {
+    if (obj.exit||obj.entrance) return false;
+    else return true;
+  }
+  forget() {
+    let obj = this.obj;
+    this.obj = null;
+    // clear step counters
+    this.exitStep = this.enterStep = 0;
+    // let object forget
+    obj.forgetEntrance();
+  }
+  useExit(obj) {
+    // store the object and prepare
+    this.obj = obj;
+    this.exitStep = 1;
+    // let object prepare
+    obj.onExitUse(this);
+  }
+  doExitSteps() {
+    if (this.exitStep==this.stepCount) this.finishExit();
+  }
+  finishExit() {
+    let obj = this.obj;
+    this.forget();
+    // find destination
+    let dest = Entrance.findEntrance(this.destination,this.targetClass);
+    if (dest) {
+      // send the object into limbo first
+      obj.x = obj.y = NaN;
+      // then trigger the destination
+      dest.useEntrance(obj);
+    }
+    else { // destination wasn't found
+      obj.x = obj.y = 0;
+    }
+  }
+  useEntrance(obj) {
+    // store the object and prepare
+    this.obj = obj;
+    this.enterStep = 1;
+    // let object prepare
+    obj.onEntranceUse(this);
+  }
+  doEnterSteps() {
+    if (this.enterStep==this.stepCount) this.finishEntrance();
+  }
+  finishEntrance() {
+    // do warp
+    this.obj.x = this.x;
+    this.obj.y = this.y;
+    // clear all values
+    this.forget();
+  }
+  static onInit() {
+    this.prototype.stepCount = 1;
+    this.prototype.hitBoxStroke = "purple";
+  }
+  static findEntrance(id,targetClass) {
+    for (var u in this.classList) {
+      let e = this.classList[u];
+      if (e.linkId==id && (targetClass==void(0)||e.targetClass==targetClass) && !e.preventEnter) return e;
+    }
+  }
+}
+initClass(Entrance,Box);
 
 class Door extends Interactable {
   constructor(x,y,linkId,destination) {
@@ -1132,6 +1223,19 @@ class Entity extends PhysicsBox {
   	}
   }
 
+  forgetEntrance() {
+    this.entrance = this.exit = null;
+    this.enterStep = this.exitStep = 0;
+  }
+  onExitUse(exit) {
+    this.exit = exit;
+    this.exitStep = 1;
+  }
+  onEntranceUse(entrance) {
+    this.entrance = entrance;
+    this.enterStep = 1;
+  }
+
   update() {
   	if (this.stun>0) this.stun -= 1;
   	if (this.invulnerability>0) this.invulnerability -= 1;
@@ -1155,6 +1259,8 @@ class Entity extends PhysicsBox {
   	}
   }
   breakConnections() { //removes references to this obj from other objects
+    if (this.entrance) this.entrance.forget();
+    if (this.exit) this.exit.forget();
   	if (this.held!=null) {
   		this.held.velX = this.velX;
   		this.held.velY = this.velY;
