@@ -587,7 +587,12 @@ class PhysicsBox extends Box {
   	this.cSidesPrev = {u:0,r:0,d:0,l:0};
   }
   preCollision() {
+    //prepare values for collision detection
   	if (this.defyPhysics||this.heldBy) return;
+    //clear values relating to ground and side detection
+    this.isGrounded = false;
+    this.cSidesPrev = this.cSides;
+    this.cSides = {u:0,r:0,d:0,l:0};
   	this.ground = null;
   	this.lineGround = null;
   	//bottom of screen
@@ -675,15 +680,9 @@ class PhysicsBox extends Box {
     this.edge("top",'y',-1,0,Level.level.height,this.topY(),this.bottomY(),this.height/2,this.height/2);
     this.edge("bottom",'y',1,0,Level.level.height,this.topY(),this.bottomY(),this.height/2,this.height/2);
 
-    //prepare values for collision detection
     //store change in position during this update
     this.dx = this.x-oldX, this.dy = this.y-oldY;
-    //clear values relating to change in position
     this.prevX = oldX, this.prevY = oldY;
-    //clear values relating to ground and side detection
-  	this.isGrounded = false;
-  	this.cSidesPrev = this.cSides;
-  	this.cSides = {u:0,r:0,d:0,l:0};
   }
   respawn() {
   	this.x = this.spawnX;
