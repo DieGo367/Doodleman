@@ -497,7 +497,7 @@ class Door extends Entrance {
         if (this.animCurrent=="open") this.exitStep++;
         break;
       case 2:
-        if (this.obj.exitStep==3) {
+        if (this.obj.exitStep==4) {
           this.closeDoor();
           this.exitStep++;
         }
@@ -1415,7 +1415,7 @@ class Player extends Entity {
   }
   chooseAnimation(pad) {
     if (this.held==null) {
-      if (this.usingEntrance()&&this.doorTick<30) this.setAnimation("run");
+      if (this.usingEntrance()&&(this.exitStep>2||this.enterStep<2)) this.setAnimation("invisible");
       else if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("jump");
       else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
       else if (this.ducking) this.setAnimation("crouch");
@@ -1458,10 +1458,13 @@ class Player extends Entity {
         this.faceTo(this.exit);
         if (this.distanceTo(this.exit)>4.5) this.move(1.5);
         else {
-          this.move(this.distanceTo(this.exit)/2);
-          if (this.doorTick>0) this.doorTick--;
-          else this.exitStep++;
+          this.setAnimation("exit-through-door",null,"full");
+          this.exitStep++;
         }
+        break;
+      case 3:
+        this.move(this.distanceTo(this.exit)/2);
+        if (this.animCurrent=="invisible") this.exitStep++;
         break;
     }
   }
@@ -1476,11 +1479,13 @@ class Player extends Entity {
     this.invulnerability = 3;
     switch(this.enterStep) {
       case 1:
-        if (this.entrance.enterStep==2) this.enterStep++;
+        if (this.entrance.enterStep==2) {
+          this.setAnimation("enter-from-door",null,"full");
+          this.enterStep++;
+        }
         break;
       case 2:
-        if (this.doorTick>0) this.doorTick--;
-        else this.enterStep++;
+        if (this.animCurrent!="enter-from-door") this.enterStep++;
     }
   }
 
@@ -1609,19 +1614,6 @@ class Player extends Entity {
   	super.respawn();
   }
 
-  draw(preventAnimTick) {
-    c.save();
-  	if (this.exit) {
-      if (this.exitStep==2) c.globalAlpha = this.doorTick/30;
-      else if (this.exitStep==3) c.globalAlpha = 0;
-    }
-    else if (this.entrance) {
-      if (this.enterStep==1) c.globalAlpha = 0;
-      if (this.enterStep==2) c.globalAlpha = 1-this.doorTick/30;
-    }
-  	super.draw(preventAnimTick);
-  	c.restore();
-  }
   drawHud() {
   	var playerNumber = Player.getAll().indexOf(this);
   	Images.drawImage(this.sheet.pages[this.animPage],10,10+(24*playerNumber),19,19,0,0,19,19);
