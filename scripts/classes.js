@@ -396,22 +396,21 @@ class Entrance extends Interactable {
     else return true;
   }
   forget() {
+    // clear connections
     let obj = this.obj;
     this.obj = null;
+    obj.exit = obj.entrance = null;
     // clear step counters
     this.exitStep = this.enterStep = 0;
-    // let object forget
-    obj.forgetEntrance();
   }
   useExit(obj) {
-    // store the object and prepare
+    // store objects and set step counter
     this.obj = obj;
+    obj.exit = this;
     this.exitStep = 1;
-    // let object prepare
-    obj.onExitUse(this);
   }
   doExitSteps() {
-    if (this.exitStep==this.stepCount) this.finishExit();
+    this.finishExit();
   }
   finishExit() {
     let obj = this.obj;
@@ -429,14 +428,13 @@ class Entrance extends Interactable {
     }
   }
   useEntrance(obj) {
-    // store the object and prepare
+    // store the objects and set step counter
     this.obj = obj;
+    obj.entrance = this;
     this.enterStep = 1;
-    // let object prepare
-    obj.onEntranceUse(this);
   }
   doEnterSteps() {
-    if (this.enterStep==this.stepCount) this.finishEntrance();
+    this.finishEntrance();
   }
   finishEntrance() {
     // do warp
@@ -446,7 +444,6 @@ class Entrance extends Interactable {
     this.forget();
   }
   static onInit() {
-    this.prototype.stepCount = 1;
     this.prototype.hitBoxStroke = "purple";
     this.prototype.lockSectors = true;
   }
@@ -484,49 +481,74 @@ class Door extends Entrance {
     return true;
   }
   forget() {
-    super.forget();
     if (this.doorOpen) this.closeDoor();
+    this.obj.defyGravity = false;
+    this.obj.collisionType = C_ENT;
+    Collision.removeAllPairsWith(this.obj);
+    this.obj.invulnerability = 0;
+    super.forget();
   }
   useExit(player) {
     super.useExit(player);
     this.openDoor();
+    player.doorTick = 30;
+    player.velX = 0;
+    player.velY = 0;
+    player.defyGravity = true;
+    player.collisionType = C_NONE;
+    player.invulnerability = 3;
+    player.faceTo(this);
   }
   doExitSteps() {
+    this.obj.invulnerability = 3;
     switch(this.exitStep) {
       case 1:
         if (this.animCurrent=="open") this.exitStep++;
         break;
       case 2:
-        if (this.obj.exitStep==4) {
-          this.closeDoor();
+        if (this.obj.distanceTo(this)>4.5) this.obj.move(1.5);
+        else {
+          this.obj.setAnimation("exit-through-door",null,"full");
           this.exitStep++;
         }
         break;
       case 3:
-        if (this.animCurrent=="closed") this.exitStep++;
+        this.obj.move(this.obj.distanceTo(this)/2);
+        if (this.obj.animCurrent!="exit-through-door") {
+          this.closeDoor();
+          this.exitStep++;
+        }
+        break;
+      case 4:
+        if (this.animCurrent=="closed") this.finishExit();
         break;
     }
-    super.doExitSteps();
   }
   useEntrance(player) {
     super.useEntrance(player);
     this.openDoor();
     player.x = this.x;
     player.y = this.y;
+    player.defyGravity = true;
+    player.collisionType = C_NONE;
+    player.invulnerability = 3;
   }
   doEnterSteps() {
+    this.obj.invulnerability = 3;
     switch(this.enterStep) {
       case 1:
-        if (this.animLock==0) this.enterStep++;
+        if (this.animCurrent=="open") {
+          this.obj.setAnimation("enter-from-door",null,"full");
+          this.enterStep++;
+        }
         break;
       case 2:
-        if (this.obj.enterStep==3) {
+        if (this.obj.animCurrent!="enter-from-door") {
           this.closeDoor();
-          this.enterStep = 4;
+          this.finishEntrance();
         }
         break;
     }
-    super.doEnterSteps();
   }
   openDoor() {
     this.setAnimation("opening",null,"full");
@@ -539,7 +561,6 @@ class Door extends Entrance {
   static onInit() {
     Animation.applyToClass(this);
     this.prototype.drawLayer = -1;
-    this.prototype.stepCount = 4;
   }
 }
 initClass(Door,Entrance);
@@ -1195,19 +1216,6 @@ class Entity extends PhysicsBox {
   	}
   }
 
-  forgetEntrance() {
-    this.entrance = this.exit = null;
-    this.enterStep = this.exitStep = 0;
-  }
-  onExitUse(exit) {
-    this.exit = exit;
-    this.exitStep = 1;
-  }
-  onEntranceUse(entrance) {
-    this.entrance = entrance;
-    this.enterStep = 1;
-  }
-
   update() {
   	if (this.stun>0) this.stun -= 1;
   	if (this.invulnerability>0) this.invulnerability -= 1;
@@ -1415,7 +1423,8 @@ class Player extends Entity {
   }
   chooseAnimation(pad) {
     if (this.held==null) {
-      if (this.usingEntrance()&&(this.exitStep>2||this.enterStep<2)) this.setAnimation("invisible");
+      if (this.exit&&this.exit.exitStep>2) this.setAnimation("invisible");
+      else if (this.entrance&&this.entrance.enterStep<2) this.setAnimation("invisible");
       else if (!this.isGrounded&&this.heldBy==null&&!this.lineGround) this.setAnimation("jump");
       else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
       else if (this.ducking) this.setAnimation("crouch");
@@ -1428,66 +1437,8 @@ class Player extends Entity {
       else this.setAnimation("carry-stand");
     }
   }
-
   usingEntrance() {
     return !!(this.entrance||this.exit);
-  }
-  forgetEntrance() {
-    super.forgetEntrance();
-    this.defyGravity = false;
-    this.collisionType = C_ENT;
-    Collision.removeAllPairsWith(this);
-    this.invulnerability = 0;
-  }
-  onExitUse(exit) {
-    super.onExitUse(exit);
-    this.doorTick = 30;
-    this.velX = 0;
-    this.velY = 0;
-    this.defyGravity = true;
-    this.collisionType = C_NONE;
-    this.invulnerability = 3;
-  }
-  exitActions() {
-    this.invulnerability = 3;
-    switch(this.exitStep) {
-      case 1:
-        this.faceTo(this.exit);
-        if (this.exit.exitStep==2) this.exitStep++;
-        break;
-      case 2:
-        this.faceTo(this.exit);
-        if (this.distanceTo(this.exit)>4.5) this.move(1.5);
-        else {
-          this.setAnimation("exit-through-door",null,"full");
-          this.exitStep++;
-        }
-        break;
-      case 3:
-        this.move(this.distanceTo(this.exit)/2);
-        if (this.animCurrent=="invisible") this.exitStep++;
-        break;
-    }
-  }
-  onEntranceUse(entrance) {
-    super.onEntranceUse(entrance);
-    this.doorTick = 30;
-    this.defyGravity = true;
-    this.collisionType = C_NONE;
-    this.invulnerability = 3;
-  }
-  entranceActions() {
-    this.invulnerability = 3;
-    switch(this.enterStep) {
-      case 1:
-        if (this.entrance.enterStep==2) {
-          this.setAnimation("enter-from-door",null,"full");
-          this.enterStep++;
-        }
-        break;
-      case 2:
-        if (this.animCurrent!="enter-from-door") this.enterStep++;
-    }
   }
 
   liftObject() {
@@ -1575,9 +1526,6 @@ class Player extends Entity {
       controller = NullCtrl.ctrls[0]; //defaults to no input pressed
       console.log("missing controller");
     }
-
-  	if (this.entrance) this.entranceActions();
-    else if (this.exit) this.exitActions();
 
   	if (this.attackCooldown>0) this.attackCooldown -= 1;
 
