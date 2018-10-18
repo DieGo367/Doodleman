@@ -1436,6 +1436,7 @@ class Player extends Entity {
     super.forgetEntrance();
     this.defyGravity = false;
     this.collisionType = C_ENT;
+    Collision.removeAllPairsWith(this);
     this.invulnerability = 0;
   }
   onExitUse(exit) {
