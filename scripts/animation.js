@@ -170,7 +170,7 @@ const Animation = {
 		else sheet.fillStyle = "hotpink";
 		c.fillRect(entity.x-entity.halfW(),entity.y,entity.width,-entity.height);
 	},
-	spritesheets: {}, loadStatus: 1,
+	spritesheets: {}, loadStatus: 1, appliedClasses: [],
 	loadSpritesheet: function(name,data) {
 		var sheet = JSON.parse(data);
 		sheet.getAnimation = function(action) {
@@ -251,6 +251,10 @@ const Animation = {
 		obj.setAnimationPage = Animation.protoSetAnimationPage;
 	},
 	applyToClass: function(cl) {
-		Animation.applyTo(cl.prototype);
+		this.applyTo(cl.prototype);
+		this.appliedClasses.push(cl);
+	},
+	update: function() {
+		for (var i in this.appliedClasses) this.appliedClasses[i].callForAll("animationTick");
 	}
 }

@@ -71,8 +71,7 @@ function tick() { //GAME UPDATES//
 		Game.tick();
 
 		Collision.checkRequests();
-		Entity.callForAll("animationTick");
-		Door.callForAll("animationTick");
+		Animation.update();
 		Box.callForAll("update");
 		Line.callForAll("update");
 		Collision.run();
