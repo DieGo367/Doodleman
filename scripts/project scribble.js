@@ -670,7 +670,7 @@ function doGlobalControls(controller) {
 	}
 	if (controller.ready("showInfo")) {
 		G$("CtrlDevMode").on = devEnabled = !devEnabled;
-		if (!paused&&devEnabled&&Game.mode!=GAME_EDITOR) G$("DevTools").show();
+		if (!paused&&devEnabled&&Pointer.focusLayer==0&&Game.mode!=GAME_EDITOR) G$("DevTools").show();
 		else G$("DevTools").hide();
 		controller.use("showInfo");
 	}
