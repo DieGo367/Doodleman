@@ -92,6 +92,8 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     View.create("DeathScreen",1,0,0,WIDTH,HEIGHT,"tint","black");
     TextElement.create("DeathText","DeathScreen",WIDTH/2,HEIGHT/4,fontPaused,"Score: {{var}}",WIDTH,CENTER).setVar(0).show();
     Button.create("PlayAgain","DeathScreen",WIDTH/2-150,HEIGHT-120,300,40,"Play Again").setOnClick(function() {
+      this.view.hide();
+      G$("Hud").show();
       Level.loadLevel("Room-1.json");
     }).show();
     Button.create("DeathScreenQuit","DeathScreen",WIDTH/2-150,HEIGHT-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
