@@ -206,13 +206,15 @@ const Animation = {
 	protoAnimationTick: function() {
 		if (paused) return;
 		var animation = this.sheet.getAnimation(this.animCurrent);
-		if (!animation) return console.log("Missing animation: "+this.animCurrent);
-		this.animFrame += 1;
-		if (Math.floor(this.animFrame*animation.framerate)>=animation.frames.length) {
-			this.animFrame = 0;
-			this.animLock = 0;
-			this.animPrevious = this.animCurrent;
+		if (animation) {
+			this.animFrame += 1;
+			if (Math.floor(this.animFrame*animation.framerate)>=animation.frames.length) {
+				this.animFrame = 0;
+				this.animLock = 0;
+				this.animPrevious = this.animCurrent;
+			}
 		}
+		else if (this.animCurrent!="none") console.log("Missing animation: "+this.animCurrent);
 	},
 	protoSetAnimation: function(animation,direction,lockTime) {
 		if (this.animLock>0) {
