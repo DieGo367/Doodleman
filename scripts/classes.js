@@ -1721,18 +1721,48 @@ class Enemy extends Entity {
     let distY = Math.abs(this.y-this.target.y);
     if (this.exclaim<=0) {
       let frontBox = new Box(this.calcXPosInFront(15/2),this.y-1,15,this.height-2);
-      if (dist>30) {
-        //follow
-        if (!this.stun) this.move(2.5);
-        //jump
-        let isBlocked = false, objs = PhysicsBox.getLoaded();
-        for (var i in objs) {
-          let box = objs[i];
-          if (box==this||box==this.target) continue; //self and target should't trigger a jump
-          if (box.collisionType==C_LINE&&(box.line.direction==LINE_UP||box.line.direction==LINE_DOWN)) continue; //don't trigger jump from lines
-          if (box.intersect(frontBox)) isBlocked = true;
+      let jumpBox = new Box(this.calcXPosInFront(0),this.y,10,126); // 126 is current jump height. Todo: replace with jumpHeight()
+      let searchUp = this.target.y<this.topY()-10;
+      if (dist>30&&this.stun==0) {
+        // follow
+        this.move(2.5);
+        // jump
+        if (this.isGrounded) {
+          let isBlocked = false, foundJumpSpot = false, objs = PhysicsBox.getLoaded();
+          for (var i in objs) {
+            let box = objs[i];
+            if (box==this||box==this.target) continue; //self and target should't trigger a jump
+            if (box.intersect(frontBox)) {
+              isBlocked = true;
+              break;
+            }
+            if (!foundJumpSpot&&searchUp&&box.intersect(jumpBox)) {
+              if (jumpBox.containsPoint(box.leftX(),box.topY()) || jumpBox.containsPoint(box.rightX(),box.topY())) {
+                foundJumpSpot = true;
+              }
+            }
+          }
+          if (!isBlocked) {
+            let lines = Line.getLoaded();
+            for (var i in lines) {
+              let line = lines[i];
+              if (line.direction==LINE_LEFT||line.direction==LINE_RIGHT) {
+                if (line.intersect(frontBox)) {
+                  isBlocked = true;
+                  break;
+                }
+              }
+              if (!foundJumpSpot&&searchUp&&line.direction==LINE_UP) {
+                if (line.intersect(jumpBox)) {
+                  if (jumpBox.containsPoint(line.x,line.y) || jumpBox.containsPoint(line.x2,line.y2)) {
+                    foundJumpSpot = true;
+                  }
+                }
+              }
+            }
+          }
+          if (isBlocked||foundJumpSpot) this.jump();
         }
-        if (isBlocked&&this.isGrounded&&this.stun==0) this.jump();
       }
       else {
         //attack
