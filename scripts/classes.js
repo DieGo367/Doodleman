@@ -1760,33 +1760,34 @@ class Enemy extends Entity {
       this.standbyTick = -1;
     }
     this.standbyTick += 1;
-    let dist = Math.abs(this.x-this.paceTarget);
-    let frontBox = new Box(this.calcXPosInFront(1),this.y-1,2,this.height-2);
-    let groundBox = new Box(this.calcXPosInFront(0.8),this.y+1,1.5,2);
-
-    let isBlocked = false, foundGround = false;
-    let boxes = PhysicsBox.getLoaded();
-    for (var i in boxes) {
-      if (boxes[i]==this) continue;
-      if (!isBlocked && boxes[i].intersect(frontBox)) isBlocked = true;
-      if (!foundGround && boxes[i].intersect(groundBox)) foundGround = true;
-      if (isBlocked) break;
-    }
-    if (!isBlocked&&!foundGround) {
-      let lines = Line.getLoaded();
-      for (var i in lines) {
-        if (lines[i].direction==LINE_LEFT||lines[i].direction==LINE_RIGHT) {
-          if (!isBlocked && frontBox.intersect(lines[i])) isBlocked = true;
-        }
-        if (lines[i].direction==LINE_UP) {
-          if (!foundGround && groundBox.intersect(lines[i])) foundGround = true;
-        }
-        if (isBlocked) break;
-      }
-    }
-    if (this.paceTarget!=null&&dist>3) {
+    if (this.paceTarget!=null&&Math.abs(this.x-this.paceTarget)>3) {
       this.faceTo(this.paceTarget);
-      if (!isBlocked && foundGround && this.stun==0) this.move(1.5);
+      if (this.stun==0) {
+        let frontBox = new Box(this.calcXPosInFront(1),this.y-1,2,this.height-2);
+        let groundBox = new Box(this.calcXPosInFront(0.8),this.y+1,1.5,2);
+
+        let isBlocked = false, foundGround = false;
+        let boxes = PhysicsBox.getLoaded();
+        for (var i in boxes) {
+          if (boxes[i]==this) continue;
+          if (!isBlocked && boxes[i].intersect(frontBox)) isBlocked = true;
+          if (!foundGround && boxes[i].intersect(groundBox)) foundGround = true;
+          if (isBlocked) break;
+        }
+        if (!isBlocked&&!foundGround) {
+          let lines = Line.getLoaded();
+          for (var i in lines) {
+            if (lines[i].direction==LINE_LEFT||lines[i].direction==LINE_RIGHT) {
+              if (!isBlocked && frontBox.intersect(lines[i])) isBlocked = true;
+            }
+            if (lines[i].direction==LINE_UP) {
+              if (!foundGround && groundBox.intersect(lines[i])) foundGround = true;
+            }
+            if (isBlocked) break;
+          }
+        }
+        if (!isBlocked&&foundGround) this.move(1.5);
+      }
     }
     else this.paceTarget = null;
   }
