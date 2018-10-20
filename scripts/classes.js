@@ -1770,11 +1770,7 @@ class Enemy extends Entity {
       if (boxes[i]==this) continue;
       if (!isBlocked && boxes[i].intersect(frontBox)) isBlocked = true;
       if (!foundGround && boxes[i].intersect(groundBox)) foundGround = true;
-<<<<<<< HEAD
       if (isBlocked) break;
-=======
-      if (isBlocked&&foundGround) break;
->>>>>>> 6663f37f76906c1269ff723c3dc670878e52caa1
     }
     if (!isBlocked&&!foundGround) {
       let lines = Line.getLoaded();
@@ -1785,11 +1781,7 @@ class Enemy extends Entity {
         if (lines[i].direction==LINE_UP) {
           if (!foundGround && groundBox.intersect(lines[i])) foundGround = true;
         }
-<<<<<<< HEAD
         if (isBlocked) break;
-=======
-        if (isBlocked&&foundGround) break;
->>>>>>> 6663f37f76906c1269ff723c3dc670878e52caa1
       }
     }
     if (this.paceTarget!=null&&dist>3) {
