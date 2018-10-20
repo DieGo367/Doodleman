@@ -1715,6 +1715,37 @@ class Enemy extends Entity {
   	this.standbyTick = 0;
   }
 
+  levelTest(blockBox,ignoreUIDs,customBoxTest,customLineTest) {
+    /*
+    Iterates over all loaded boxes and lines, and runs tests on them.
+    Returns an object that contains the results of both tests.
+    First test: to see if there is something intersects the blockBox,
+      indicating that it is obstructing the Enemy
+    Second test: custom, defined by parameters
+    If at any point the first test succeeds, the results are returned immediately,
+      regardless of whether or not the second test has passed yet (will get false negatives)
+    */
+    if (!ignoreUIDs) ignoreUIDs = {};
+    let customSuccess = false;
+    let boxes = PhysicsBox.getLoaded();
+    for (var i in boxes) {
+      let box = boxes[i];
+      if (box==this||ignoreUIDs[box.uid]) continue;
+      if (box.intersect(blockBox)) return {blocked: true, custom: customSuccess};
+      if (!customSuccess&&typeof customBoxTest=="function") customSuccess = customBoxTest(box);
+    }
+    let lines = Line.getLoaded();
+    for (var i in lines) {
+      let line = lines[i];
+      if (ignoreUIDs[line.uid]) continue;
+      if (line.direction==LINE_LEFT||line.direction==LINE_RIGHT) {
+        if (line.intersect(blockBox)) return {blocked: true, custom: customSuccess};
+      }
+      if (!customSuccess&&typeof customBoxTest=="function") customSuccess = customLineTest(line);
+    }
+    return {blocked: false, custom: customSuccess};
+  }
+
   handleTarget() {
     this.faceTo(this.target);
     let dist = this.distanceTo(this.target);
@@ -1728,40 +1759,15 @@ class Enemy extends Entity {
         this.move(2.5);
         // jump
         if (this.isGrounded) {
-          let isBlocked = false, foundJumpSpot = false, objs = PhysicsBox.getLoaded();
-          for (var i in objs) {
-            let box = objs[i];
-            if (box==this||box==this.target) continue; //self and target should't trigger a jump
-            if (box.intersect(frontBox)) {
-              isBlocked = true;
-              break;
-            }
-            if (!foundJumpSpot&&searchUp&&box.intersect(jumpBox)) {
-              if (jumpBox.containsPoint(box.leftX(),box.topY()) || jumpBox.containsPoint(box.rightX(),box.topY())) {
-                foundJumpSpot = true;
-              }
-            }
-          }
-          if (!isBlocked) {
-            let lines = Line.getLoaded();
-            for (var i in lines) {
-              let line = lines[i];
-              if (line.direction==LINE_LEFT||line.direction==LINE_RIGHT) {
-                if (line.intersect(frontBox)) {
-                  isBlocked = true;
-                  break;
-                }
-              }
-              if (!foundJumpSpot&&searchUp&&line.direction==LINE_UP) {
-                if (line.intersect(jumpBox)) {
-                  if (jumpBox.containsPoint(line.x,line.y) || jumpBox.containsPoint(line.x2,line.y2)) {
-                    foundJumpSpot = true;
-                  }
-                }
-              }
-            }
-          }
-          if (isBlocked||foundJumpSpot) this.jump();
+          let ignores = {};
+          ignores[this.target.uid] = true;
+          let test = this.levelTest(frontBox,ignores,function(box) {
+            return searchUp && (jumpBox.containsPoint(box.leftX(),box.topY()) || jumpBox.containsPoint(box.rightX(),box.topY()));
+          },
+          function(line) {
+            return searchUp && (jumpBox.containsPoint(line.x,line.y) || jumpBox.containsPoint(line.x2,line.y2));
+          });
+          if (test.blocked||test.custom) this.jump();
         }
       }
       else {
@@ -1796,27 +1802,14 @@ class Enemy extends Entity {
         let frontBox = new Box(this.calcXPosInFront(1),this.y-1,2,this.height-2);
         let groundBox = new Box(this.calcXPosInFront(0.8),this.y+1,1.5,2);
 
-        let isBlocked = false, foundGround = false;
-        let boxes = PhysicsBox.getLoaded();
-        for (var i in boxes) {
-          if (boxes[i]==this) continue;
-          if (!isBlocked && boxes[i].intersect(frontBox)) isBlocked = true;
-          if (!foundGround && boxes[i].intersect(groundBox)) foundGround = true;
-          if (isBlocked) break;
-        }
-        if (!isBlocked&&!foundGround) {
-          let lines = Line.getLoaded();
-          for (var i in lines) {
-            if (lines[i].direction==LINE_LEFT||lines[i].direction==LINE_RIGHT) {
-              if (!isBlocked && frontBox.intersect(lines[i])) isBlocked = true;
-            }
-            if (lines[i].direction==LINE_UP) {
-              if (!foundGround && groundBox.intersect(lines[i])) foundGround = true;
-            }
-            if (isBlocked) break;
-          }
-        }
-        if (!isBlocked&&foundGround) this.move(1.5);
+        let test = this.levelTest(frontBox,{},function(box) {
+          return box.intersect(groundBox);
+        },
+        function(line) {
+          if (line.direction==LINE_UP) return line.intersect(groundBox);
+          else return false;
+        });
+        if (!test.blocked&&test.custom) this.move(1.5);
       }
     }
     else this.paceTarget = null;
