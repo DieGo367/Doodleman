@@ -566,8 +566,21 @@ class Door extends Entrance {
 initClass(Door,Entrance);
 
 class SpawnZone extends Entrance {
-  constructor(x,y,width,height) {
-    super(x,y,width,height,void(0),void(0),Enemy,void(0),void(0),false,true);
+  constructor(x,y,width,height,forceSpawns) {
+    super(x,y,width,height,void(0),void(0),Entity,void(0),void(0),false,true);
+    this.forceSpawns = !!forceSpawns;
+    this.playerBlocked = false;
+  }
+  update() {
+    this.playerBlocked = false;
+    if (this.forceSpawns) return;
+    for (var i in Player.slots) {
+      let p = Player.slots[i];
+      if (p&&this.intersect(p)) {
+        this.playerBlocked = true;
+        return;
+      }
+    }
   }
   area() { return this.width*this.height; }
   drawDebug() {
@@ -592,7 +605,7 @@ class SpawnZone extends Entrance {
     let totalArea = 0;
     for (var u in this.classList) {
       let zone = this.classList[u];
-      if (zone.isLoaded) {
+      if (zone.isLoaded&&!zone.playerBlocked) {
         zones.push(zone);
         totalArea += zone.area();
       }

@@ -44,7 +44,7 @@
   {
     "id": 24,
     "class": "SpawnZone",
-    "properties": ["val0","val1","val2","val3"],
-    "valueNames": ["x","y","#width","#height"]
+    "properties": ["val0","val1","val2","val3","val4"],
+    "valueNames": ["x","y","#width","#height","?forceSpawns"]
   }
 ]
