@@ -1760,12 +1760,27 @@ class Enemy extends Entity {
       this.standbyTick = -1;
     }
     this.standbyTick += 1;
-    var dist = Math.abs(this.x-this.paceTarget);
-    var frontBox = new Box(this.calcXPosInFront(1),this.y-1,2,this.height-2);
-    var isBlocked = false, allEnem = Enemy.getLoaded();
-    for (var j in allEnem) {
-      if (allEnem[j]==this) continue;
-      if (allEnem[j].intersect(frontBox)) isBlocked = true;
+    let dist = Math.abs(this.x-this.paceTarget);
+    let frontBox = new Box(this.calcXPosInFront(1),this.y-1,2,this.height-2);
+
+    let isBlocked = false, boxes = PhysicsBox.getLoaded();
+    for (var i in boxes) {
+      if (boxes[i]==this) continue;
+      if (boxes[i].intersect(frontBox)) {
+        isBlocked = true;
+        break;
+      }
+    }
+    if (!isBlocked) {
+      let lines = Line.getLoaded();
+      for (var i in lines) {
+        if (lines[i].direction==LINE_LEFT||lines[i].direction==LINE_RIGHT) {
+          if (frontBox.intersect(lines[i])) {
+            isBlocked = true;
+            break;
+          }
+        }
+      }
     }
     if (this.paceTarget!=null&&dist>3) {
       this.faceTo(this.paceTarget);
