@@ -521,9 +521,6 @@ const Sound = {
 		if (!copy) copy = sound.copy = sound.cloneNode();
 		if (copy.currentTime!=0&&!copy.ended) this.playCopy(copy,loop+1);
 		else copy.play();
-	},
-	stop: function(name) {
-		this.soundData[name].stop();
 	}
 }
 
