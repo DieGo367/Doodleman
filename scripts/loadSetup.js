@@ -83,7 +83,10 @@ $(window).on("load",function() {
 
   ResourceManager.requestGroup("res/sound",function(item,name) {
     Sound.loadSound(name);
-  })
+  });
+  ResourceManager.requestGroup("res/tracks",function(item,name) {
+    Sound.addTrack(name);
+  });
 
 	loadLoop();
 });

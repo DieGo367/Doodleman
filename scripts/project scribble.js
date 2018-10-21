@@ -502,7 +502,7 @@ function Point(x,y) {
 	this.y = y;
 }
 const Sound = {
-	soundData: {},
+	soundData: {}, tracks: {}, playing: null,
 	loadSound: function(name) {
 		this.soundData[name] = new Audio("res/sound/"+name);
 	},
@@ -521,6 +521,32 @@ const Sound = {
 		if (!copy) copy = sound.copy = sound.cloneNode();
 		if (copy.currentTime!=0&&!copy.ended) this.playCopy(copy,loop+1);
 		else copy.play();
+	},
+	addTrack: function(name) {
+		this.tracks[name] = new Audio("res/tracks/"+name);
+		this.tracks[name].loop = true;
+	},
+	getTrack: function(name) {
+		return this.tracks[name];
+	},
+	playTrack: function(name) {
+		let track = this.getTrack(name||this.playing);
+		if (track) {
+			track.play();
+			this.playing = name||this.playing;
+		}
+	},
+	pauseTrack: function() {
+		let track = this.getTrack(this.playing);
+		if (track) track.pause();
+	},
+	stopTrack: function() {
+		let track = this.getTrack(this.playing);
+		if (track) {
+			track.pause();
+			track.currentTime = 0;
+			this.playing = null;
+		}
 	}
 }
 
