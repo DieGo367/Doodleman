@@ -29,7 +29,7 @@ const ResourceManager = {
         $.get(groupName+"/"+list[i],function(item) {
           if (typeof item=="object") item = JSON.stringify(item);
           ResourceManager.store(this.url,item);
-          if (typeof forEach=="function") forEach(item,this.url.split("/")[1]);
+          if (typeof forEach=="function") forEach(item,this.url.split("/").pop());
           var status = ResourceManager.checkStatus(groupName);
           if (status==1&&typeof onComplete=="function") onComplete(list,groupName);
           ResourceManager.setStatus(groupName,-1);
