@@ -81,5 +81,9 @@ $(window).on("load",function() {
 		Animation.doInheritance(list);
 	});
 
+  ResourceManager.requestGroup("res/sound",function(item,name) {
+    Sound.loadSound(name);
+  })
+
 	loadLoop();
 });

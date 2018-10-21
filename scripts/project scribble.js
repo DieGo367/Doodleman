@@ -501,6 +501,31 @@ function Point(x,y) {
 	this.x = x;
 	this.y = y;
 }
+const Sound = {
+	soundData: {},
+	loadSound: function(name) {
+		this.soundData[name] = new Audio("res/sound/"+name);
+	},
+	getSound: function(name) {
+		return this.soundData[name];
+	},
+	play: function(name) {
+		let sound = this.getSound(name);
+		if (!sound) return;
+		if (sound.currentTime!=0&&!sound.ended) this.playCopy(sound,0);
+		else sound.play();
+	},
+	playCopy: function(sound,loop) {
+		if (loop>10) return console.log("Sound copy limit");
+		let copy = sound.copy;
+		if (!copy) copy = sound.copy = sound.cloneNode();
+		if (copy.currentTime!=0&&!copy.ended) this.playCopy(copy,loop+1);
+		else copy.play();
+	},
+	stop: function(name) {
+		this.soundData[name].stop();
+	}
+}
 
 //Game Functions
 
