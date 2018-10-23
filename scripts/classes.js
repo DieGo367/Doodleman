@@ -333,7 +333,7 @@ class Interactable extends Box {
 }
 initClass(Interactable,Box);
 
-class HarmBox extends Interactable {
+class HurtBox extends Interactable {
   constructor(x,y,width,height,attacker,damage,duration,formulaX,formulaY,endCheck) {
   	super(x,y,width,height,void(0),void(0),Entity);
   	this.attacker = attacker;
@@ -378,9 +378,9 @@ class HarmBox extends Interactable {
     this.prototype.hitBoxStroke = "red";
   }
 }
-initClass(HarmBox,Interactable);
+initClass(HurtBox,Interactable);
 
-class AttackBox extends HarmBox {
+class AttackBox extends HurtBox {
   constructor(x,y,width,height,attacker,damage,duration,frames,framerate) {
     var formulaX = function(ent) {
       var frameIndex = Math.floor(this.frame*this.framerate);
@@ -427,7 +427,7 @@ class AttackBox extends HarmBox {
     super.remove();
   }
 }
-initClass(AttackBox,HarmBox);
+initClass(AttackBox,HurtBox);
 
 class Entrance extends Interactable {
   constructor(x,y,width,height,color,sprite,targetClass,linkId,destination,preventEnter,preventExit) {
@@ -1589,7 +1589,7 @@ class Player extends Entity {
     var xFunct = function(thrownObj,harm) { return thrownObj.x; };
     var yFunct = function(thrownObj) { return thrownObj.y+5; };
     if (throwing.thrownDamage>0) {
-      var throwHurt = HarmBox.create(throwing.x,throwing.y+5,throwing.width+10,throwing.height+10,throwing,throwing.thrownDamage,1000,xFunct,yFunct,function(thrownObj,harm) {
+      var throwHurt = HurtBox.create(throwing.x,throwing.y+5,throwing.width+10,throwing.height+10,throwing,throwing.thrownDamage,1000,xFunct,yFunct,function(thrownObj,harm) {
         return (thrownObj.velX==0&&thrownObj.velY==0)||thrownObj.isGrounded;
       });
       throwHurt.harmed[this.uid] = this;
