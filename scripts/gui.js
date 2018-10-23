@@ -120,10 +120,11 @@ function buildPauseMenu() {
 		})
 	}).show();
 
-  Button.create("FSToggle","PauseMenu",WIDTH-130,10,50,50).setToggle(function() {
+  Button.create("FSToggle","PauseMenu",WIDTH-120,10,50,50).setToggle(function() {
 		callPrefixedFunction(canvas,"requestFullscreen");
 		callPrefixedFunction(canvas,"requestFullScreen");
-	}, function() {
+	},
+	function() {
 		callPrefixedFunction(document,"exitFullscreen");
 		callPrefixedFunction(document,"exitFullScreen");
 	},true)
