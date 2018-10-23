@@ -8,24 +8,17 @@ class _c_ {
   }
   static addInstance(instance) {
     if (this.parent!=null) this.parent.addInstance(instance);
-    if (this.listType=="array") this.classList.push(instance);
-    else if (this.listType=="uid") this.classList[instance.uid] = instance;
+    this.classList.add(instance);
   }
   static removeInstance(instance) {
     if (this.parent!=null) this.parent.removeInstance(instance);
-    if (this.listType=="array") this.classList.splice(this.classList.indexOf(instance),1);
-    else if (this.listType=="uid") delete this.classList[instance.uid];
+    this.classList.remove(instance);
   }
   static has(instance) {
-    if (this.listType=="array") return this.classList.indexOf(instance) == -1;
-    else if (this.listType=="uid") return this.classList[instance.uid] != null;
+    return this.classList.has(instance);
   }
   static getAll() {
-    let list = [];
-
-    if (this.listType=="array") list = list.concat(this.classList);
-    else if (this.listType=="uid") for (var c in this.classList) list.push(this.classList[c]);
-    return list;
+    return this.classList.getAll();
   }
   static getLoaded() {
     let list = [];
@@ -74,12 +67,85 @@ function initClass(cl,param) {
   }
   switch(cl.listType) {
     case "array":
-      cl.classList = [];
+      cl.classList = new ArrayStore();
       break;
     case "uid":
-      cl.classList = {};
+      cl.classList = new UIDStore();
   }
   if (typeof cl.onInit=="function") cl.onInit();
+}
+class UIDStore {
+  constructor() {
+    Object.defineProperty(this,"count",{
+      value: 0,
+      writable: true
+    })
+    Object.defineProperty(this,"add",{
+      value: function(instance) {
+        if (!instance||!instance.uid) return;
+        if (!this[instance.uid]) this.count++;
+        this[instance.uid] = instance;
+        return this;
+      }
+    });
+    Object.defineProperty(this,"remove",{
+      value: function(instance) {
+        if (!instance||!instance.uid) return;
+        if (this[instance.uid]) this.count--;
+        delete this[instance.uid];
+        return this;
+      }
+    });
+    Object.defineProperty(this,"has",{
+      value: function(instance) {
+        if (!instance||!instance.uid) return false;
+        return this[instance.uid] == instance;
+      }
+    });
+    Object.defineProperty(this,"getAll",{
+      value: function() {
+        let list = [];
+        for (var uid in this) list.push(this[uid]);
+        return list;
+      }
+    });
+  }
+}
+class ArrayStore extends Array {
+  constructor() {
+    super();
+    Object.defineProperty(this,"count",{
+      value: 0,
+      writable: true
+    })
+    Object.defineProperty(this,"add",{
+      value: function(instance) {
+        if (!instance) return;
+        this.push(instance);
+        this.count = this.length;
+        return this;
+      }
+    });
+    Object.defineProperty(this,"remove",{
+      value: function(instance) {
+        if (!instance) return;
+        this.splice(this.indexOf(instance),1);
+        this.count = this.length;
+        return this;
+      }
+    });
+    Object.defineProperty(this,"has",{
+      value: function(instance) {
+        if (!instance) return false;
+        return this.indexOf(instance) != -1;
+      }
+    });
+    Object.defineProperty(this,"getAll",{
+      value: function() {
+        return [].concat(this);
+      }
+    });
+  }
 }
 
 
