@@ -209,17 +209,14 @@ class Sector {
 		this.x = sectorX;
 		this.y = sectorY;
 		this.name = sectorX+","+sectorY;
-		this.objects = {};
-    this.count = 0;
+		this.objects = new UIDStore();
 		this.loaded = true;
 	}
   add(obj) {
-    this.objects[obj.uid] = obj;
-    this.count++;
+    this.objects.add(obj);
   }
   remove(obj) {
-    delete this.objects[obj.uid];
-    this.count--;
+    this.objects.remove(obj);
   }
 	drawDebug() {
 		c.strokeStyle = "orange";
@@ -249,7 +246,7 @@ class Sector {
 		for (var i in this.grid) this.grid[i].updateLoadedState();
 		Box.callForAll("setSectors");
     Line.callForAll("setSectors");
-    for (var i in this.grid) if (this.grid[i].count==0) delete this.grid[i];
+    for (var i in this.grid) if (this.grid[i].objects.count==0) delete this.grid[i];
 	}
 	static removeFromSector(obj,sectorX,sectorY) {
 		let sector = this.getSector(sectorX,sectorY);
@@ -285,11 +282,10 @@ class Sector {
     return list;
   }
   static getObjectGroupFromSectors(sectors) {
-    let objGroup = {};
+    let objGroup = new UIDStore();
     for (var i in sectors) {
       for (var j in sectors[i].objects) {
-        let obj = sectors[i].objects[j];
-        objGroup[obj.uid] = obj;
+        objGroup.add(sectors[i].objects[j]);
       }
     }
     return objGroup;
