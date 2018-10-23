@@ -502,7 +502,7 @@ function Point(x,y) {
 	this.y = y;
 }
 const Sound = {
-	soundData: {}, tracks: {}, playing: null,
+	soundData: {}, tracks: {}, playing: null, volume: 1,
 	loadSound: function(name) {
 		this.soundData[name] = new Audio("res/sound/"+name);
 	},
@@ -512,6 +512,7 @@ const Sound = {
 	play: function(name) {
 		let sound = this.getSound(name);
 		if (!sound) return;
+		sound.volume = this.volume;
 		if (sound.currentTime!=0&&!sound.ended) this.playCopy(sound,0);
 		else sound.play();
 	},
@@ -519,6 +520,7 @@ const Sound = {
 		if (loop>10) return console.log("Sound copy limit");
 		let copy = sound.copy;
 		if (!copy) copy = sound.copy = sound.cloneNode();
+		copy.volume = this.volume;
 		if (copy.currentTime!=0&&!copy.ended) this.playCopy(copy,loop+1);
 		else copy.play();
 	},
@@ -547,6 +549,11 @@ const Sound = {
 			track.currentTime = 0;
 			this.playing = null;
 		}
+	},
+	setVolume: function(volume) {
+		this.volume = volume;
+		let track = this.getTrack(this.playing);
+		if (track) track.volume = volume;
 	}
 }
 
