@@ -2441,6 +2441,17 @@ class Slider extends Button {
     this.barLength = barLength;
     this.value = 0;
     this.grip = null;
+    this.onClickFunction = function() {};
+  }
+  setValue(val) {
+    this.value = Math.max(0,Math.min(val,1));
+    this.x = this.anchorX + val*this.barLength;
+    return this;
+  }
+  setOnSlide(func) {
+    this.onSlideFunction = func;
+    this.mode = BUTTON_NORMAL;
+    return this;
   }
   checkMouse() {
     if (!this.isVisible()||viewLock) return;
@@ -2455,6 +2466,7 @@ class Slider extends Button {
     if (this.heldDown && Pointer.downPoint) {
       this.x = Math.max(this.anchorX,Math.min(Pointer.x-this.width/2,this.anchorX+this.barLength));
       this.value = (this.x-this.anchorX)/this.barLength;
+      if (typeof this.onSlideFunction=="function") this.onSlideFunction();
     }
     else this.heldDown = false;
   }
