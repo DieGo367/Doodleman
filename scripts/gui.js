@@ -153,7 +153,7 @@ function buildPauseMenu() {
 	.setOnSlide(function() {
 		Sound.setVolume(this.value);
 		G$("VolumeButton").setIcon("GUI-Icons.png",(this.value==0?1:0),3,42,4);
-	}).show();
+	});
 
   // TextElement.create("UserInfo","PauseMenu",WIDTH/2,HEIGHT-30,"Logged in as "+User.name,"Fredoka One",15,false,"white",CENTER)//.show();
 	// Button.create("LoginoutButton","PauseMenu",WIDTH/2-50,HEIGHT-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
