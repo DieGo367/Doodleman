@@ -201,7 +201,7 @@ const Pointer = {
 		if (altered&&altered.x!=null&&altered.y!=null) this.x = altered.x, this.y = altered.y;
 	},
 	mousedown: function(event) {
-		this.downPoint = [this.x,this.y];
+		this.downPoint = new Point(this.x,this.y);
 		this.downButton = event.which;
 		this.move(this.x,this.y);
 	},

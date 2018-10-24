@@ -2221,7 +2221,7 @@ class Button extends GuiElement {
   		return this.hovered = false;
   	}
     let dp = Pointer.downPoint;
-  	if (this.checkCoord(Pointer.x,Pointer.y)&&(!dp||this.checkCoord(dp[0],dp[1]))) {
+  	if (this.checkCoord(Pointer.x,Pointer.y)&&(!dp||this.checkCoord(dp.x,dp.y))) {
 			selectedElement = this;
       this.heldDown = (dp!=null);
 			return this.hovered = true;
