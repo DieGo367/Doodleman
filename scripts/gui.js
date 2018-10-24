@@ -140,9 +140,19 @@ function buildPauseMenu() {
 		G$("PauseMenu").hide();
 	}).setIcon("GUI-Icons.png",3,1,42,4).show();
 
-	Button.create("HelpButton","PauseMenu",70,10,50,50,"Help").setOnClick(function() {
-		G$("HelpView").show();
-		G$("PauseMenu").hide();
+	Button.create("VolumeButton","PauseMenu",70,10,50,50).setOnClick(function() {
+		let vol = G$("VolumeSlider");
+		if (vol.isVisible()) vol.hide();
+		else vol.show();
+	}).setIcon("GUI-Icons.png",0,3,42,4).show();
+	Slider.create("VolumeSlider","PauseMenu",130,15,20,40,100).setOnViewShown(function() {
+		this.hide();
+		this.setValue(Sound.volume);
+		G$("VolumeButton").setIcon("GUI-Icons.png",(this.value==0?1:0),3,42,4);
+	})
+	.setOnSlide(function() {
+		Sound.setVolume(this.value);
+		G$("VolumeButton").setIcon("GUI-Icons.png",(this.value==0?1:0),3,42,4);
 	}).show();
 
   // TextElement.create("UserInfo","PauseMenu",WIDTH/2,HEIGHT-30,"Logged in as "+User.name,"Fredoka One",15,false,"white",CENTER)//.show();
@@ -241,6 +251,11 @@ function buildControllerSettingsMenu() {
 			G$("MapperView").show();
 		});
 	}).show();
+
+	Button.create("HelpButton","CtrlSettingsView",10,10,50,50,"Help").setOnClick(function() {
+		G$("CtrlSettingsView").hide();
+		G$("HelpView").show();
+	}).show();
 }
 function buildControllerSelector(list,type,sourceButton) {
 	var finalList = [], names = [];
@@ -265,7 +280,7 @@ function buildHelpPage() {
 	Button.create("HelpClose","HelpView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("WASDPage").onClickFunction();
 		G$("HelpView").hide();
-		G$("PauseMenu").show();
+		G$("CtrlSettingsView").show();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
 	var actions = ["Move Left / Right", "Jump", "Crouch", "Attack", "Enter Door / Up"];
