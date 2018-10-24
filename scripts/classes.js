@@ -2433,6 +2433,45 @@ class TextInput extends Button {
 }
 initClass(TextInput,Button);
 
+class Slider extends Button {
+  constructor(name,viewName,x,y,width,height,barLength) {
+    super(name,viewName,x,y,width,height);
+    this.anchorX = x;
+    this.anchorY = y;
+    this.barLength = barLength;
+    this.value = 0;
+    this.grip = null;
+  }
+  checkMouse() {
+    if (!this.isVisible()||viewLock) return;
+    if (!this.heldDown) {
+      let tempX = this.x, tempY = this.y, tempWidth = this.width;
+      this.x = this.anchorX;
+      this.y = this.anchorY;
+      this.width += this.barLength;
+      super.checkMouse();
+      this.x = tempX, this.y = tempY, this.width = tempWidth;
+    }
+    if (this.heldDown && Pointer.downPoint) {
+      this.x = Math.max(this.anchorX,Math.min(Pointer.x-this.width/2,this.anchorX+this.barLength));
+      this.value = (this.x-this.anchorX)/this.barLength;
+    }
+    else this.heldDown = false;
+  }
+  customDraw() {
+    let x = this.anchorX+this.width/2, y = this.anchorY+this.height/2;
+    c.strokeStyle = "black";
+    c.lineWidth = 5;
+    drawLine(x,y,x+this.barLength,y);
+    c.strokeStyle = "white";
+    c.lineWidth = 3;
+    drawLine(x+1,y,x+this.barLength-2,y);
+    c.lineWidth = 1;
+    super.customDraw();
+  }
+}
+initClass(Slider,Button);
+
 class TextElement extends GuiElement {
   constructor(name,viewName,x,y,font,text,maxWidth,alignment) {
     super(name,viewName,x,y);
