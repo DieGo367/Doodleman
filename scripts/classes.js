@@ -2430,6 +2430,27 @@ class TextInput extends Button {
         }
     }
   }
+  createIncrementers(size,step,min,max) {
+    if (this.type!="number") return;
+    let valueSetter = function() {
+  		let value = this.targetInput.storedVal + this.step;
+      if (isNaN(value)) value = 0;
+  		if (this.min!=void(0)) value = Math.max(this.min,value);
+  		if (this.max!=void(0)) value = Math.min(this.max,value);
+  		this.targetInput.storedVal = value;
+  		this.targetInput.onInputChangeFunc(value);
+  	}
+  	let decrementer = Button.create(this.name+"--",this.view.name,this.x,this.y,size,this.height,"-").setOnClick(valueSetter).show();
+  	this.x += size;
+  	this.width -= 2*size;
+  	let incrementer = Button.create(this.name+"++",this.view.name,this.x+this.width,this.y,size,this.height,"+").setOnClick(valueSetter).show();
+  	incrementer.targetInput = decrementer.targetInput = this;
+  	incrementer.step = decrementer.step = step;
+    decrementer.step *= -1;
+  	incrementer.min = decrementer.min = min;
+  	incrementer.max = decrementer.max = max;
+    return this;
+  }
 }
 initClass(TextInput,Button);
 
