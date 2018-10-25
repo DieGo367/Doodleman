@@ -1998,6 +1998,7 @@ class View extends _c_ {
   show(src) {
   	this.visible = true;
   	Pointer.focusLayer = this.layer;
+    if (this.startElement) guiStartElement = this.startElement;
     this.onShow(src);
   	for (var i in this.children) this.children[i].onViewShown();
   	return this;
@@ -2006,6 +2007,7 @@ class View extends _c_ {
     this.visible = false;
     if (this.layer>0)
     Pointer.focusLayer = this.layer-1;
+    if (this.startElement) guiStartElement = null;
     return this;
   }
   onShow(src) {
@@ -2222,7 +2224,6 @@ class Button extends GuiElement {
   	}
     let dp = Pointer.downPoint;
   	if (this.checkCoord(Pointer.x,Pointer.y)&&(!dp||this.checkCoord(dp.x,dp.y))) {
-			selectedElement = this;
       this.heldDown = (dp!=null);
 			return this.hovered = true;
   	}
@@ -2233,9 +2234,9 @@ class Button extends GuiElement {
   }
   customDraw() {
   	var x = 0, y = 0;
-  	// if (this.hovered) y += 32;
     let drawPressed = this.heldDown && this.hovered;
     if (drawPressed) y += 64;
+    if (guiSelectedElement==this) y = 32;
   	if (this.on) x+= 32;
     if (this.mode==BUTTON_NO) x = 32*3;
     if (this.isCloseButton) x = 32*2;
@@ -2245,6 +2246,38 @@ class Button extends GuiElement {
       let font = (this.hovered&&!Tap.active)?fontButtonBold:fontButton;
       font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7+(drawPressed?2:0),this.width,CENTER);
   	}
+  }
+  up(name) {
+    this.neighbors.up = name;
+    return this;
+  }
+  down(name) {
+    this.neighbors.down = name;
+    return this;
+  }
+  left(name) {
+    this.neighbors.left = name;
+    return this;
+  }
+  right(name) {
+    this.neighbors.right = name;
+    return this;
+  }
+  setAsStart() {
+    this.view.startElement = this;
+    return this;
+  }
+  select() {
+    return guiSelectedElement = this;
+  }
+  selectDir(dir) {
+    let neighbor = G$(this.neighbors[dir]);
+    if (neighbor.isVisible&&neighbor.isVisible()&&typeof neighbor.select=="function"){
+      let inverted = ["down","up","right","left"][["up","down","left","right"].indexOf(dir)];
+      neighbor[inverted](this.name);
+      return neighbor.select();
+    }
+    else return this;
   }
   static setRadioGroup(group,func,strict) {
     let names = [];
@@ -2259,6 +2292,42 @@ class Button extends GuiElement {
       }
     }
     return names;
+  }
+  static pathHor(names) {
+    if (names.length<2) return;
+    for (var i = 0; i < names.length; i++) {
+      let b = G$(names[i]);
+      if (i!=0) b.left(names[i-1]);
+      if (i!=names.length-1) b.right(names[i+1]);
+    }
+  }
+  static pathVert(names) {
+    if (names.length<2) return;
+    for (var i = 0; i < names.length; i++) {
+      let b = G$(names[i]);
+      if (i!=0) b.up(names[i-1]);
+      if (i!=names.length-1) b.down(names[i+1]);
+    }
+  }
+  static pathGrid(names2d) {
+    let transpose = [];
+    for (var i = 0; i < names2d.length; i++) {
+      this.pathHor(names2d[i]);
+      for (var j = 0; j < names2d[i].length; j++) {
+        if (!transpose[j]) transpose[j] = [];
+        transpose[j][i] = names2d[i][j];
+      }
+    }
+    for (var j = 0; j < transpose.length; j++) {
+      this.pathVert(transpose[j]);
+    }
+  }
+  static funnelTo(buttonName,dir,sourceNames) {
+    if (["up","down","left","right"].indexOf(dir)==-1) return;
+    for (var i in sourceNames) {
+      let source = G$(sourceNames[i]);
+      source[dir](buttonName);
+    }
   }
 }
 initClass(Button,GuiElement);

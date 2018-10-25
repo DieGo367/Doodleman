@@ -6,7 +6,7 @@ var paused = false, pausedBy, focused = true, fullScreen = false, fullScreenChan
 var viewLock = false;
 var gameMode = 0, multiplayer = false, clickSpawn = false;
 var globalKeyboard;
-var selectedElement;
+var guiStartElement, guiSelectedElement;
 var uid = 0, uidDeleted = 0;
 var myAngle = 0;
 var hudText = 0, coords = "", keyText = "", buttonText = "";
@@ -197,6 +197,7 @@ const Pointer = {
 		if (y<0) y = 0;
 		this.x = Math.round(x), this.y = Math.round(y);
 		Button.callForAll("checkMouse");
+		guiSelectedElement = null;
 		let altered = Game.onPointerMove(x,y);
 		if (altered&&altered.x!=null&&altered.y!=null) this.x = altered.x, this.y = altered.y;
 	},
@@ -744,6 +745,18 @@ function doGlobalControls(controller) {
 				Camera.reset();
 			}
 			if (Camera.zoom<0) Camera.zoom = 0;
+		}
+		if (guiStartElement) {
+			let actions = controller.type==KEYBOARD? ["camUp","camDown","camLeft","camRight"]: ["lookUp","crouch","moveLeft","moveRight"];
+			let dirs = ["up","down","left","right"];
+			for (var i in dirs) {
+				if (controller.ready(actions[i])) {
+					if (guiSelectedElement) guiSelectedElement.selectDir(dirs[i]);
+					else guiStartElement.select();
+					controller.use(actions[i]);
+					break;
+				}
+			}
 		}
 	}
 	if (controller.type==GAMEPAD) {
