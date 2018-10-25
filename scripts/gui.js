@@ -18,12 +18,14 @@ G$.on = function(q) {
 
 //useful game functions
 function buildSelector(list,onSelect,onCancel,viewLayer) {
-	View.create("_Selector_",viewLayer===void(0)?1:viewLayer,0,0,WIDTH,HEIGHT,"tint","darkBlue").show();
+	let a = View.create("_Selector_",viewLayer===void(0)?1:viewLayer,0,0,WIDTH,HEIGHT,"tint","darkBlue");
+	let path = [];
 	for (var i in list) {
-		Button.create("_Selector_::"+i,"_Selector_",WIDTH/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
+		let b = Button.create("_Selector_::"+i,"_Selector_",WIDTH/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
 			if (typeof onSelect=="function") onSelect(this.name.split("::")[1],this.text);
 			G$("_SelectorClose_").onClickFunction();
 		}).show();
+		path.push(b.name);
 	}
 	Button.create("_SelectorClose_","_Selector_",WIDTH/2-150,HEIGHT-70,300,40,"Cancel").setOnClick(function() {
 		if (typeof onCancel=="function") onCancel();
@@ -31,6 +33,10 @@ function buildSelector(list,onSelect,onCancel,viewLayer) {
 		for (var i in view.children) view.children[i].remove();
 		view.hide().remove();
 	}).setClose(true).show();
+	path.push("_SelectorClose_");
+	Button.pathVert(path);
+	G$(path[0]).setAsStart();
+	a.show();
 }
 
 function attemptUserAction(action,src,caller) {
@@ -59,18 +65,15 @@ function clearViewLock() {
 function gameConfirm(text,onResponse) {
 	let a = View.create("_Confirm_",Pointer.focusLayer+1,15,15,WIDTH-30,HEIGHT-30,"window");
 	TextElement.create("_ConfirmText_","_Confirm_",WIDTH/2,HEIGHT/2,fontMenuTitle,text,WIDTH-30,CENTER).show();
-	let close = function() {
-		for (var i in a.children) a.children[i].remove();
-		a.hide().remove();
-	}
 	Button.create("_ConfirmYes_","_Confirm_",WIDTH/2-105,HEIGHT-150,100,40,"OK!").setOnClick(function() {
-		close();
+		this.view.remove();
 		onResponse(true);
 	}).show();
 	Button.create("_ConfirmNo_","_Confirm_",WIDTH/2+5,HEIGHT-150,100,40,"No").setClose(true).setOnClick(function() {
-		close();
+		this.view.remove();
 		onResponse(false);
-	}).show();
+	}).show().setAsStart();
+	Button.pathHor(["_ConfirmYes_","_ConfirmNo_"]);
 	a.show();
 }
 function gameAlert(text,duration) {
