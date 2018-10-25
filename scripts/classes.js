@@ -1997,7 +1997,12 @@ class View extends _c_ {
   }
   show(src) {
   	this.visible = true;
-  	Pointer.focusLayer = this.layer;
+  	if (Pointer.focusLayer!=this.layer) {
+      this.subLayer = Pointer.focusLayer;
+      Pointer.focusLayer = this.layer;
+      this.sublayerStartElement = guiStartElement;
+      guiStartElement = guiSelectedElement = null;
+    }
     if (this.startElement) guiStartElement = this.startElement;
     this.onShow(src);
   	for (var i in this.children) this.children[i].onViewShown();
@@ -2006,8 +2011,9 @@ class View extends _c_ {
   hide() {
     this.visible = false;
     if (this.layer>0)
-    Pointer.focusLayer = this.layer-1;
-    if (this.startElement) guiStartElement = null;
+    if (this.subLayer!=void(0)) Pointer.focusLayer = this.subLayer;
+    if (this.startElement) guiStartElement = guiSelectedElement = null;
+    if (this.sublayerStartElement) guiStartElement = this.sublayerStartElement;
     return this;
   }
   onShow(src) {

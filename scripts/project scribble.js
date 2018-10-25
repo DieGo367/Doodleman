@@ -760,7 +760,7 @@ function doGlobalControls(controller) {
 			if (guiSelectedElement) {
 				if (controller.ready(controller.type==KEYBOARD?"accept":"jump")) {
 					guiSelectedElement.onClick(controller,true);
-					guiSelectedElement.heldDown = true;
+					controller.use(controller.type==KEYBOARD?"accept":"jump");
 				}
 			}
 		}
