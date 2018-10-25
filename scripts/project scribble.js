@@ -757,6 +757,12 @@ function doGlobalControls(controller) {
 					break;
 				}
 			}
+			if (guiSelectedElement) {
+				if (controller.ready(controller.type==KEYBOARD?"accept":"jump")) {
+					guiSelectedElement.onClick(controller,true);
+					guiSelectedElement.heldDown = true;
+				}
+			}
 		}
 	}
 	if (controller.type==GAMEPAD) {
