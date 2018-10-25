@@ -2425,7 +2425,7 @@ class TextInput extends Button {
         text = this.text || "";
         font = fontInputEmpty;
       }
-      let fontCopy = Font.copy(font,{isBold:this.hovered});
+      let fontCopy = Font.copy(font,{isBold:this.hovered||guiSelectedElement==this});
       fontCopy.draw(text,this.x+this.width/2,this.y+this.height/2+7,this.width,CENTER);
     }
   }
