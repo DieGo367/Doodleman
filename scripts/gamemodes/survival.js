@@ -82,7 +82,9 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       gameConfirm("Are you sure you want to restart?",function(response) {
         if (response) Level.loadLevel("Room-1.json");
       });
-    }).show();
+    }).show().up("CtrlSettingsButton").setAsStart();
+    Button.funnelTo("RetryButton","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
+    Button.pathVert(["RetryButton","QuitGame"]);
     buildLevelSelectMenu();
     buildControllerSettingsMenu();
     buildMapperView();

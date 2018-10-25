@@ -54,7 +54,9 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
     Button.create("LevelSelectButton","PauseMenu",WIDTH/2-150,HEIGHT-120,300,40,"Level Select").setOnClick(function() {
       G$("LevelSelectView").show();
       G$("PauseMenu").hide();
-    }).show().setPressDelay(1);
+    }).show().setPressDelay(1).up("CtrlSettingsButton").setAsStart();
+    Button.funnelTo("LevelSelectButton","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
+    Button.pathVert(["LevelSelectButton","QuitGame"]);
     buildLevelSelectMenu();
     buildControllerSettingsMenu();
     buildMapperView();
