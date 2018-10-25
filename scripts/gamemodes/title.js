@@ -37,25 +37,28 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
   		Sound.setVolume(this.value);
   		G$("VolumeButton").setIcon("GUI-Icons.png",(this.value==0?1:0),3,42,4);
   	});
+    Button.pathHor(["VolumeButton","FSToggle"]);
 
     View.create("Option_Mode",0,0,0,WIDTH,HEIGHT).show();
   	Button.create("Option_Mode:Survival","Option_Mode",WIDTH/2-100,HEIGHT/2-30,200,60,"Survival").setOnClick(function() {
   		this.view.hide();
   		this.view.gamemode = GAME_SURVIVAL;
       G$("Option_MP").show();
-  	}).show();
+  	}).show().setAsStart();
   	Button.create("Option_Mode:Sandbox","Option_Mode",WIDTH/2-100,HEIGHT/2+50,200,60,"Sandbox").setOnClick(function() {
   		this.view.hide();
   		this.view.gamemode = GAME_SANDBOX;
       G$("Option_MP").show();
   	}).show();
+    Button.pathVert(["Option_Mode:Survival","Option_Mode:Sandbox"]);
+    Button.funnelTo("VolumeButton","right",["Option_Mode:Survival","Option_Mode:Sandbox"]);
 
     View.create("Option_MP",0,0,0,WIDTH,HEIGHT);
     Button.create("Option_MP:Single","Option_MP",WIDTH/2-100,HEIGHT/2-30,200,40,"1 Player").setOnClick(function() {
       this.view.hide();
       multiplayer = false;
       Game.mode = G$("Option_Mode").gamemode;
-    }).show();
+    }).show().setAsStart();
     Button.create("Option_MP:Mult","Option_MP",WIDTH/2-100,HEIGHT/2+30,200,40,"2 Player").setOnClick(function() {
       this.view.hide();
       multiplayer = true;
@@ -65,6 +68,8 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
       this.view.hide();
       G$("Option_Mode").show();
     }).setClose(true).show();
+    Button.pathVert(["Option_MP:Single","Option_MP:Mult","Option_MP:Cancel"]);
+    Button.funnelTo("VolumeButton","right",["Option_MP:Single","Option_MP:Mult","Option_MP:Cancel"]);
   },
   removeGui: function() {
     G$("Title").remove();
