@@ -166,16 +166,20 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   			this.on = true;
   		}
     }).setIcon("GUI-Icons.png",2,0,42,4).show();
+    Button.pathHor(["FSToggle","LevelSettingsClose"]);
+    Button.funnelTo("LS:BG","down",["FSToggle","LevelSettingsClose"]);
 
-    Button.create("LS:File","LevelSettingsView",WIDTH*1/5-50,75,100,40,"File").show().on = true;
-    Button.create("LS:Edit","LevelSettingsView",WIDTH*2/5-50,75,100,40,"Edit").show();
-    Button.create("LS:Cam","LevelSettingsView",WIDTH*3/5-50,75,100,40,"Camera").show();
-    Button.create("LS:BG","LevelSettingsView",WIDTH*4/5-50,75,100,40,"BG").show();
+    Button.create("LS:File","LevelSettingsView",WIDTH*1/5-50,75,100,40,"File").down("LS:File:Name:input").setAsStart().show().on = true;
+    Button.create("LS:Edit","LevelSettingsView",WIDTH*2/5-50,75,100,40,"Edit").down("LS:Dimensions:width").show();
+    Button.create("LS:Cam","LevelSettingsView",WIDTH*3/5-50,75,100,40,"Camera").down("LS:CamStart:x").show();
+    Button.create("LS:BG","LevelSettingsView",WIDTH*4/5-50,75,100,40,"BG").down("LS:BG:0").show();
     Button.setRadioGroup(["LS:File","LS:Edit","LS:Cam","LS:BG"],function() {
       G$(this.view.activeMenu).hide();
       this.view.activeMenu = this.name+":Menu";
       G$(this.view.activeMenu).show();
     },true);
+    Button.pathHor(["LS:File","LS:Edit","LS:Cam","LS:BG"]);
+    Button.funnelTo("LevelSettingsClose","up",["LS:File","LS:Edit","LS:Cam","LS:BG"]);
 
     View.create("LS:File:Menu",1,0,0,WIDTH,HEIGHT);
     TextElement.create("LS:File:Name","LS:File:Menu",WIDTH/4-150,155,fontMenuItem,"Level Name",WIDTH,LEFT).show();
@@ -188,11 +192,18 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     Button.create("LS:File:Export","LS:File:Menu",WIDTH*2/3-50,185,205,40,"Export Level").setOnClick(Level.export,true).show();
     TextElement.create("LS:File:Test","LS:File:Menu",WIDTH/4-150,265,fontMenuItem,"Test Level",WIDTH,LEFT).show();
     TextInput.create("LS:File:Test:Mode","LS:File:Menu",WIDTH/2-175,240,100,40,"accessor:GAME_SURVIVAL,GAME_SANDBOX").storeAccessor(GAME_SANDBOX).show();
-    TextInput.create("LS:File:Test:MP","LS:File:Menu",WIDTH/2-70,240,100,40,"boolean",false,"multiplayer").show();
+    TextInput.create("LS:File:Test:MP","LS:File:Menu",WIDTH/2-70,240,100,40,"boolean",false,"multiplayer").up("LS:File:Copy").show();
     Button.create("LS:File:Test:Button","LS:File:Menu",WIDTH*2/3-50,240,205,40,"Test Level").setOnClick(function() {
       multiplayer = G$("LS:File:Test:MP").storedVal;
       EditorTools.testLevel(G$("LS:File:Test:Mode").accessValue());
     }).show();
+    Button.funnelTo("LS:File","up",["LS:File:Name:input","LS:File:Load"]);
+    Button.pathGrid([
+      ["LS:File:Name:input","LS:File:Load"],
+      ["LS:File:Copy","LS:File:Export"],
+      ["LS:File:Test:Mode","LS:File:Test:Button"]
+    ]);
+    Button.pathHor(["LS:File:Test:Mode","LS:File:Test:MP","LS:File:Test:Button"]);
 
     View.create("LS:Edit:Menu",1,0,0,WIDTH,HEIGHT);
     TextElement.create("LS:Dimensions","LS:Edit:Menu",WIDTH/4-150,155+55*0,fontMenuItem,"Dimensions",WIDTH,LEFT).show();
@@ -215,6 +226,12 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     TextInput.create("LS:Edge:right","LS:Edit:Menu",WIDTH/2+140,185,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_WRAP,"right","Enter right edge behavior").setOnInputChange(function(val) {
       Level.level.edge.right = val;
     }).show();
+    Button.funnelTo("LS:Edit","up",["LS:Dimensions:width","LS:Dimensions:height"]);
+    Button.pathGrid([
+      ["LS:Dimensions:width","LS:Dimensions:height"],
+      ["LS:Edge:top","LS:Edge:bottom"]
+    ]);
+    Button.pathHor(["LS:Edge:bottom","LS:Edge:left","LS:Edge:right"]);
 
     View.create("LS:Cam:Menu",1,0,0,WIDTH,HEIGHT);
     TextElement.create("LS:CamStart","LS:Cam:Menu",WIDTH/4-150,155,fontMenuItem,"Camera Start",WIDTH,LEFT).show();
@@ -223,7 +240,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     }).show();
     TextInput.create("LS:CamStart:y","LS:Cam:Menu",WIDTH/2-70,130,100,40,"number",Level.level.camStart.y,"y","Enter starting y point").setOnInputChange(function(val) {
       Level.level.camStart.y = val;
-    }).show();
+    }).show().right("LS:ZoomScale:num");
     TextElement.create("LS:ScrollBuffer","LS:Cam:Menu",WIDTH/4-150,210,fontMenuItem,"Scroll Buffer",WIDTH,LEFT).show();
     TextInput.create("LS:ScrollBuffer:hor","LS:Cam:Menu",WIDTH/2-175,185,100,40,"number",Level.level.horScrollBuffer,"horizontal","Enter horizontal scroll buffer").setOnInputChange(function(val) {
       Level.level.horScrollBuffer = val;
@@ -242,6 +259,12 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     TextInput.create("LS:ZoomScale:num","LS:Cam:Menu",WIDTH/2+190,130,100,40,"number",Level.level.zoomScale,"zoom scale","Enter preferred zoom level").setOnInputChange(function(val) {
       Level.level.zoomScale = val;
     }).show();
+    Button.funnelTo("LS:Cam","up",["LS:CamStart:x","LS:CamStart:y","LS:ZoomScale:num"])
+    Button.pathGrid([
+      ["LS:CamStart:x","LS:CamStart:y"],
+      ["LS:ScrollBuffer:hor","LS:ScrollBuffer:vert"],
+      ["LS:ZoomLimit:min","LS:ZoomLimit:max"]
+    ]);
 
     View.create("LS:BG:Menu",1,0,0,WIDTH,HEIGHT).setOnShow(function() {
       if (this.numBG==void(0)) {
@@ -358,6 +381,14 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     TextElement.create("LS:BG:Desc","LS:BG:Menu",WIDTH/5,320,fontMenuData,null,WIDTH,CENTER);
     ImgElement.create("LS:BG:Preview","LS:BG:Menu",WIDTH/5,240,"",192,108,IMAGE_ZOOM);
     TextElement.create("LS:BG:Empty","LS:BG:Menu",WIDTH/5,270,fontFocus,"EMPTY",WIDTH,CENTER);
+    Button.funnelTo("LS:BG","up",layerButtons);
+    Button.pathHor(["LS:BG:Swap:left",...layerButtons,"LS:BG:Swap:right"]);
+    Button.funnelTo("LS:BG:Name","down",layerButtons);
+    Button.pathGrid([
+      ["LS:BG:Name","LS:BG:Layer:num"],
+      ["LS:BG:Raw","LS:BG:Scale:num"],
+      ["LS:BG:Delete","LS:BG:Parallax:num"]
+    ]);
   },
   removeGui: function() {
     G$("EditorToolbar").remove();
