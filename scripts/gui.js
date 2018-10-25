@@ -18,7 +18,7 @@ G$.on = function(q) {
 
 //useful game functions
 function buildSelector(list,onSelect,onCancel,viewLayer) {
-	let a = View.create("_Selector_",viewLayer===void(0)?1:viewLayer,0,0,WIDTH,HEIGHT,"tint","darkBlue");
+	View.create("_Selector_",viewLayer===void(0)?1:viewLayer,0,0,WIDTH,HEIGHT,"tint","darkBlue").show();
 	let path = [];
 	for (var i in list) {
 		let b = Button.create("_Selector_::"+i,"_Selector_",WIDTH/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
@@ -36,7 +36,6 @@ function buildSelector(list,onSelect,onCancel,viewLayer) {
 	path.push("_SelectorClose_");
 	Button.pathVert(path);
 	G$(path[0]).setAsStart();
-	a.show();
 }
 
 function attemptUserAction(action,src,caller) {
@@ -63,7 +62,7 @@ function clearViewLock() {
 }
 
 function gameConfirm(text,onResponse) {
-	let a = View.create("_Confirm_",Pointer.focusLayer+1,15,15,WIDTH-30,HEIGHT-30,"window");
+	View.create("_Confirm_",Pointer.focusLayer+1,15,15,WIDTH-30,HEIGHT-30,"window").show();
 	TextElement.create("_ConfirmText_","_Confirm_",WIDTH/2,HEIGHT/2,fontMenuTitle,text,WIDTH-30,CENTER).show();
 	Button.create("_ConfirmYes_","_Confirm_",WIDTH/2-105,HEIGHT-150,100,40,"OK!").setOnClick(function() {
 		this.view.remove();
@@ -74,7 +73,6 @@ function gameConfirm(text,onResponse) {
 		onResponse(false);
 	}).show().setAsStart();
 	Button.pathHor(["_ConfirmYes_","_ConfirmNo_"]);
-	a.show();
 }
 function gameAlert(text,duration) {
 	if (typeof duration != "number" || duration <= 0) return;

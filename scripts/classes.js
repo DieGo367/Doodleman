@@ -2271,6 +2271,7 @@ class Button extends GuiElement {
   }
   setAsStart() {
     this.view.startElement = this;
+    if (this.view.visible) guiStartElement = this;
     return this;
   }
   select() {
