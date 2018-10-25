@@ -2318,6 +2318,7 @@ class TextInput extends Button {
     }
     else {
       this.type = type;
+      if (this.type!="number") this.removeIncrementers();
       this.setTypeData([]);
     }
   }
@@ -2431,7 +2432,7 @@ class TextInput extends Button {
     }
   }
   createIncrementers(size,step,min,max) {
-    if (this.type!="number") return;
+    if (this.type!="number"||this.incrementer||this.decrementer) return this;
     let valueSetter = function() {
   		let value = this.targetInput.storedVal + this.step;
       if (isNaN(value)) value = 0;
@@ -2449,7 +2450,32 @@ class TextInput extends Button {
     decrementer.step *= -1;
   	incrementer.min = decrementer.min = min;
   	incrementer.max = decrementer.max = max;
+    incrementer.remove = decrementer.remove = function(caller) {
+      if (caller==this.targetInput) this.constructor.prototype.remove.call(this);
+    }
+    this.incrementer = incrementer;
+    this.decrementer = decrementer;
     return this;
+  }
+  removeIncrementers() {
+    let size = 0;
+    if (this.incrementer) {
+      size = this.incrementer.width;
+      this.incrementer.remove(this);
+      delete this.incrementer;
+    }
+    if (this.decrementer) {
+      size = this.decrementer.width;
+      this.decrementer.remove(this);
+      delete this.decrementer;
+    }
+    this.x -= size;
+    this.width += 2*size;
+    return this;
+  }
+  remove() {
+    this.removeIncrementers();
+    super.remove();
   }
 }
 initClass(TextInput,Button);
