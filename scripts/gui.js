@@ -137,8 +137,8 @@ function buildPauseMenu() {
   }).setIcon("GUI-Icons.png",2,0,42,4).show();
 
   Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
-		G$("CtrlSettingsView").show();
 		G$("PauseMenu").hide();
+		G$("CtrlSettingsView").show();
 	}).setIcon("GUI-Icons.png",3,1,42,4).show();
 
 	Button.create("VolumeButton","PauseMenu",70,10,50,50).setOnClick(function() {
@@ -216,7 +216,7 @@ function buildControllerSettingsMenu() {
 		this.playerSlot = 0;
 	}).setOnClick(function() {
 		buildControllerSelector([0,1],KEYBOARD,this);
-	}).show();
+	}).show().setAsStart();
   Button.create("CtrlP1GamePad","CtrlSettingsView",WIDTH/2-260,180,250,40,"GamePad").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(GAMEPAD,Player.gpIds[0]);
 		this.playerSlot = 0;
@@ -269,6 +269,14 @@ function buildControllerSettingsMenu() {
 		G$("CtrlSettingsView").hide();
 		G$("HelpView").show();
 	}).show();
+
+	Button.pathGrid([
+		["HelpButton","CtrlSettingsClose"],
+		["CtrlP1Keyboard","CtrlP2Keyboard"],
+		["CtrlP1GamePad","CtrlP2GamePad"],
+		["CtrlP1Touch","CtrlP2Touch"],
+		["CtrlMapperBttn"]
+	]);
 }
 function buildControllerSelector(list,type,sourceButton) {
 	var finalList = [], names = [];
