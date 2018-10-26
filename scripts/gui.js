@@ -177,17 +177,26 @@ function buildLevelSelectMenu() {
 
   ResourceManager.request("levels/_list_.json", function(data) {
 		var levelNames = JSON.parse(data);
+		let grid = [], rightSide = [];
 		for (var i in levelNames) {
 			var name = levelNames[i].split(".")[0];
 			var y = Math.floor(i/2);
-			var x = i%2==0?20:240;
-			Button.create("LSLevel"+i,"LevelSelectView",x,50+y*60,200,40,name).setOnClick(function() {
+			var x = i%2;
+			let b = Button.create("LSLevel"+i,"LevelSelectView",20+220*x,50+y*60,200,40,name).setOnClick(function() {
 				Level.loadLevel(this.text+".json");
 			}).show();
+			grid[y] = grid[y] || [];
+			grid[y][x] = b.name;
+			if (x==1||i==levelNames.length-1) rightSide.push(b.name);
+			if (x==0&&y==0) b.setAsStart();
 		}
+		Button.pathGrid(grid);
+		Button.funnelTo("LSFileButton","right",rightSide);
 	});
 
 	Button.create("LSFileButton","LevelSelectView",WIDTH-170,HEIGHT-60,150,40,"Load From File").setOnClick(Level.openLocalFile,true).show().setPressDelay(1);
+
+	Button.pathVert(["LSClose","LSFileButton"]);
 }
 
 function buildControllerSettingsMenu() {
