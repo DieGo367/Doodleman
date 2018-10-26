@@ -67,7 +67,9 @@ function loadLoop() {
 }
 $(window).on("load",function() {
 	canvas = $("#paper")[0], c = canvas.getContext("2d");
-	setPrefixedProperty(c,"imageSmoothingEnabled",false);
+	setTimeout(function() {
+    setPrefixedProperty(c,"imageSmoothingEnabled",false);
+  },0);
   addEvents();
 
 	ResourceManager.requestGroup("res",function(item,name) {
