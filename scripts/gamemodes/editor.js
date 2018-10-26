@@ -328,7 +328,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     TextElement.create("LS:BG:Layer","LS:BG:Menu",WIDTH*2/3-50,210,fontMenuItem,"Draw Layer",WIDTH,LEFT).show();
     TextInput.create("LS:BG:Layer:num","LS:BG:Menu",WIDTH/2+190,185,100,40,"number",null,"layer","Enter the draw layer").setOnInputChange(function(val) {
       this.view.setBGVal("layer",val);
-    }).show();
+    }).createIncrementers(20,1).show();
     TextElement.create("LS:BG:Scale","LS:BG:Menu",WIDTH*2/3-50,265,fontMenuItem,"Image Scale",WIDTH,LEFT).show();
     TextInput.create("LS:BG:Scale:num","LS:BG:Menu",WIDTH/2+190,240,100,40,"number",null,"bg scale","Enter the background scale").setOnInputChange(function(val) {
       this.view.setBGVal("scale",val);
