@@ -1750,6 +1750,7 @@ class Player extends Entity {
     },
     function() {
       this.attacker.canUpAirAttack = true;
+      this.attacker.attackCooldown = this.attacker.animLock+2;
     });
     this.defineAttack("attack-down-stab",1,30,60,true,true,false,function() {
       this.velY = -7;
