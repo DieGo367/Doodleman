@@ -2000,9 +2000,10 @@ class View extends _c_ {
   	if (Pointer.focusLayer!=this.layer) {
       this.subLayer = Pointer.focusLayer;
       Pointer.focusLayer = this.layer;
-      this.sublayerStartElement = guiStartElement;
+      this.subLayerStartElement = guiStartElement;
       guiStartElement = guiSelectedElement = null;
     }
+    else this.subLayer = null;
     if (this.startElement) guiStartElement = this.startElement;
     this.onShow(src);
   	for (var i in this.children) this.children[i].onViewShown();
@@ -2010,10 +2011,11 @@ class View extends _c_ {
   }
   hide() {
     this.visible = false;
-    if (this.layer>0)
-    if (this.subLayer!=void(0)) Pointer.focusLayer = this.subLayer;
     if (this.startElement) guiStartElement = guiSelectedElement = null;
-    if (this.sublayerStartElement) guiStartElement = this.sublayerStartElement;
+    if (this.subLayer!=null) {
+      Pointer.focusLayer = this.subLayer;
+      if (this.subLayerStartElement) guiStartElement = this.subLayerStartElement;
+    }
     return this;
   }
   onShow(src) {
