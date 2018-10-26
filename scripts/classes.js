@@ -2198,7 +2198,7 @@ class Button extends GuiElement {
     if (this.onViewShownFunction) this.onViewShownFunction();
   }
   onClick(src,forceAction) {
-  	if (forceAction||(this.isVisible()&&this.hovered&&this.preventClick==0&&this.mode!=BUTTON_NO)) {
+  	if (this.mode!=BUTTON_NO&&(forceAction||(this.isVisible()&&this.hovered&&this.preventClick==0))) {
       this.preventClick += this.pressDelay;
   		this.clickSource = src;
       if (this.radioGroupNames.length>0) {
