@@ -307,7 +307,7 @@ function buildHelpPage() {
 	var actions = ["Move Left / Right", "Jump", "Crouch", "Attack", "Enter Door / Up"];
 
 	TextElement.create("HelpTitle","HelpView",WIDTH/2,30,fontMenuTitle,"Controls",WIDTH,CENTER).show();
-	var bWasd = Button.create("WASDPage","HelpView",10,100,100,40,"WASD").show();
+	var bWasd = Button.create("WASDPage","HelpView",10,100,100,40,"WASD").show().setAsStart();
 	bWasd.b = ["A / D", "W", "S", "G", "E"], bWasd.a = actions; bWasd.on = true;
 	var bIjkl = Button.create("IJKLPage","HelpView",10,150,100,40,"IJKL").show();
 	bIjkl.b = ["J / L", "I", "K", "'", "O"], bIjkl.a = actions;
@@ -317,6 +317,7 @@ function buildHelpPage() {
 	Button.setRadioGroup(["WASDPage","IJKLPage","MovesPage"],function() {
 		buildControlList(this.b,this.a);
 	},true);
+	Button.pathVert(["HelpClose","WASDPage","IJKLPage","MovesPage"])
 
 	buildControlList(bWasd.b,actions);
 }
