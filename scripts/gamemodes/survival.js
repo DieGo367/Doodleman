@@ -45,6 +45,9 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     if (focused) pauseGame(false);
     this.ready = true;
   },
+  onHurt: function(ent,attacker) {
+    if (ent instanceof Player && attacker instanceof Player) return CANCEL;
+  },
   onDeath: function(ent,attacker) {
     if (ent instanceof Enemy&&attacker instanceof Player) this.addScore(ent.maxHealth);
     else if (ent instanceof Player&&ent.lives<1) {

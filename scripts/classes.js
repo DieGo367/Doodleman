@@ -1313,6 +1313,7 @@ class Entity extends PhysicsBox {
   }
   hurt(damage,attacker) {
   	if (this.invulnerability>0) return;
+    if (Game.onHurt(this,attacker,damage)==CANCEL) return;
   	Particle.generate(this.x,this.midY(),0,8,4,10,true,this.particleColor?this.particleColor:"red",0,360,5,0);
     Sound.play("punch.ogg");
   	this.health -= damage;

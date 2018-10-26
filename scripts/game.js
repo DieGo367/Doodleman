@@ -42,6 +42,7 @@ class GameMode {
 	tick() {}
 	onPause(paused) {}
 	onLevelLoad() {}
+	onHurt(ent,attacker,damage) {}
 	onDeath(ent,attacker) {}
 	onBlur() {}
 	onFocus() {}
