@@ -1419,7 +1419,14 @@ class Entity extends PhysicsBox {
         var a = action.attack;
         var box = this.attackBox = AttackBox.create(a.x[0],a.y[0],a.width,a.height,this,attack.damage,attack.duration,a,action.framerate);
         //apply extra methods
-        if (attack.onHurt) box.onHurt = attack.onHurt;
+        if (attack.onHurt) {
+          box.onHurt = function(victim) {
+            if (typeof this.attackHurtFunc=="function") {
+              this.attackHurtFunc.call(this.attacker,victim);
+            }
+          }
+          box.attackHurtFunc = attack.onHurt;
+        }
         if (attack.specialFrames&&attack.specialFuncs) {
           box.specialFrames = attack.specialFrames;
           box.specialFuncs = attack.specialFuncs;
@@ -1748,9 +1755,9 @@ class Player extends Entity {
       this.move(5);
       this.canUpAirAttack = false;
     },
-    function() {
-      this.attacker.canUpAirAttack = true;
-      this.attacker.attackCooldown = this.attacker.animLock+2;
+    function() { // if hurt something, can up-attack again
+      this.canUpAirAttack = true;
+      this.attackCooldown = this.animLock+2;
     });
     this.defineAttack("attack-down-stab",1,30,60,true,true,false,function() {
       this.velY = -7;
