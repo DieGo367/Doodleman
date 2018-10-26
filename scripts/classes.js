@@ -2465,7 +2465,7 @@ class TextInput extends Button {
           this.onInputChangeFunc(response);
         }
         break;
-      case 32: // Space key
+      case 18: // Alt key
         this.typing = false;
         this.removeTypingView();
         break;
@@ -2492,10 +2492,13 @@ class TextInput extends Button {
         if (keycode>95&&keycode<106) keycode -= 48; //numpad numbers
         if (keycode>188&&keycode<191) keycode -= 80;
         if (keycode>108&&keycode<111) keycode -= 64; //numpad - and .
-        if((keycode>47&&keycode<58) || (keycode>64&&keycode<91) || (keycode>44&&keycode<47)) {
+        if(keycode==32 || (keycode>47&&keycode<58) || (keycode>64&&keycode<91) || (keycode>44&&keycode<47)) {
           let char = String.fromCharCode(keycode);
-          if (keycode>64&&keycode<91&&!Key.isDown(16)) char = char.toLowerCase();
-          if (ogKeycode==51&&Key.isDown(16)) char = '#';
+          if (Key.isDown(16)) { // shift
+            if (ogKeycode==51) char = '#';
+            if (ogKeycode==189) char = '_';
+          }
+          else if (keycode>64&&keycode<91) char = char.toLowerCase();
 
           if (this.textTypeMode==1) {
             G$("TextInput:TE").text = this.typingText = char;
