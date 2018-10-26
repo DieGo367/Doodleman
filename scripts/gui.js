@@ -364,7 +364,7 @@ function buildMapperView() {
 			b.selectedId = ids[i];
 			updateMapText(ids[i]);
 		},null,2);
-	}).show();
+	}).show().setAsStart();
 
 	TextElement.create("MapperCurrentMapText","MapperView",WIDTH/3-5,165,fontMenuItem,"Current Mapping: ",WIDTH,RIGHT).show();
 	TextElement.create("MapperMappingName","MapperView",WIDTH/3+5,165,fontMenuItem,"__",WIDTH,LEFT).show();
@@ -391,7 +391,10 @@ function buildMapperView() {
 			GamePad.changeMap(id,GamePad.customMaps[0]);
 			updateMapText(id);
 		});
-	}).show();
+	}).show().up("MapperGPSelect");
+
+	Button.pathVert(["MapperClose","MapperGPSelect","MapperRemap"]);
+	Button.pathHor(["MapperRemap","MapperSetDefault"]);
 }
 function updateMapText(id) {
 	var map = GamePad.ctrlMaps[id]
