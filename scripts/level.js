@@ -134,8 +134,9 @@ const Level = {
 	},
 	export: function() {
 		let data = niceJSON(Level.level);
+		let url = URL.createObjectURL(new Blob([data],{type:"application/json"}));
 		let name = Level.level.name || "Doodleman Level";
-		$("#fileOutput").attr("download",name+".json").attr("href","data:text/plain;charset=utf-8,"+encodeURIComponent(data))[0].click();
+		$("#fileOutput").attr("download",name+".json").attr("href",url)[0].click();
 	},
 	log: function() {
 		let data = niceJSON(Level.level);
@@ -143,9 +144,14 @@ const Level = {
 	},
 	copy: function() {
 		let data = niceJSON(Level.level);
-		$("#clipboard").val(data).select();
-		document.execCommand("copy");
-		gameAlert("Level data copied to clipboard.",120);
+		if (data.length>1000000) {
+			gameAlert("Level is too big for clipboard!",120);
+		}
+		else {
+			$("#clipboard").val(data).select();
+			document.execCommand("copy");
+			gameAlert("Level data copied to clipboard.",120);
+		}
 	},
 	getSnappingPoints: function(cancelMidpoints) {
 		let points = [];
