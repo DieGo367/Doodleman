@@ -1692,11 +1692,9 @@ class Player extends Entity {
   }
 
   drawHud() {
-  	var playerNumber = Player.getAll().indexOf(this);
+  	let playerNumber = Player.getAll().indexOf(this);
   	Images.drawImage(this.sheet.pages[this.animPage],10,10+(24*playerNumber),19,19,0,0,19,19);
-  	c.font = "bold 20px Arial";
-  	c.fillStyle = "black";
-  	c.fillText("/ "+this.lives,35,27+(24*playerNumber));
+    fontPlayerHud.draw("/ "+this.lives,35,27+(24*playerNumber),WIDTH,LEFT);
   }
   drawElements() {
   	if (this.attackHeld>=chargeAttackReq&&!this.held) Images.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);

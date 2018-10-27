@@ -447,6 +447,7 @@ var fontInputType = Font.copy(fontInput,{color:"yellow"});
 var fontInputDesc = Font.copy(fontInput,{color:"white"});
 var fontHudScore = new Font("Fredoka One",30,false,"yellow").setStroke("black",6);
 var fontDebug10 = new Font("Consolas",10,false,"black");
+var fontPlayerHud = new Font("Fredoka One",20,false,"black").setStroke("white",1.5);
 const DrawableClasses = [];
 DrawableClasses.forAll = function(method) {
 	for (var i = 0; i < this.length; i++) {
