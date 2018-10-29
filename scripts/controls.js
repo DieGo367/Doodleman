@@ -632,7 +632,7 @@ let gpadGroupings = [
 Key.ctrlMaps.global = new CtrlMap("GlobalKeyboard",KEYBOARD,
 ["P1","P2","R","\\","up","right","down","left","[","]","=","Shift","Ctrl","Enter","F12","`",
 "w","a","s","d","c","v","x","y","z","1","2","3","e","q","f","g"],
-[82,80,192,220,38,39,40,37,219,221,187,16,17,13,223,192,87,65,83,68,67,86,88,89,90,49,50,51,69,81,70,71],
+[82,80,192,220,38,39,40,37,219,221,187,16,17,13,123,192,87,65,83,68,67,86,88,89,90,49,50,51,69,81,70,71],
 [...gameActions,...cameraActions,"snippet","pause-p1","pause-p2","Shift","Ctrl","c","v","x","y","z","BoxTool","LineTool","ActorTool","EraserTool","PropMenu","fullScreen","accept"],
 ["P1","R","\\",["up","w"],["right","d"],["down","s"],["left","a"],"]","[","=","`","F12","P1","P2","Shift","Ctrl","c","v","x","y","z","1","2","3","e","q","f",["Enter","g"]]);
 
