@@ -60,7 +60,6 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 		}
   },
   addGui: function() {
-    buildDevToolsHud();
     View.create("EditorToolbar",0,0,0,WIDTH,70,"tint","purple");
     View.create("EditorHud",0,0,0,WIDTH,70).show();
     TextElement.create("EditorModeText","EditorHud",70,40,fontMenuEdit,"",WIDTH,LEFT).show();
