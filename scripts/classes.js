@@ -1336,6 +1336,10 @@ class Entity extends PhysicsBox {
   		else this.stun = 60;
   	}
   }
+  heal(amount) {
+    this.health += amount;
+    if (this.health>this.maxHealth) this.health = this.maxHealth;
+  }
 
   update() {
   	if (this.stun>0) this.stun -= 1;
@@ -1983,6 +1987,28 @@ class Skeltal extends Enemy {
   }
 }
 initClass(Skeltal,Enemy);
+
+class PlusHeart extends Interactable {
+  constructor(x,y,hp) {
+    super(x,y,18,18,void(0),void(0),Player);
+    this.hp = hp;
+    this.sheet = Animation.getSpritesheet("PlusHeart.json");
+  }
+  update() {
+    super.update();
+    for (var i in this.touches) {
+      this.touches[i].heal(this.hp);
+      this.remove();
+      return;
+    }
+    this.setAnimation("static");
+    if (Math.random()<(1/500)) this.setAnimation("heartbeat",null,"full");
+  }
+  static onInit() {
+    Animation.applyToClass(this);
+  }
+}
+initClass(PlusHeart,Interactable);
 
 
 class View extends _c_ {
