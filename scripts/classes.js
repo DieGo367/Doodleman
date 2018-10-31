@@ -1755,7 +1755,9 @@ class Player extends Entity {
       this.velY = 0;
       Sound.play("sword-swipe.ogg");
     });
-    this.defineAttack("attack-upward",1,20,30,true);
+    this.defineAttack("attack-upward",1,20,30,true,null,null,function() {
+      Sound.play("sword-swipe.ogg");
+    });
     this.defineAttack("attack-upward-air",1,20,30,false,true,true,function() {
       this.velY = -6;
       this.move(5);
