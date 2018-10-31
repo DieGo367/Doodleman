@@ -1742,20 +1742,25 @@ class Player extends Entity {
     this.keyIds = [0,1,null,null];
     this.gpIds = [null,null,null,null];
     this.tapIds = [0,null,null,null];
-    this.defineAttack("attack",1,20,30);
+    this.defineAttack("attack",1,20,30,null,null,null,function() {
+      Sound.play("sword-swipe.ogg");
+    });
     this.defineAttack("attack-charge",2,20,30,true,true,true,function() {
       this.move(10);
       this.velY = 0;
+      Sound.play("sword-swipe.ogg");
     });
     this.defineAttack("attack-charge-air",2,20,30,true,true,true,function() {
       this.move(10);
       this.velY = 0;
+      Sound.play("sword-swipe.ogg");
     });
     this.defineAttack("attack-upward",1,20,30,true);
     this.defineAttack("attack-upward-air",1,20,30,false,true,true,function() {
       this.velY = -6;
       this.move(5);
       this.canUpAirAttack = false;
+      Sound.play("sword-swipe.ogg");
     },
     function() { // if hurt something, can up-attack again
       this.canUpAirAttack = true;
@@ -1767,6 +1772,7 @@ class Player extends Entity {
     [4,11],[function() {
       this.velY = 5;
       this.stun = 40;
+      Sound.play("sword-swipe.ogg");
     },
     function() {
       if (!this.ground&&!this.lineGround&&this.y!=Level.level.height) {
