@@ -1972,7 +1972,10 @@ class Enemy extends Entity {
   static onInit() {
     this.prototype.particleColor = "#6a00d8";
     this.attacks = [];
-    this.defineAttack("attack",1,18,30,false,false,false,function() { this.stun = 30; });
+    this.defineAttack("attack",1,18,30,false,false,false,function() {
+      this.stun = 30;
+      Sound.play("punch.ogg");
+    });
   }
 }
 initClass(Enemy,Entity);
