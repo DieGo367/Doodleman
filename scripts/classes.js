@@ -1796,9 +1796,10 @@ class Enemy extends Entity {
     this.thrownDamage = 1;
   	this.attackCooldown = 0;//also in player
   	this.target = null;//new to enemy
-  	this.post = x;
-  	this.paceTarget = x;
+  	this.post = null;
+  	this.paceTarget = null;
   	this.standbyTick = 0;
+    this.justSpawned = true;
   }
 
   levelTest(blockBox,ignoreUIDs,customBoxTest,customLineTest) {
@@ -1870,7 +1871,8 @@ class Enemy extends Entity {
     }
   }
   chooseAnimation() {
-    if (this.attackBox!=null) this.setAnimation("attack");
+    if (this.justSpawned) this.setAnimation("invisible");
+    else if (this.attackBox!=null) this.setAnimation("attack");
   	else if (!this.isGrounded&&this.heldBy==null) this.setAnimation("jump");
   	else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
   	else this.setAnimation("stand");
@@ -1919,7 +1921,17 @@ class Enemy extends Entity {
   }
 
   update() {
-  	if (this.heldBy!=null) { //do nothing while held
+    if (this.justSpawned) {
+      this.collisionType = C_WEAK;
+      if (this.isGrounded) {
+        this.justSpawned = false;
+        this.collisionType = C_ENT;
+        this.post = this.x;
+        this.setAnimation("emerge",null,"full");
+        this.stun = 25;
+      }
+    }
+  	else if (this.heldBy!=null) { //do nothing while held
   		this.exclaim = -1;
   		this.target = this.heldBy;
   		this.stun = 120;
@@ -1968,7 +1980,7 @@ class Enemy extends Entity {
   }
   drawElements() {
   	if (this.exclaim!=null&&this.exclaim>=0) Images.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
-    else super.drawElements();
+    else if (!this.justSpawned) super.drawElements();
   }
 
   static onInit() {

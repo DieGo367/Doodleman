@@ -6,7 +6,7 @@
   "hasDirection": true,
   "sheetOffsets": {
     "left": {
-      "x": 228,
+      "x": 285,
       "y": 19
     },
     "center": {
@@ -68,6 +68,22 @@
         "width": [ 33 ],
         "height": [ 10 ]
       }
+    },
+    {
+      "action": "invisible",
+      "row": 0,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 0 ]
+    },
+    {
+      "action": "emerge",
+      "row": 3,
+      "col": 0,
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3, 4 ],
+      "alphas": [ 1 ]
     }
   ],
   "defaultAnimation": "stand"
