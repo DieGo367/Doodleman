@@ -100,8 +100,9 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       this.view.hide();
       G$("Hud").show();
       Level.loadLevel("Room-1.json");
-    }).show();
+    }).show().setAsStart();
     Button.create("DeathScreenQuit","DeathScreen",WIDTH/2-150,HEIGHT-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
+    Button.pathVert(["PlayAgain","DeathScreenQuit"]);
   },
   removeGui: function() {
     G$("Hud").remove();
