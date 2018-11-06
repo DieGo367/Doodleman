@@ -1267,6 +1267,7 @@ class Entity extends PhysicsBox {
     this.attackCooldown = 0;
     this.actionLocked = false;
     this.movementLocked = false;
+    this.justSpawned = true;
   }
   distanceTo(target) {
   	if (typeof target=="object") return Math.abs(this.x-target.x);
@@ -1350,6 +1351,8 @@ class Entity extends PhysicsBox {
   	this.breakConnections();
     if (this.currentAttack!=null) this.completeAttack();
     this.animLock = 0;
+    this.justSpawned = true;
+    this.isGrounded = false;
   	super.respawn();
   }
   die(attacker) {
@@ -1659,6 +1662,23 @@ class Player extends Entity {
       console.log("missing controller");
     }
 
+    if (this.justSpawned) {
+      if (this.collisionType!=C_NONE) {
+        this.movementLocked = true;
+        this.defyGravity = true;
+        this.collisionType = C_NONE;
+        this.invulnerability = 2;
+        this.setAnimation("drawing",null,"full");
+      }
+      else if (this.animLock==0) {
+        this.movementLocked = false;
+        this.defyGravity = this.constructor.prototype.defyGravity;
+        this.collisionType = C_ENT;
+        Collision.removeAllPairsWith(this);
+        this.justSpawned = false;
+      }
+    }
+
   	if (this.attackCooldown>0) this.attackCooldown -= 1;
 
     if (this.isGrounded) this.canUpAirAttack = true;
@@ -1799,7 +1819,6 @@ class Enemy extends Entity {
   	this.post = null;
   	this.paceTarget = null;
   	this.standbyTick = 0;
-    this.justSpawned = true;
   }
 
   levelTest(blockBox,ignoreUIDs,customBoxTest,customLineTest) {
