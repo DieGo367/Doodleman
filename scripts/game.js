@@ -52,6 +52,7 @@ var Game = new GameMode();
 
 function tick() { //GAME UPDATES//
 	if (!focused) return;
+	Timer.update();
 	//update button states
 	GamePad.checkButtons();
 	Tap.checkTouches();

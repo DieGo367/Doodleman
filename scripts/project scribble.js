@@ -176,6 +176,9 @@ function callPrefixedFunction(source,strFunc) {
 	else if (typeof source["ms"+capFunc]!='undefined') source["ms"+capFunc](...useArgs);
 	else if (typeof source["moz"+capFunc]!='undefined') source["moz"+capFunc](...useArgs);
 }
+function wait(ticks,func) {
+	Timer.wait(ticks,func);
+}
 
 //helper objects
 const Pointer = {
@@ -556,6 +559,29 @@ const Sound = {
 		this.volume = volume;
 		let track = this.getTrack(this.playing);
 		if (track) track.volume = volume;
+	}
+}
+const Timer = {
+	timers: [],
+	funcs: [],
+	wait: function(ticks,func) {
+		if (!isNaN(parseInt(ticks)) && typeof func != "function") return;
+		this.timers.push(ticks);
+		this.funcs.push(func);
+	},
+	update: function() {
+		let completed = [];
+		for (var i in this.timers) {
+			if (--this.timers[i] == 0) {
+				this.funcs[i]();
+				completed.push(i);
+			}
+		}
+		for (var i in completed) {
+			let index = completed[i];
+			this.timers.splice(index,1);
+			this.funcs.splice(index,1);
+		}
 	}
 }
 
