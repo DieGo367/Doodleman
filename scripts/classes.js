@@ -41,6 +41,12 @@ class _c_ {
 			}
 		}
   }
+  static modifyPrototype(props) {
+    if (typeof props != "object") return;
+    for (var p in props) {
+      this.prototype[p] = props[p];
+    }
+  }
   remove() {
     this.constructor.removeInstance(this);
     if (this.uid!=void(0)) {
@@ -1264,11 +1270,13 @@ class Line extends _c_ {
   }
 
   static onInit() {
-    this.prototype.setSectors = Box.prototype.setSectors;
-    this.prototype.remove = PhysicsBox.prototype.remove;
-    this.prototype.lockSectors = true;
-    this.prototype.collisionType = C_LINE;
-    this.prototype.drawLayer = 0;
+    this.modifyPrototype({
+      setSectors: Box.prototype.setSectors,
+      remove: PhysicsBox.prototype.remove,
+      lockSectors: true,
+      collisionType: C_LINE,
+      drawLayer: 0
+    });
   }
 }
 initClass(Line,{drawable: true, listType: "uid"});
@@ -1483,16 +1491,18 @@ class Entity extends PhysicsBox {
 
   static onInit() {
     Animation.applyToClass(this);
-    this.prototype.draw = function(preventAnimTick) {
-      if (this.invulnerability%2==1) return;
-      else Animation.protoDraw.call(this,preventAnimTick);
-    };
-    this.prototype.drawLayer = 1;
-    this.prototype.respawnsOnDeath = false;
-    this.prototype.particleColor = null;
-    this.prototype.defyGravity = false;
-    this.prototype.collisionType = C_ENT;
-    this.prototype.canBeCarried = false;
+    this.modifyPrototype({
+      draw: function(preventAnimTick) {
+        if (this.invulnerability%2==1) return;
+        else Animation.protoDraw.call(this,preventAnimTick);
+      },
+      drawLayer: 1,
+      respawnsOnDeath: false,
+      particleColor: null,
+      defyGravity: false,
+      collisionType: C_ENT,
+      canBeCarried: false
+    });
     this.attacks = [];
   }
 }
@@ -1793,11 +1803,13 @@ class Player extends Entity {
   }
 
   static onInit() {
-    this.prototype.drawLayer = 2;
-    this.prototype.respawnsOnDeath = true;
-    this.prototype.lives = 5;
-    this.prototype.deaths = 0;
-    this.prototype.multiJump = false;
+    this.modifyPrototype({
+      drawLayer: 2,
+      respawnsOnDeath: true,
+      lives: 5,
+      deaths: 0,
+      multiJump: false
+    });
     this.attacks = [];
     this.slots = [null,null,null,null];
     this.keyIds = [0,1,null,null];
