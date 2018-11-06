@@ -53,13 +53,21 @@ class _c_ {
     // inherit from prototype if property had been overwritten on this instance
     this[propertyName] = this.constructor.prototype[propertyName];
   }
+  protoMethod(method) {
+    if (typeof method!="string") return console.warn("No method name given");
+    let args = [...arguments];
+    args.shift();
+    let proto = this.constructor.prototype;
+    if (proto[method]) proto[method].call(this,...args);
+    else console.warn("Method '" + method + "' not found in prototype chain.");
+  }
   superMethod(method) {
     if (typeof method!="string") return console.warn("No method name given");
     let args = [...arguments];
     args.shift();
     let parent = this.constructor.parent.prototype;
     if (parent[method]) parent[method].call(this,...args);
-    else console.warn("Method '" + method + "' not found in prototype chain.")
+    else console.warn("Method '" + method + "' not found in prototype chain.");
   }
   wait(ticks,func) {
     Timer.wait(ticks,func,this);
@@ -2640,7 +2648,7 @@ class TextInput extends Button {
   	incrementer.min = decrementer.min = min;
   	incrementer.max = decrementer.max = max;
     incrementer.remove = decrementer.remove = function(caller) {
-      if (caller==this.targetInput) this.constructor.prototype.remove.call(this);
+      if (caller==this.targetInput) this.protoMethod("remove");
     }
     this.incrementer = incrementer;
     this.decrementer = decrementer;
