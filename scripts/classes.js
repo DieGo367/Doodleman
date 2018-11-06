@@ -49,6 +49,10 @@ class _c_ {
 		for (var property in this) delete this[property];
 		this.deleted = true;
   }
+  inherit(propertyName) {
+    // inherit from prototype if property had been overwritten on this instance
+    this[propertyName] = this.constructor.prototype[propertyName];
+  }
   wait(ticks,func) {
     Timer.wait(ticks,func,this);
   }
@@ -1256,7 +1260,7 @@ initClass(Line,{drawable: true, listType: "uid"});
 
 class Entity extends PhysicsBox {
   constructor(x,y,width,height,duckHeight,health,sheet) {
-    super(x,y,width,height,void(0),void(0),false,C_ENT,false,false);
+    super(x,y,width,height);
   	this.fullHeight = height;
   	this.duckHeight = duckHeight;
   	this.ducking = false;
@@ -1454,7 +1458,7 @@ class Entity extends PhysicsBox {
   completeAttack() { //resets player states back to normal when attack is finished
     var attack = this.constructor.getAttack(this.currentAttack);
     if (attack) {
-      if (attack.defyGravity) this.defyGravity = this.constructor.prototype.defyGravity;
+      if (attack.defyGravity) this.inherit("defyGravity");
       this.actionLocked = false;
       this.movementLocked = false;
     }
@@ -1470,6 +1474,9 @@ class Entity extends PhysicsBox {
     this.prototype.drawLayer = 1;
     this.prototype.respawnsOnDeath = false;
     this.prototype.particleColor = null;
+    this.prototype.defyGravity = false;
+    this.prototype.collisionType = C_ENT;
+    this.prototype.canBeCarried = false;
     this.attacks = [];
   }
 }
@@ -1676,14 +1683,15 @@ class Player extends Entity {
       }
       else if (this.animLock==0) {
         this.movementLocked = false;
-        this.defyGravity = this.constructor.prototype.defyGravity;
-        this.collisionType = C_ENT;
+        this.inherit("defyGravity")
+        this.inherit("collisionType");
         Collision.removeAllPairsWith(this);
         this.justSpawned = false;
         if (this.hadDied) {
           this.invulnerability = 60;
           this.hadDied = false;
         }
+        else this.invulnerability = 0;
       }
     }
 
