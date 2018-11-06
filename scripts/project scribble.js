@@ -564,16 +564,21 @@ const Sound = {
 const Timer = {
 	timers: [],
 	funcs: [],
-	wait: function(ticks,func) {
+	callers: [],
+	wait: function(ticks,func,caller) {
 		if (!isNaN(parseInt(ticks)) && typeof func != "function") return;
 		this.timers.push(ticks);
 		this.funcs.push(func);
+		if (typeof caller == "object") this.callers[this.timers.length-1] = caller;
 	},
 	update: function() {
 		let completed = [];
 		for (var i in this.timers) {
 			if (--this.timers[i] == 0) {
-				this.funcs[i]();
+				let func = this.funcs[i];
+				let caller = this.callers[i];
+				if (caller) func.call(caller);
+				else func();
 				completed.push(i);
 			}
 		}
@@ -581,6 +586,7 @@ const Timer = {
 			let index = completed[i];
 			this.timers.splice(index,1);
 			this.funcs.splice(index,1);
+			delete this.callers[index];
 		}
 	}
 }

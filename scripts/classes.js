@@ -49,6 +49,9 @@ class _c_ {
 		for (var property in this) delete this[property];
 		this.deleted = true;
   }
+  wait(ticks,func) {
+    Timer.wait(ticks,func,this);
+  }
   drawTint() {}
   draw() {}
   drawElements() {}
@@ -1486,6 +1489,7 @@ class Player extends Entity {
   	this.attackCooldown = 0;
   	this.attackHeld = 0;
     this.canUpAirAttack = true;
+    this.hadDied = false;
   }
   static onCreate() {
     this.ctrls = {
@@ -1663,11 +1667,11 @@ class Player extends Entity {
     }
 
     if (this.justSpawned) {
+      this.invulnerability = 3;
       if (this.collisionType!=C_NONE) {
         this.movementLocked = true;
         this.defyGravity = true;
         this.collisionType = C_NONE;
-        this.invulnerability = 2;
         this.setAnimation("drawing",null,"full");
       }
       else if (this.animLock==0) {
@@ -1676,6 +1680,10 @@ class Player extends Entity {
         this.collisionType = C_ENT;
         Collision.removeAllPairsWith(this);
         this.justSpawned = false;
+        if (this.hadDied) {
+          this.invulnerability = 60;
+          this.hadDied = false;
+        }
       }
     }
 
@@ -1701,8 +1709,17 @@ class Player extends Entity {
   }
   die() {
   	this.lives -= 1;
-  	if (this.lives<=0) this.respawnsOnDeath = false;
-  	super.die();
+  	if (this.lives<=0) {
+      this.respawnsOnDeath = false;
+      super.die();
+    }
+    else {
+      this.x = this.y = NaN;
+      this.hadDied = true;
+      this.wait(60,function() {
+        this.constructor.parent.prototype.die.call(this);
+      });
+    }
   }
   remove() {
     this.ctrls.selfDestructAll();
