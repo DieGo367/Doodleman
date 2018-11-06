@@ -53,6 +53,14 @@ class _c_ {
     // inherit from prototype if property had been overwritten on this instance
     this[propertyName] = this.constructor.prototype[propertyName];
   }
+  superMethod(method) {
+    if (typeof method!="string") return console.warn("No method name given");
+    let args = [...arguments];
+    args.shift();
+    let parent = this.constructor.parent.prototype;
+    if (parent[method]) parent[method].call(this,...args);
+    else console.warn("Method '" + method + "' not found in prototype chain.")
+  }
   wait(ticks,func) {
     Timer.wait(ticks,func,this);
   }
@@ -1725,7 +1733,7 @@ class Player extends Entity {
       this.x = this.y = NaN;
       this.hadDied = true;
       this.wait(60,function() {
-        this.constructor.parent.prototype.die.call(this);
+        this.superMethod("die");
       });
     }
   }
