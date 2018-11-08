@@ -60,11 +60,11 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     }
     else if (ent instanceof Player&&ent.lives<1) {
       this.deathEvent = true;
-      if (Player.getAll().length<=1) setTimeout(function() {
+      if (Player.getAll().length<=1) wait(60,function() {
         G$("Hud").hide();
         G$("DeathText").setVar(G$("ScoreText").var);
         G$("DeathScreen").show();
-      },1000);
+      });
     }
   },
 
