@@ -382,6 +382,7 @@ class HurtBox extends Interactable {
   	if (endCheck) this.endCheck = endCheck;
   	else this.endCheck = function() { return false; };
   	this.harmed = {};
+    this.hitCount = 0;
   }
   update() {
   	if (this.attacker!=null&&PhysicsBox.has(this.attacker)) {
@@ -393,6 +394,7 @@ class HurtBox extends Interactable {
   		for (var i in this.touches) {
   			var v = this.touches[i];
   			if (v==this.attacker||this.harmed[v.uid]) continue;
+        this.hitCount++;
   			v.hurt(this.damage,this.attacker!=null?this.attacker:this);
         if (this.onHurt) this.onHurt(v);
   			if (!v.dead) this.harmed[v.uid] = v;
