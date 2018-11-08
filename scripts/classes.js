@@ -238,14 +238,13 @@ initClass(BackgroundB64,Background);
 
 
 class Box extends _c_ {
-  constructor(x,y,width,height,color,sprite) {
+  constructor(x,y,width,height,gfx) {
     super();
   	this.x = x;
   	this.y = y;
   	this.width = width;
   	this.height = height;
-  	this.color = color;
-  	this.sprite = sprite;
+    this.gfx = gfx;
     this.isLoaded = true;
     this.alwaysLoaded = false;
     this.lockSectors = false;
@@ -309,9 +308,19 @@ class Box extends _c_ {
 
   draw() {
     if (!this.isLoaded) return;
-    c.fillStyle = this.color;
-    if (this.color!=null) c.fillRect(Math.round(this.leftX()),Math.round(this.y),this.width,-(this.height));
-    if (this.sprite!=null) Images.drawImage(this.sprite,Math.round(this.leftX()),Math.round(this.topY()),this.width,this.height);
+    let type = typeof this.gfx;
+    if (type == "string") {
+      if (this.gfx.split(".").length>1) { // use as image name
+        Images.drawImage(this.gfx,Math.round(this.leftX()),Math.round(this.topY()),this.width,this.height);
+      }
+      else { // try to use as a color string
+        c.fillStyle = this.gfx;
+        c.fillRect(Math.round(this.leftX()),Math.round(this.y),this.width,-(this.height));
+      }
+    }
+    else if (type == "object") {
+      Animation.drawFromSheet(this.gfx,this.x,this.y,"none",0,CENTER,this);
+    }
   }
   drawDebug() {
     c.lineWidth = 1;
@@ -334,8 +343,8 @@ class Box extends _c_ {
 initClass(Box,{drawable: true, listType: "uid"});
 
 class Interactable extends Box {
-  constructor(x,y,width,height,color,sprite,targetClass) {
-    super(x,y,width,height,color,sprite);
+  constructor(x,y,width,height,gfx,targetClass) {
+    super(x,y,width,height,gfx);
   	this.targetClass = targetClass;
   	this.touches = {};
   }
@@ -364,7 +373,7 @@ initClass(Interactable,Box);
 
 class HurtBox extends Interactable {
   constructor(x,y,width,height,attacker,damage,duration,formulaX,formulaY,endCheck) {
-  	super(x,y,width,height,void(0),void(0),Entity);
+  	super(x,y,width,height,void(0),Entity);
   	this.attacker = attacker;
   	this.damage = damage;
   	this.time = duration;
@@ -459,8 +468,8 @@ class AttackBox extends HurtBox {
 initClass(AttackBox,HurtBox);
 
 class Entrance extends Interactable {
-  constructor(x,y,width,height,color,sprite,targetClass,linkId,destination,preventEnter,preventExit) {
-    super(x,y,width,height,color,sprite,targetClass);
+  constructor(x,y,width,height,gfx,targetClass,linkId,destination,preventEnter,preventExit) {
+    super(x,y,width,height,gfx,targetClass);
     this.linkId = linkId;
     this.destination = destination;
     this.preventEnter = !!preventEnter;
@@ -553,7 +562,7 @@ initClass(Entrance,Box);
 
 class Door extends Entrance {
   constructor(x,y,linkId,destination,preventEnter,preventExit) {
-    super(x,y,32,55,void(0),void(0),Player,linkId,destination,preventEnter,preventExit);
+    super(x,y,32,55,void(0),Player,linkId,destination,preventEnter,preventExit);
     this.sheet = Animation.getSpritesheet("Door.json");
     this.doorOpen = false;
   }
@@ -662,7 +671,7 @@ initClass(Door,Entrance);
 
 class SpawnZone extends Entrance {
   constructor(x,y,width,height,forceSpawns) {
-    super(x,y,width,height,void(0),void(0),Entity,void(0),void(0),false,true);
+    super(x,y,width,height,void(0),Entity,void(0),void(0),false,true);
     this.forceSpawns = !!forceSpawns;
     this.playerBlocked = false;
   }
@@ -714,8 +723,8 @@ class SpawnZone extends Entrance {
 }
 
 class PhysicsBox extends Box {
-  constructor(x,y,width,height,color,sprite,defyPhysics,collisionType,canBeCarried,thrownDamage) {
-  	super(x,y,width,height,color,sprite);
+  constructor(x,y,width,height,gfx,defyPhysics,collisionType,canBeCarried,thrownDamage) {
+  	super(x,y,width,height,gfx);
   	this.defyPhysics = defyPhysics;
     this.collisionType = collisionType;
   	this.canBeCarried = canBeCarried;
@@ -954,8 +963,8 @@ class PhysicsBox extends Box {
 initClass(PhysicsBox,Box);
 
 class MovingPlatform extends PhysicsBox {
-  constructor(x,y,width,height,color,sprite,collisionType,velX,velY) {
-  	super(x,y,width,height,color,sprite,true,collisionType,false,false);
+  constructor(x,y,width,height,gfx,collisionType,velX,velY) {
+  	super(x,y,width,height,gfx,true,collisionType,false,false);
   	this.velX = this.dx = velX;
   	this.velY = this.dy = velY;
   }
