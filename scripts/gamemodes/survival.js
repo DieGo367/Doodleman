@@ -12,6 +12,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     if (!this.ready) return;
 
     if (Enemy.getAll().length==0) {
+      this.stealthBonus(this.wave);
       this.wave++;
       this.spawnWave(this.wave);
     }
@@ -37,6 +38,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     this.wave = 0;
     this.score = 0;
     this.deathEvent = false;
+    this.stealthKills = 0;
     G$("ScoreText").setVar(0).show();
     addPlayer(0);
     if (multiplayer) addPlayer(1);
@@ -49,7 +51,13 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     if (ent instanceof Player && attacker instanceof Player) return CANCEL;
   },
   onDeath: function(ent,attacker) {
-    if (ent instanceof Enemy&&attacker instanceof Player) this.addScore(ent.maxHealth);
+    if (ent instanceof Enemy&&attacker instanceof Player) {
+      this.addScore(ent.maxHealth);
+      if (!ent.target) {
+        this.addScore(1);
+        this.stealthKills++;
+      }
+    }
     else if (ent instanceof Player&&ent.lives<1) {
       this.deathEvent = true;
       if (Player.getAll().length<=1) setTimeout(function() {
@@ -75,6 +83,15 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       else enem = ActorManager.make(10,x,y);
       if (zone) zone.enterAsSpawn(enem);
     }
+  },
+  stealthBonus: function(num) {
+    if (num>3 && this.stealthKills>num/3) {
+      let zone = SpawnZone.weightedSelection();
+      let x = Math.round(Math.random()*Level.level.width);
+      let y = Math.round(Math.random()*Level.level.height);
+      if (zone) zone.enterAsSpawn(PlusHeart.create(x,y,1));
+    }
+    this.stealthKills = 0;
   },
 
   addGui: function() {
