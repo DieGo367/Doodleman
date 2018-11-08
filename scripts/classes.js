@@ -1993,6 +1993,7 @@ class Enemy extends Entity {
   }
 
   update() {
+    if ((isNaN(this.x)||isNaN(this.y) && !this.entrance && !this.exit)) this.respawn();
     if (this.justSpawned) {
       this.collisionType = C_WEAK;
       if (this.isGrounded) {
