@@ -2095,7 +2095,7 @@ initClass(Skeltal,Enemy);
 
 class PlusHeart extends Interactable {
   constructor(x,y,hp) {
-    super(x,y,18,18,void(0),void(0),Player);
+    super(x,y,18,18,void(0),Player);
     this.hp = hp;
     this.sheet = Animation.getSpritesheet("PlusHeart.json");
   }
