@@ -18,7 +18,8 @@ const Level = {
 		terrain: [],
 		bg: [
 			// {type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 1}
-		]
+		],
+		_version_: 0
 	},
 	addTerrainData: function(data) {
 		let index = this.findMatchingTerrainDefinitionIndex(data);
@@ -104,6 +105,7 @@ const Level = {
 			if (doLog) console.warn('Failed to load Level');
 			return false;
 		}
+		if (!this.isUpToDate(newLevel)) this.convert(newLevel);
 		pauseGame(true);
 		this.clearLevel();
 		for (var p in newLevel) this.level[p] = newLevel[p];
@@ -151,6 +153,32 @@ const Level = {
 			$("#clipboard").val(data).select();
 			document.execCommand("copy");
 			gameAlert("Level data copied to clipboard.",120);
+		}
+	},
+	isUpToDate: function(level) {
+		return level._version_ == BlankLevel._version_;
+	},
+	convert: function(data) {
+		if (data._version_==void(0)) {
+			// No version was specified. File is from before versions were introduced
+			// Terrain boxes should now merge their color and sprite properties into gfx
+			if (data.terrain) for (var i in data.terrain) {
+				let terr = data.terrain[i];
+				if (terr.type==0) {
+					let color = terr.properties[0];
+					let sprite = terr.properties[1];
+					terr.properties.splice(0,1);
+					terr.properties[0] = sprite || color || null;
+				}
+			}
+			// Actor id 20 properties changed
+			if (data.actors) for (var i in data.actors) {
+				let props = data.actors[i];
+				if (props[0]==20) {
+					props.splice(5,1); // remove hasColorFill
+				}
+			}
+			data._version_ = 0;
 		}
 	},
 	getSnappingPoints: function(cancelMidpoints) {
