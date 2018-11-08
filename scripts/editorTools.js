@@ -7,8 +7,7 @@ const EditorTools = {
   Box: {
     x: null,
     y: null,
-    color: "black",
-    img: null,
+    gfx: "black",
     collisionType: C_INFINIMASS,
     onClick: function() {
       if (this.x==null||this.y==null) {
@@ -30,7 +29,7 @@ const EditorTools = {
         height = Math.abs(height);
         let definition = {
           type: 0,
-          properties: [this.color,this.img,true,this.collisionType],
+          properties: [this.gfx,true,this.collisionType],
           pieces: [[x,y,width,height]]
         };
         TerrainManager.make(definition);
@@ -65,8 +64,8 @@ const EditorTools = {
     },
     getPropStrings: function() {
       return {
-        names: ["color","img","collisionType"],
-        types: ["string","string","accessor:C_NONE,C_WEAK,C_PUSHABLE,C_SOLID,C_INFINIMASS"]
+        names: ["gfx","collisionType"],
+        types: ["string","accessor:C_NONE,C_WEAK,C_PUSHABLE,C_SOLID,C_INFINIMASS"]
       }
     },
     findAt: function(x,y) {
