@@ -1,0 +1,5 @@
+{
+  "extends": "MaxHeart.json",
+  "pages": ["GoldenHeart.png"],
+  "errorColor": "GoldenRod"
+}

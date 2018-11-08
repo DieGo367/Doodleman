@@ -2092,18 +2092,42 @@ class PlusHeart extends Interactable {
   update() {
     super.update();
     for (var i in this.touches) {
-      this.touches[i].heal(this.hp);
+      this.affect(this.touches[i]);
       this.remove();
       return;
     }
     this.setAnimation("static");
     if (Math.random()<(1/500)) this.setAnimation("heartbeat",null,"full");
   }
+  affect(p) {
+    p.heal(this.hp);
+  }
   static onInit() {
     Animation.applyToClass(this);
   }
 }
 initClass(PlusHeart,Interactable);
+
+class MaxHeart extends PlusHeart {
+  constructor(x,y) {
+    super(x,y);
+    this.sheet = Animation.getSpritesheet("MaxHeart.json");
+  }
+  affect(p) {
+    p.heal(p.maxHealth);
+  }
+}
+
+class GoldenHeart extends PlusHeart {
+  constructor(x,y) {
+    super(x,y);
+    this.sheet = Animation.getSpritesheet("GoldenHeart.json");
+  }
+  affect(p) {
+    p.maxHealth++;
+    p.heal(p.maxHealth);
+  }
+}
 
 
 class View extends _c_ {

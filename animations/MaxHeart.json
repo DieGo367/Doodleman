@@ -1,0 +1,7 @@
+{
+  "extends": "PlusHeart.json",
+  "pages": ["MaxHeart.png"],
+  "spriteWidth": 36,
+  "spriteHeight": 36,
+  "drawOffset": {"x": -18, "y": 0}
+}
