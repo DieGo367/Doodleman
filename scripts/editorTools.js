@@ -4,6 +4,8 @@ const EditorTools = {
   modes: ["Box","Line","Actor"],
   mode: 0,
   eraserOn: false,
+  history: [],
+  future: [],
   Box: {
     x: null,
     y: null,
@@ -32,16 +34,22 @@ const EditorTools = {
           properties: [this.gfx,true,this.collisionType],
           pieces: [[x,y,width,height]]
         };
-        TerrainManager.make(definition);
-        Level.addTerrainData(definition);
+        EditorTools.runAction({
+          action: "create",
+          objectType: "terrain",
+          definition: definition
+        });
         this.cancel();
       }
     },
     erase: function() {
       let box = this.findAt(Pointer.camX(),Pointer.camY());
       if (box) {
-        Level.removeTerrainData(box.rawTerrainData);
-        box.remove();
+        EditorTools.runAction({
+          action: "delete",
+          objectType: "terrain",
+          definition: box.rawTerrainData
+        });
       }
     },
     cancel: function() {
@@ -99,16 +107,22 @@ const EditorTools = {
           properties: [this.lineWidth,this.stroke,this.direction,this.useBoxCorners],
           pieces: [[this.x,this.y,xx,yy]]
         };
-        TerrainManager.make(definition);
-        Level.addTerrainData(definition);
+        EditorTools.runAction({
+          action: "create",
+          objectType: "terrain",
+          definition: definition
+        });
         this.cancel();
       }
     },
     erase: function() {
       let line = this.findAt(Pointer.camX(),Pointer.camY());
       if (line) {
-        Level.removeTerrainData(line.rawTerrainData);
-        line.remove();
+        EditorTools.runAction({
+          action: "delete",
+          objectType: "terrain",
+          definition: line.rawTerrainData
+        });
       }
     },
     cancel: function() {
@@ -194,10 +208,11 @@ const EditorTools = {
         this.setLevelSpawn(...data);
         this.setSpawnGhost(...data);
       }
-      else {
-        ActorManager.make(...data);
-        Level.addActorData(data);
-      }
+      else EditorTools.runAction({
+        action: "create",
+        objectType: "actor",
+        definition: data
+      });
     },
     erase: function() {
       let actor = this.findAt(Pointer.camX(),Pointer.camY());
@@ -206,8 +221,11 @@ const EditorTools = {
           this.killSpawnGhost(actor.slot);
           this.removeLevelSpawn(actor.slot);
         }
-        else Level.removeActorData(actor.rawActorData);
-        actor.remove();
+        else EditorTools.runAction({
+          action: "delete",
+          objectType: "actor",
+          definition: actor.rawSpriteData
+        });
       }
     },
     cancel: function() { },
@@ -423,9 +441,75 @@ const EditorTools = {
       }
       ctrl.use("PropMenu");
     }
+    if (ctrl.pressed("Ctrl")) {
+      if (ctrl.ready("z")) {
+        if (ctrl.pressed("Shift")) this.redoAction();
+        else this.undoAction();
+        ctrl.use("z");
+      }
+    }
     if (ctrl.ready("fullScreen")) {
       G$("FSToggle").onClick(ctrl,true);
       ctrl.use("fullScreen");
     }
+  },
+  execAction: function(action) {
+    switch(action.action) {
+      case "create":
+        switch(action.objectType) {
+          case "terrain":
+            let def = clone(action.definition);
+            TerrainManager.make(def);
+            Level.addTerrainData(def);
+            break;
+          case "actor":
+            let data = clone(action.definition);
+            ActorManager.make(...data);
+            Level.addActorData(data);
+        }
+        break;
+      case "delete":
+        switch (action.objectType) {
+          case "terrain":
+            let piece = TerrainManager.searchFor(action.definition);
+            if (piece) piece.remove();
+            else console.warn("Couldn't delete missing terrain");
+            Level.removeTerrainData(action.definition);
+            break;
+          case "actor":
+            let actor = ActorManager.searchFor(action.definition);
+            if (actor) actor.remove();
+            else console.warn("Couldn't delete missing actor")
+            Level.removeActorData(action.definition);
+        }
+      break;
+    }
+  },
+  invertAction: function(action) {
+    let inverses = {
+      create: "delete",
+      delete: "create"
+    }
+    action.action = inverses[action.action];
+    return action;
+  },
+  runAction: function(action) {
+    this.execAction(action);
+    this.history.push(action);
+    this.future = [];
+  },
+  undoAction: function() {
+    if (this.history.length<1) return;
+    let action = this.history.pop();
+    let undo = clone(action);
+    this.invertAction(undo);
+    this.execAction(undo);
+    this.future.push(action);
+  },
+  redoAction: function() {
+    if (this.future.length<1) return;
+    let action = this.future.pop();
+    this.execAction(action);
+    this.history.push(action);
   }
 }

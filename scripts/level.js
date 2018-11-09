@@ -268,6 +268,17 @@ const ActorManager = {
 		}
 		return actor;
 	},
+	searchFor: function(data) {
+		let def = JSON.stringify(data);
+		let construct = Constants.read(this.actorData[data[0]].class);
+		let all = construct.getAll();
+		for (var i in all) {
+			let actor = all[i];
+			if (JSON.stringify(actor.rawActorData)==def) {
+				return actor;
+			}
+		}
+	},
 	interpretStr: function(str,vals) {
 		var sub = str.substring(0,3), index = parseInt(str.substring(3));
 		if (sub=="val") return vals[index];
@@ -298,5 +309,20 @@ const TerrainManager = {
 			results.push(obj);
 		}
 		return results;
+	},
+	searchFor: function(definition) {
+		let construct = [PhysicsBox,Line][definition.type];
+		let all = construct.getAll();
+		for (var i in all) {
+			let obj = all[i];
+			let raw = obj.rawTerrainData;
+			if (!raw) continue;
+			if (raw.type!=definition.type) continue;
+			if (JSON.stringify(raw.pieces)==JSON.stringify(definition.pieces)) {
+				if (JSON.stringify(raw.properties)==JSON.stringify(definition.properties)) {
+					return obj;
+				}
+			}
+		}
 	}
 }

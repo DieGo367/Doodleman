@@ -28,6 +28,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     G$("LevelSettingsClose").onClickFunction();
     EditorTools.Actor.removeSpawnGhosts();
     EditorTools.Actor.initSpawnGhosts();
+    EditorTools.eid = 0;
   },
   onPause: function() {
     if (!G$("LevelSettingsView").visible) {
