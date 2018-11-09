@@ -320,6 +320,13 @@ const EditorTools = {
     }
     this.ready = true;
   },
+  setup: function() {
+    this.enabled = true;
+    if (this.levelCopy) Level.load(JSON.stringify(this.levelCopy),false);
+    this.Actor.initSpawnGhosts();
+    this.history = [];
+    this.future = [];
+  },
   onClick: function(found) {
     let tool = this[this.getModeText()];
     let button = G$(this.getModeText()+"Tool");

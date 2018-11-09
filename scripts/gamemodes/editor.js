@@ -3,9 +3,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     devEnabled = true;
     Tap.ctrlEnabled = false;
     this.addGui();
-    EditorTools.enabled = true;
-    if (EditorTools.levelCopy) Level.load(JSON.stringify(EditorTools.levelCopy),false);
-    EditorTools.Actor.initSpawnGhosts();
+    EditorTools.setup();
     GameManager.overrideTick(this.tick);
   },
   quit: function() {
