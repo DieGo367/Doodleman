@@ -305,17 +305,6 @@ const EditorTools = {
     },
     removeSpawnGhosts: function() {
       for (var i = this.spawnGhosts.length-1; i >= 0; i--) this.killSpawnGhost(i);
-    },
-    setLevelSpawn: function(x,y,playerNumber,direction) {
-      let spawn = Level.level.playerSpawns[playerNumber];
-      if (!spawn) spawn = Level.level.playerSpawns[playerNumber] = {x: 0, y:0, direction: RIGHT};
-      spawn.x = x, spawn.y = y, spawn.direction = direction;
-      return spawn;
-    },
-    removeLevelSpawn: function(playerNumber) {
-      let spawns = Level.level.playerSpawns;
-      delete spawns[playerNumber];
-      trimListEnd(spawns);
     }
   },
   init: function() {

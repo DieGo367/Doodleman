@@ -88,6 +88,17 @@ const Level = {
 		if (data.type=="name") Background.create(slot,data.name,data.layer,data.scale,data.parallax);
 		else if (data.raw!="") BackgroundB64.create(slot,data.raw,data.layer,data.scale,data.parallax);
 	},
+	setSpawn: function(x,y,playerNumber,direction) {
+		let spawn = this.level.playerSpawns[playerNumber];
+		if (!spawn) spawn = this.level.playerSpawns[playerNumber] = {x: 0, y:0, direction: RIGHT};
+		spawn.x = x, spawn.y = y, spawn.direction = direction;
+		return spawn;
+	},
+	removeSpawn: function(playerNumber) {
+		let spawns = Level.level.playerSpawns;
+		delete spawns[playerNumber];
+		trimListEnd(spawns);
+	},
 	clearLevel: function() {
 		Box.killAll();
 		Line.killAll();
