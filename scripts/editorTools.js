@@ -204,9 +204,15 @@ const EditorTools = {
       let x = Pointer.camX(), y = Pointer.camY();
       let data = [this.id,x,y,...this.properties];
       if (this.id==0) {
-        data.splice(0,1);
-        this.setLevelSpawn(...data);
-        this.setSpawnGhost(...data);
+        let slot = data[3];
+        let prev = Level.level.playerSpawns[slot];
+        prev = prev? [prev.x, prev.y, slot, prev.direction] : null;
+        EditorTools.runAction({
+          action: "spawn",
+          slot: slot,
+          spawnData: data.splice(1),
+          previous: prev
+        });
       }
       else EditorTools.runAction({
         action: "create",
@@ -217,10 +223,11 @@ const EditorTools = {
     erase: function() {
       let actor = this.findAt(Pointer.camX(),Pointer.camY());
       if (actor) {
-        if (this.id==0) {
-          this.killSpawnGhost(actor.slot);
-          this.removeLevelSpawn(actor.slot);
-        }
+        if (this.id==0) EditorTools.runAction({
+          action: "spawnremove",
+          slot: actor.slot,
+          spawnData: [actor.x, actor.y, actor.slot, actor.direction]
+        });
         else EditorTools.runAction({
           action: "delete",
           objectType: "actor",
@@ -471,15 +478,35 @@ const EditorTools = {
             else console.warn("Couldn't delete missing actor")
             Level.removeActorData(action.definition);
         }
-      break;
+        break;
+      case "spawn":
+        Level.setSpawn(...action.spawnData);
+        this.Actor.setSpawnGhost(...action.spawnData);
+        break;
+      case "spawnremove":
+        Level.removeSpawn(action.slot);
+        this.Actor.killSpawnGhost(action.slot);
+        break;
     }
   },
   invertAction: function(action) {
     let inverses = {
       create: "delete",
-      delete: "create"
+      delete: "create",
+      spawnremove: "spawn",
+      spawn: "spawnremove"
     }
     action.action = inverses[action.action];
+    switch (action.action) {
+      case "spawnremove":
+        if (action.previous!=null) {
+          action.action = "spawn";
+          let temp = action.spawnData;
+          action.spawnData = action.previous;
+          action.previous = temp;
+        }
+        break;
+    }
     return action;
   },
   runAction: function(action) {
