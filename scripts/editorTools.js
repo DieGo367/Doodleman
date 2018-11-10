@@ -5,8 +5,8 @@ const EditorTools = {
   mode: 0,
   eraserOn: false,
   selectOn: false,
-  selectA: null,
-  selectB: null,
+  selectPt: null,
+  selection: new UIDStore(),
   history: [],
   future: [],
   Box: {
@@ -338,14 +338,22 @@ const EditorTools = {
   onDown: function(found) {
     let tool = this[this.getModeText()];
     let button = G$(this.getModeText()+"Tool");
-    if (Pointer.focusLayer!=0||found) return tool.cancel();
+    if (Pointer.focusLayer!=0||found) {
+      tool.cancel();
+      this.clearSelection();
+      return;
+    }
     if (this.selectOn) this.startSelection();
     else if (button.on) tool.onDown();
   },
   onClick: function(found) {
     let tool = this[this.getModeText()];
     let button = G$(this.getModeText()+"Tool");
-    if (Pointer.focusLayer!=0||found) return tool.cancel();
+    if (Pointer.focusLayer!=0||found) {
+      tool.cancel();
+      this.clearSelection();
+      return;
+    }
     if (this.selectOn) this.endSelection();
     else if (button.on) {
       if (this.eraserOn) tool.erase();
@@ -354,6 +362,7 @@ const EditorTools = {
   },
   onRightClick: function() {
     this[this.getModeText()].cancel();
+    this.endSelection();
   },
   setMode: function(mode) {
     if (!this.ready) this.init();
@@ -380,6 +389,7 @@ const EditorTools = {
     this.setCursor();
   },
   setSelectOn: function(bool) {
+    this.clearSelection();
     this.selectOn = bool;
     this.setEraserOn(false);
   },
@@ -430,16 +440,19 @@ const EditorTools = {
   draw: function() {
     let button = G$(this.getModeText()+"Tool");
     if (this.selectOn) {
-      if (this.selectA) {
-        let x = this.selectA.x, y = this.selectA.y;
-        let xx, yy;
-        if (this.selectB) xx = this.selectB.x, yy = this.selectB.y;
-        else xx = Pointer.camX(), yy = Pointer.camY();
-        c.strokeStyle = "orange";
+      if (this.selectPt) {
+        let x = this.selectPt.x, y = this.selectPt.y;
+        let xx = Pointer.camX(), yy = Pointer.camY();
+        c.strokeStyle = this.selectMod=="remove"?"red":"darkOrange";
+        c.lineWidth = 2;
         c.setLineDash([5]);
+        c.lineDashOffset = (Timer.now()/5)%10;
         c.strokeRect(x,y,xx-x,yy-y);
         c.setLineDash([]);
+        c.lineDashOffset = 0;
+        c.lineWidth = 1;
       }
+      for (var i in this.selection) this.selection[i].drawHighlighted("orange");
     }
     else if (button.on) {
       if (this.eraserOn) {
@@ -569,12 +582,47 @@ const EditorTools = {
     this.history.push(action);
   },
   startSelection: function() {
-    this.selectA = Pointer.camPoint();
-    this.selectB = null;
+    this.selectMod = this.checkSelectionModifier();
+    if (!this.selectMod) this.clearSelection();
+    this.selectPt = Pointer.camPoint();
   },
   endSelection: function() {
-    if (!this.selectA) return;
-    this.selectB = Pointer.camPoint();
-    if (this.selectA.x==this.selectB.x&&this.selectA.y==this.selectB.y) this.selectA = this.selectB = null;
+    if (!this.selectPt) return;
+    let end = Pointer.camPoint();
+    if (this.selectPt.x==end.x||this.selectPt.y==end.y) {
+      if (!this.selectMod) this.clearSelection();
+      return;
+    }
+    let width = Math.abs(end.x-this.selectPt.x);
+    let height = Math.abs(end.y-this.selectPt.y);
+    let x = Math.min(this.selectPt.x,end.x)+width/2;
+    let y = Math.max(this.selectPt.y,end.y);
+    let selectBox = new Box(x,y,width,height);
+    let boxes = PhysicsBox.getAll(), lines = Line.getAll();
+    for (var i in boxes) {
+      if (selectBox.intersect(boxes[i])) this.select(boxes[i]);
+    }
+    for (var i in lines) {
+      if (lines[i].crossesBox(selectBox)) this.select(lines[i]);
+    }
+    for (var i in this.Actor.spawnGhosts) {
+      let ghost = this.Actor.spawnGhosts[i];
+      if (selectBox.intersect(ghost)) this.select(ghost);
+    }
+    this.selectPt = null;
+  },
+  clearSelection: function() {
+    this.selectPt = null;
+    for (var i in this.selection) this.selection.remove(this.selection[i]);
+  },
+  select: function(obj) {
+    if (this.selectMod=="remove") this.selection.remove(obj);
+    else this.selection.add(obj);
+  },
+  checkSelectionModifier: function() {
+    if (Pointer.downButton==3) return "remove";
+    let ctrl = globalKeyboard;
+    if (ctrl.pressed("Shift")) return "append";
+    if (ctrl.pressed("Alt")) return "remove";
   }
 }
