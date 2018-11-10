@@ -1055,6 +1055,15 @@ class Line extends _c_ {
   	}
   	return false;
   }
+  crossesBox(box) {
+    let a = new Point(box.leftX(),box.topY());
+    let b = new Point(box.rightX(),box.topY());
+    let c = new Point(box.leftX(),box.bottomY());
+    let d = new Point(box.rightX(),box.bottomY());
+    if (box.containsPoint(this.x,this.y)) return true;
+    if (box.containsPoint(this.x2,this.y2)) return true;
+    return Line.pointsCrossLine(a,d,this) || Line.pointsCrossLine(b,c,this);
+  }
 
   update() { }
   draw() {
