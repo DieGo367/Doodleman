@@ -231,7 +231,7 @@ const EditorTools = {
         else EditorTools.runAction({
           action: "delete",
           objectType: "actor",
-          definition: actor.rawSpriteData
+          definition: actor.rawActorData
         });
       }
     },
