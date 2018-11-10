@@ -694,7 +694,10 @@ function drawGame() {
 	if (devEnabled) {
 		c.fillStyle = "black";
 		c.font = "12px Consolas";
-		c.fillText("("+Pointer.camX()+","+Pointer.camY()+")",Pointer.x,Pointer.y+12);
+		let coordText = "("+Pointer.camX()+","+Pointer.camY()+")";
+		let width = c.measureText(coordText).width;
+		let x = Pointer.x+16, y = Pointer.y+12;
+		c.fillText(coordText, x>WIDTH-width?x-width-16:x, y>HEIGHT?y-12:y);
 		if (Game.mode!=GAME_TITLE&&Game.mode!=GAME_EDITOR) {
 			var textGroup = [], allPlayers = Player.getAll();
 			for (var i in allPlayers) textGroup.push(allPlayers[i].slot+1+"XY: "+allPlayers[i].x+", "+allPlayers[i].y);
