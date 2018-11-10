@@ -2,7 +2,7 @@
 const G$ = function G$(query) {
 	let g = G$.all[query];
 	if (g) return g;
-	else return {hide:function(){}, show:function(){}, on:function(){return false;}}
+	else return {hide:function(){}, show:function(){}, on:false}
 }
 G$.all = {};
 G$.store = function(name,elem) { this.all[name] = elem; };
