@@ -564,9 +564,13 @@ const Sound = {
 	}
 }
 const Timer = {
+	tick: 0,
 	timers: [],
 	funcs: [],
 	callers: [],
+	now: function() {
+		return this.tick;
+	},
 	wait: function(ticks,func,caller) {
 		if (!isNaN(parseInt(ticks)) && typeof func != "function") return;
 		this.timers.push(ticks);
@@ -574,6 +578,7 @@ const Timer = {
 		if (typeof caller == "object") this.callers[this.timers.length-1] = caller;
 	},
 	update: function() {
+		this.tick++;
 		let completed = [];
 		for (var i in this.timers) {
 			if (--this.timers[i] == 0) {

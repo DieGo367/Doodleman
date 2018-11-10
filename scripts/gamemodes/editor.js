@@ -16,6 +16,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   },
   tick: function() {
     if (!focused) return;
+    Timer.update();
     window.requestAnimationFrame(drawGame);
     doGlobalControls(globalKeyboard);
     EditorTools.doControls(globalKeyboard);
