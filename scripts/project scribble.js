@@ -199,7 +199,7 @@ const Pointer = {
 		if (y>HEIGHT) y = HEIGHT;
 		if (y<0) y = 0;
 		this.x = Math.round(x), this.y = Math.round(y);
-		Button.callForAll("checkMouse");
+		Button.checkAll();
 		guiSelectedElement = null;
 		let altered = Game.onPointerMove(x,y);
 		if (altered&&altered.x!=null&&altered.y!=null) this.x = altered.x, this.y = altered.y;
@@ -208,7 +208,7 @@ const Pointer = {
 		this.downPoint = new Point(this.x,this.y);
 		this.downButton = event.which;
 		this.move(this.x,this.y);
-		EditorTools.onDown();
+		if (!Button.underPointer()) EditorTools.onDown();
 	},
 	mouseup: function(event) {
 		if (!this.downPoint) this.mousedown(event);
@@ -815,13 +815,10 @@ function doGlobalControls(controller) {
 
 function click(source) {
 	if (canvas.isInLoadScreen) return;
-	var found = false;
+	let found = Button.underPointer();
 	if (!viewLock) {
-		for (var i in Button.classList) {
-			if (Button.classList[i].onClick(source)) {
-				found = true;
-				break;
-			}
+		if (found) for (var i in Button.classList) {
+			if (Button.classList[i].onClick(source))break;
 		}
 	}
 	else if (source==Pointer) clearViewLock();

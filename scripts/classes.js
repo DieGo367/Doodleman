@@ -2394,8 +2394,10 @@ class Button extends GuiElement {
       this.heldDown = false;
   		return this.hovered = false;
   	}
+    let underPointer = this.checkCoord(Pointer.x,Pointer.y);
+    if (underPointer) Button.buttonFound = true;
     let dp = Pointer.downPoint;
-  	if (this.checkCoord(Pointer.x,Pointer.y)&&(!dp||this.checkCoord(dp.x,dp.y))) {
+  	if (underPointer&&(!dp||this.checkCoord(dp.x,dp.y))) {
       this.heldDown = (dp!=null);
 			return this.hovered = true;
   	}
@@ -2451,6 +2453,17 @@ class Button extends GuiElement {
       return neighbor.select();
     }
     else return this;
+  }
+  static onInit() {
+    this.buttonFound = false;
+  }
+  static checkAll() {
+    this.buttonFound = false;
+    this.callForAll("checkMouse");
+    return this.buttonFound;
+  }
+  static underPointer() {
+    return this.buttonFound;
   }
   static setRadioGroup(group,func,strict) {
     let names = [];
