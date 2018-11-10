@@ -183,7 +183,7 @@ function wait(ticks,func) {
 //helper objects
 const Pointer = {
 	x:0,y:0,
-	focusLayer: 0, cursor: POINTER_CROSSHAIR, downPoint: null, downButton: null,
+	focusLayer: 0, cursor: POINTER_NORMAL, downPoint: null, downButton: null,
 	styles: [POINTER_NORMAL,POINTER_CROSSHAIR,POINTER_PENCIL,POINTER_ERASER],
 	mousemove: function(event) {
 		var rect = canvas.getBoundingClientRect();
