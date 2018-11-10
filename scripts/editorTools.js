@@ -4,6 +4,9 @@ const EditorTools = {
   modes: ["Box","Line","Actor"],
   mode: 0,
   eraserOn: false,
+  selectOn: false,
+  selectA: null,
+  selectB: null,
   history: [],
   future: [],
   Box: {
@@ -11,36 +14,38 @@ const EditorTools = {
     y: null,
     gfx: "black",
     collisionType: C_INFINIMASS,
-    onClick: function() {
+    onDown: function() {
       if (this.x==null||this.y==null) {
         this.x = Pointer.camX();
         this.y = Pointer.camY();
       }
-      else {
-        let xx = Pointer.camX(), yy = Pointer.camY();
-        let width = xx-this.x, height = yy-this.y;
-        if (globalKeyboard.pressed("Shift")) {
-          let size = Math.min(Math.abs(width),Math.abs(height));
-          width = (xx<this.x?-1:1)*size;
-          height = (yy<this.y?-1:1)*size;
-        }
-        let x = this.x, y = this.y;
-        if (width<0) x += width;
-        if (height>0) y += height;
-        width = Math.abs(width);
-        height = Math.abs(height);
-        let definition = {
-          type: 0,
-          properties: [this.gfx,true,this.collisionType],
-          pieces: [[x,y,width,height]]
-        };
-        EditorTools.runAction({
-          action: "create",
-          objectType: "terrain",
-          definition: definition
-        });
-        this.cancel();
+    },
+    onClick: function() {
+      if (this.x==null||this.y==null) return;
+      let xx = Pointer.camX(), yy = Pointer.camY();
+      if (this.x==xx||this.y==yy) return this.cancel();
+      let width = xx-this.x, height = yy-this.y;
+      if (globalKeyboard.pressed("Shift")) {
+        let size = Math.min(Math.abs(width),Math.abs(height));
+        width = (xx<this.x?-1:1)*size;
+        height = (yy<this.y?-1:1)*size;
       }
+      let x = this.x, y = this.y;
+      if (width<0) x += width;
+      if (height>0) y += height;
+      width = Math.abs(width);
+      height = Math.abs(height);
+      let definition = {
+        type: 0,
+        properties: [this.gfx,true,this.collisionType],
+        pieces: [[x,y,width,height]]
+      };
+      EditorTools.runAction({
+        action: "create",
+        objectType: "terrain",
+        definition: definition
+      });
+      this.cancel();
     },
     erase: function() {
       let box = this.findAt(Pointer.camX(),Pointer.camY());
@@ -90,30 +95,32 @@ const EditorTools = {
     lineWidth: 1,
     direction: LINE_UP,
     useBoxCorners: true,
-    onClick: function() {
+    onDown: function() {
       if (this.x==null||this.y==null) {
         this.x = Pointer.camX();
         this.y = Pointer.camY();
       }
-      else {
-        let xx = Pointer.camX(), yy = Pointer.camY();
-        if (globalKeyboard.pressed("Shift")) {
-          let angledPt = this.calcLineSnap();
-          xx = angledPt[0];
-          yy = angledPt[1];
-        }
-        let definition = {
-          type: 1,
-          properties: [this.lineWidth,this.stroke,this.direction,this.useBoxCorners],
-          pieces: [[this.x,this.y,xx,yy]]
-        };
-        EditorTools.runAction({
-          action: "create",
-          objectType: "terrain",
-          definition: definition
-        });
-        this.cancel();
+    },
+    onClick: function() {
+      if (this.x==null||this.y==null) return;
+      let xx = Pointer.camX(), yy = Pointer.camY();
+      if (this.x==xx&&this.y==yy) return this.cancel();
+      if (globalKeyboard.pressed("Shift")) {
+        let angledPt = this.calcLineSnap();
+        xx = angledPt[0];
+        yy = angledPt[1];
       }
+      let definition = {
+        type: 1,
+        properties: [this.lineWidth,this.stroke,this.direction,this.useBoxCorners],
+        pieces: [[this.x,this.y,xx,yy]]
+      };
+      EditorTools.runAction({
+        action: "create",
+        objectType: "terrain",
+        definition: definition
+      });
+      this.cancel();
     },
     erase: function() {
       let line = this.findAt(Pointer.camX(),Pointer.camY());
@@ -195,6 +202,7 @@ const EditorTools = {
     id: 10,
     properties: [],
     tempActor: null, spawnGhosts: [],
+    onDown: function() {},
     onClick: function() {
       let props = ActorManager.getActorValueNames(this.id);
       if (props.length==0) return;
@@ -327,11 +335,19 @@ const EditorTools = {
     this.history = [];
     this.future = [];
   },
+  onDown: function(found) {
+    let tool = this[this.getModeText()];
+    let button = G$(this.getModeText()+"Tool");
+    if (Pointer.focusLayer!=0||found) return tool.cancel();
+    if (this.selectOn) this.startSelection();
+    else if (button.on) tool.onDown();
+  },
   onClick: function(found) {
     let tool = this[this.getModeText()];
     let button = G$(this.getModeText()+"Tool");
     if (Pointer.focusLayer!=0||found) return tool.cancel();
-    if (button.on) {
+    if (this.selectOn) this.endSelection();
+    else if (button.on) {
       if (this.eraserOn) tool.erase();
       else tool.onClick();
     }
@@ -363,12 +379,17 @@ const EditorTools = {
     this.Actor.cancel();
     this.setCursor();
   },
+  setSelectOn: function(bool) {
+    this.selectOn = bool;
+    this.setEraserOn(false);
+  },
   setCursor: function() {
     if (this.eraserOn) Pointer.cursor = POINTER_ERASER;
+    else if (this.selectOn) Pointer.cursor = POINTER_CROSSHAIR;
     else {
       let button = G$(this.getModeText()+"Tool");
       if (button.on) Pointer.cursor = [POINTER_PENCIL,POINTER_PENCIL,POINTER_NONE][this.mode];
-      else Pointer.cursor = POINTER_CROSSHAIR;
+      else Pointer.cursor = POINTER_NORMAL;
     }
   },
   getToolProperties: function() {
@@ -408,7 +429,19 @@ const EditorTools = {
   },
   draw: function() {
     let button = G$(this.getModeText()+"Tool");
-    if (button.on) {
+    if (this.selectOn) {
+      if (this.selectA) {
+        let x = this.selectA.x, y = this.selectA.y;
+        let xx, yy;
+        if (this.selectB) xx = this.selectB.x, yy = this.selectB.y;
+        else xx = Pointer.camX(), yy = Pointer.camY();
+        c.strokeStyle = "orange";
+        c.setLineDash([5]);
+        c.strokeRect(x,y,xx-x,yy-y);
+        c.setLineDash([]);
+      }
+    }
+    else if (button.on) {
       if (this.eraserOn) {
         let thing = this[this.getModeText()].findAt(Pointer.camX(),Pointer.camY());
         if (thing) thing.drawHighlighted("red");
@@ -534,5 +567,14 @@ const EditorTools = {
     let action = this.future.pop();
     this.execAction(action);
     this.history.push(action);
+  },
+  startSelection: function() {
+    this.selectA = Pointer.camPoint();
+    this.selectB = null;
+  },
+  endSelection: function() {
+    if (!this.selectA) return;
+    this.selectB = Pointer.camPoint();
+    if (this.selectA.x==this.selectB.x&&this.selectA.y==this.selectB.y) this.selectA = this.selectB = null;
   }
 }

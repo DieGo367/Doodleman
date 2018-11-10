@@ -208,6 +208,7 @@ const Pointer = {
 		this.downPoint = new Point(this.x,this.y);
 		this.downButton = event.which;
 		this.move(this.x,this.y);
+		EditorTools.onDown();
 	},
 	mouseup: function(event) {
 		if (!this.downPoint) this.mousedown(event);
@@ -220,6 +221,7 @@ const Pointer = {
 	},
 	camX: function() { return Math.floor(Camera.x+(this.x-WIDTH/2)/Camera.zoom); },
 	camY: function() { return Math.floor(Camera.y+(this.y-HEIGHT/2)/Camera.zoom); },
+	camPoint: function() { return new Point(this.camX(), this.camY()) },
 	draw: function() {
 		Images.drawImage("GUI-HUD-Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(this.cursor),0,32,32);
 	}

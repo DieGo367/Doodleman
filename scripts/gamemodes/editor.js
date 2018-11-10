@@ -87,6 +87,11 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       G$("EraserTool").on = false;
     },false);
 
+    Button.create("SelectTool","EditorToolbar",WIDTH-200,10,50,50).setOnClick(function() {
+      this.on = !this.on;
+      G$("EraserTool").on = false;
+      EditorTools.setSelectOn(this.on);
+    }).setIcon("GUI-Icons.png",2,3,42,4).show();
     Button.create("EraserTool","EditorToolbar",WIDTH-130,10,50,50).setOnClick(function() {
       this.on = !this.on;
       let button = G$(EditorTools.getModeText()+"Tool");
