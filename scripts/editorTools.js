@@ -503,6 +503,11 @@ const EditorTools = {
   },
   execAction: function(action) {
     switch(action.action) {
+      case "group":
+        for (var i in action.list) {
+          this.execAction(action.list[i]);
+        }
+        break;
       case "create":
         switch(action.objectType) {
           case "terrain":
@@ -543,6 +548,7 @@ const EditorTools = {
   },
   invertAction: function(action) {
     let inverses = {
+      group: "group",
       create: "delete",
       delete: "create",
       spawnremove: "spawn",
@@ -550,6 +556,9 @@ const EditorTools = {
     }
     action.action = inverses[action.action];
     switch (action.action) {
+      case "group":
+        for (var i in action.list) this.invertAction(action.list[i]);
+        break;
       case "spawnremove":
         if (action.previous!=null) {
           action.action = "spawn";
@@ -579,6 +588,17 @@ const EditorTools = {
     let action = this.future.pop();
     this.execAction(action);
     this.history.push(action);
+  },
+  runGroupAction: function(template,list) {
+    let actionList = [];
+    for (var i in list) {
+      let action = clone(template);
+      action.definition = clone(list[i].rawTerrainData || list[i].rawActorData);
+    }
+    this.runAction({
+      action: "group",
+      list: actionList
+    });
   },
   startSelection: function() {
     this.selectMod = this.checkSelectionModifier();
