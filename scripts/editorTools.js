@@ -348,17 +348,21 @@ const EditorTools = {
   },
   onClick: function(found) {
     let tool = this[this.getModeText()];
-    let button = G$(this.getModeText()+"Tool");
     if (Pointer.focusLayer!=0||found) {
       tool.cancel();
       if (this.selectPt) this.cancelSelection();
       return;
     }
     if (this.selectOn) this.endSelection();
-    else if (button.on) {
-      if (this.eraserOn) tool.erase();
-      else tool.onClick();
+    else if (this.eraserOn) {
+      if (this.selection.count>0) {
+        let camX = Pointer.camX(), camY = Pointer.camY();
+        let hovered = this.Box.findAt(camX,camY) || this.Line.findAt(camX,camY) || this.Actor.findAt(camX,camY);
+        if (this.selection.has(hovered)) return this.deleteSelection();
+      }
+      tool.erase();
     }
+    else tool.onClick();
   },
   onRightClick: function() {
     this[this.getModeText()].cancel();
@@ -452,11 +456,16 @@ const EditorTools = {
       c.lineDashOffset = 0;
       c.lineWidth = 1;
     }
-    for (var i in this.selection) this.selection[i].drawHighlighted("orange");
+    let camX = Pointer.camX(), camY = Pointer.camY();
+    let allToolsHovered = this.Box.findAt(camX,camY) || this.Line.findAt(camX,camY) || this.Actor.findAt(camX,camY);
+    let selectionHovered = this.selection.has(allToolsHovered);
+    for (var i in this.selection) {
+      this.selection[i].drawHighlighted((selectionHovered&&this.eraserOn)?"red":"orange");
+    }
     if (button.on) {
       if (this.eraserOn) {
-        let thing = this[this.getModeText()].findAt(Pointer.camX(),Pointer.camY());
-        if (thing) thing.drawHighlighted("red");
+        let hovered = this[this.getModeText()].findAt(Pointer.camX(),Pointer.camY());
+        if (hovered) hovered.drawHighlighted("red");
       }
       else if (!this.selectOn) {
         this[this.getModeText()].draw();
@@ -594,6 +603,9 @@ const EditorTools = {
     for (var i in list) {
       let action = clone(template);
       action.definition = clone(list[i].rawTerrainData || list[i].rawActorData);
+      if (list[i].isTerrain) action.objectType = "terrain";
+      if (list[i].isActor) action.objectType = "actor";
+      actionList.push(action);
     }
     this.runAction({
       action: "group",
@@ -648,7 +660,9 @@ const EditorTools = {
     if (ctrl.pressed("Alt")) return "remove";
   },
   deleteSelection: function() {
-    // run a group delete action
-    console.log("e delete")
+    this.runGroupAction({
+      action: "delete"
+    },this.selection);
+    this.clearSelection();
   }
 }
