@@ -271,6 +271,9 @@ class Box extends _c_ {
   	}
   	return false;
   }
+  pointerHovered() {
+    return this.containsPoint(Pointer.camX(),Pointer.camY());
+  }
 
   update() { }
   setSectors() {
@@ -1063,6 +1066,18 @@ class Line extends _c_ {
     if (box.containsPoint(this.x,this.y)) return true;
     if (box.containsPoint(this.x2,this.y2)) return true;
     return Line.pointsCrossLine(a,d,this) || Line.pointsCrossLine(b,c,this);
+  }
+  pointNearLine(x,y,dist) {
+    let a = new Point(x,y), b = new Point(x,y);
+    let angle = this.angle2()+90;
+    a.x -= dist*Math.cos(angle);
+    a.y -= dist*Math.sin(angle);
+    b.x += dist*Math.cos(angle);
+    b.y += dist*Math.sin(angle);
+    return Line.pointsCrossLine(a,b,this);
+  }
+  pointerHovered() {
+    return this.pointNearLine(Pointer.camPoint(),3);
   }
 
   update() { }

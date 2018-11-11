@@ -84,7 +84,7 @@ const EditorTools = {
     findAt: function(x,y) {
       let all = PhysicsBox.getAll().reverse();
       for (var i in all) {
-        if (all[i].isTerrain&&!(all[i] instanceof Line)&&all[i].containsPoint(x,y)) return all[i];
+        if (all[i].isTerrain&&all[i].containsPoint(x,y)) return all[i];
       }
     }
   },
@@ -156,17 +156,7 @@ const EditorTools = {
     },
     findAt: function(x,y) {
       let all = Line.getAll().reverse();
-  		for (var i in all) {
-  			if (all[i].isTerrain&&all[i].hitboxContainsPoint(x,y)) {
-  				let lx = all[i].valueAt(y,'y');
-  				let ly = all[i].valueAt(x,'x');
-  				let diffX = Math.abs(x-lx);
-  				let diffY = Math.abs(y-ly);
-  				let slope = Math.abs(all[i].slope());
-  				if ((slope=="vertical tangent"||slope>50)&&diffX<15) return all[i];
-  				if (diffY<15) return all[i];
-  			}
-  		}
+  		for (var i in all) if (all[i].isTerrain&&all[i].pointNearLine(x,y,3)) return all[i];
     },
     calcLineSnap: function() {
       // Returns new destination point [xx,yy] for line creation by snapping it to angles of 15 degrees
