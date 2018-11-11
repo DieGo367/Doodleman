@@ -340,7 +340,7 @@ const EditorTools = {
     let button = G$(this.getModeText()+"Tool");
     if (Pointer.focusLayer!=0||found) {
       tool.cancel();
-      this.clearSelection();
+      this.cancelSelection();
       return;
     }
     if (this.selectOn) this.startSelection();
@@ -351,7 +351,7 @@ const EditorTools = {
     let button = G$(this.getModeText()+"Tool");
     if (Pointer.focusLayer!=0||found) {
       tool.cancel();
-      this.clearSelection();
+      if (this.selectPt) this.cancelSelection();
       return;
     }
     if (this.selectOn) this.endSelection();
@@ -371,6 +371,7 @@ const EditorTools = {
     G$("EditorModeText").text = button.on?this.getModeText():"";
     let p = G$("EditPropBttn");
     if (p.on) p.callToggleState(0);
+    if (this.selection.count<1) this.setSelectOn(false);
     this.setEraserOn(false);
   },
   getModeText: function() {
@@ -389,9 +390,9 @@ const EditorTools = {
     this.setCursor();
   },
   setSelectOn: function(bool) {
-    this.clearSelection();
-    this.selectOn = bool;
-    this.setEraserOn(false);
+    this.selectOn = !!bool;
+    this.cancelSelection();
+    this.setCursor();
   },
   setCursor: function() {
     if (this.eraserOn) Pointer.cursor = POINTER_ERASER;
@@ -439,27 +440,25 @@ const EditorTools = {
   },
   draw: function() {
     let button = G$(this.getModeText()+"Tool");
-    if (this.selectOn) {
-      if (this.selectPt) {
-        let x = this.selectPt.x, y = this.selectPt.y;
-        let xx = Pointer.camX(), yy = Pointer.camY();
-        c.strokeStyle = this.selectMod=="remove"?"red":"darkOrange";
-        c.lineWidth = 2;
-        c.setLineDash([5]);
-        c.lineDashOffset = (Timer.now()/5)%10;
-        c.strokeRect(x,y,xx-x,yy-y);
-        c.setLineDash([]);
-        c.lineDashOffset = 0;
-        c.lineWidth = 1;
-      }
-      for (var i in this.selection) this.selection[i].drawHighlighted("orange");
+    if (this.selectPt) {
+      let x = this.selectPt.x, y = this.selectPt.y;
+      let xx = Pointer.camX(), yy = Pointer.camY();
+      c.strokeStyle = this.selectMod=="remove"?"red":"darkOrange";
+      c.lineWidth = 2;
+      c.setLineDash([5]);
+      c.lineDashOffset = (Timer.now()/5)%10;
+      c.strokeRect(x,y,xx-x,yy-y);
+      c.setLineDash([]);
+      c.lineDashOffset = 0;
+      c.lineWidth = 1;
     }
-    else if (button.on) {
+    for (var i in this.selection) this.selection[i].drawHighlighted("orange");
+    if (button.on) {
       if (this.eraserOn) {
         let thing = this[this.getModeText()].findAt(Pointer.camX(),Pointer.camY());
         if (thing) thing.drawHighlighted("red");
       }
-      else {
+      else if (!this.selectOn) {
         this[this.getModeText()].draw();
       }
     }
@@ -611,8 +610,11 @@ const EditorTools = {
     }
     this.selectPt = null;
   },
-  clearSelection: function() {
+  cancelSelection: function() {
     this.selectPt = null;
+  },
+  clearSelection: function() {
+    this.cancelSelection();
     for (var i in this.selection) this.selection.remove(this.selection[i]);
   },
   select: function(obj) {
@@ -624,5 +626,9 @@ const EditorTools = {
     let ctrl = globalKeyboard;
     if (ctrl.pressed("Shift")) return "append";
     if (ctrl.pressed("Alt")) return "remove";
+  },
+  deleteSelection: function() {
+    // run a group delete action
+    console.log("e delete")
   }
 }

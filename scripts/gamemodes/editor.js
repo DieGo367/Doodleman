@@ -85,20 +85,20 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     Button.create("ActorTool","EditorToolbar",220,10,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
     Button.setRadioGroup(["BoxTool","LineTool","ActorTool"],function() {
       EditorTools.setMode(this.radioGroupIndex);
-      G$("EraserTool").on = false;
+      G$("EraserTool").on = EditorTools.eraserOn;
+      G$("SelectTool").on = EditorTools.selectOn;
     },false);
 
-    Button.create("SelectTool","EditorToolbar",WIDTH-200,10,50,50).setOnClick(function() {
-      this.on = !this.on;
-      G$("EraserTool").on = false;
-      EditorTools.setSelectOn(this.on);
-    }).setIcon("GUI-Icons.png",2,3,42,4).show();
-    Button.create("EraserTool","EditorToolbar",WIDTH-130,10,50,50).setOnClick(function() {
-      this.on = !this.on;
+    Button.create("SelectTool","EditorToolbar",WIDTH-200,10,50,50).setIcon("GUI-Icons.png",2,3,42,4).show();
+    Button.create("EraserTool","EditorToolbar",WIDTH-130,10,50,50).setIcon("GUI-Icons.png",3,2,42,4).show();
+    Button.setRadioGroup(["SelectTool","EraserTool"],function() {
       let button = G$(EditorTools.getModeText()+"Tool");
-      if (!button.on) this.on = false;
-      EditorTools.setEraserOn(this.on);
-    }).setIcon("GUI-Icons.png",3,2,42,4).show();
+      let selectWasOn = EditorTools.selectOn, eraserWasOn = EditorTools.eraserOn;
+      EditorTools.setSelectOn(this.name=="SelectTool"?!selectWasOn:(selectWasOn&&!button.on));
+      EditorTools.setEraserOn(this.name=="EraserTool"?!eraserWasOn&&button.on:false);
+      G$("SelectTool").on = EditorTools.selectOn;
+      G$("EraserTool").on = EditorTools.eraserOn;
+    },false);
 
     Button.create("EditPropBttn","EditorToolbar",WIDTH-60,10,50,50).setToggle(function() {
       G$("EditPropView").show();
