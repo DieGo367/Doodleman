@@ -346,9 +346,9 @@ const EditorTools = {
     if (this.selectOn) this.endSelection();
     else if (this.eraserOn) {
       if (this.selection.count>0) {
-        let camX = Pointer.camX(), camY = Pointer.camY();
-        let hovered = this.Box.findAt(camX,camY) || this.Line.findAt(camX,camY) || this.Actor.findAt(camX,camY);
-        if (this.selection.has(hovered)) return this.deleteSelection();
+        for (var i in this.selection) {
+          if (this.selection[i].pointerHovered()) return this.deleteSelection();
+        }
       }
       tool.erase();
     }
@@ -446,12 +446,9 @@ const EditorTools = {
       c.lineDashOffset = 0;
       c.lineWidth = 1;
     }
-    let camX = Pointer.camX(), camY = Pointer.camY();
-    let allToolsHovered = this.Box.findAt(camX,camY) || this.Line.findAt(camX,camY) || this.Actor.findAt(camX,camY);
-    let selectionHovered = this.selection.has(allToolsHovered);
-    for (var i in this.selection) {
-      this.selection[i].drawHighlighted((selectionHovered&&this.eraserOn)?"red":"orange");
-    }
+    let selectionColor = "orange";
+    if (this.eraserOn) for (var i in this.selection) if (this.selection[i].pointerHovered()) selectionColor = "red";
+    for (var i in this.selection) this.selection[i].drawHighlighted(selectionColor);
     if (button.on) {
       if (this.eraserOn) {
         let hovered = this[this.getModeText()].findAt(Pointer.camX(),Pointer.camY());
