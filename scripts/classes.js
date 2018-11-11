@@ -1077,7 +1077,7 @@ class Line extends _c_ {
     return Line.pointsCrossLine(a,b,this);
   }
   pointerHovered() {
-    return this.pointNearLine(Pointer.camPoint(),3);
+    return this.pointNearLine(Pointer.camPoint(),null,3);
   }
 
   update() { }
