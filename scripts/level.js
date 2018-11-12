@@ -277,6 +277,7 @@ const ActorManager = {
 		if (actor) {
 			Constants.read(this.actorData[id].class).removeInstance(actor);
 		}
+		actor.isGhost = true;
 		return actor;
 	},
 	searchFor: function(data) {

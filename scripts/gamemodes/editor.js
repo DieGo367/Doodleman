@@ -42,7 +42,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     }
   },
   onPointerMove: function(x,y) {
-    if (G$(EditorTools.getModeText()+"Tool").on && !globalKeyboard.pressed("Ctrl")) {
+    if (G$(EditorTools.getToolName()+"Tool").on && !globalKeyboard.pressed("Ctrl")) {
 			let pts = Level.getSnappingPoints();
 			let minDist = 5;
 			let closestPoint = null;
@@ -83,21 +83,13 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     Button.create("BoxTool","EditorToolbar",80,10,50,50).setIcon("GUI-Icons.png",0,2,42,4).show();
     Button.create("LineTool","EditorToolbar",150,10,50,50).setIcon("GUI-Icons.png",1,2,42,4).show();
     Button.create("ActorTool","EditorToolbar",220,10,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
-    Button.setRadioGroup(["BoxTool","LineTool","ActorTool"],function() {
-      EditorTools.setMode(this.radioGroupIndex);
-      G$("EraserTool").on = EditorTools.eraserOn;
-      G$("SelectTool").on = EditorTools.selectOn;
-    },false);
 
     Button.create("SelectTool","EditorToolbar",WIDTH-200,10,50,50).setIcon("GUI-Icons.png",2,3,42,4).show();
     Button.create("EraserTool","EditorToolbar",WIDTH-130,10,50,50).setIcon("GUI-Icons.png",3,2,42,4).show();
-    Button.setRadioGroup(["SelectTool","EraserTool"],function() {
-      let button = G$(EditorTools.getModeText()+"Tool");
-      let selectWasOn = EditorTools.selectOn, eraserWasOn = EditorTools.eraserOn;
-      EditorTools.setSelectOn(this.name=="SelectTool"?!selectWasOn:(selectWasOn&&!button.on));
-      EditorTools.setEraserOn(this.name=="EraserTool"?!eraserWasOn&&button.on:false);
-      G$("SelectTool").on = EditorTools.selectOn;
-      G$("EraserTool").on = EditorTools.eraserOn;
+    Button.setRadioGroup(["BoxTool","LineTool","ActorTool", "SelectTool","EraserTool"],function() {
+      EditorTools.toolOn = this.on;
+      EditorTools.setTool(this.radioGroupIndex);
+      G$("EditPropView").onShow();
     },false);
 
     Button.create("EditPropBttn","EditorToolbar",WIDTH-60,10,50,50).setToggle(function() {
@@ -119,6 +111,10 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
         let x = 10+105*(i%6), y = 80+45*Math.floor(i/6);
         input = TextInput.create("EditProp:"+i,this.name,x,y,99,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
           EditorTools.setToolProperty(this.text,value,parseInt(this.name.split(":")[1]));
+          if (EditorTools.rebuildRequired) {
+            G$("EditPropView").onShow();
+            EditorTools.rebuildRequired = false;
+          }
         }).show();
         this.height = input.y-20;
       }
