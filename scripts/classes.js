@@ -258,8 +258,9 @@ class Box extends _c_ {
   midX() { return this.x; }
   midY() { return this.y-(this.height/2) }
   containsPoint(x,y) {
-  	if (x<=this.rightX()&&x>=this.leftX()) {
-  		if (y<=this.y&&y>=this.topY()) {
+    let pt = new Point(x,y);
+  	if (pt.x<=this.rightX()&&pt.x>=this.leftX()) {
+  		if (pt.y<=this.y&&pt.y>=this.topY()) {
   			return true;
   		}
   	}
