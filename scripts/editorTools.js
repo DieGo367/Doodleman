@@ -1,4 +1,3 @@
-
 const EditorTools = {
   enabled: false,
   ready: false,
@@ -87,34 +86,6 @@ const EditorTools = {
     this.levelCopy = clone(Level.level);
     Game.mode = mode;
     Level.load(JSON.stringify(this.levelCopy),false);
-  },
-  doControls: function(ctrl) {
-    // this function should be moved to editor.js
-    if (!ctrl.type==KEYBOARD||viewLock||Pointer.focusLayer!=0) return;
-    for (var i in this.tools) if (ctrl.ready(this.tools[i].name+"Tool")) {
-      G$(this.tools[i].name+"Tool").onClick(ctrl,true);
-      ctrl.use(this.tools[i].name+"Tool");
-    }
-    if (ctrl.ready("PropMenu")) {
-      if (!G$("EditorToolbar").visible) G$("ExpandButton").onClick(ctrl,true);
-      else if (!G$("EditPropView").visible) G$("EditPropBttn").onClick(ctrl,true);
-      else {
-        G$("EditPropBttn").onClick(ctrl,true);
-        G$("ExpandButton").onClick(ctrl,true);
-      }
-      ctrl.use("PropMenu");
-    }
-    if (ctrl.pressed("Ctrl")) {
-      if (ctrl.ready("z")) {
-        if (ctrl.pressed("Shift")) this.redoAction();
-        else this.undoAction();
-        ctrl.use("z");
-      }
-    }
-    if (ctrl.ready("fullScreen")) {
-      G$("FSToggle").onClick(ctrl,true);
-      ctrl.use("fullScreen");
-    }
   },
   execAction: function(action) {
     switch(action.action) {

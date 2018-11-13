@@ -19,7 +19,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     Timer.update();
     window.requestAnimationFrame(drawGame);
     doGlobalControls(globalKeyboard);
-    EditorTools.doControls(globalKeyboard);
+    GameManager.getMode().doControls(globalKeyboard);
     GuiElement.callForAll("update");
     Particle.callForAll("update");
   },
@@ -58,6 +58,33 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 			}
 			if (closestPoint!=null) return {x: closestPoint[0], y: closestPoint[1]};
 		}
+  },
+  doControls: function(ctrl) {
+    if (!ctrl.type==KEYBOARD||viewLock||Pointer.focusLayer!=0) return;
+    for (var i in EditorTools.tools) if (ctrl.ready(EditorTools.tools[i].name+"Tool")) {
+      G$(EditorTools.tools[i].name+"Tool").onClick(ctrl,true);
+      ctrl.use(EditorTools.tools[i].name+"Tool");
+    }
+    if (ctrl.ready("PropMenu")) {
+      if (!G$("EditorToolbar").visible) G$("ExpandButton").onClick(ctrl,true);
+      else if (!G$("EditPropView").visible) G$("EditPropBttn").onClick(ctrl,true);
+      else {
+        G$("EditPropBttn").onClick(ctrl,true);
+        G$("ExpandButton").onClick(ctrl,true);
+      }
+      ctrl.use("PropMenu");
+    }
+    if (ctrl.pressed("Ctrl")) {
+      if (ctrl.ready("z")) {
+        if (ctrl.pressed("Shift")) EditorTools.redoAction();
+        else EditorTools.undoAction();
+        ctrl.use("z");
+      }
+    }
+    if (ctrl.ready("fullScreen")) {
+      G$("FSToggle").onClick(ctrl,true);
+      ctrl.use("fullScreen");
+    }
   },
   addGui: function() {
     View.create("EditorToolbar",0,0,0,WIDTH,70,"tint","purple");
