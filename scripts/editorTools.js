@@ -320,16 +320,6 @@ EditorTools.addTool(new EditTool("Box",POINTER_PENCIL,{
     });
     this.cancel();
   },
-  erase: function() {
-    let box = this.findAt(Pointer.camX(),Pointer.camY());
-    if (box) {
-      this.host.runAction({
-        action: "delete",
-        objectType: "terrain",
-        definition: box.rawTerrainData
-      });
-    }
-  },
   cancel: function() {
     this.x = null;
     this.y = null;
@@ -348,20 +338,14 @@ EditorTools.addTool(new EditTool("Box",POINTER_PENCIL,{
       c.strokeRect(this.x,this.y,width,height);
     }
   },
-  getPropStrings: function() {
-    return {
-      names: ["gfx","collisionType"],
-      types: ["string","accessor:C_NONE,C_WEAK,C_PUSHABLE,C_SOLID,C_INFINIMASS"]
-    }
-  },
-  getPropTypes: function() {
-    return ["gfx","@collisionType:C_NONE,C_WEAK,C_PUSHABLE,C_SOLID,C_INFINIMASS"];
-  },
   findAt: function(x,y) {
     let all = PhysicsBox.getAll().reverse();
     for (var i in all) {
       if (all[i].isTerrain&&all[i].containsPoint(x,y)) return all[i];
     }
+  },
+  getPropTypes: function() {
+    return ["gfx","@collisionType:C_NONE,C_WEAK,C_PUSHABLE,C_SOLID,C_INFINIMASS"];
   }
 }));
 EditorTools.addTool(new EditTool("Line",POINTER_PENCIL,{
@@ -398,16 +382,6 @@ EditorTools.addTool(new EditTool("Line",POINTER_PENCIL,{
     });
     this.cancel();
   },
-  erase: function() {
-    let line = this.findAt(Pointer.camX(),Pointer.camY());
-    if (line) {
-      this.host.runAction({
-        action: "delete",
-        objectType: "terrain",
-        definition: line.rawTerrainData
-      });
-    }
-  },
   cancel: function() {
     this.x = null;
     this.y = null;
@@ -424,19 +398,13 @@ EditorTools.addTool(new EditTool("Line",POINTER_PENCIL,{
       drawLine(this.x,this.y,xx,yy);
     }
   },
-  getPropStrings: function() {
-    return {
-      names: ["stroke","lineWidth","direction","useBoxCorners"],
-      types: ["string","number","accessor:LINE_UP,LINE_DOWN,LINE_LEFT,LINE_RIGHT","boolean"]
-    }
+  findAt: function(x,y) {
+    let all = Line.getAll().reverse();
+    for (var i in all) if (all[i].isTerrain&&all[i].pointNearLine(x,y,3)) return all[i];
   },
   getPropTypes: function() {
     return ["stroke","#lineWidth",
     "@direction:LINE_UP,LINE_DOWN,LINE_LEFT,LINE_RIGHT","?useBoxCorners"];
-  },
-  findAt: function(x,y) {
-    let all = Line.getAll().reverse();
-    for (var i in all) if (all[i].isTerrain&&all[i].pointNearLine(x,y,3)) return all[i];
   },
   calcLineSnap: function() {
     // Returns new destination point [xx,yy] for line creation by snapping it to angles of 15 degrees
@@ -478,17 +446,6 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
       this.setSpawnGhost(spawn.x,spawn.y,i,spawn.direction);
     }
   },
-  setProp: function(prop,val,srcIndex) {
-    if (srcIndex>0) {
-      this.properties[srcIndex-1] = val;
-    }
-    else {
-      this[prop] = val;
-      this.properties = [];
-      this.host.rebuildRequired = true;
-    }
-    this.refreshTempActor();
-  },
   onClick: function() {
     let props = ActorManager.getActorValueNames(this.id);
     if (props.length==0) return;
@@ -514,21 +471,6 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
       definition: data
     });
   },
-  erase: function() {
-    let actor = this.findAt(Pointer.camX(),Pointer.camY());
-    if (actor) {
-      if (this.id==0) this.host.runAction({
-        action: "spawnremove",
-        slot: actor.slot,
-        spawnData: [actor.x, actor.y, actor.slot, actor.direction]
-      });
-      else this.host.runAction({
-        action: "delete",
-        objectType: "actor",
-        definition: actor.rawActorData
-      });
-    }
-  },
   draw: function() {
     if (this.tempActor==null) this.refreshTempActor();
     if (this.tempActor!=null) {
@@ -540,42 +482,11 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
       c.globalAlpha = 1;
     }
   },
-  refreshTempActor: function() {
-    if (this.tempActor!=null) delete this.tempActor;
-    if (ActorManager.getActorValueNames(this.id).length==0) return this.tempActor = null;
-    let x = Pointer.camX(), y = Pointer.camY();
-    this.tempActor = ActorManager.makeGhostActor(this.id,x,y,...this.properties);
-  },
-  getPropStrings: function() {
-    let vals = ActorManager.getActorValueNames(this.id);
-    let props = {
-      names: ["id"],
-      types: ["number"]
+  findAt: function(x,y) {
+    let all = [].concat(Box.getAll().reverse()).concat(this.spawnGhosts.reverse());
+    for (var i in all) {
+      if (all[i]&&all[i].isActor&&all[i].containsPoint(x,y)) return all[i];
     }
-    if (this.id==0) {
-      this.properties[0] = 0, this.properties[1] = RIGHT;
-    }
-    for (var i = 2; i < vals.length; i++) { //start at 2 to skip x and y
-      let name = vals[i];
-      switch (name.charAt(0)) {
-        case '#':
-          name = name.slice(1);
-          props.types.push("number");
-          break;
-        case '?':
-          name = name.slice(1);
-          props.types.push("boolean");
-          break;
-        case '@':
-          name = name.slice(1).split(":");
-          props.types.push("accessor:"+name[1]);
-          name = name[0];
-        default:
-          props.types.push("string");
-      }
-      props.names.push(name);
-    }
-    return props;
   },
   getPropTypes: function() {
     let names = ActorManager.getActorValueNames(this.id);
@@ -584,6 +495,17 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
     // start at 2 to skip x and y
     return props.concat(names.slice(2));
   },
+  setProp: function(prop,val,srcIndex) {
+    if (srcIndex>0) {
+      this.properties[srcIndex-1] = val;
+    }
+    else {
+      this[prop] = val;
+      this.properties = [];
+      this.host.rebuildRequired = true;
+    }
+    this.refreshTempActor();
+  },
   getProp: function(prop,annotation,srcIndex) {
     let result;
     if (srcIndex>0) result = this.properties[srcIndex-1];
@@ -591,11 +513,11 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
     if (annotation.is("accessor")) return Constants.getKey(result,annotation.getNotes());
     else return result;
   },
-  findAt: function(x,y) {
-    let all = [].concat(Box.getAll().reverse()).concat(this.spawnGhosts.reverse());
-    for (var i in all) {
-      if (all[i]&&all[i].isActor&&all[i].containsPoint(x,y)) return all[i];
-    }
+  refreshTempActor: function() {
+    if (this.tempActor!=null) delete this.tempActor;
+    if (ActorManager.getActorValueNames(this.id).length==0) return this.tempActor = null;
+    let x = Pointer.camX(), y = Pointer.camY();
+    this.tempActor = ActorManager.makeGhostActor(this.id,x,y,...this.properties);
   },
   setSpawnGhost: function(x,y,playerNumber,direction) {
     if (this.spawnGhosts[playerNumber]) this.killSpawnGhost(playerNumber);
@@ -655,6 +577,9 @@ EditorTools.addTool(new EditTool("Select",POINTER_CROSSHAIR,{
   onRightClick: function() {
     this.onClick();
   },
+  cancel: function() {
+    this.pt = null;
+  },
   draw: function() {
     if (this.pt) {
       let x = this.pt.x, y = this.pt.y;
@@ -668,9 +593,6 @@ EditorTools.addTool(new EditTool("Select",POINTER_CROSSHAIR,{
       c.lineDashOffset = 0;
       c.lineWidth = 1;
     }
-  },
-  cancel: function() {
-    this.pt = null;
   }
 }));
 EditorTools.addTool(new EditTool("Eraser",POINTER_ERASER,{
