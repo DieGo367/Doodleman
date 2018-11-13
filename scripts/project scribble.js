@@ -607,7 +607,7 @@ class TypeAnnotation {
 		return this.dataType == dataType;
 	}
 	getNotes() {
-		return this.notes();
+		return this.notes;
 	}
 	validate(data) {
 		if (this.dataType=="boolean") return !!data;
@@ -634,15 +634,15 @@ class TypeAnnotation {
 		else return data;
 	}
 	static interpret(str) {
-		str = str.split(":")
-		let rest = str.slice(1)
+		str = str.split(":");
+		let notes = str[1]!=null? str[1].split(","): [];
 		str = str[0];
 		let types = {};
 		types['#'] = "number", types['?'] = "boolean", types['@'] = "accessor";
 		let type = types[str.charAt(0)];
 		if (!type) type = "string";
 		else str = str.slice(1);
-		return new TypeAnnotation(type,str,rest);
+		return new TypeAnnotation(type,str,notes);
 	}
 }
 

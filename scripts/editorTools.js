@@ -53,24 +53,12 @@ const EditorTools = {
     if (this.toolOn) Pointer.cursor = this.getTool().cursor;
     else Pointer.cursor = POINTER_NORMAL;
   },
-  getToolProperties: function() {
+  getToolPropertyNames: function() {
     let tool = this.getTool();
-    let strings = tool.getPropStrings();
-    let props = [];
-    let prop = function(name,type,index,checkActor) {
-      this.name = name;
-      if (checkActor&&index>0) {
-        this.val = tool.properties[index-1];
-      }
-      else this.val = tool[name];
-      this.type = type;
-      if (type.split(":")[0]=="accessor") {
-        this.val = Constants.getKey(this.val,type.split(":")[1].split(","));
-      }
-      props.push(this);
-    }
-    for (var i = 0; i < strings.names.length; i++) new prop(strings.names[i],strings.types[i],i,tool==this.Actor);
-    return props;
+    return tool.getPropTypes();
+  },
+  getToolProperty: function(name,annotation,sourceIndex) {
+    return this.getTool().getProp(name,annotation,sourceIndex);
   },
   setToolProperty: function(name,val,sourceIndex) {
     this.getTool().setProp(name,val,sourceIndex);
@@ -95,7 +83,7 @@ const EditorTools = {
     }
   },
   testLevel: function(mode) {
-    this.clearMode();
+    this.getTool().cancel();
     this.levelCopy = clone(Level.level);
     Game.mode = mode;
     Level.load(JSON.stringify(this.levelCopy),false);
@@ -262,7 +250,6 @@ const EditorTools = {
       else normal.push(s);
     }
     let doNormal = normal.length>0, doGhost = ghosts.length>0;
-    console.log(this.selection, normal, ghosts)
     if (doNormal) this.runGroupAction({
       action: "delete"
     },normal);
@@ -288,7 +275,12 @@ class EditTool {
   draw() {}
   getPropStrings() { return {names:[], strings:[]}}
   findAt(x,y) {}
+  getPropTypes() { return []; }
   setProp(prop,val,srcIndex) { this[prop] = val; }
+  getProp(prop,annotation,srcIndex) {
+    if (annotation.is("accessor")) return Constants.getKey(this[prop],annotation.getNotes());
+    else return this[prop];
+  }
 }
 EditorTools.addTool(new EditTool("Box",POINTER_PENCIL,{
   x: null,
@@ -362,6 +354,9 @@ EditorTools.addTool(new EditTool("Box",POINTER_PENCIL,{
       types: ["string","accessor:C_NONE,C_WEAK,C_PUSHABLE,C_SOLID,C_INFINIMASS"]
     }
   },
+  getPropTypes: function() {
+    return ["gfx","@collisionType:C_NONE,C_WEAK,C_PUSHABLE,C_SOLID,C_INFINIMASS"];
+  },
   findAt: function(x,y) {
     let all = PhysicsBox.getAll().reverse();
     for (var i in all) {
@@ -434,6 +429,10 @@ EditorTools.addTool(new EditTool("Line",POINTER_PENCIL,{
       names: ["stroke","lineWidth","direction","useBoxCorners"],
       types: ["string","number","accessor:LINE_UP,LINE_DOWN,LINE_LEFT,LINE_RIGHT","boolean"]
     }
+  },
+  getPropTypes: function() {
+    return ["stroke","#lineWidth",
+    "@direction:LINE_UP,LINE_DOWN,LINE_LEFT,LINE_RIGHT","?useBoxCorners"];
   },
   findAt: function(x,y) {
     let all = Line.getAll().reverse();
@@ -577,6 +576,20 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
       props.names.push(name);
     }
     return props;
+  },
+  getPropTypes: function() {
+    let names = ActorManager.getActorValueNames(this.id);
+    let props = ["#id"];
+    if (this.id==0) this.properties[0] = 0, this.properties[1] = RIGHT;
+    // start at 2 to skip x and y
+    return props.concat(names.slice(2));
+  },
+  getProp: function(prop,annotation,srcIndex) {
+    let result;
+    if (srcIndex>0) result = this.properties[srcIndex-1];
+    else result = this[prop];
+    if (annotation.is("accessor")) return Constants.getKey(result,annotation.getNotes());
+    else return result;
   },
   findAt: function(x,y) {
     let all = [].concat(Box.getAll().reverse()).concat(this.spawnGhosts.reverse());

@@ -2544,11 +2544,11 @@ class Button extends GuiElement {
 initClass(Button,GuiElement);
 
 class TextInput extends Button {
-  constructor(name,viewName,x,y,width,height,type,defaultValue,placeholder,promptMsg) {
-    super(name,viewName,x,y,width,height,placeholder);
-    this.setType(type); //supported: string, number, boolean, accessor
-    this.defaultValue = defaultValue;
-    this.storedVal = (defaultValue===void(0)? "" : defaultValue);
+  constructor(name,viewName,x,y,width,height,type,defaultValue,promptMsg) {
+    super(name,viewName,x,y,width,height);
+    this.setType(type); // type must be a TypeAnnotation (or a string that can be interpreted as one)
+    this.defaultValue = this.type.validate(defaultValue);
+    this.storedVal = this.defaultValue;
     this.promptMsg = promptMsg;
     this.typing = false;
     this.typingText = "";
@@ -2556,30 +2556,22 @@ class TextInput extends Button {
     this.onInputChangeFunc = function() { };
     this.setOnClick(function() {
       if (this.typing||G$("TextInput").visible) return;
-      if (Key.isDown("18")) {
-        this.storedVal = void(0);
-        this.onInputChangeFunc();
-      }
-      else if (this.type=="boolean") {
-        this.storedVal = !this.storedVal;
-        this.onInputChangeFunc(this.storedVal);
-      }
-      else if (this.type=="accessor") {
-        if (!this.typeData) return;
-        let thisInput = this;
-        let strs = [], base = null;
-        for (var i in this.typeData) {
-          let split = this.typeData[i].split("_");
+      if (Key.isDown("18")) this.store(void(0));
+      else if (this.type.is("boolean")) this.store(!this.val());
+      else if (this.type.is("accessor")) {
+        let thisInput = this, notes = this.type.getNotes();
+        let strs = [], bases = [];
+        for (var i in notes) {
+          let split = notes[i].split("_");
           if (split.length>1) {
-            if (!base) base = split[0];
+            bases[i] = split[0];
             strs[i] = split[1];
           }
-          else strs[i] = this.typeData[i];
+          else strs[i] = notes[i];
         }
         buildSelector(strs,function(index,selection) {
-          if (base!=null) selection = base + "_" + selection;
-          thisInput.storedVal = selection;
-          thisInput.onInputChangeFunc(thisInput.accessValue(selection));
+          if (bases[index]!=void(0)) selection = bases[index] + "_" + selection;
+          thisInput.store(selection);
         },null,this.view.layer+1);
       }
       else {
@@ -2591,31 +2583,21 @@ class TextInput extends Button {
     });
   }
   setType(type) {
-    let split = type.split(":");
-    if (split.length>1) {
-      this.type = split[0];
-      this.setTypeData(split[1].split(","));
-    }
-    else {
-      this.type = type;
-      if (this.type!="number") this.removeIncrementers();
-      this.setTypeData([]);
-    }
-  }
-  setTypeData(data) {
-    this.typeData = data;
-    if (this.type=="accessor") Constants.storeList(data);
-  }
-  accessValue(accessorStr) {
-    return Constants.read(accessorStr?accessorStr:this.storedVal);
-  }
-  toAccessorString(val) {
-    return Constants.getKey(val,this.typeData);
-  }
-  storeAccessor(val) {
-    this.storedVal = this.toAccessorString(val);
+    if (typeof type == "string") type = TypeAnnotation.interpret(type);
+    if (!(type instanceof TypeAnnotation)) return this;
+    this.type = type;
+    this.text = type.dataName;
+    if (!type.is("number")) this.removeIncrementers();
+    if (type.is("accessor")) Constants.storeList(type.getNotes());
     return this;
   }
+  store(value) {
+    let oldStoredVal = this.storedVal;
+    this.storedVal = this.type.validate(value);
+    if (this.onInputChangeFunc(this.storedVal)==CANCEL) this.storedVal = oldStoredVal;
+    return this;
+  }
+  val() { return this.storedVal; }
   setOnInputChange(func) {
     this.onInputChangeFunc = func;
     return this;
@@ -2627,9 +2609,8 @@ class TextInput extends Button {
       let text = "", font = fontInput;
       if (this.storedVal!==""&&this.storedVal!=null) {
         text = "" + this.storedVal;
-        if (this.type=="accessor") {
-          text = text.split("_");
-          text = text[text.length-1];
+        if (this.type.is("accessor")) {
+          text = Constants.getKey(this.storedVal,this.type.getNotes()).split("_").pop();
         }
       }
       else {
@@ -2660,12 +2641,7 @@ class TextInput extends Button {
         this.typing = false;
         this.removeTypingView();
         let response = this.typingText;
-        if (this.type=="number"&&!isNaN(parseFloat(response))) response = parseFloat(response);
-        if (!this.type || typeof response == this.type) {
-          if (response==="") response = null;
-          this.storedVal = response;
-          this.onInputChangeFunc(response);
-        }
+        this.store(response);
         break;
       case 18: // Alt key
         this.typing = false;

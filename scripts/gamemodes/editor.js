@@ -11,7 +11,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     Tap.controlEnabled = true;
     this.removeGui();
     EditorTools.enabled = false;
-    EditorTools.Actor.removeSpawnGhosts();
+    EditorTools.tool("Actor").removeSpawnGhosts();
     GameManager.overrideTick(false);
   },
   tick: function() {
@@ -25,8 +25,8 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   },
   onLevelLoad: function() {
     G$("LevelSettingsClose").onClickFunction();
-    EditorTools.Actor.removeSpawnGhosts();
-    EditorTools.Actor.initSpawnGhosts();
+    EditorTools.tool("Actor").removeSpawnGhosts();
+    EditorTools.tool("Actor").initSpawnGhosts();
     EditorTools.eid = 0;
   },
   onPause: function() {
@@ -105,11 +105,12 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 
     View.create("EditPropView",0,0,70,WIDTH,60,"tint","green").setOnShow(function() {
       this.removeAllChildren();
-      let props = EditorTools.getToolProperties();
+      let props = EditorTools.getToolPropertyNames();
       for (var i = 0; i < props.length; i++) {
         //make the input
         let x = 10+105*(i%6), y = 80+45*Math.floor(i/6);
-        input = TextInput.create("EditProp:"+i,this.name,x,y,99,40,props[i].type,props[i].val,props[i].name,"Enter a value for "+props[i].name).setOnInputChange(function(value) {
+        let prop = TypeAnnotation.interpret(props[i]);
+        input = TextInput.create("EditProp:"+i,this.name,x,y,99,40,prop,EditorTools.getToolProperty(prop.dataName,prop,i),"Enter a value for "+prop.dataName).setOnInputChange(function(value) {
           EditorTools.setToolProperty(this.text,value,parseInt(this.name.split(":")[1]));
           if (EditorTools.rebuildRequired) {
             G$("EditPropView").onShow();
@@ -134,21 +135,20 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     setOnViewShown(function() {
       if (!this.view.activeMenu) this.view.activeMenu = "LS:File:Menu";
       G$(this.view.activeMenu).show();
-      G$("LS:Dimensions:width").storedVal = Level.level.width;
-      G$("LS:Dimensions:height").storedVal = Level.level.height;
-      G$("LS:CamStart:x").storedVal = Level.level.camStart.x;
-      G$("LS:CamStart:y").storedVal = Level.level.camStart.y;
-      G$("LS:ScrollBuffer:hor").storedVal = Level.level.horScrollBuffer;
-      G$("LS:ScrollBuffer:vert").storedVal = Level.level.vertScrollBuffer;
-      G$("LS:ZoomLimit:min").storedVal = Level.level.minZoom;
-      G$("LS:ZoomLimit:max").storedVal = Level.level.maxZoom;
-      G$("LS:ZoomScale:num").storedVal = Level.level.zoomScale;
-      G$("LS:BGScale:num").storedVal = Level.level.bgScale;
-      G$("LS:Edge:top").storeAccessor(Level.level.edge.top);
-      G$("LS:Edge:bottom").storeAccessor(Level.level.edge.bottom);
-      G$("LS:Edge:left").storeAccessor(Level.level.edge.left);
-      G$("LS:Edge:right").storeAccessor(Level.level.edge.right);
-      G$("LS:File:Name:input").storedVal = Level.level.name;
+      G$("LS:Dimensions:width").store(Level.level.width);
+      G$("LS:Dimensions:height").store(Level.level.height);
+      G$("LS:CamStart:x").store(Level.level.camStart.x);
+      G$("LS:CamStart:y").store(Level.level.camStart.y);
+      G$("LS:ScrollBuffer:hor").store(Level.level.horScrollBuffer);
+      G$("LS:ScrollBuffer:vert").store(Level.level.vertScrollBuffer);
+      G$("LS:ZoomLimit:min").store(Level.level.minZoom);
+      G$("LS:ZoomLimit:max").store(Level.level.maxZoom);
+      G$("LS:ZoomScale:num").store(Level.level.zoomScale);
+      G$("LS:Edge:top").store(Constants.getKey(Level.level.edge.top));
+      G$("LS:Edge:bottom").store(Constants.getKey(Level.level.edge.bottom));
+      G$("LS:Edge:left").store(Constants.getKey(Level.level.edge.left));
+      G$("LS:Edge:right").store(Constants.getKey(Level.level.edge.right));
+      G$("LS:File:Name:input").store(Level.level.name);
     }).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
     TextElement.create("LS:Title","LevelSettingsView",WIDTH/2,30,fontMenuTitle,"Level Properties",WIDTH,CENTER).show();
 
@@ -183,7 +183,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 
     View.create("LS:File:Menu",1,0,0,WIDTH,HEIGHT);
     TextElement.create("LS:File:Name","LS:File:Menu",WIDTH/4-150,155,fontMenuItem,"Level Name",WIDTH,LEFT).show();
-    TextInput.create("LS:File:Name:input","LS:File:Menu",WIDTH/2-175,130,205,40,"string",Level.level.name,"name","Enter the level name").setOnInputChange(function(val) {
+    TextInput.create("LS:File:Name:input","LS:File:Menu",WIDTH/2-175,130,205,40,"name",Level.level.name,"Enter the level name").setOnInputChange(function(val) {
       Level.level.name = val;
     }).show();
     Button.create("LS:File:Load","LS:File:Menu",WIDTH*2/3-50,130,205,40,"Load From File").setOnClick(Level.openLocalFile,true).show().setPressDelay(1);
@@ -191,11 +191,11 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     Button.create("LS:File:Copy","LS:File:Menu",WIDTH/2-175,185,205,40,"Copy to Clipboard").setOnClick(Level.copy,true).show();
     Button.create("LS:File:Export","LS:File:Menu",WIDTH*2/3-50,185,205,40,"Export Level").setOnClick(Level.export,true).show();
     TextElement.create("LS:File:Test","LS:File:Menu",WIDTH/4-150,265,fontMenuItem,"Test Level",WIDTH,LEFT).show();
-    TextInput.create("LS:File:Test:Mode","LS:File:Menu",WIDTH/2-175,240,100,40,"accessor:GAME_SURVIVAL,GAME_SANDBOX").storeAccessor(GAME_SANDBOX).show();
-    TextInput.create("LS:File:Test:MP","LS:File:Menu",WIDTH/2-70,240,100,40,"boolean",false,"multiplayer").up("LS:File:Copy").show();
+    TextInput.create("LS:File:Test:Mode","LS:File:Menu",WIDTH/2-175,240,100,40,"@Mode:GAME_SURVIVAL,GAME_SANDBOX","GAME_SANDBOX").show();
+    TextInput.create("LS:File:Test:MP","LS:File:Menu",WIDTH/2-70,240,100,40,"?multiplayer",false).up("LS:File:Copy").show();
     Button.create("LS:File:Test:Button","LS:File:Menu",WIDTH*2/3-50,240,205,40,"Test Level").setOnClick(function() {
-      multiplayer = G$("LS:File:Test:MP").storedVal;
-      EditorTools.testLevel(G$("LS:File:Test:Mode").accessValue());
+      multiplayer = G$("LS:File:Test:MP").val();
+      EditorTools.testLevel(G$("LS:File:Test:Mode").val());
     }).show();
     Button.funnelTo("LS:File","up",["LS:File:Name:input","LS:File:Load"]);
     Button.pathGrid([
@@ -207,23 +207,23 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 
     View.create("LS:Edit:Menu",1,0,0,WIDTH,HEIGHT);
     TextElement.create("LS:Dimensions","LS:Edit:Menu",WIDTH/4-150,155+55*0,fontMenuItem,"Dimensions",WIDTH,LEFT).show();
-    TextInput.create("LS:Dimensions:width","LS:Edit:Menu",WIDTH/2-175,130,100,40,"number",Level.level.width,"width","Enter a width").setOnInputChange(function(val) {
+    TextInput.create("LS:Dimensions:width","LS:Edit:Menu",WIDTH/2-175,130,100,40,"#width",Level.level.width,"Enter a width").setOnInputChange(function(val) {
       Level.level.width = val;
     }).show();
-    TextInput.create("LS:Dimensions:height","LS:Edit:Menu",WIDTH/2-70,130,100,40,"number",Level.level.height,"height","Enter a height").setOnInputChange(function(val) {
+    TextInput.create("LS:Dimensions:height","LS:Edit:Menu",WIDTH/2-70,130,100,40,"#height",Level.level.height,"Enter a height").setOnInputChange(function(val) {
       Level.level.height = val;
     }).show();
     TextElement.create("LS:Edge","LS:Edit:Menu",WIDTH/4-150,210,fontMenuItem,"Edge Types",WIDTH,LEFT).show();
-    TextInput.create("LS:Edge:top","LS:Edit:Menu",WIDTH/2-175,185,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_NONE,"top","Enter top edge behavior").setOnInputChange(function(val) {
+    TextInput.create("LS:Edge:top","LS:Edit:Menu",WIDTH/2-175,185,100,40,"@top:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL","EDGE_NONE","Enter top edge behavior").setOnInputChange(function(val) {
       Level.level.edge.top = val;
     }).show();
-    TextInput.create("LS:Edge:bottom","LS:Edit:Menu",WIDTH/2-70,185,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_SOLID,"bottom","Enter bottom edge behavior").setOnInputChange(function(val) {
+    TextInput.create("LS:Edge:bottom","LS:Edit:Menu",WIDTH/2-70,185,100,40,"@bottom:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL","EDGE_SOLID","bottom","Enter bottom edge behavior").setOnInputChange(function(val) {
       Level.level.edge.bottom = val;
     }).show();
-    TextInput.create("LS:Edge:left","LS:Edit:Menu",WIDTH/2+35,185,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_WRAP,"left","Enter left edge behavior").setOnInputChange(function(val) {
+    TextInput.create("LS:Edge:left","LS:Edit:Menu",WIDTH/2+35,185,100,40,"@left:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL","EDGE_WRAP","Enter left edge behavior").setOnInputChange(function(val) {
       Level.level.edge.left = val;
     }).show();
-    TextInput.create("LS:Edge:right","LS:Edit:Menu",WIDTH/2+140,185,100,40,"accessor:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL",EDGE_WRAP,"right","Enter right edge behavior").setOnInputChange(function(val) {
+    TextInput.create("LS:Edge:right","LS:Edit:Menu",WIDTH/2+140,185,100,40,"@right:EDGE_NONE,EDGE_SOLID,EDGE_WRAP,EDGE_KILL","EDGE_WRAP","Enter right edge behavior").setOnInputChange(function(val) {
       Level.level.edge.right = val;
     }).show();
     Button.funnelTo("LS:Edit","up",["LS:Dimensions:width","LS:Dimensions:height"]);
@@ -235,28 +235,28 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 
     View.create("LS:Cam:Menu",1,0,0,WIDTH,HEIGHT);
     TextElement.create("LS:CamStart","LS:Cam:Menu",WIDTH/4-150,155,fontMenuItem,"Camera Start",WIDTH,LEFT).show();
-    TextInput.create("LS:CamStart:x","LS:Cam:Menu",WIDTH/2-175,130,100,40,"number",Level.level.camStart.x,"x","Enter starting x point").setOnInputChange(function(val) {
+    TextInput.create("LS:CamStart:x","LS:Cam:Menu",WIDTH/2-175,130,100,40,"#x",Level.level.camStart.x,"Enter starting x point").setOnInputChange(function(val) {
       Level.level.camStart.x = val;
     }).show();
-    TextInput.create("LS:CamStart:y","LS:Cam:Menu",WIDTH/2-70,130,100,40,"number",Level.level.camStart.y,"y","Enter starting y point").setOnInputChange(function(val) {
+    TextInput.create("LS:CamStart:y","LS:Cam:Menu",WIDTH/2-70,130,100,40,"#y",Level.level.camStart.y,"Enter starting y point").setOnInputChange(function(val) {
       Level.level.camStart.y = val;
     }).show().right("LS:ZoomScale:num");
     TextElement.create("LS:ScrollBuffer","LS:Cam:Menu",WIDTH/4-150,210,fontMenuItem,"Scroll Buffer",WIDTH,LEFT).show();
-    TextInput.create("LS:ScrollBuffer:hor","LS:Cam:Menu",WIDTH/2-175,185,100,40,"number",Level.level.horScrollBuffer,"horizontal","Enter horizontal scroll buffer").setOnInputChange(function(val) {
+    TextInput.create("LS:ScrollBuffer:hor","LS:Cam:Menu",WIDTH/2-175,185,100,40,"#horizontal",Level.level.horScrollBuffer,"Enter horizontal scroll buffer").setOnInputChange(function(val) {
       Level.level.horScrollBuffer = val;
     }).show();
-    TextInput.create("LS:ScrollBuffer:vert","LS:Cam:Menu",WIDTH/2-70,185,100,40,"number",Level.level.vertScrollBuffer,"vertical","Enter vertical scroll buffer").setOnInputChange(function(val) {
+    TextInput.create("LS:ScrollBuffer:vert","LS:Cam:Menu",WIDTH/2-70,185,100,40,"#vertical",Level.level.vertScrollBuffer,"Enter vertical scroll buffer").setOnInputChange(function(val) {
       Level.level.vertScrollBuffer = val;
     }).show();
     TextElement.create("LS:ZoomLimit","LS:Cam:Menu",WIDTH/4-150,265,fontMenuItem,"Zoom Limits",WIDTH,LEFT).show();
-    TextInput.create("LS:ZoomLimit:min","LS:Cam:Menu",WIDTH/2-175,240,100,40,"number",Level.level.minZoom,"min","Enter minimum zoom level").setOnInputChange(function(val) {
+    TextInput.create("LS:ZoomLimit:min","LS:Cam:Menu",WIDTH/2-175,240,100,40,"#min",Level.level.minZoom,"Enter minimum zoom level").setOnInputChange(function(val) {
       Level.level.minZoom = val;
     }).show();
-    TextInput.create("LS:ZoomLimit:max","LS:Cam:Menu",WIDTH/2-70,240,100,40,"number",Level.level.maxZoom,"max","Enter maximum zoom level").setOnInputChange(function(val) {
+    TextInput.create("LS:ZoomLimit:max","LS:Cam:Menu",WIDTH/2-70,240,100,40,"#max",Level.level.maxZoom,"Enter maximum zoom level").setOnInputChange(function(val) {
       Level.level.maxZoom = val;
     }).show();
     TextElement.create("LS:ZoomScale","LS:Cam:Menu",WIDTH*2/3-50,155,fontMenuItem,"Zoom Scale",WIDTH,LEFT).show();
-    TextInput.create("LS:ZoomScale:num","LS:Cam:Menu",WIDTH/2+190,130,100,40,"number",Level.level.zoomScale,"zoom scale","Enter preferred zoom level").setOnInputChange(function(val) {
+    TextInput.create("LS:ZoomScale:num","LS:Cam:Menu",WIDTH/2+190,130,100,40,"#zoom scale",Level.level.zoomScale,"Enter preferred zoom level").setOnInputChange(function(val) {
       Level.level.zoomScale = val;
     }).show();
     Button.funnelTo("LS:Cam","up",["LS:CamStart:x","LS:CamStart:y","LS:ZoomScale:num"])
@@ -286,10 +286,10 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
         G$("LS:BG:Preview").show().img = (bg.name || "BGRaw:"+this.numBG);
       }
       G$("LS:BG:Desc").text = bg.name || ((bg.raw&&bg.raw!="")?"imported":"none");
-      G$("LS:BG:Name").storedVal = bg.name;
-      G$("LS:BG:Layer:num").storedVal = bg.layer;
-      G$("LS:BG:Scale:num").storedVal = bg.scale;
-      G$("LS:BG:Parallax:num").storedVal = bg.parallax;
+      G$("LS:BG:Name").store(bg.name);
+      G$("LS:BG:Layer:num").store(bg.layer);
+      G$("LS:BG:Scale:num").store(bg.scale);
+      G$("LS:BG:Parallax:num").store(bg.parallax);
     })
     .setBGVal = function(key,val,preventRefresh) {
       let bg = Level.level.bg[this.numBG];
@@ -326,37 +326,37 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       gameAlert("Swapped BG Layers "+(slot+1)+" and "+(right+1)+".",60);
     }).show();
     TextElement.create("LS:BG:Layer","LS:BG:Menu",WIDTH*2/3-50,210,fontMenuItem,"Draw Layer",WIDTH,LEFT).show();
-    TextInput.create("LS:BG:Layer:num","LS:BG:Menu",WIDTH/2+190,185,100,40,"number",null,"layer","Enter the draw layer").setOnInputChange(function(val) {
+    TextInput.create("LS:BG:Layer:num","LS:BG:Menu",WIDTH/2+190,185,100,40,"#layer",null,"Enter the draw layer").setOnInputChange(function(val) {
       this.view.setBGVal("layer",val);
     }).createIncrementers(20,1).show();
     TextElement.create("LS:BG:Scale","LS:BG:Menu",WIDTH*2/3-50,265,fontMenuItem,"Image Scale",WIDTH,LEFT).show();
-    TextInput.create("LS:BG:Scale:num","LS:BG:Menu",WIDTH/2+190,240,100,40,"number",null,"bg scale","Enter the background scale").setOnInputChange(function(val) {
+    TextInput.create("LS:BG:Scale:num","LS:BG:Menu",WIDTH/2+190,240,100,40,"#bg scale",null,"Enter the background scale").setOnInputChange(function(val) {
       this.view.setBGVal("scale",val);
     }).show();
     TextElement.create("LS:BG:Parallax","LS:BG:Menu",WIDTH*2/3-50,320,fontMenuItem,"Parallax",WIDTH,LEFT).show();
-    TextInput.create("LS:BG:Parallax:num","LS:BG:Menu",WIDTH/2+190,295,100,40,"number",null,"parallax","Enter the amount of parallax").setOnInputChange(function(val) {
+    TextInput.create("LS:BG:Parallax:num","LS:BG:Menu",WIDTH/2+190,295,100,40,"#parallax",null,"Enter the amount of parallax").setOnInputChange(function(val) {
       this.view.setBGVal("parallax",val);
     }).show();
-    TextInput.create("LS:BG:Name","LS:BG:Menu",WIDTH/2-70,185,100,40,"string",null,"img name","Enter the name of the image").setOnInputChange(function(val) {
+    TextInput.create("LS:BG:Name","LS:BG:Menu",WIDTH/2-70,185,100,40,"img name",null,"Enter the name of the image").setOnInputChange(function(val) {
       let bg = Level.level.bg[this.view.numBG];
       if (bg&&bg.raw!="") {
         return gameConfirm("This will delete the imported BG. Continue?",function(response) {
           if (response) G$("LS:BG:Name").set();
-          else G$("LS:BG:Name").storedVal = bg.name;
+          else G$("LS:BG:Name").store(bg.name);
         });
       }
       else this.set();
     }).show()
     .set = function() {
-      G$("LS:BG:Desc").text = this.storedVal;
-      this.view.setBGVal("name",this.storedVal,true);
+      G$("LS:BG:Desc").text = this.val();
+      this.view.setBGVal("name",this.val(),true);
       this.view.setBGVal("raw","",true);
       this.view.setBGVal("type","name");
     };
     Button.create("LS:BG:Raw","LS:BG:Menu",WIDTH/2-70,240,100,40,"Import BG").setOnClick(function() {
       FileInput.ask(["png","jpg","jpeg","bmp","webp"],"readAsDataURL",function(result,file) {
         G$("LS:BG:Desc").text = "raw base64";
-        G$("LS:BG:Name").storedVal = "";
+        G$("LS:BG:Name").store("");
         let view = G$("LS:BG:Menu");
         view.setBGVal("raw",result.split(",")[1],true);
         view.setBGVal("name","",true);
