@@ -454,7 +454,7 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
     }
   },
   findAt: function(x,y) {
-    let all = [].concat(Box.getAll().reverse()).concat(this.spawnGhosts.reverse());
+    let all = [].concat(Box.getAll().reverse()).concat([].concat(this.spawnGhosts).reverse());
     for (var i in all) {
       if (all[i]&&all[i].isActor&&all[i].containsPoint(x,y)) return all[i];
     }
