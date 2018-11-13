@@ -195,36 +195,24 @@ const EditorTools = {
     this.execAction(action);
     this.history.push(action);
   },
-  runGroupAction: function(template,list,pairToPrevious) {
-    let actionList = [];
-    for (var i in list) {
-      let action = clone(template);
-      if (list[i].isGhost) {
-        action.slot = list[i].slot;
-        action.spawnData = [list[i].x, list[i].y, list[i].slot, list[i].direction];
-      }
-      else {
-        if (list[i].isTerrain) action.objectType = "terrain";
-        if (list[i].isActor) action.objectType = "actor";
-        action.definition = clone(list[i].rawTerrainData || list[i].rawActorData);
-      }
-      actionList.push(action);
+  runGroupAction: function(action) {//template,list,pairToPrevious) {
+    let group;
+    if (this.history.length>0) group = this.history[this.history.length-1];
+    if (!group || !group.open) {
+      group = {
+        action: "group",
+        list: [],
+        open: true
+      };
+      this.runAction(group);
     }
-    if (pairToPrevious&&this.history.length>0) {
-      let previous = this.history[this.history.length-1];
-      if (previous.action=="group") {
-        this.execAction({
-          action: "group",
-          list: actionList
-        });
-        previous.list = previous.list.concat(actionList);
-        return;
-      }
-    }
-    this.runAction({
-      action: "group",
-      list: actionList
-    });
+    this.execAction(action);
+    group.list.push(action);
+  },
+  closeGroupAction: function() {
+    let previous;
+    if (this.history.length>0) previous = this.history[this.history.length-1];
+    if (previous) previous.open = false;
   },
   select: function(obj,mod) {
     if (mod=="remove") this.selection.remove(obj);
@@ -233,22 +221,6 @@ const EditorTools = {
   clearSelection: function() {
     for (var i in this.selection) this.selection.remove(this.selection[i]);
   },
-  deleteSelection: function() {
-    let normal = [], ghosts = [];
-    for (var i in this.selection) {
-      let s = this.selection[i];
-      if (s.isGhost) ghosts.push(s);
-      else normal.push(s);
-    }
-    let doNormal = normal.length>0, doGhost = ghosts.length>0;
-    if (doNormal) this.runGroupAction({
-      action: "delete"
-    },normal);
-    if (doGhost) this.runGroupAction({
-      action: "spawnremove"
-    },ghosts,doNormal);
-    this.clearSelection();
-  }
 }
 class EditTool {
   constructor(name,cursor,mods) {
@@ -674,7 +646,23 @@ EditorTools.addTool(new EditTool("Eraser",POINTER_ERASER,{
   onClick: function() {
     let hovered = this.host.findAnyAt(Pointer.camPoint());
     if (hovered) {
-      if (this.host.selection.has(hovered)) this.host.deleteSelection();
+      if (this.host.selection.has(hovered)) {
+        for (var i in this.host.selection) {
+          let s = this.host.selection[i];
+          if (s.isGhost) this.host.runGroupAction({
+            action: "spawnremove",
+            slot: s.slot,
+            spawnData: [s.x,s.y,s.slot,s.direction]
+          });
+          else this.host.runGroupAction({
+            action: "delete",
+            objectType: s.isTerrain?"terrain":"actor",
+            definition: clone(s.rawTerrainData || s.rawActorData)
+          });
+        }
+        this.host.closeGroupAction();
+        this.host.clearSelection();
+      }
       else {
         if (hovered.isGhost) this.host.runAction({
           action: "spawnremove",
