@@ -312,6 +312,7 @@ class Box extends _c_ {
 
   draw() {
     if (!this.isLoaded) return;
+    if (this.gfx==null) return;
     let type = typeof this.gfx;
     if (type == "string") {
       if (this.gfx.split(".").length>1) { // use as image name
