@@ -519,6 +519,12 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
     let x = Pointer.camX(), y = Pointer.camY();
     this.tempActor = ActorManager.makeGhostActor(this.id,x,y,...this.properties);
   },
+  initSpawnGhosts: function() {
+    for (var i = 0; i < Level.level.playerSpawns.length; i++) {
+      let spawn = Level.level.playerSpawns[i];
+      this.setSpawnGhost(spawn.x,spawn.y,i,spawn.direction);
+    }
+  },
   setSpawnGhost: function(x,y,playerNumber,direction) {
     if (this.spawnGhosts[playerNumber]) this.killSpawnGhost(playerNumber);
     this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,playerNumber,direction);
