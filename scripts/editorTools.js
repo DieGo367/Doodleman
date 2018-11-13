@@ -607,7 +607,7 @@ EditorTools.addTool(new EditTool("Move",POINTER_MOVE,{
         break;
       case "actor":
         def[1] += delta.x;
-        def[2] += delta.x;
+        def[2] += delta.y;
     }
     return def;
   }
