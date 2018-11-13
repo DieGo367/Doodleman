@@ -60,7 +60,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 		}
   },
   doControls: function(ctrl) {
-    if (!ctrl.type==KEYBOARD||viewLock||Pointer.focusLayer!=0) return;
+    if (!ctrl.type==KEYBOARD||viewLock||Pointer.focusLayer!=0||Pointer.downPoint) return;
     for (var i in EditorTools.tools) if (!ctrl.pressed("Ctrl")&&ctrl.ready(EditorTools.tools[i].name+"Tool")) {
       G$(EditorTools.tools[i].name+"Tool").onClick(ctrl,true);
       ctrl.use(EditorTools.tools[i].name+"Tool");
