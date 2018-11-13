@@ -111,9 +111,10 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     Button.create("LineTool","EditorToolbar",150,10,50,50).setIcon("GUI-Icons.png",1,2,42,4).show();
     Button.create("ActorTool","EditorToolbar",220,10,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
 
+    Button.create("MoveTool","EditorToolbar",WIDTH-270,10,50,50).setIcon("GUI-Icons.png",3,3,42,4).show();
     Button.create("SelectTool","EditorToolbar",WIDTH-200,10,50,50).setIcon("GUI-Icons.png",2,3,42,4).show();
     Button.create("EraserTool","EditorToolbar",WIDTH-130,10,50,50).setIcon("GUI-Icons.png",3,2,42,4).show();
-    Button.setRadioGroup(["BoxTool","LineTool","ActorTool", "SelectTool","EraserTool"],function() {
+    Button.setRadioGroup(["BoxTool","LineTool","ActorTool", "MoveTool","SelectTool","EraserTool"],function() {
       EditorTools.toolOn = this.on;
       EditorTools.setTool(this.radioGroupIndex);
       G$("EditPropView").onShow();

@@ -122,6 +122,20 @@ const EditorTools = {
             Level.removeActorData(action.definition);
         }
         break;
+      case "move":
+        this.execAction({
+          action: "delete",
+          objectType: action.objectType,
+          definition: action.definition
+        });
+        let newDef = clone(action.definition);
+        this.tool("Move").shiftDefinition(action.objectType,newDef,action.delta);
+        this.execAction({
+          action: "create",
+          objectType: action.objectType,
+          definition: newDef
+        });
+        break;
       case "spawn":
         Level.setSpawn(...action.spawnData);
         this.tool("Actor").setSpawnGhost(...action.spawnData);
@@ -137,6 +151,7 @@ const EditorTools = {
       group: "group",
       create: "delete",
       delete: "create",
+      move: "move",
       spawnremove: "spawn",
       spawn: "spawnremove"
     }
@@ -144,6 +159,11 @@ const EditorTools = {
     switch (action.action) {
       case "group":
         for (var i in action.list) this.invertAction(action.list[i]);
+        break;
+      case "move":
+        this.tool("Move").shiftDefinition(action.objectType,action.definition,action.delta);
+        action.delta.x *= -1;
+        action.delta.y *= -1;
         break;
       case "spawnremove":
         if (action.previous!=null) {
@@ -512,6 +532,84 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
   },
   removeSpawnGhosts: function() {
     for (var i = this.spawnGhosts.length-1; i >= 0; i--) this.killSpawnGhost(i);
+  }
+}));
+EditorTools.addTool(new EditTool("Move",POINTER_MOVE,{
+  grabbed: null, grabPt: null,
+  onDown: function() {
+    if (this.grabbed&&this.grabPt) return;
+    let hovered = this.host.findAnyAt(Pointer.camPoint());
+    if (hovered) {
+      this.grabbed = hovered;
+      this.grabbed.isLoaded = false;
+      this.grabPt = Pointer.camPoint();
+    }
+  },
+  onClick: function() {
+    if (!this.grabbed||!this.grabPt) return this.cancel();
+    let pt = Pointer.camPoint();
+    let diff = new Point(pt.x-this.grabPt.x,pt.y-this.grabPt.y);
+    let obj = this.grabbed;
+    this.cancel();
+    if (obj.isGhost) EditorTools.runAction({
+      action: "spawn",
+      slot: obj.slot,
+      spawnData: [obj.x+diff.x,obj.y+diff.y,obj.slot,obj.direction],
+      previous: [obj.x,obj.y,obj.slot,obj.direction]
+    });
+    else EditorTools.runAction({
+      action: "move",
+      objectType: obj.isTerrain?"terrain":"actor",
+      definition: clone(obj.rawTerrainData || obj.rawActorData),
+      delta: diff,
+    });
+  },
+  cancel: function() {
+    if (this.grabbed) this.grabbed.isLoaded = true;
+    this.grabbed = this.grabPt = null;
+  },
+  draw: function() {
+    if (this.grabbed&&this.grabPt) {
+      let pt = Pointer.camPoint();
+      let diff = new Point(pt.x-this.grabPt.x,pt.y-this.grabPt.y);
+      let isLine = this.grabbed instanceof Line;
+      this.grabbed.x += diff.x;
+      this.grabbed.y += diff.y;
+      if (isLine) {
+        this.grabbed.x2 += diff.x;
+        this.grabbed.y2 += diff.y;
+      }
+      this.grabbed.isLoaded = true;
+      this.grabbed.drawHighlighted("blue");
+      this.grabbed.isLoaded = false;
+      this.grabbed.x -= diff.x;
+      this.grabbed.y -= diff.y;
+      if (isLine) {
+        this.grabbed.x2 -= diff.x;
+        this.grabbed.y2 -= diff.y;
+      }
+    }
+    else {
+      let hovered = this.host.findAnyAt(Pointer.camPoint());
+      if (hovered) hovered.drawHighlighted("blue");
+    }
+  },
+  shiftDefinition: function(objectType,def,delta) {
+    switch(objectType) {
+      case "terrain":
+        let d = def.pieces[0];
+        d[0] += delta.x;
+        d[1] += delta.y;
+        if (def.type==1) {
+          d[2] += delta.x;
+          d[3] += delta.y;
+        }
+        break;
+      case "actor":
+        def[1] += delta.x;
+        def[2] += delta.x;
+    }
+    return def;
   }
 }));
 EditorTools.addTool(new EditTool("Select",POINTER_CROSSHAIR,{
