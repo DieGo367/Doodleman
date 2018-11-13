@@ -679,7 +679,7 @@ EditorTools.addTool(new EditTool("Eraser",POINTER_ERASER,{
         if (hovered.isGhost) this.host.runAction({
           action: "spawnremove",
           slot: hovered.slot,
-          definition: [hovered.x, hovered.y, hovered.slot, hovered.direction]
+          spawnData: [hovered.x, hovered.y, hovered.slot, hovered.direction]
         });
         else this.host.runAction({
           action: "delete",
