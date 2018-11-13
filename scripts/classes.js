@@ -328,6 +328,7 @@ class Box extends _c_ {
     }
   }
   drawDebug() {
+    if (!this.isLoaded) return;
     c.lineWidth = 1;
     c.strokeStyle = this.hitBoxStroke;
     c.strokeRect(this.x-this.halfW(),this.y,this.width,-this.height,this.hitBoxStroke);
@@ -996,6 +997,7 @@ class Line extends _c_ {
   	this.stroke = stroke;
     this.direction = direction;
     this.useBoxCorners = useBoxCorners;
+    this.isLoaded = true;
     this.sectors = [];
   }
   leftX() { return Math.min(this.x,this.x2); }
@@ -1084,11 +1086,13 @@ class Line extends _c_ {
 
   update() { }
   draw() {
+    if (!this.isLoaded) return;
   	c.strokeStyle = this.stroke;
   	c.lineWidth = this.size;
   	if (this.stroke) drawLine(this.x,this.y,this.x2,this.y2);
   }
   drawDebug() {
+    if (!this.isLoaded) return;
     if (this.direction!=0) {
       c.lineWidth = 1.5;
       switch(this.direction) {
