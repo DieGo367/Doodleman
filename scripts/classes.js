@@ -2597,7 +2597,13 @@ class TextInput extends Button {
     if (this.onInputChangeFunc(this.storedVal)==CANCEL) this.storedVal = oldStoredVal;
     return this;
   }
-  val() { return this.storedVal; }
+  val(val) {
+    if (val!=void(0)) {
+      this.storedVal = val;
+      return this;
+    }
+    return this.storedVal;
+  }
   setOnInputChange(func) {
     this.onInputChangeFunc = func;
     return this;

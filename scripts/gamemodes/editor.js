@@ -286,10 +286,10 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
         G$("LS:BG:Preview").show().img = (bg.name || "BGRaw:"+this.numBG);
       }
       G$("LS:BG:Desc").text = bg.name || ((bg.raw&&bg.raw!="")?"imported":"none");
-      G$("LS:BG:Name").store(bg.name);
-      G$("LS:BG:Layer:num").store(bg.layer);
-      G$("LS:BG:Scale:num").store(bg.scale);
-      G$("LS:BG:Parallax:num").store(bg.parallax);
+      G$("LS:BG:Name").val(bg.name);
+      G$("LS:BG:Layer:num").val(bg.layer);
+      G$("LS:BG:Scale:num").val(bg.scale);
+      G$("LS:BG:Parallax:num").val(bg.parallax);
     })
     .setBGVal = function(key,val,preventRefresh) {
       let bg = Level.level.bg[this.numBG];
@@ -339,17 +339,18 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     }).show();
     TextInput.create("LS:BG:Name","LS:BG:Menu",WIDTH/2-70,185,100,40,"img name",null,"Enter the name of the image").setOnInputChange(function(val) {
       let bg = Level.level.bg[this.view.numBG];
+      this.upcomingVal = val;
       if (bg&&bg.raw!="") {
-        return gameConfirm("This will delete the imported BG. Continue?",function(response) {
+        gameConfirm("This will delete the imported BG. Continue?",function(response) {
           if (response) G$("LS:BG:Name").set();
-          else G$("LS:BG:Name").store(bg.name);
         });
+        return CANCEL;
       }
       else this.set();
     }).show()
     .set = function() {
-      G$("LS:BG:Desc").text = this.val();
-      this.view.setBGVal("name",this.val(),true);
+      G$("LS:BG:Desc").text = this.upcomingVal;
+      this.view.setBGVal("name",this.upcomingVal,true);
       this.view.setBGVal("raw","",true);
       this.view.setBGVal("type","name");
     };
