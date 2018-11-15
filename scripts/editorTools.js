@@ -8,6 +8,7 @@ const EditorTools = {
   selection: new UIDStore(),
   history: [],
   future: [],
+  actionResult: null,
   setup: function() {
     this.enabled = true;
     if (this.levelCopy) Level.load(JSON.stringify(this.levelCopy),false);
@@ -100,21 +101,21 @@ const EditorTools = {
   execAction: function(action) {
     switch(action.action) {
       case "group":
+        let results = [];
         for (var i in action.list) {
-          this.execAction(action.list[i]);
+          results.push(this.execAction(action.list[i]));
         }
-        break;
+        return results;
       case "create":
         switch(action.objectType) {
           case "terrain":
             let def = clone(action.definition);
-            TerrainManager.make(def);
             Level.addTerrainData(def);
-            break;
+            return TerrainManager.make(def)[0];
           case "actor":
             let data = clone(action.definition);
-            ActorManager.make(...data);
             Level.addActorData(data);
+            return ActorManager.make(...data);
         }
         break;
       case "delete":
@@ -140,16 +141,14 @@ const EditorTools = {
         });
         let newDef = clone(action.definition);
         this.tool("Move").shiftDefinition(action.objectType,newDef,action.delta);
-        this.execAction({
+        return this.execAction({
           action: "create",
           objectType: action.objectType,
           definition: newDef
         });
-        break;
       case "spawn":
         Level.setSpawn(...action.spawnData);
-        this.tool("Actor").setSpawnGhost(...action.spawnData);
-        break;
+        return this.tool("Actor").setSpawnGhost(...action.spawnData);
       case "spawnremove":
         Level.removeSpawn(action.slot);
         this.tool("Actor").killSpawnGhost(action.slot);
@@ -187,26 +186,29 @@ const EditorTools = {
     return action;
   },
   runAction: function(action) {
-    this.execAction(action);
+    this.actionResult = this.execAction(action);
     this.history.push(action);
     this.future = [];
+    return this.actionResult;
   },
   undoAction: function() {
     if (this.history.length<1) return;
     let action = this.history.pop();
     let undo = clone(action);
     this.invertAction(undo);
-    this.execAction(undo);
+    this.actionResult = this.execAction(undo);
     this.future.push(action);
+    return this.actionResult;
   },
   redoAction: function() {
     if (this.future.length<1) return;
     let action = this.future.pop();
-    this.execAction(action);
+    this.actionResult = this.execAction(action);
     this.history.push(action);
+    return this.actionResult;
   },
   runGroupAction: function(action) {
-    let group;
+    let group, result = this.actionResult;
     if (this.history.length>0) group = this.history[this.history.length-1];
     if (!group || !group.open) {
       group = {
@@ -214,15 +216,17 @@ const EditorTools = {
         list: [],
         open: true
       };
-      this.runAction(group);
+      result = this.runAction(group);
     }
-    this.execAction(action);
     group.list.push(action);
+    result.push(this.execAction(action));
+    return this.actionResult = result;
   },
   closeGroupAction: function() {
     let previous;
     if (this.history.length>0) previous = this.history[this.history.length-1];
     if (previous) previous.open = false;
+    return this.actionResult;
   },
   select: function(obj,mod) {
     if (mod=="remove") this.selection.remove(obj);
@@ -500,7 +504,7 @@ EditorTools.addTool(new EditTool("Actor",POINTER_NONE,{
   },
   setSpawnGhost: function(x,y,playerNumber,direction) {
     if (this.spawnGhosts[playerNumber]) this.killSpawnGhost(playerNumber);
-    this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,playerNumber,direction);
+    return this.spawnGhosts[playerNumber] = ActorManager.makeGhostActor(0,x,y,playerNumber,direction);
   },
   killSpawnGhost: function(slot) {
     let ghosts = this.spawnGhosts;
@@ -557,7 +561,10 @@ EditorTools.addTool(new EditTool("Move",POINTER_MOVE,{
           delta: diff
         });
       }
-      this.host.closeGroupAction();
+      let results = this.host.closeGroupAction();
+      for (var i in results) {
+        this.host.selection.add(results[i]);
+      }
       return;
     }
     else if (obj.isGhost) this.host.runAction({
