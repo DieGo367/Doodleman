@@ -66,13 +66,23 @@ const EditorTools = {
     let tool = this.getTool();
     if (this.toolOn) tool.draw();
     let selectionColor = "orange";
-    if (this.toolOn&&this.getToolName()=="Eraser") {
-      for (var i in this.selection) if (this.selection[i].pointerHovered()) {
-        selectionColor = "red";
-        break;
+    if (this.toolOn) {
+      if (tool.name=="Eraser") for (var i in this.selection) {
+        if (this.selection[i].pointerHovered()) {
+          selectionColor = "red";
+          break;
+        }
+      }
+      if (tool.name=="Move") {
+        if (tool.grabbed=="selection") selectionColor = null;
+        else for (var i in this.selection) {
+          if (this.selection[i].pointerHovered()) {
+            selectionColor = "blue";
+          }
+        }
       }
     }
-    for (var i in this.selection) this.selection[i].drawHighlighted(selectionColor);
+    if (selectionColor) for (var i in this.selection) this.selection[i].drawHighlighted(selectionColor);
     this.tool("Actor").drawSpawnGhosts();
   },
   findAnyAt: function(x,y) {
@@ -195,7 +205,7 @@ const EditorTools = {
     this.execAction(action);
     this.history.push(action);
   },
-  runGroupAction: function(action) {//template,list,pairToPrevious) {
+  runGroupAction: function(action) {
     let group;
     if (this.history.length>0) group = this.history[this.history.length-1];
     if (!group || !group.open) {
@@ -512,8 +522,14 @@ EditorTools.addTool(new EditTool("Move",POINTER_MOVE,{
     if (this.grabbed&&this.grabPt) return;
     let hovered = this.host.findAnyAt(Pointer.camPoint());
     if (hovered) {
-      this.grabbed = hovered;
-      this.grabbed.isLoaded = false;
+      if (this.host.selection.has(hovered)) {
+        this.grabbed = "selection";
+        for (var i in this.host.selection) this.host.selection[i].isLoaded = false;
+      }
+      else {
+        this.grabbed = hovered;
+        this.grabbed.isLoaded = false;
+      }
       this.grabPt = Pointer.camPoint();
     }
   },
@@ -523,13 +539,34 @@ EditorTools.addTool(new EditTool("Move",POINTER_MOVE,{
     let diff = new Point(pt.x-this.grabPt.x,pt.y-this.grabPt.y);
     let obj = this.grabbed;
     this.cancel();
-    if (obj.isGhost) EditorTools.runAction({
+    if (obj=="selection") {
+      let group = this.host.selection.getAll();
+      this.host.clearSelection();
+      for (var i in group) {
+        let s = group[i];
+        if (s.isGhost) this.host.runGroupAction({
+          action: "spawn",
+          slot: s.slot,
+          spawnData: [s.x+diff.x,s.y+diff.y,s.slot,s.direction],
+          previous: [s.x,s.y,s.slot,s.direction]
+        });
+        else this.host.runGroupAction({
+          action: "move",
+          objectType: s.isTerrain?"terrain":"actor",
+          definition: clone(s.rawTerrainData || s.rawActorData),
+          delta: diff
+        });
+      }
+      this.host.closeGroupAction();
+      return;
+    }
+    else if (obj.isGhost) this.host.runAction({
       action: "spawn",
       slot: obj.slot,
       spawnData: [obj.x+diff.x,obj.y+diff.y,obj.slot,obj.direction],
       previous: [obj.x,obj.y,obj.slot,obj.direction]
     });
-    else EditorTools.runAction({
+    else this.host.runAction({
       action: "move",
       objectType: obj.isTerrain?"terrain":"actor",
       definition: clone(obj.rawTerrainData || obj.rawActorData),
@@ -537,29 +574,24 @@ EditorTools.addTool(new EditTool("Move",POINTER_MOVE,{
     });
   },
   cancel: function() {
-    if (this.grabbed) this.grabbed.isLoaded = true;
+    if (this.grabbed) {
+      if (typeof this.grabbed == "object") this.grabbed.isLoaded = true;
+      else if (this.grabbed=="selection") for (var i in this.host.selection) {
+        this.host.selection[i].isLoaded = true;
+      }
+    }
     this.grabbed = this.grabPt = null;
   },
   draw: function() {
     if (this.grabbed&&this.grabPt) {
       let pt = Pointer.camPoint();
       let diff = new Point(pt.x-this.grabPt.x,pt.y-this.grabPt.y);
-      let isLine = this.grabbed instanceof Line;
-      this.grabbed.x += diff.x;
-      this.grabbed.y += diff.y;
-      if (isLine) {
-        this.grabbed.x2 += diff.x;
-        this.grabbed.y2 += diff.y;
+      if (this.grabbed=="selection") {
+        for (var i in this.host.selection) {
+          this.drawObjectShifted(this.host.selection[i],diff);
+        }
       }
-      this.grabbed.isLoaded = true;
-      this.grabbed.drawHighlighted("blue");
-      this.grabbed.isLoaded = false;
-      this.grabbed.x -= diff.x;
-      this.grabbed.y -= diff.y;
-      if (isLine) {
-        this.grabbed.x2 -= diff.x;
-        this.grabbed.y2 -= diff.y;
-      }
+      else this.drawObjectShifted(this.grabbed,diff);
     }
     else {
       let hovered = this.host.findAnyAt(Pointer.camPoint());
@@ -582,6 +614,23 @@ EditorTools.addTool(new EditTool("Move",POINTER_MOVE,{
         def[2] += delta.y;
     }
     return def;
+  },
+  shiftObject: function(obj,delta,k) {
+    if (k==void(0)) k = 1;
+    obj.x += delta.x*k;
+    obj.y += delta.y*k;
+    if (obj instanceof Line) {
+      obj.x2 += delta.x*k;
+      obj.y2 += delta.y*k;
+    }
+    return obj;
+  },
+  drawObjectShifted: function(obj,delta) {
+    this.shiftObject(obj,delta);
+    obj.isLoaded = true;
+    obj.drawHighlighted("blue");
+    obj.isLoaded = false;
+    this.shiftObject(obj,delta,-1);
   }
 }));
 EditorTools.addTool(new EditTool("Select",POINTER_CROSSHAIR,{
@@ -647,8 +696,10 @@ EditorTools.addTool(new EditTool("Eraser",POINTER_ERASER,{
     let hovered = this.host.findAnyAt(Pointer.camPoint());
     if (hovered) {
       if (this.host.selection.has(hovered)) {
-        for (var i in this.host.selection) {
-          let s = this.host.selection[i];
+        let group = this.host.selection.getAll();
+        this.host.clearSelection();
+        for (var i in group) {
+          let s = group[i];
           if (s.isGhost) this.host.runGroupAction({
             action: "spawnremove",
             slot: s.slot,
@@ -661,7 +712,6 @@ EditorTools.addTool(new EditTool("Eraser",POINTER_ERASER,{
           });
         }
         this.host.closeGroupAction();
-        this.host.clearSelection();
       }
       else {
         if (hovered.isGhost) this.host.runAction({
