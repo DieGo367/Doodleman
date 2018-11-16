@@ -193,6 +193,7 @@ const EditorTools = {
   },
   undoAction: function() {
     if (this.history.length<1) return;
+    this.clearSelection();
     let action = this.history.pop();
     let undo = clone(action);
     this.invertAction(undo);
@@ -202,6 +203,7 @@ const EditorTools = {
   },
   redoAction: function() {
     if (this.future.length<1) return;
+    this.clearSelection();
     let action = this.future.pop();
     this.actionResult = this.execAction(action);
     this.history.push(action);
