@@ -2869,8 +2869,16 @@ class Particle extends _c_ {
   	this.color = color;
   }
   draw() {
-    c.fillStyle = this.color;
-  	c.fillRect(this.x-this.size/2,this.y-this.size/2,this.size,this.size);
+    if (this.id==0||this.id==void(0)) {
+      c.fillStyle = this.color;
+      c.fillRect(this.x-this.size/2,this.y-this.size/2,this.size,this.size);
+    }
+    else {
+      let cl = this.constructor;
+      let clipX = cl.CLIP*(this.id%cl.ROW);
+      let clipY = cl.CLIP*Math.floor(this.id/cl.ROW);
+      Images.drawImage(cl.IMG,this.x-this.size/2,this.y-this.size/2,this.size,this.size,clipX,clipY,cl.CLIP,cl.CLIP);
+    }
   }
   update() {
     //gravity
@@ -2903,6 +2911,9 @@ class Particle extends _c_ {
 
   static onInit() {
     this.prototype.drawLayer = 3;
+    this.IMG = "Particles.png";
+    this.CLIP = 16;
+    this.ROW = 16;
   }
 }
 initClass(Particle,{drawable: true, listType: "array"});
