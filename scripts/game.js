@@ -92,6 +92,11 @@ function tick() { //GAME UPDATES//
 }
 
 function init() {
+	if (currentMonth==11) { // xmas easter egg
+		Images.loadImage("XMAS_PaintMinion.png");
+		Images.imgData["PaintMinion.png"] = Images.imgData["XMAS_PaintMinion.png"];
+	}
+
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
 	canvas.clearLoadScreen();
 	setGameSpeed(gameSpeed);
