@@ -2856,7 +2856,7 @@ initClass(ImgElement,GuiElement);
 
 
 class Particle extends _c_ {
-  constructor(x,y,id,size,duration,defyGravity,color) {
+  constructor(x,y,id,size,duration,defyGravity,color,constVel) {
     super();
     this.x = x;
   	this.y = y;
@@ -2867,6 +2867,7 @@ class Particle extends _c_ {
   	this.timer = duration;
   	this.defyGravity = defyGravity;
   	this.color = color;
+    this.constVel = constVel;
   }
   draw() {
     if (this.id==0||this.id==void(0)) {
@@ -2882,26 +2883,30 @@ class Particle extends _c_ {
   }
   update() {
     //gravity
-  	if (!this.isGrounded&&this.velY<50&&!this.defyGravity) this.velY +=1;
+  	if (!this.defyGravity) this.velY +=1;
   	//calculate X
   	if (this.velX!=0) {
   		this.x += this.velX;
-  		if (Math.abs(this.velX)<0.5) this.velX = 0;
-  		else this.velX += this.velX>0? -0.5: 0.5;
+      if (!this.constVel) {
+        if (Math.abs(this.velX)<0.5) this.velX = 0;
+        else this.velX += this.velX>0? -0.5: 0.5;
+      }
   	}
   	//calculate Y
   	if (this.velY!=0) {
   		this.y += this.velY;
-  		if (Math.abs(this.velY)<0.5) this.velY = 0;
-  		else this.velY += this.velY>0? -0.5: 0.5;
+      if (!this.constVel) {
+        if (Math.abs(this.velY)<0.5) this.velY = 0;
+        else this.velY += this.velY>0? -0.5: 0.5;
+      }
   	}
   	if (this.timer--<0) this.remove();
   }
-  static generate(x,y,id,amount,size,duration,defyGravity,color,angle,angleRadius,magnitude,magRadius) {
+  static generate(x,y,id,amount,size,duration,defyGravity,color,angle,angleRadius,magnitude,magRadius,magIsConst) {
     for (var i in arguments) if (arguments[i]==null) arguments[i] = 0;
   	var angle = angle*Math.PI/180, angleRadius = angleRadius*Math.PI/180;
   	while(amount-->0) {
-  		var particle = this.create(x,y,id,size,duration,defyGravity,color);
+  		var particle = this.create(x,y,id,size,duration,defyGravity,color,magIsConst);
   		var newAngle = angle + angleRadius*(Math.random()*2-1);
   		var newMag = magnitude + magRadius*(Math.random()*2-1);
   		particle.velX = Math.cos(newAngle)*newMag;
