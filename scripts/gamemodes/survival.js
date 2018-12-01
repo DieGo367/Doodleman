@@ -1,20 +1,26 @@
 const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   start: function() {
     this.ready = false;
+    this.score = 0;
+    this.gameState = "none";
+    this.surplusWave = 0;
     this.addGui();
     G$("Hud").show();
-    if (!EditorTools.levelCopy) Level.loadLevel("Room-1.json");
+    if (EditorTools.levelCopy) this.setTestLevel();
+    else this.firstWave();
   },
   quit: function() {
     this.removeGui();
   },
   tick: function() {
     if (!this.ready) return;
-
-    if (Enemy.getAll().length==0) {
-      this.stealthBonus(this.wave);
-      this.wave++;
-      this.spawnWave(this.wave);
+    if (this.gameState=="wave") {
+      if (Enemy.getAll().length==0) {
+        this.gameState = "none";
+        Timer.wait(60,function() {
+          this.nextLineup();
+        },this);
+      }
     }
   },
   onPause: function(paused) {
@@ -35,17 +41,14 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     if (!this.deathEvent) pauseGame(true);
   },
   onLevelLoad: function() {
-    this.wave = 0;
-    this.score = 0;
-    this.deathEvent = false;
-    this.stealthKills = 0;
-    G$("ScoreText").setVar(0).show();
+    G$("ScoreText").show();
     addPlayer(0);
     if (multiplayer) addPlayer(1);
     G$("LevelSelectView").hide();
     G$("DeathScreen").hide();
     if (focused) pauseGame(false);
     this.ready = true;
+    this.spawnWave();
   },
   onHurt: function(ent,attacker) {
     if (ent instanceof Player && attacker instanceof Player) return CANCEL;
@@ -71,30 +74,123 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     }
   },
 
+  getLevel: function(levelNum) {
+    if (levelNum==void(0)) levelNum = this.level;
+    let level = this.levels[levelNum];
+    if (level) return level;
+  },
+  getWave: function(waveNum,levelNum) {
+    if (waveNum==void(0)) waveNum = this.wave;
+    if (levelNum==void(0)) levelNum = this.level;
+    let level = this.getLevel(levelNum);
+    if (level&&level.waves) {
+      let wave = level.waves[waveNum];
+      if (wave) return wave;
+    }
+  },
+  waveLineupCount: function(waveNum,levelNum) {
+    let wave = this.getWave(waveNum,levelNum);
+    if (wave) return wave.length;
+  },
+  levelWaveCount: function(levelNum) {
+    let level = this.getLevel(levelNum);
+    if (level&&level.waves) return level.waves.length;
+  },
+  firstWave: function() {
+    this.lineup = this.wave = this.level = 0;
+    this.addScore(-this.score);
+    this.stealthKills = 0;
+    this.deathEvent = false;
+    let level = this.getLevel();
+    if (level) Level.loadLevel(level.filename);
+  },
+  nextLineup: function() {
+    this.gameState = "none";
+    this.stealthBonus(this.lineup);
+    this.lineup++;
+    if (this.lineup<this.waveLineupCount()) this.spawnWave();
+    else this.reward();
+  },
+  nextWave: function() {
+    this.lineup = 0;
+    this.wave++;
+    if (this.wave<this.levelWaveCount()) this.spawnWave();
+    else this.nextLevel();
+  },
+  nextLevel: function() {
+    this.lineup = this.wave = 0;
+    this.level++;
+    if (this.level<this.levels.length) Level.loadLevel(this.levels[this.level].filename);
+    else {
+      this.level--;
+      this.surplusWave++;
+      this.spawnWave();
+    }
+  },
   addScore: function(amt) {
     this.score += amt;
     G$("ScoreText").setVar(this.score);
   },
-  spawnWave: function(num) {
-    while(num-->0) {
-      let zone = SpawnZone.weightedSelection();
-      //spawn an enemy at random coords
+  spawnWave: function() {
+    let wave = this.getWave();
+    if (wave) {
+      let lineup = wave[this.lineup];
+      if (lineup) for (var i in lineup) {
+        let enem = ActorManager.make(...lineup[i]);
+        let zone = SpawnZone.weightedSelection();
+        if (zone) zone.enterAsSpawn(enem);
+        else {
+          let x = Math.round(Math.random()*Level.level.width);
+          let y = Math.round(Math.random()*Level.level.height);
+          enem.x = enem.spawnX = x;
+          enem.y = enem.spawnY = y;
+        }
+      }
+      this.gameState = "wave";
+    }
+    else if (this.level!=0) this.firstWave();
+  },
+  stealthBonus: function() {
+    let kills = this.stealthKills;
+    this.stealthKills = 0;
+
+    let wave = this.getWave();
+    if (!wave) return;
+    let lineup = wave[this.lineup];
+    if (!lineup) return;
+
+    let total = lineup.length;
+    if (total>3 && kills>total/3) {
       let x = Math.round(Math.random()*Level.level.width);
       let y = Math.round(Math.random()*Level.level.height);
-      let enem;
-      if (currentMonth==9 && Math.random()>0.5) enem = Skeltal.create(x,y);
-      else enem = ActorManager.make(10,x,y);
-      if (zone) zone.enterAsSpawn(enem);
+      let heart = PlusHeart.create(x,y,1);
+      let zone = SpawnZone.weightedSelection();
+      if (zone) zone.enterAsSpawn(heart);
     }
   },
-  stealthBonus: function(num) {
-    if (num>3 && this.stealthKills>num/3) {
-      let zone = SpawnZone.weightedSelection();
-      let x = Math.round(Math.random()*Level.level.width);
-      let y = Math.round(Math.random()*Level.level.height);
-      if (zone) zone.enterAsSpawn(PlusHeart.create(x,y,1));
-    }
-    this.stealthKills = 0;
+  reward: function() {
+    gameAlert("Wave "+(this.wave+this.surplusWave+1)+" complete!",120);
+    PlusHeart.create(Level.level.width/2,Level.level.height/2,1);
+    Timer.wait(120,function() {
+      Game.nextWave();
+    });
+  },
+  setTestLevel: function() {
+    this.level = this.wave = this.lineup = 0;
+    this.score = 0;
+    this.levels = [
+      {
+        filename: null,
+        waves: [
+          [
+            [[10]], [[10],[10]], [[10],[10],[10]], [[10],[10],[10],[10],[10]],
+            [[10],[10],[10],[10],[10],[10],[10]],
+            [[10],[10],[10],[10],[10],[10],[10],[10],[10],[10]]
+          ]
+        ],
+        reward: []
+      }
+    ]
   },
 
   addGui: function() {
@@ -103,7 +199,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     buildPauseMenu();
     Button.create("RetryButton","PauseMenu",WIDTH/2-150,HEIGHT-120,300,40,"Retry").setOnClick(function() {
       gameConfirm("Are you sure you want to restart?",function(response) {
-        if (response) Level.loadLevel("Room-1.json");
+        if (response) Game.firstWave();
       });
     }).show().up("CtrlSettingsButton").setAsStart();
     Button.funnelTo("RetryButton","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
@@ -119,7 +215,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     Button.create("PlayAgain","DeathScreen",WIDTH/2-150,HEIGHT-120,300,40,"Play Again").setOnClick(function() {
       this.view.hide();
       G$("Hud").show();
-      Level.loadLevel("Room-1.json");
+      Game.firstWave();
     }).show().setAsStart();
     Button.create("DeathScreenQuit","DeathScreen",WIDTH/2-150,HEIGHT-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
     Button.pathVert(["PlayAgain","DeathScreenQuit"]);
@@ -134,5 +230,21 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     G$("HelpView").remove();
     G$("DevTools").remove();
     G$("DeathScreen").remove();
-  }
+  },
+
+  levels: [
+    {
+      filename: "Room-1.json",
+      waves: [
+        [ // a wave
+          [ // a lineup
+            [10], // actor data
+          ],
+          [[10],[10]], [[10],[10],[10]], [[10],[10],[10],[10],[10]],
+          [[10],[10],[10],[10],[10],[10],[10]],
+          [[10],[10],[10],[10],[10],[10],[10],[10],[10],[10]]
+        ]
+      ]
+    }
+  ]
 }));
