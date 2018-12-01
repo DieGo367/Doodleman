@@ -46,5 +46,23 @@
     "class": "SpawnZone",
     "properties": ["val0","val1","val2","val3","val4"],
     "valueNames": ["x","y","#width","#height","?forceSpawns"]
+  },
+  {
+    "id": 25,
+    "class": "PlusHeart",
+    "properties": ["val0","val1","val2"],
+    "valueNames": ["x","y","#heal"]
+  },
+  {
+    "id": 26,
+    "class": "MaxHeart",
+    "properties": ["val0","val1"],
+    "valueNames": ["x","y"]
+  },
+  {
+    "id": 27,
+    "class": "GoldenHeart",
+    "properties": ["val0","val1"],
+    "valueNames": ["x","y"]
   }
 ]
