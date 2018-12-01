@@ -729,6 +729,7 @@ class SpawnZone extends Entrance {
     }
   }
 }
+initClass(SpawnZone,Entrance);
 
 class PhysicsBox extends Box {
   constructor(x,y,width,height,gfx,defyPhysics,collisionType,canBeCarried,thrownDamage) {
