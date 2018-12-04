@@ -1914,6 +1914,7 @@ class Enemy extends Entity {
   	this.post = null;
   	this.paceTarget = null;
   	this.standbyTick = 0;
+    if (Game.mode!=GAME_EDITOR) this.setAnimation("invisible");
   }
 
   levelTest(blockBox,ignoreUIDs,customBoxTest,customLineTest) {
