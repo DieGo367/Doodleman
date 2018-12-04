@@ -11,7 +11,7 @@ var uid = 0, uidDeleted = 0;
 var myAngle = 0;
 var hudText = 0, coords = "", keyText = "", buttonText = "";
 var devEnabled = false;
-var lastDrawnFrame = 0, lastFPSCalc = 0;
+var lastDrawnFrame = 0, lastFPSCalc = 0, fps;
 //constants
 const WIDTH = 640, HEIGHT = 360;
 const GUI_NONE = 0, GUI_WINDOW = 1, GUI_BUTTON = 2, GUI_TINT = 3;
