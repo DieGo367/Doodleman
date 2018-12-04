@@ -802,6 +802,9 @@ class PhysicsBox extends Box {
     this.x = this.prevX = x;
     this.y = this.prevY = y;
   }
+  warpLimbo() {
+    this.warp(NaN,NaN);
+  }
 
   intersect(obj) {
     if (obj instanceof Line) return this.intersectLine(obj);
