@@ -738,8 +738,8 @@ class PhysicsBox extends Box {
     this.collisionType = collisionType;
   	this.canBeCarried = canBeCarried;
   	this.thrownDamage = thrownDamage;
-  	this.spawnX = x;
-  	this.spawnY = y;
+  	this.spawnX = this.prevX = x;
+  	this.spawnY = this.prevY = y;
   	this.velX = this.velY = 0;
   	this.dx = this.dy = 0;
   	this.isGrounded = false;
@@ -797,6 +797,10 @@ class PhysicsBox extends Box {
       case EDGE_NONE:
         break;
     }
+  }
+  warp(x,y) {
+    this.x = this.prevX = x;
+    this.y = this.prevY = y;
   }
 
   intersect(obj) {
