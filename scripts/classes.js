@@ -531,12 +531,12 @@ class Entrance extends Interactable {
     let dest = Entrance.findEntrance(this.destination,this.targetClass);
     if (dest) {
       // send the object into limbo first
-      obj.x = obj.y = NaN;
+      obj.warpLimbo()
       // then trigger the destination
       dest.useEntrance(obj);
     }
     else { // destination wasn't found
-      obj.x = obj.y = 0;
+      obj.warp(0,0);
     }
   }
   useEntrance(obj) {
@@ -550,8 +550,7 @@ class Entrance extends Interactable {
   }
   finishEntrance() {
     // do warp
-    this.obj.x = this.x;
-    this.obj.y = this.y;
+    this.obj.warp(this.x,this.y);
     // clear all values
     this.forget();
   }
@@ -639,8 +638,7 @@ class Door extends Entrance {
   useEntrance(player) {
     super.useEntrance(player);
     this.openDoor();
-    player.x = this.x;
-    player.y = this.y;
+    player.warp(this.x,this.y);
     player.defyGravity = true;
     player.collisionType = C_NONE;
     player.invulnerability = 3;
@@ -852,8 +850,7 @@ class PhysicsBox extends Box {
     this.prevX = oldX, this.prevY = oldY;
   }
   respawn() {
-  	this.x = this.spawnX;
-  	this.y = this.spawnY;
+  	this.warp(this.spawnX, this.spawnY);
   	Collision.removeAllPairsWith(this);
   	this.held = null;
   	this.heldBy = null;
@@ -1798,7 +1795,7 @@ class Player extends Entity {
       super.die();
     }
     else {
-      this.x = this.y = NaN;
+      this.warpLimbo();
       this.hadDied = true;
       this.wait(60,function() {
         this.superMethod("die");
