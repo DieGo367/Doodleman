@@ -2904,6 +2904,7 @@ class Particle extends _c_ {
   	if (this.timer--<0) this.remove();
   }
   static generate(x,y,id,amount,size,duration,defyGravity,color,angle,angleRadius,magnitude,magRadius,magIsConst) {
+    if (fps<55) return;
     for (var i in arguments) if (arguments[i]==null) arguments[i] = 0;
   	var angle = angle*Math.PI/180, angleRadius = angleRadius*Math.PI/180;
   	while(amount-->0) {
