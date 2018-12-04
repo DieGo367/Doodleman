@@ -102,7 +102,11 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     this.stealthKills = 0;
     this.deathEvent = false;
     let level = this.getLevel();
-    if (level) Level.loadLevel(level.filename);
+    if (level) {
+      if (level.filename) Level.loadLevel(level.filename);
+      else if (level.isEditorCopy) Level.load(JSON.stringify(EditorTools.levelCopy),false);
+      else Level.clearLevel();
+    }
   },
   nextLineup: function() {
     this.gameState = "none";
@@ -179,6 +183,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     this.levels = [
       {
         filename: null,
+        isEditorCopy: true,
         waves: [
           [
             [[10]], [[10],[10]], [[10],[10],[10]], [[10],[10],[10],[10],[10]],
