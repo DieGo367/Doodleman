@@ -256,7 +256,7 @@ const Tap = {
 		this.touches = newTouches;
 	},
 	handleStart: function(touch,x,y) {
-		if (Pointer.focusLayer==0&&Tap.ctrlEnabled) {
+		if (Tap.ctrlEnabled) {
 			for (var j in this.buttons) {
 				if (this.buttons[j].checkTap(x,y)) {
 					this.buttons[j].targetTouch = touch.id;

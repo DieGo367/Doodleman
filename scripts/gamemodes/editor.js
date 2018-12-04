@@ -8,7 +8,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   },
   quit: function() {
     devEnabled = false;
-    Tap.controlEnabled = true;
+    Tap.ctrlEnabled = true;
     this.removeGui();
     EditorTools.enabled = false;
     EditorTools.tool("Actor").removeSpawnGhosts();
