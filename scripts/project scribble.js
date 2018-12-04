@@ -11,6 +11,7 @@ var uid = 0, uidDeleted = 0;
 var myAngle = 0;
 var hudText = 0, coords = "", keyText = "", buttonText = "";
 var devEnabled = false;
+var lastDrawnFrame = 0, lastFPSCalc = 0;
 //constants
 const WIDTH = 640, HEIGHT = 360;
 const GUI_NONE = 0, GUI_WINDOW = 1, GUI_BUTTON = 2, GUI_TINT = 3;
@@ -670,6 +671,15 @@ function addPM(x,y) {
 */
 function drawGame() {
 	if (canvas.isInLoadScreen) return;
+	//fps counter
+	let now = performance.now();
+	let sec = Math.floor(now/1000);
+	if (lastDrawnFrame==0) lastDrawnFrame = sec;
+	else if (lastFPSCalc!=sec) {
+		lastFPSCalc = sec;
+		fps = Math.round(1000/(now-lastDrawnFrame));
+	}
+	lastDrawnFrame = now;
 	//densityPixels
 	c.save();
 	c.scale(dp(1),dp(1));
@@ -756,7 +766,7 @@ function drawGame() {
 		if (Game.mode!=GAME_TITLE&&Game.mode!=GAME_EDITOR) {
 			var textGroup = [], allPlayers = Player.getAll();
 			for (var i in allPlayers) textGroup.push(allPlayers[i].slot+1+"XY: "+allPlayers[i].x+", "+allPlayers[i].y);
-			textGroup.push("LastPressedKey: "+keyText,"LastPressedButton: "+buttonText,"Entities: "+Entity.getAll().length,"Misc: "+hudText);
+			textGroup.push("LastPressedKey: "+keyText,"LastPressedButton: "+buttonText,"Entities: "+Entity.getAll().length,"FPS: "+fps,"Misc: "+hudText);
 			var textY = 42+(24*(allPlayers.length-1));
 			for (var i in textGroup) c.fillText(textGroup[i],10,textY+(14*i));
 		}
