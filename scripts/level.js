@@ -215,6 +215,11 @@ const Level = {
 			}
 		}
 		return points;
+	},
+	randPt: function() {
+		let x = Math.round(Math.random()*this.level.width);
+		let y = Math.round(Math.random()*this.level.height);
+		return new Point(x,y);
 	}
 }
 const BlankLevel = clone(Level.level);
