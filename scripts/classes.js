@@ -1747,6 +1747,7 @@ class Player extends Entity {
         this.defyGravity = true;
         this.collisionType = C_NONE;
         this.setAnimation("drawing",null,"full");
+        this.attackCooldown = Infinity;
       }
       else if (this.animLock==0) {
         this.movementLocked = false;
@@ -1759,6 +1760,7 @@ class Player extends Entity {
           this.hadDied = false;
         }
         else this.invulnerability = 0;
+        this.attackCooldown = 0;
       }
     }
 
