@@ -1399,10 +1399,9 @@ class Entity extends PhysicsBox {
   		this.velX = Math.cos(angle)*10;
   		this.velY = Math.sin(angle)*10;
   		if (Math.abs(this.velY)<=0.5||this.isGrounded) this.velY -= 10;
-      if (attacker instanceof PhysicsBox) {
-        if (attacker.velX!=0) this.x += attacker.velX + (attacker.velX>0?1:-1);
-        if (attacker.velY!=0) this.y += attacker.velY + (attacker.velY>0?1:-1);
-      }
+      Collision.removeAllPairsWith(this,attacker);
+      Collision.addPair(this,attacker,0)
+      Collision.requestRefresh(this,attacker,2);
   		if (this instanceof Player) {
   			this.stun = 5;
   			this.invulnerability = 60;
