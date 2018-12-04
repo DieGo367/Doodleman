@@ -2,6 +2,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   start: function() {
     devEnabled = true;
     Tap.ctrlEnabled = false;
+    Pointer.cursor = POINTER_NORMAL;
     this.addGui();
     EditorTools.setup();
     GameManager.overrideTick(this.tick);
@@ -9,6 +10,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   quit: function() {
     devEnabled = false;
     Tap.ctrlEnabled = true;
+    Pointer.cursor = POINTER_NORMAL;
     this.removeGui();
     EditorTools.enabled = false;
     EditorTools.tool("Actor").removeSpawnGhosts();
