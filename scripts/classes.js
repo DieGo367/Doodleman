@@ -2126,11 +2126,9 @@ class Skeltal extends Enemy {
 }
 initClass(Skeltal,Enemy);
 
-class PlusHeart extends Interactable {
-  constructor(x,y,hp) {
-    super(x,y,18,18,void(0),Player);
-    this.hp = hp==void(0)?0:hp;
-    this.sheet = Animation.getSpritesheet("PlusHeart.json");
+class Collectable extends Interactable {
+  constructor(x,y,width,height) {
+    super(x,y,width,height,void(0),Player);
   }
   update() {
     super.update();
@@ -2139,6 +2137,19 @@ class PlusHeart extends Interactable {
       this.remove();
       return;
     }
+  }
+  affect(p) {}
+}
+initClass(Collectable,Interactable);
+
+class PlusHeart extends Collectable {
+  constructor(x,y,hp) {
+    super(x,y,18,18);
+    this.hp = hp==void(0)?0:hp;
+    this.sheet = Animation.getSpritesheet("PlusHeart.json");
+  }
+  update() {
+    super.update();
     this.setAnimation("static");
     if (Math.random()<(1/500)) this.setAnimation("heartbeat",null,"full");
   }
@@ -2149,7 +2160,7 @@ class PlusHeart extends Interactable {
     Animation.applyToClass(this);
   }
 }
-initClass(PlusHeart,Interactable);
+initClass(PlusHeart,Collectable);
 
 class MaxHeart extends PlusHeart {
   constructor(x,y) {
@@ -2160,6 +2171,7 @@ class MaxHeart extends PlusHeart {
     p.heal(p.maxHealth);
   }
 }
+initClass(MaxHeart,PlusHeart);
 
 class GoldenHeart extends PlusHeart {
   constructor(x,y) {
@@ -2171,6 +2183,7 @@ class GoldenHeart extends PlusHeart {
     p.heal(p.maxHealth);
   }
 }
+initClass(GoldenHeart,PlusHeart);
 
 
 class View extends _c_ {
