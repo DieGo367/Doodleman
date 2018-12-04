@@ -630,11 +630,11 @@ let gpadGroupings = [
 ];
 
 Key.ctrlMaps.global = new CtrlMap("GlobalKeyboard",KEYBOARD,
-["P1","P2","R","\\","up","right","down","left","[","]","=","Shift","Ctrl","Alt","Enter","F12","`",
+["P1","P2","tilde","\\","up","right","down","left","[","]","=","Shift","Ctrl","Alt","Enter","F12",
 "w","a","s","d","c","v","x","y","z","1","2","3","e","q","f","g","Space"],
-[82,80,192,220,38,39,40,37,219,221,187,16,17,18,13,123,192,87,65,83,68,67,86,88,89,90,49,50,51,69,81,70,71,32],
+[82,80,192,220,38,39,40,37,219,221,187,16,17,18,13,123,87,65,83,68,67,86,88,89,90,49,50,51,69,81,70,71,32],
 [...gameActions,...cameraActions,"snippet","pause-p1","pause-p2","Shift","Ctrl","Alt","c","v","x","y","z","BoxTool","LineTool","ActorTool","EraserTool","SelectTool","MoveTool","PropMenu","fullScreen","accept"],
-["P1","R","\\",["up","w"],["right","d"],["down","s"],["left","a"],"]","[","=","`","F12","P1","P2","Shift","Ctrl","Alt","c","v","x","y","z","1","2","3","e","Space","v","q","f",["Enter","g"]]);
+[["P1","P2"],"tilde","\\",["up","w"],["right","d"],["down","s"],["left","a"],"]","[","=","tilde","F12","P1","P2","Shift","Ctrl","Alt","c","v","x","y","z","1","2","3","e","Space","v","q","f",["Enter","g"]]);
 
 Key.ctrlMaps[0] = new CtrlMap("WASD",KEYBOARD,dmInputs,[87,71,null,null,null,null,null,null,null,null,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
 Key.ctrlMaps[1] = new CtrlMap("IJKL",KEYBOARD,dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
