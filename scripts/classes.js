@@ -2149,9 +2149,9 @@ class PlusHeart extends Collectable {
     this.sheet = Animation.getSpritesheet("PlusHeart.json");
   }
   update() {
-    super.update();
     this.setAnimation("static");
     if (Math.random()<(1/500)) this.setAnimation("heartbeat",null,"full");
+    super.update();
   }
   affect(p) {
     p.heal(this.hp);
