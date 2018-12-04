@@ -140,10 +140,9 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
         let zone = SpawnZone.weightedSelection();
         if (zone) zone.enterAsSpawn(enem);
         else {
-          let x = Math.round(Math.random()*Level.level.width);
-          let y = Math.round(Math.random()*Level.level.height);
-          enem.x = enem.spawnX = x;
-          enem.y = enem.spawnY = y;
+          let pt = Level.randPt();
+          enem.x = enem.spawnX = pt.x;
+          enem.y = enem.spawnY = pt.y;
         }
       }
       this.gameState = "wave";
@@ -161,9 +160,8 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 
     let total = lineup.length;
     if (total>3 && kills>total/3) {
-      let x = Math.round(Math.random()*Level.level.width);
-      let y = Math.round(Math.random()*Level.level.height);
-      let heart = PlusHeart.create(x,y,1);
+      let pt = Level.randPt();
+      let heart = PlusHeart.create(pt.x,pt.y,1);
       let zone = SpawnZone.weightedSelection();
       if (zone) zone.enterAsSpawn(heart);
     }
