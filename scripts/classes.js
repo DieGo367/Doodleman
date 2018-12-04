@@ -797,6 +797,7 @@ class PhysicsBox extends Box {
     }
   }
   warp(x,y) {
+    if (x instanceof Point) y = x.y, x = x.x;
     this.x = this.prevX = x;
     this.y = this.prevY = y;
   }
