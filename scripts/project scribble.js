@@ -513,6 +513,7 @@ const Sound = {
 	soundData: {}, tracks: {}, playing: null, volume: 1,
 	loadSound: function(name) {
 		this.soundData[name] = new Audio("res/sound/"+name);
+		this.soundData[name].load();
 	},
 	getSound: function(name) {
 		return this.soundData[name];
