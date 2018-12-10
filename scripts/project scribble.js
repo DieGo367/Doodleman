@@ -647,6 +647,35 @@ class TypeAnnotation {
 		return new TypeAnnotation(type,str,notes);
 	}
 }
+const Staller = {
+	actionQueue: [],
+	stall: function(event) {
+		event.uses = 2;
+		for (var i = 0; i < 10; i+=2) this.makeTimeout(event,i); // 8 timeouts in 10 ms
+		for (var i = 10; i < 1000; i+=10) this.makeTimeout(event,i); // 9 timeouts in 1 s
+		for (var i = 1000; i < 60000; i+=1000) this.makeTimeout(event,i); // 59 timeouts in 1 min
+		for (var i = 60000; i < 360000; i+=60000) this.makeTimeout(event,i); // 59 timeouts in 1 hr
+		// 135 timeouts total per stalled event
+	},
+	makeTimeout: function(event,ms) {
+		try {
+			setTimeout(function() {
+				Staller.checkForActions(event);
+			},ms);
+		}
+		catch(err) {}
+	},
+	useEvent: function(func) {
+		this.actionQueue.push(func);
+	},
+	checkForActions: function(event) {
+		if (event.uses>0&&this.actionQueue.length>0) {
+			event.uses--;
+			let action = this.actionQueue.shift();
+			if (typeof action=="function") action();
+		}
+	}
+};
 
 //Game Functions
 
@@ -885,7 +914,6 @@ function click(source) {
 			if (Button.classList[i].onClick(source))break;
 		}
 	}
-	else if (source==Pointer) clearViewLock();
 	if (devEnabled&&!found&&!paused) DevTools.onClick();
 	if (EditorTools.enabled) EditorTools.onClick(found);
 	Pointer.move(Pointer.x,Pointer.y);
@@ -919,13 +947,13 @@ function findTopThing(x,y,type) {
 function addEvents() {
 	$(window).on("keydown",function(event) {
 		Key.onKeydown(event);
-		if (viewLock) clearViewLock();
 		if ([37,38,39,40,32].indexOf(event.keyCode)) event.preventDefault();
 		keyText = event.keyCode;
+		Staller.stall(event);
 	});
 	$(window).on("keyup",function(event) { Key.onKeyup(event); });
 	$(window).on("mousemove",function(event) { Pointer.mousemove(event); });
-	$(window).on("mousedown",function(event) { Pointer.mousedown(event); });
+	$(window).on("mousedown",function(event) { Pointer.mousedown(event); Staller.stall(event); });
 	$(window).on("mouseup",function(event) { Pointer.mouseup(event); });
 	$(window).on("contextmenu",function(event) { if (!devEnabled||event.which==3) event.preventDefault(); });
 	if ("ongamepadconnected" in window) {
@@ -942,12 +970,12 @@ function addEvents() {
 		GamePad.scanGamepads();
 	}
 	if ("ontouchstart" in window) {
-		$(canvas).on("touchstart",function(event) { Tap.handler(event,true); 	});
+		$(canvas).on("touchstart",function(event) { Tap.handler(event,true); Staller.stall(event);	});
 		$(canvas).on("touchmove",function(event) { Tap.handler(event); });
 		$(canvas).on("touchend",function(event) { Tap.handleEnd(event); });
 		$(canvas).on("touchcancel",function(event) { Tap.handler(event); });
 	}
-	$("#fileInput").on("change",function(event) { FileInput.onChange(event); });
+	$("#fileInput").on("change",function(event) { FileInput.onChange(event); Staller.stall(event); });
 	$(window).on("resize",function() {
 		fullScreen = getPrefixedProperty(document,"fullscreenElement") || getPrefixedProperty(document,"fullScreenElement");
 		fullScreen = !!fullScreen;

@@ -45,20 +45,17 @@ function attemptUserAction(action,src,caller) {
 	}
 	else {
 		viewLock = true;
-		pauseGame(true);
 		let uav = View.create("_UAV_",Pointer.focusLayer+1,15,15,WIDTH-30,HEIGHT-30,"window");
-		uav.action = action;
-		uav.caller = caller;
-		TextElement.create("_UAText_","_UAV_",WIDTH/2,HEIGHT/2,fontMenuTitle,"Press any key or click the screen to continue.",WIDTH-30,CENTER).show();
-		uav.show();
+		TextElement.create("_UAText_","_UAV_",WIDTH/2,HEIGHT/2,fontMenuTitle,"Press any key or click to continue.",WIDTH-30,CENTER).show();
+		setTimeout(function() {if (uav) uav.show();}, 100);
+		Staller.useEvent(function() {
+			viewLock = false;
+			uav.remove();
+			uav = null;
+			action.call((caller||this));
+		});
 		return false;
 	}
-}
-function clearViewLock() {
-	viewLock = false;
-	let uav = G$("_UAV_");
-	uav.action.call((uav.caller||this));
-	uav.remove();
 }
 
 function gameConfirm(text,onResponse) {
