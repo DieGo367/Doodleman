@@ -2298,22 +2298,78 @@ class GuiElement extends _c_ {
     super.remove();
   }
   onViewShown() { }
-  setNeighbors(up,right,down,left) {
-    this.neighbors = {up:up, right:right, down:down, left:left};
+  up(name) {
+    this.neighbors.up = name;
+    return this;
   }
-  selectNeighbor(dir) {
-    var selected = this.neighbors[dir];
-  	if (!selected) return;
-  	if (typeof selected=="object") {
-  		for (var i in selected) {
-  			if (!selected[i]) continue;
-  			if (selected[i].isVisible()) {
-  				Pointer.move(selected[i].x,selected[i].y);
-  				return;
-  			}
-  		}
-  	}
-  	else if (selected.isVisible()) Pointer.move(selected.x,selected.y);
+  down(name) {
+    this.neighbors.down = name;
+    return this;
+  }
+  left(name) {
+    this.neighbors.left = name;
+    return this;
+  }
+  right(name) {
+    this.neighbors.right = name;
+    return this;
+  }
+  setAsStart() {
+    this.view.startElement = this;
+    if (this.view.visible) guiStartElement = this;
+    return this;
+  }
+  select() {
+    return guiSelectedElement = this;
+  }
+  selectDir(dir) {
+    let neighbor = G$(this.neighbors[dir]);
+    if (neighbor.isVisible&&neighbor.isVisible()&&typeof neighbor.select=="function"){
+      let inverted = ["down","up","right","left"][["up","down","left","right"].indexOf(dir)];
+      neighbor[inverted](this.name);
+      return neighbor.select();
+    }
+    else return this;
+  }
+  static pathHor(names) {
+    // link a list of elements horizontally
+    if (names.length<2) return;
+    for (var i = 0; i < names.length; i++) {
+      let b = G$(names[i]);
+      if (i!=0) b.left(names[i-1]);
+      if (i!=names.length-1) b.right(names[i+1]);
+    }
+  }
+  static pathVert(names) {
+    // link a list of elements vertically
+    if (names.length<2) return;
+    for (var i = 0; i < names.length; i++) {
+      let b = G$(names[i]);
+      if (i!=0) b.up(names[i-1]);
+      if (i!=names.length-1) b.down(names[i+1]);
+    }
+  }
+  static pathGrid(names2d) {
+    // link a 2d grid of elements vertically and horizontally
+    let transpose = [];
+    for (var i = 0; i < names2d.length; i++) {
+      this.pathHor(names2d[i]);
+      for (var j = 0; j < names2d[i].length; j++) {
+        if (!transpose[j]) transpose[j] = [];
+        transpose[j][i] = names2d[i][j];
+      }
+    }
+    for (var j = 0; j < transpose.length; j++) {
+      this.pathVert(transpose[j]);
+    }
+  }
+  static funnelTo(targetName,dir,sourceNames) {
+    // link the target element to each source in the corresponding direction
+    if (["up","down","left","right"].indexOf(dir)==-1) return;
+    for (var i in sourceNames) {
+      let source = G$(sourceNames[i]);
+      source[dir](targetName);
+    }
   }
 }
 initClass(GuiElement,{listType: "array"});
@@ -2472,39 +2528,6 @@ class Button extends GuiElement {
       font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7+(drawPressed?2:0),this.width,CENTER);
   	}
   }
-  up(name) {
-    this.neighbors.up = name;
-    return this;
-  }
-  down(name) {
-    this.neighbors.down = name;
-    return this;
-  }
-  left(name) {
-    this.neighbors.left = name;
-    return this;
-  }
-  right(name) {
-    this.neighbors.right = name;
-    return this;
-  }
-  setAsStart() {
-    this.view.startElement = this;
-    if (this.view.visible) guiStartElement = this;
-    return this;
-  }
-  select() {
-    return guiSelectedElement = this;
-  }
-  selectDir(dir) {
-    let neighbor = G$(this.neighbors[dir]);
-    if (neighbor.isVisible&&neighbor.isVisible()&&typeof neighbor.select=="function"){
-      let inverted = ["down","up","right","left"][["up","down","left","right"].indexOf(dir)];
-      neighbor[inverted](this.name);
-      return neighbor.select();
-    }
-    else return this;
-  }
   static onInit() {
     this.buttonFound = false;
   }
@@ -2529,42 +2552,6 @@ class Button extends GuiElement {
       }
     }
     return names;
-  }
-  static pathHor(names) {
-    if (names.length<2) return;
-    for (var i = 0; i < names.length; i++) {
-      let b = G$(names[i]);
-      if (i!=0) b.left(names[i-1]);
-      if (i!=names.length-1) b.right(names[i+1]);
-    }
-  }
-  static pathVert(names) {
-    if (names.length<2) return;
-    for (var i = 0; i < names.length; i++) {
-      let b = G$(names[i]);
-      if (i!=0) b.up(names[i-1]);
-      if (i!=names.length-1) b.down(names[i+1]);
-    }
-  }
-  static pathGrid(names2d) {
-    let transpose = [];
-    for (var i = 0; i < names2d.length; i++) {
-      this.pathHor(names2d[i]);
-      for (var j = 0; j < names2d[i].length; j++) {
-        if (!transpose[j]) transpose[j] = [];
-        transpose[j][i] = names2d[i][j];
-      }
-    }
-    for (var j = 0; j < transpose.length; j++) {
-      this.pathVert(transpose[j]);
-    }
-  }
-  static funnelTo(buttonName,dir,sourceNames) {
-    if (["up","down","left","right"].indexOf(dir)==-1) return;
-    for (var i in sourceNames) {
-      let source = G$(sourceNames[i]);
-      source[dir](buttonName);
-    }
   }
 }
 initClass(Button,GuiElement);
