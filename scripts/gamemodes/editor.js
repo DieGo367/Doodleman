@@ -197,7 +197,6 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   		}
     }).setIcon("GUI-Icons.png",2,0,42,4).show();
     Button.pathHor(["FSToggle","LevelSettingsClose"]);
-    Button.funnelTo("LS:BG","down",["FSToggle","LevelSettingsClose"]);
 
     Button.create("LS:File","LevelSettingsView",WIDTH*1/5-50,75,100,40,"File").down("LS:File:Name:input").setAsStart().show().on = true;
     Button.create("LS:Edit","LevelSettingsView",WIDTH*2/5-50,75,100,40,"Edit").down("LS:Dimensions:width").show();
@@ -209,7 +208,8 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       G$(this.view.activeMenu).show();
     },true);
     Button.pathHor(["LS:File","LS:Edit","LS:Cam","LS:BG"]);
-    Button.funnelTo("LevelSettingsClose","up",["LS:File","LS:Edit","LS:Cam","LS:BG"]);
+
+    PathNode.tieVert("LevelSettingsView",["FSToggle","LevelSettingsClose"],["LS:File","LS:Edit","LS:Cam","LS:BG"]);
 
     View.create("LS:File:Menu",1,0,0,WIDTH,HEIGHT);
     TextElement.create("LS:File:Name","LS:File:Menu",WIDTH/4-150,155,fontMenuItem,"Level Name",WIDTH,LEFT).show();
@@ -414,7 +414,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     TextElement.create("LS:BG:Empty","LS:BG:Menu",WIDTH/5,270,fontFocus,"EMPTY",WIDTH,CENTER);
     Button.funnelTo("LS:BG","up",layerButtons);
     Button.pathHor(["LS:BG:Swap:left",...layerButtons,"LS:BG:Swap:right"]);
-    Button.funnelTo("LS:BG:Name","down",layerButtons);
+    PathNode.tieVert("LS:BG:Menu",layerButtons,["LS:BG:Name","LS:BG:Layer:num"])
     Button.pathGrid([
       ["LS:BG:Name","LS:BG:Layer:num"],
       ["LS:BG:Raw","LS:BG:Scale:num"],
