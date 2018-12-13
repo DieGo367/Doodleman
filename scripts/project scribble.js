@@ -649,13 +649,14 @@ class TypeAnnotation {
 }
 const Staller = {
 	actionQueue: [],
+	stalledEvents: [],
 	stall: function(event) {
+		this.stalledEvents[event.type] = event;
 		event.uses = 2;
 		for (var i = 0; i < 10; i+=2) this.makeTimeout(event,i); // 8 timeouts in 10 ms
 		for (var i = 10; i < 1000; i+=10) this.makeTimeout(event,i); // 9 timeouts in 1 s
 		for (var i = 1000; i < 60000; i+=1000) this.makeTimeout(event,i); // 59 timeouts in 1 min
-		for (var i = 60000; i < 360000; i+=60000) this.makeTimeout(event,i); // 59 timeouts in 1 hr
-		// 135 timeouts total per stalled event
+		// 76 timeouts total per stalled event
 	},
 	makeTimeout: function(event,ms) {
 		try {
@@ -669,6 +670,7 @@ const Staller = {
 		this.actionQueue.push(func);
 	},
 	checkForActions: function(event) {
+		if (this.stalledEvents[event.type]!=event) return;
 		if (event.uses>0&&this.actionQueue.length>0) {
 			event.uses--;
 			let action = this.actionQueue.shift();
