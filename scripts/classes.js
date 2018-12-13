@@ -2288,9 +2288,9 @@ class GuiElement extends _c_ {
   hide() { this.visible = false; return this; }
   isVisible() { return this.visible&&this.view.visible; }
   drawHud() {
-  	if (this.isVisible()) this.customDraw();
+  	if (this.isVisible()) this.drawGUI();
   }
-  customDraw() { }
+  drawGUI() { }
   update() { }
   remove() {
     this.view.children.splice(this.view.children.indexOf(this),1);
@@ -2457,7 +2457,7 @@ class Button extends GuiElement {
   update() {
     if (this.preventClick>0) this.preventClick--;
   }
-  customDraw() {
+  drawGUI() {
   	var x = 0, y = 0;
     let drawPressed = this.heldDown && this.hovered;
     if (drawPressed) y += 64;
@@ -2634,7 +2634,7 @@ class TextInput extends Button {
     this.onInputChangeFunc = func;
     return this;
   }
-  customDraw() {
+  drawGUI() {
     Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,32,96);
     if (this.typing) return;
     else {
@@ -2808,7 +2808,7 @@ class Slider extends Button {
     }
     else this.heldDown = false;
   }
-  customDraw() {
+  drawGUI() {
     let x = this.anchorX+this.width/2, y = this.anchorY+this.height/2;
     c.strokeStyle = "black";
     c.lineWidth = 5;
@@ -2817,7 +2817,7 @@ class Slider extends Button {
     c.lineWidth = 3;
     drawLine(x+1,y,x+this.barLength-2,y);
     c.lineWidth = 1;
-    super.customDraw();
+    super.drawGUI();
   }
 }
 initClass(Slider,Button);
@@ -2830,7 +2830,7 @@ class TextElement extends GuiElement {
     this.maxWidth = maxWidth;
     this.alignment = alignment;
   }
-  customDraw() {
+  drawGUI() {
     this.font.draw(this.text,this.x,this.y,this.maxWidth,this.alignment);
   }
   setVar(val) {
@@ -2851,7 +2851,7 @@ class ImgElement extends GuiElement {
   	this.img = img;
     this.fit = fit || IMAGE_STRETCH;
   }
-  customDraw() {
+  drawGUI() {
   	switch(this.fit) {
       case IMAGE_STRETCH:
         Images.drawImage(this.img,this.x-this.width/2,this.y-this.height/2,this.width,this.height);
