@@ -1493,7 +1493,7 @@ class Entity extends PhysicsBox {
     if (this!=Entity) return this.parent.getAttack(name); //look for attack in parent class
   }
   activateAttack(name) { //creates attack boxes and sets player states
-    if (this.attackCooldown!=0||this.direction==CENTER) return; //don't attack if you can't
+    if (this.attackCooldown!=0||this.direction==CENTER||isNaN(this.x)||isNaN(this.y)) return; //don't attack if you can't
     var attack = this.constructor.getAttack(name);
     if (attack) { //found valid attack
       var action = this.sheet.getAnimation(attack.name);
