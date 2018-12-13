@@ -2206,6 +2206,7 @@ class View extends _c_ {
   	this.fill = fill;
   	this.visible = false;
   	this.children = [];
+    this.pathNodeCount = 0;
     this.onShowFunction = function() {};
     this.requireUserAction = false;
     G$.store(name,this);
@@ -2327,7 +2328,7 @@ class GuiElement extends _c_ {
     if (neighbor.isVisible&&neighbor.isVisible()&&typeof neighbor.select=="function"){
       let inverted = ["down","up","right","left"][["up","down","left","right"].indexOf(dir)];
       neighbor[inverted](this.name);
-      return neighbor.select();
+      return neighbor.select(dir);
     }
     else return this;
   }
@@ -2373,6 +2374,49 @@ class GuiElement extends _c_ {
   }
 }
 initClass(GuiElement,{listType: "array"});
+
+class PathNode extends GuiElement {
+  constructor(name,viewName) {
+    super(name,viewName,0,0);
+    this.show();
+  }
+  select(srcDir) {
+    if (srcDir) this.selectDir(srcDir);
+  }
+  static createIn(viewName) {
+    let view = G$(viewName);
+    return PathNode.create("_PathNode_:"+viewName+":"+(view.pathNodeCount++),viewName);
+  }
+  static tieHor(viewName,leftList,rightList) {
+    let node = this.createIn(viewName);
+    for (var i in leftList) {
+      let elem = G$(leftList[i]);
+      elem.right(node.name);
+      if (i==0) node.left(elem.name);
+    }
+    for (var i in rightList) {
+      let elem = G$(rightList[i]);
+      elem.left(node.name);
+      if (i==0) node.right(elem.name);
+    }
+    return node;
+  }
+  static tieVert(viewName,upList,downList) {
+    let node = this.createIn(viewName);
+    for (var i in upList) {
+      let elem = G$(upList[i]);
+      elem.down(node.name);
+      if (i==0) node.up(elem.name);
+    }
+    for (var i in downList) {
+      let elem = G$(downList[i]);
+      elem.up(node.name);
+      if (i==0) node.down(elem.name);
+    }
+    return node;
+  }
+}
+initClass(PathNode,GuiElement);
 
 class Button extends GuiElement {
   constructor(name,viewName,x,y,width,height,text) {
