@@ -650,12 +650,12 @@ class TypeAnnotation {
 const Staller = {
 	actionQueue: [],
 	stalledEvents: [],
-	stall: function(event) {
+	stall: function(event,longer) {
 		this.stalledEvents[event.type] = event;
 		event.uses = 2;
 		for (var i = 0; i < 10; i+=2) this.makeTimeout(event,i); // 8 timeouts in 10 ms
 		for (var i = 10; i < 1000; i+=10) this.makeTimeout(event,i); // 9 timeouts in 1 s
-		for (var i = 1000; i < 60000; i+=1000) this.makeTimeout(event,i); // 59 timeouts in 1 min
+		if (longer) for (var i = 1000; i < 60000; i+=1000) this.makeTimeout(event,i); // 59 timeouts in 1 min
 		// 76 timeouts total per stalled event
 	},
 	makeTimeout: function(event,ms) {
@@ -955,7 +955,7 @@ function addEvents() {
 	});
 	$(window).on("keyup",function(event) { Key.onKeyup(event); });
 	$(window).on("mousemove",function(event) { Pointer.mousemove(event); });
-	$(window).on("mousedown",function(event) { Pointer.mousedown(event); Staller.stall(event); });
+	$(window).on("mousedown",function(event) { Pointer.mousedown(event); Staller.stall(event,true); });
 	$(window).on("mouseup",function(event) { Pointer.mouseup(event); });
 	$(window).on("contextmenu",function(event) { if (!devEnabled||event.which==3) event.preventDefault(); });
 	if ("ongamepadconnected" in window) {
