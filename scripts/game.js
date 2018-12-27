@@ -51,6 +51,7 @@ class GameMode {
 var Game = new GameMode();
 
 function tick() { //GAME UPDATES//
+	Net.update();
 	if (!focused) return;
 	Timer.update();
 	//update button states
@@ -99,6 +100,7 @@ function init() {
 		Images.loadImage("XMAS_PaintMinion.png");
 		Images.imgData["PaintMinion.png"] = Images.imgData["XMAS_PaintMinion.png"];
 	}
+	Net.join();
 
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
 	canvas.clearLoadScreen();

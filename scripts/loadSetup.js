@@ -71,6 +71,8 @@ $(window).on("load",function() {
     setPrefixedProperty(c,"imageSmoothingEnabled",false);
   },0);
   addEvents();
+  
+  Net.setup();
 
 	ResourceManager.requestGroup("res",function(item,name) {
 		Images.loadImage(name);

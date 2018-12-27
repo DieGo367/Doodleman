@@ -20,6 +20,7 @@ from google.appengine.api import users
 
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 scripts = [
+  "peer.min.js",
   "game.js",
   "project scribble.js",
   "resource.js",
@@ -74,7 +75,17 @@ class EditorHandler(webapp2.RequestHandler):
         temp = env.get_template("main.html")
         self.response.out.write(temp.render(temp_vars))
 
+class InviteHandler(webapp2.RequestHandler):
+    def get(self):
+        script_html = get_script_html(0)
+        script_html += "<script>const netInvite = '%s';</script>" % (self.request.get("id"))
+        temp_vars = get_user_vars()
+        temp_vars["scripts"] = script_html
+        temp = env.get_template("main.html")
+        self.response.out.write(temp.render(temp_vars))
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/edit', EditorHandler)
+    ('/edit', EditorHandler),
+    ('/join', InviteHandler)
 ], debug=True)

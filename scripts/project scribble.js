@@ -678,6 +678,58 @@ const Staller = {
 		}
 	}
 };
+const Net = {
+	peer: null,
+	host: null,
+	clients: [],
+	setup: function() {
+		this.peer = new Peer(); // from peer.min.js
+		this.peer.on("open",function(id) {
+			console.log("http://192.168.1.73:8080/join?id="+id);
+		});
+		this.peer.on("connection",function(conn) {
+			Net.addClient(conn);
+		});
+	},
+	connect: function(id) {
+		this.host = this.peer.connect(id);
+		this.host.on("open",function() {
+			console.log("Connected to host!");
+			Net.host.on("data",function(data) {
+				gameAlert(data,60);
+			});
+		});
+	},
+	addClient: function(conn) {
+		this.clients.push(conn);
+		conn.on("data",function(data) {
+			// console.log(data);
+			if (Player.slots[0]) Player.slots[0].x = data;
+		});
+		console.log("Client connected!");
+	},
+	send: function(msg) {
+		if (this.host) {
+			this.host.send(msg);
+		}
+		if (this.clients.length>0) {
+			for (var i in this.clients) {
+				this.clients[i].send(msg);
+			}
+		}
+	},
+	join: function() {
+		try {
+			if (netInvite!=null) Net.connect(netInvite);
+		}
+		catch(err) { void(0); }
+	},
+	update: function() {
+		if (this.host&&Player.slots[0]) {
+			this.send(Player.slots[0].x);
+		}
+	}
+};
 
 //Game Functions
 
