@@ -685,7 +685,7 @@ const Net = {
 	setup: function() {
 		this.peer = new Peer(); // from peer.min.js
 		this.peer.on("open",function(id) {
-			console.log("http://192.168.1.73:8080/join?id="+id);
+			console.log("http://"+window.location.href.split("/")[2]+"/join?id="+id);
 		});
 		this.peer.on("connection",function(conn) {
 			Net.addClient(conn);
@@ -696,25 +696,30 @@ const Net = {
 		this.host.on("open",function() {
 			console.log("Connected to host!");
 			Net.host.on("data",function(data) {
-				gameAlert(data,60);
+				if (data.msg) gameAlert(data.msg,60);
+				if (data.inputID!=null) WebInput.clientInputID = data.inputID;
 			});
 		});
 	},
 	addClient: function(conn) {
 		this.clients.push(conn);
+		let inputID = WebInput.newChannel();
+		conn.inputID = inputID;
+		conn.send({inputID: inputID});
 		conn.on("data",function(data) {
-			// console.log(data);
-			if (Player.slots[0]) Player.slots[0].x = data;
+			if (data.msg) gameAlert(data.msg,60);
+			if (data.id!=null) WebInput.channelUpdate(data);
+			else conn.send({inputID: conn.inputID});
 		});
 		console.log("Client connected!");
 	},
-	send: function(msg) {
+	sendMsg: function(msg) {
 		if (this.host) {
-			this.host.send(msg);
+			this.host.send({msg: msg});
 		}
 		if (this.clients.length>0) {
 			for (var i in this.clients) {
-				this.clients[i].send(msg);
+				this.clients[i].send({msg: msg});
 			}
 		}
 	},
@@ -725,8 +730,25 @@ const Net = {
 		catch(err) { void(0); }
 	},
 	update: function() {
-		if (this.host&&Player.slots[0]) {
-			this.send(Player.slots[0].x);
+		if (!this.host) return;
+		let p = Player.slots[0];
+		if (WebInput.clientInputID==null) {
+			this.host.send({id:null});
+		}
+		else if (p) {
+			let data = {
+				id: WebInput.clientInputID,
+				buttons: [
+					p.ctrls.tap.pressed("jump"),
+					p.ctrls.tap.pressed("attack")
+				],
+				analogs: [
+					p.ctrls.tap.getInputValue("AnalogL_X"),
+					p.ctrls.tap.getInputValue("AnalogL_Y")
+				]
+			}
+			this.host.send(data);
+			gameAlert("Sending data...",1);
 		}
 	}
 };

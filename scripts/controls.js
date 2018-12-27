@@ -1,4 +1,4 @@
-const NULLCTRL = 0, KEYBOARD = 1, GAMEPAD = 2, TOUCH = 3;
+const NULLCTRL = 0, KEYBOARD = 1, GAMEPAD = 2, TOUCH = 3, WEBIN = 4;
 
 const Key = {
 	pressedKeys: [],
@@ -403,6 +403,38 @@ Tap.analogs[0] = new TouchAnalog(WIDTH/8,HEIGHT-WIDTH/8,WIDTH/16,1,1,0);
 Tap.buttons[0] = new TouchButton(WIDTH*7/8-35-30,HEIGHT-WIDTH/8-35+30,60,60,false,0);
 Tap.buttons[1] = new TouchButton(WIDTH*7/8-35+35,HEIGHT-WIDTH/8-35-30,60,60,true,1);
 
+const WebInput = {
+	channels: [],
+	ctrls: [],
+	ctrlMaps: [],
+	clientInputID: null,
+	newChannel: function() {
+		let id;
+		for (var i = 0; i < this.channels.length; i++) {
+			if (!this.channels[i]) id = i;
+		}
+		if (id==null) id = this.channels.length;
+		this.channels.push({id:id,buttons:[],analogs:[]});
+		this.ctrls[id] = new Ctrl(WEBIN,id);
+		console.log("New web input: "+id);
+		return id;
+	},
+	removeChannel: function(id) {
+		delete this.channels[id];
+		delete this.ctrls[id];
+	},
+	channelUpdate: function(data) {
+		let id = data.id;
+		if (this.channels[id]) this.channels[id] = data;
+	},
+	ctrlButtonValue: function(buttonId,ctrl) {
+		return this.channels[ctrl.index].buttons[buttonId];
+	},
+	ctrlAnalogValue: function(analogId,ctrl) {
+		return this.channels[ctrl.index].analogs[analogId];
+	}
+};
+
 class CtrlMap {
 	constructor(name,type,inputs,mappings,actions,groups) {
 		this.name = name;
@@ -416,7 +448,7 @@ class CtrlMap {
 class Ctrl extends CtrlMap {
 	constructor(type,index) {
 		if (type==null||type=="None"||index==void(0)) return new NullCtrl();
-		let manager = [NullCtrl,Key,GamePad,Tap][type];
+		let manager = [NullCtrl,Key,GamePad,Tap,WebInput][type];
 		let ctrlMap = manager.ctrlMaps[index];
 		super(ctrlMap.name,ctrlMap.type,ctrlMap.inputs,ctrlMap.mappings,ctrlMap.actions,ctrlMap.groups);
 		this.index = index;
@@ -428,7 +460,7 @@ class Ctrl extends CtrlMap {
 		manager.ctrls.push(this);
 	}
 	getCtrlManager() {
-		return [NullCtrl,Key,GamePad,Tap][this.type];
+		return [NullCtrl,Key,GamePad,Tap,WebInput][this.type];
 	}
 	getMapping(input) {
 		var index = this.inputs.indexOf(input);
@@ -640,3 +672,4 @@ Key.ctrlMaps[0] = new CtrlMap("WASD",KEYBOARD,dmInputs,[87,71,null,null,null,nul
 Key.ctrlMaps[1] = new CtrlMap("IJKL",KEYBOARD,dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
 GamePad.customMaps[0] = new CtrlMap("GPAD",GAMEPAD,dmInputs,[0,2,9,8,4,5,'a0','a1','a2','a5','a9',12,13,14,15],dmActions,gpadGroupings);
 Tap.ctrlMaps[0] = new CtrlMap("TOUCH",TOUCH,dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
+WebInput.ctrlMaps[0] = new CtrlMap("WEBIN",WEBIN,dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
