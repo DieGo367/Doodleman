@@ -1575,10 +1575,11 @@ class Player extends Entity {
       key: new Ctrl(KEYBOARD,Player.keyIds[this.slot]),
       gp: new Ctrl(GAMEPAD,Player.gpIds[this.slot]),
       tap: new Ctrl(TOUCH,Player.tapIds[this.slot]),
+      web: new NullCtrl(),
       mostRecent: function() {
-        var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp];
+        var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp,this.web.timestamp];
         var newest = Math.max(...timestamps);
-        var mostRecent = [this.key,this.gp,this.tap][timestamps.indexOf(newest)];
+        var mostRecent = [this.key,this.gp,this.tap,this.web][timestamps.indexOf(newest)];
         if (newest!=0&&this.tap.type!=NULLCTRL&&mostRecent.type!=TOUCH) Tap.tryDeactivate();
         return mostRecent;
       },
@@ -1586,6 +1587,7 @@ class Player extends Entity {
         this.key.selfDestruct();
         this.gp.selfDestruct();
         this.tap.selfDestruct();
+        this.web.selfDestruct();
       }
     };
   }

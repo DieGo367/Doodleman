@@ -426,6 +426,14 @@ const WebInput = {
 	channelUpdate: function(data) {
 		let id = data.id;
 		if (this.channels[id]) this.channels[id] = data;
+		let ctrl = this.ctrls[id];
+		ctrl.setTimestamp();
+		for (var i in data.buttons) {
+			ctrl.updateActionStates(i);
+		}
+		for (var i in data.analogs) {
+			ctrl.updateActionStates('a'+i);
+		}
 	},
 	ctrlButtonValue: function(buttonId,ctrl) {
 		return this.channels[ctrl.index].buttons[buttonId];
