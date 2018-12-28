@@ -694,24 +694,34 @@ const Net = {
 	connect: function(id) {
 		this.host = this.peer.connect(id);
 		this.host.on("open",function() {
-			console.log("Connected to host!");
 			Net.host.on("data",function(data) {
 				if (data.msg) gameAlert(data.msg,60);
 				if (data.inputID!=null) WebInput.clientInputID = data.inputID;
 			});
+			console.log("Connected to host!");
 		});
+	},
+	disconnect: function() {
+		WebInput.clientInputID = null;
+		Net.host = null;
+		console.log("Disconnected from host.");
 	},
 	addClient: function(conn) {
 		this.clients.push(conn);
-		let inputID = WebInput.newChannel();
-		conn.inputID = inputID;
-		conn.send({inputID: inputID});
+		conn.clientID = this.clients.length-1;
+		conn.inputID = WebInput.newChannel();
 		conn.on("data",function(data) {
 			if (data.msg) gameAlert(data.msg,60);
 			if (data.id!=null) WebInput.channelUpdate(data);
 			else conn.send({inputID: conn.inputID});
 		});
 		console.log("Client connected!");
+	},
+	removeClient: function(index) {
+		let conn = this.clients.splice(index,1)[0];
+		WebInput.removeChannel(conn.inputID);
+		conn.close();
+		console.log("Client disconnected.");
 	},
 	sendMsg: function(msg) {
 		if (this.host) {
@@ -730,25 +740,44 @@ const Net = {
 		catch(err) { void(0); }
 	},
 	update: function() {
-		if (!this.host) return;
+		if (this.host) this.clientUpdate();
+		else if (this.clients.length>0) this.hostUpdate();
+	},
+	clientUpdate: function() {
 		let p = Player.slots[0];
-		if (WebInput.clientInputID==null) {
-			this.host.send({id:null});
-		}
-		else if (p) {
-			let data = {
-				id: WebInput.clientInputID,
-				buttons: [
-					p.ctrls.tap.pressed("jump"),
-					p.ctrls.tap.pressed("attack")
-				],
-				analogs: [
-					p.ctrls.tap.getInputValue("AnalogL_X"),
-					p.ctrls.tap.getInputValue("AnalogL_Y")
-				]
+		if (this.host.open) {
+			this.host.wasOpen = true;
+			if (WebInput.clientInputID==null) {
+				this.host.send({id:null});
 			}
-			this.host.send(data);
-			gameAlert("Sending data...",1);
+			else if (p) {
+				let data = {
+					id: WebInput.clientInputID,
+					buttons: [
+						p.ctrls.tap.pressed("jump"),
+						p.ctrls.tap.pressed("attack")
+					],
+					analogs: [
+						p.ctrls.tap.getInputValue("AnalogL_X"),
+						p.ctrls.tap.getInputValue("AnalogL_Y")
+					]
+				}
+				this.host.send(data);
+			}
+		}
+		else if (this.host.wasOpen) this.disconnect();
+	},
+	hostUpdate: function() {
+		for (var i = 0; i < this.clients.length; i++) {
+			let client = this.clients[i];
+			if (client.open) {
+				client.wasOpen = true;
+				client.send({});
+			}
+			else if (client.wasOpen) {
+				this.removeClient(i);
+				i--;
+			}
 		}
 	}
 };
