@@ -100,10 +100,18 @@ function init() {
 		Images.loadImage("XMAS_PaintMinion.png");
 		Images.imgData["PaintMinion.png"] = Images.imgData["XMAS_PaintMinion.png"];
 	}
-	Net.join();
-
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
-	canvas.clearLoadScreen();
-	setGameSpeed(gameSpeed);
-	Game.mode = GAME_LAUNCH;
+
+	if (netInvite) { // try to connect to host if invite link was followed
+		Net.connect(netInvite,function() {
+			canvas.clearLoadScreen();
+			setGameSpeed(gameSpeed);
+			Game.mode = GAME_SANDBOX;
+		});
+	}
+	else { // normal launch
+		canvas.clearLoadScreen();
+		setGameSpeed(gameSpeed);
+		Game.mode = GAME_LAUNCH;
+	}
 }

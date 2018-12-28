@@ -12,6 +12,7 @@ var myAngle = 0;
 var hudText = 0, coords = "", keyText = "", buttonText = "";
 var devEnabled = false;
 var lastDrawnFrame = 0, lastFPSCalc = 0, fps;
+var netInvite;
 //constants
 const WIDTH = 640, HEIGHT = 360;
 const GUI_NONE = 0, GUI_WINDOW = 1, GUI_BUTTON = 2, GUI_TINT = 3;
@@ -691,7 +692,7 @@ const Net = {
 			Net.addClient(conn);
 		});
 	},
-	connect: function(id) {
+	connect: function(id,callback) {
 		this.host = this.peer.connect(id);
 		this.host.on("open",function() {
 			Net.host.on("data",function(data) {
@@ -699,6 +700,7 @@ const Net = {
 				if (data.inputID!=null) WebInput.clientInputID = data.inputID;
 			});
 			console.log("Connected to host!");
+			if (typeof callback=="function") callback();
 		});
 	},
 	disconnect: function() {
@@ -732,12 +734,6 @@ const Net = {
 				this.clients[i].send({msg: msg});
 			}
 		}
-	},
-	join: function() {
-		try {
-			if (netInvite!=null) Net.connect(netInvite);
-		}
-		catch(err) { void(0); }
 	},
 	update: function() {
 		if (this.host) this.clientUpdate();

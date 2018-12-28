@@ -71,8 +71,6 @@ $(window).on("load",function() {
     setPrefixedProperty(c,"imageSmoothingEnabled",false);
   },0);
   addEvents();
-  
-  Net.setup();
 
 	ResourceManager.requestGroup("res",function(item,name) {
 		Images.loadImage(name);
@@ -91,6 +89,8 @@ $(window).on("load",function() {
   ResourceManager.requestGroup("res/tracks",function(item,name) {
     Sound.addTrack(name);
   });
+
+  Net.setup();
 
 	loadLoop();
 });

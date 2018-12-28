@@ -78,7 +78,7 @@ class EditorHandler(webapp2.RequestHandler):
 class InviteHandler(webapp2.RequestHandler):
     def get(self):
         script_html = get_script_html(0)
-        script_html += "<script>const netInvite = '%s';</script>" % (self.request.get("id"))
+        script_html += "<script>netInvite = '%s';</script>" % (self.request.get("id"))
         temp_vars = get_user_vars()
         temp_vars["scripts"] = script_html
         temp = env.get_template("main.html")
