@@ -691,8 +691,13 @@ const Net = {
 		this.peer.on("connection",function(conn) {
 			Net.addClient(conn);
 		});
+		this.peer.on("error",function(err) {
+			Net.peer = null;
+			console.log("Couldn't establish peer connection.");
+		});
 	},
-	connect: function(id,callback) {
+	connect: function(id,callback,failure) {
+		if (!this.peer) return;
 		this.host = this.peer.connect(id);
 		this.host.on("open",function() {
 			Net.host.on("data",function(data) {
@@ -704,13 +709,13 @@ const Net = {
 		});
 	},
 	disconnect: function() {
+		if (this.host.open) this.host.close();
+		this.host = null;
 		WebInput.clientInputID = null;
-		Net.host = null;
 		console.log("Disconnected from host.");
 	},
 	addClient: function(conn) {
 		this.clients.push(conn);
-		conn.clientID = this.clients.length-1;
 		conn.inputID = WebInput.newChannel();
 		conn.on("data",function(data) {
 			if (data.msg) gameAlert(data.msg,60);

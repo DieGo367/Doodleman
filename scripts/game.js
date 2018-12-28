@@ -102,7 +102,7 @@ function init() {
 	}
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
 
-	if (netInvite) { // try to connect to host if invite link was followed
+	if (netInvite&&Net.peer) { // try to connect to host if invite link was followed
 		Net.connect(netInvite,function() {
 			canvas.clearLoadScreen();
 			setGameSpeed(gameSpeed);
