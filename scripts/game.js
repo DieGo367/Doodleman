@@ -47,6 +47,8 @@ class GameMode {
 	onBlur() {}
 	onFocus() {}
 	onPointerMove() {}
+	onNetConnection(peerId) {}
+	onNetFailure() {}
 }
 var Game = new GameMode();
 
@@ -101,17 +103,8 @@ function init() {
 		Images.imgData["PaintMinion.png"] = Images.imgData["XMAS_PaintMinion.png"];
 	}
 	globalKeyboard = new Ctrl(KEYBOARD,"global");
-
-	if (netInvite&&Net.peer) { // try to connect to host if invite link was followed
-		Net.connect(netInvite,function() {
-			canvas.clearLoadScreen();
-			setGameSpeed(gameSpeed);
-			Game.mode = GAME_SANDBOX;
-		});
-	}
-	else { // normal launch
-		canvas.clearLoadScreen();
-		setGameSpeed(gameSpeed);
-		Game.mode = GAME_LAUNCH;
-	}
+	canvas.clearLoadScreen();
+	setGameSpeed(gameSpeed);
+	if (netInvite) Game.mode = GAME_ONLINELOBBY; // try to connect to host if invite link was followed
+	else Game.mode = GAME_LAUNCH; // normal launch
 }

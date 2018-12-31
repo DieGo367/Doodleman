@@ -35,6 +35,7 @@ scripts = [
 ]
 gamemodes = [
   "title.js",
+  "online-lobby.js",
   "editor.js",
   "sandbox.js",
   "survival.js"

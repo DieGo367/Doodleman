@@ -89,8 +89,6 @@ $(window).on("load",function() {
   ResourceManager.requestGroup("res/tracks",function(item,name) {
     Sound.addTrack(name);
   });
-
-  Net.setup();
-
+  
 	loadLoop();
 });

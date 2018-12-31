@@ -695,7 +695,7 @@ const Net = {
 	setup: function() {
 		this.peer = new Peer(); // from peer.min.js
 		this.peer.on("open",function(id) {
-			console.log("http://"+window.location.href.split("/")[2]+"/join?id="+id);
+			Game.onNetConnection(id);
 		});
 		this.peer.on("connection",function(conn) {
 			Net.addClient(conn);
@@ -703,7 +703,14 @@ const Net = {
 		this.peer.on("error",function(err) {
 			Net.peer = null;
 			console.log("Couldn't establish peer connection.");
+			Game.onNetFailure();
 		});
+	},
+	cleanup: function() {
+		this.peer.destroy();
+		this.peer = null;
+		this.host = null;
+		this.clients = [];
 	},
 	connect: function(id,callback,failure) {
 		if (!this.peer) return;
