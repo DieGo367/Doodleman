@@ -431,6 +431,9 @@ const WebInput = {
 			console.log("Disconnected WebInput "+id+" from slot "+slot+".");
 		}
 	},
+	silenceChannel: function(id) {
+		this.channels[id] = {id: id, buttons: [], analogs: []};
+	},
 	channelUpdate: function(data) {
 		let id = data.id;
 		if (this.channels[id]) this.channels[id] = data;

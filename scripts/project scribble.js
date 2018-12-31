@@ -714,13 +714,14 @@ const Net = {
 		WebInput.clientInputID = null;
 		console.log("Disconnected from host.");
 	},
-	addClient: function(conn) {
-		this.clients.push(conn);
-		conn.inputID = WebInput.newChannel();
-		conn.on("data",function(data) {
+	addClient: function(client) {
+		this.clients.push(client);
+		client.inputID = WebInput.newChannel();
+		client.on("data",function(data) {
+			client.lastMessage = Timer.now();
 			if (data.msg) gameAlert(data.msg,60);
 			if (data.id!=null) WebInput.channelUpdate(data);
-			else conn.send({inputID: conn.inputID});
+			else client.send({inputID: client.inputID});
 		});
 		console.log("Client connected!");
 	},
@@ -773,6 +774,7 @@ const Net = {
 			let client = this.clients[i];
 			if (client.open) {
 				client.wasOpen = true;
+				if (Timer.now()-client.lastMessage > 30) WebInput.silenceChannel(client.inputID);
 				client.send({});
 			}
 			else if (client.wasOpen) {
