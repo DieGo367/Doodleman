@@ -1826,6 +1826,20 @@ class Player extends Entity {
   	else super.drawElements();
   }
 
+  static add(number) {
+    let sheet = ["Blueman.json","Redman.json","Greenman.json","Yellowman.json"][number];
+    if (!multiplayer) sheet = "Doodleman.json";
+  	let spawn = Level.level.playerSpawns[number] || Level.level.playerSpawns[0] || {x: 0, y: 0, direction: RIGHT};
+  	let player = Player.create(spawn.x,spawn.y,19,44,38,4,sheet,number,spawn.direction);
+  }
+  static addAll() {
+    this.add(0);
+    if (multiplayer) {
+      for (var i = 1; i < 4; i++) {
+        if (this.ctrlInSlot(i)) this.add(i);
+      }
+    }
+  }
   static setSlot(slot,player) {
   	if (!this.slots[slot]&&Game.mode!=GAME_EDITOR) this.slots[slot] = player;
   }
@@ -1851,6 +1865,9 @@ class Player extends Entity {
   	let ids = [null,"keyIds","gpIds","tapIds","webIds"][type];
   	this[ids][slot] = index=="None"?null:index;
   	this.relinkCtrls();
+  }
+  static ctrlInSlot(slot) {
+    return !!this.keyIds[slot] || !!this.gpIds[slot] || !!this.tapIds[slot] || !!this.webIds[slot];
   }
 
   static onInit() {

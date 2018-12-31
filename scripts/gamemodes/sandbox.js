@@ -24,8 +24,7 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
     pauseGame(true);
   },
   onLevelLoad: function() {
-    addPlayer(0);
-    if (multiplayer) addPlayer(1);
+    Player.addAll();
     G$("LevelSelectView").hide();
     if (focused) pauseGame(false);
   },
@@ -39,15 +38,15 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
   addGui: function() {
     buildMainHud();
     Button.create("RespawnP1Button","Hud",WIDTH/2-50,50,100,40,"Respawn").setOnClick(function() {
-      addPlayer(0);
+      Player.add(0);
       this.hide();
     });
     Button.create("AddP1Button","Hud",WIDTH/2-110,50,100,40,"P1 Start").setOnClick(function() {
-      addPlayer(0);
+      Player.add(0);
       this.hide();
     });
     Button.create("AddP2Button","Hud",WIDTH/2+10,50,100,40,"P2 Start").setOnClick(function() {
-      addPlayer(1);
+      Player.add(1);
       this.hide();
     });
     buildPauseMenu();

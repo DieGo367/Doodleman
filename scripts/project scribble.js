@@ -785,12 +785,6 @@ const Net = {
 
 //Game Functions
 
-function addPlayer(number) {
-	let sheet = ["Blueman.json","Redman.json","Greenman.json","Yellowman.json"][number];
-	let spawn = Level.level.playerSpawns[number] || Level.level.playerSpawns[0] || {x: 0, y: 0, direction: RIGHT};
-	let player = Player.create(spawn.x,spawn.y,19,44,38,4,multiplayer?sheet:"Doodleman.json",number,spawn.direction!=null?spawn.direction:RIGHT);
-}
-
 let currentMonth = new Date(Date.now()).getMonth();
 function addPM(x,y) {
 	if (currentMonth==9 && Math.random()>0.5) Skeltal.create(x,y);

@@ -42,8 +42,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   },
   onLevelLoad: function() {
     G$("ScoreText").show();
-    addPlayer(0);
-    if (multiplayer) addPlayer(1);
+    Player.addAll();
     G$("LevelSelectView").hide();
     G$("DeathScreen").hide();
     if (focused) pauseGame(false);
