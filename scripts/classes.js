@@ -1575,7 +1575,7 @@ class Player extends Entity {
       key: new Ctrl(KEYBOARD,Player.keyIds[this.slot]),
       gp: new Ctrl(GAMEPAD,Player.gpIds[this.slot]),
       tap: new Ctrl(TOUCH,Player.tapIds[this.slot]),
-      web: new NullCtrl(),
+      web: new Ctrl(WEBIN,Player.webIds[this.slot]),
       mostRecent: function() {
         var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp,this.web.timestamp];
         var newest = Math.max(...timestamps);
@@ -1842,12 +1842,13 @@ class Player extends Entity {
       p.ctrls.key = new Ctrl(KEYBOARD,Player.keyIds[slot]);
       p.ctrls.gp = new Ctrl(GAMEPAD,Player.gpIds[slot]);
       p.ctrls.tap = new Ctrl(TOUCH,Player.tapIds[slot]);
+      p.ctrls.web = new Ctrl(WEBIN,Player.webIds[slot]);
     }
   }
   static changeControlSlots(slot,type,index) {
   	if (slot==void(0)||type==void(0)||index==void(0)) return;
   	if (type<1) return;
-  	let ids = [null,"keyIds","gpIds","tapIds"][type];
+  	let ids = [null,"keyIds","gpIds","tapIds","webIds"][type];
   	this[ids][slot] = index=="None"?null:index;
   	this.relinkCtrls();
   }
@@ -1865,6 +1866,7 @@ class Player extends Entity {
     this.keyIds = [0,1,null,null];
     this.gpIds = [null,null,null,null];
     this.tapIds = [0,null,null,null];
+    this.webIds = [null,null,null,null];
     this.defineAttack("attack",1,20,30,null,null,null,function() {
       Sound.play("sword-swipe.ogg");
     });

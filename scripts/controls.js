@@ -409,30 +409,42 @@ const WebInput = {
 	ctrlMaps: [],
 	clientInputID: null,
 	newChannel: function() {
-		let id;
+		let id = this.channels.length;
 		for (var i = 0; i < this.channels.length; i++) {
 			if (!this.channels[i]) id = i;
 		}
-		if (id==null) id = this.channels.length;
-		this.channels.push({id:id,buttons:[],analogs:[]});
-		this.ctrls[id] = new Ctrl(WEBIN,id);
-		console.log("New web input: "+id);
+		this.channels[id] = {id: id, buttons: [], analogs: []};
+		for (var i = 1; i < 4; i++) {
+			if (Player.webIds[i]==null) {
+				Player.changeControlSlots(i,WEBIN,id);
+				console.log("Connected WebInput "+id+" to slot "+i+".");
+				break;
+			}
+		}
 		return id;
 	},
 	removeChannel: function(id) {
 		delete this.channels[id];
-		delete this.ctrls[id];
+		let slot = Player.webIds.indexOf(id);
+		if (slot!=-1) {
+			Player.changeControlSlots(slot,WEBIN,"None");
+			console.log("Disconnected WebInput "+id+" from slot "+slot+".");
+		}
 	},
 	channelUpdate: function(data) {
 		let id = data.id;
 		if (this.channels[id]) this.channels[id] = data;
-		let ctrl = this.ctrls[id];
-		ctrl.setTimestamp();
-		for (var i in data.buttons) {
-			ctrl.updateActionStates(i);
-		}
-		for (var i in data.analogs) {
-			ctrl.updateActionStates('a'+i);
+		for (var i in this.ctrls) {
+			let ctrl = this.ctrls[i];
+			if (ctrl.index==id) {
+				ctrl.setTimestamp();
+				for (var j in data.buttons) {
+					ctrl.updateActionStates(j);
+				}
+				for (var j in data.analogs) {
+					ctrl.updateActionStates('a'+j);
+				}
+			}
 		}
 	},
 	ctrlButtonValue: function(buttonId,ctrl) {
