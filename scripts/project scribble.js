@@ -32,6 +32,19 @@ function dp(pixels) {
 function px(densityPixels) {
 	return densityPixels/pixelDensity;
 }
+function readEventCoords(event,rect) {
+	if (!rect) rect = canvas.getBoundingClientRect();
+	let x = event.clientX-rect.left;
+	let y = event.clientY-rect.top;
+	if (fullScreen) {
+		let scale = Math.min(widthScale,heightScale);
+		let offsetX = (scale-widthScale)*WIDTH/2;
+		let offsetY = (scale-heightScale)*HEIGHT/2;
+		x = (x+offsetX)/scale*dp(1);
+		y = (y+offsetY)/scale*dp(1);
+	}
+	return new Point(px(x),px(y));
+}
 function clone(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
@@ -188,12 +201,8 @@ const Pointer = {
 	focusLayer: 0, cursor: POINTER_NORMAL, downPoint: null, downButton: null,
 	styles: [POINTER_NORMAL,POINTER_CROSSHAIR,POINTER_PENCIL,POINTER_ERASER,POINTER_MOVE],
 	mousemove: function(event) {
-		var rect = canvas.getBoundingClientRect();
-		if (fullScreen) {
-			var scale = Math.min(widthScale,heightScale);
-			this.move(px((event.clientX-rect.left)/scale*dp(1)),px((event.clientY-rect.top)/scale*dp(1)));
-		}
-		else this.move(px(event.clientX-rect.left),px(event.clientY-rect.top));
+		let coords = readEventCoords(event);
+		this.move(coords.x,coords.y);
 	},
 	move: function(x,y) {
 		if (x>WIDTH) x = WIDTH;

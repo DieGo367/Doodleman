@@ -242,16 +242,12 @@ const Tap = {
 		var newTouches = [];
 		var rect = canvas.getBoundingClientRect();
 		for (var i = 0; i < touches.length; i++) {
-			if (fullScreen) {
-				var scale = Math.min(widthScale,heightScale);
-				var x = px((touches[i].clientX-rect.left)/scale*dp(1)), y = px((touches[i].clientY-rect.top)/scale*dp(1));
-			}
-			else var x = px(touches[i].clientX-rect.left), y = px(touches[i].clientY-rect.top);
-			var oldTouch = this.getTouchById(touches[i].identifier);
-			newTouch = {x: x, y: y, id:touches[i].identifier};
+			let newTouch = readEventCoords(touches[i],rect);
+			newTouch.id = touches[i].identifier;
 			newTouches.push(newTouch);
-			if (check&&!oldTouch) this.handleStart(newTouch,x,y);
-			if (oldTouch&&Pointer.downButton=="t"+newTouch.id) Pointer.move(x,y);
+			let oldTouch = this.getTouchById(touches[i].identifier);
+			if (check&&!oldTouch) this.handleStart(newTouch,newTouch.x,newTouch.y);
+			if (oldTouch&&Pointer.downButton=="t"+newTouch.id) Pointer.move(newTouch.x,newTouch.y);
 		}
 		this.touches = newTouches;
 	},
