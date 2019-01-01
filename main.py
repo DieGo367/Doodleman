@@ -35,10 +35,10 @@ scripts = [
 ]
 gamemodes = [
   "title.js",
-  "online-lobby.js",
   "editor.js",
   "sandbox.js",
-  "survival.js"
+  "survival.js",
+  "online-lobby.js"
 ]
 
 def get_script_html(launch_mode):
