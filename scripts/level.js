@@ -83,10 +83,15 @@ const Level = {
     }
     return {terrain: terrain, actors: actors, other: other};
   },
-	makeBackground: function(data,slot) {
-		if (!data) return;
-		if (data.type=="name") Background.create(slot,data.name,data.layer,data.scale,data.parallax);
-		else if (data.raw!="") BackgroundB64.create(slot,data.raw,data.layer,data.scale,data.parallax);
+	makeBackground: function(bg,slot) {
+		if (!bg) return;
+		if (bg.type=="name") {
+			ResourceManager.request("res/"+bg.name,function(data) {
+				Images.loadImage(bg.name);
+			});
+			Background.create(slot,bg.name,bg.layer,bg.scale,bg.parallax);
+		}
+		else if (bg.raw!="") BackgroundB64.create(slot,bg.raw,bg.layer,bg.scale,bg.parallax);
 	},
 	setSpawn: function(x,y,playerNumber,direction) {
 		let spawn = this.level.playerSpawns[playerNumber];
