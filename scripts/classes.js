@@ -1792,17 +1792,17 @@ class Player extends Entity {
   	this.dragHeldObject(tempVelX,tempVelY);
   }
   die() {
-  	this.lives -= 1;
-  	if (this.lives<=0) {
-      this.respawnsOnDeath = false;
-      super.die();
-    }
-    else {
+    Player.loseLife(this.slot);
+  	if (Player.canRespawn(this.slot)) {
       this.warpLimbo();
       this.hadDied = true;
       this.wait(60,function() {
         this.superMethod("die");
       });
+    }
+    else {
+      this.respawnsOnDeath = false;
+      super.die();
     }
   }
   remove() {
@@ -1819,7 +1819,7 @@ class Player extends Entity {
   drawHud() {
   	let playerNumber = Player.getAll().indexOf(this);
   	Images.drawImage(this.sheet.pages[this.animPage],10,10+(24*playerNumber),19,19,0,0,19,19);
-    fontPlayerHud.draw("/ "+this.lives,35,27+(24*playerNumber),WIDTH,LEFT);
+    fontPlayerHud.draw("/ "+Player.getLives(this.slot),35,27+(24*playerNumber),WIDTH,LEFT);
   }
   drawElements() {
   	if (this.attackHeld>=chargeAttackReq&&!this.held) Images.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
@@ -1827,6 +1827,7 @@ class Player extends Entity {
   }
 
   static add(number) {
+    if (!this.canRespawn(number)) return;
     let sheet = ["Blueman.json","Redman.json","Greenman.json","Yellowman.json"][number];
     if (!multiplayer) sheet = "Doodleman.json";
   	let spawn = Level.level.playerSpawns[number] || Level.level.playerSpawns[0] || {x: 0, y: 0, direction: RIGHT};
@@ -1869,13 +1870,33 @@ class Player extends Entity {
   static ctrlInSlot(slot) {
     return !!this.keyIds[slot] || !!this.gpIds[slot] || !!this.tapIds[slot] || !!this.webIds[slot];
   }
+  static setLives(slot,amount) {
+    this.lives[slot] = amount;
+  }
+  static setAllLives(amount) {
+    for (var i in this.slots) {
+      this.lives[i] = amount;
+    }
+  }
+  static getLives(slot) {
+    if (typeof this.lives[slot] == "number") {
+      return this.lives[slot];
+    }
+    return 0;
+  }
+  static loseLife(slot) {
+    if (typeof this.lives[slot] == "number") {
+      this.lives[slot]--;
+    }
+  }
+  static canRespawn(slot) {
+    return this.getLives(slot) > 0;
+  }
 
   static onInit() {
     this.modifyPrototype({
       drawLayer: 2,
       respawnsOnDeath: true,
-      lives: 5,
-      deaths: 0,
       multiJump: false
     });
     this.attacks = [];
@@ -1884,6 +1905,7 @@ class Player extends Entity {
     this.gpIds = [null,null,null,null];
     this.tapIds = [0,null,null,null];
     this.webIds = [null,null,null,null];
+    this.lives = [0,0,0,0];
     this.defineAttack("attack",1,20,30,null,null,null,function() {
       Sound.play("sword-swipe.ogg");
     });

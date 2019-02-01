@@ -24,12 +24,13 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
     pauseGame(true);
   },
   onLevelLoad: function() {
+    Player.setAllLives(5);
     Player.addAll();
     G$("LevelSelectView").hide();
     if (focused) pauseGame(false);
   },
   onDeath: function(ent,attacker) {
-    if (ent instanceof Player && ent.lives<=0) {
+    if (ent instanceof Player && !Player.canRespawn(ent.slot)) {
       let slot = ent.slot;
       let buttons = [multiplayer?"AddP1Button":"RespawnP1Button","AddP2Button"];
       G$(buttons[slot]).show();
@@ -38,14 +39,17 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
   addGui: function() {
     buildMainHud();
     Button.create("RespawnP1Button","Hud",WIDTH/2-50,50,100,40,"Respawn").setOnClick(function() {
+      Player.setLives(0,5);
       Player.add(0);
       this.hide();
     });
     Button.create("AddP1Button","Hud",WIDTH/2-110,50,100,40,"P1 Start").setOnClick(function() {
+      Player.setLives(0,5);
       Player.add(0);
       this.hide();
     });
     Button.create("AddP2Button","Hud",WIDTH/2+10,50,100,40,"P2 Start").setOnClick(function() {
+      Player.setLives(1,5);
       Player.add(1);
       this.hide();
     });

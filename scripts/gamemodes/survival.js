@@ -63,7 +63,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
         this.stealthKills++;
       }
     }
-    else if (ent instanceof Player&&ent.lives<1) {
+    else if (ent instanceof Player&&!Player.canRespawn(ent.slot)) {
       this.deathEvent = true;
       if (Player.getAll().length<=1) wait(60,function() {
         G$("Hud").hide();
@@ -100,6 +100,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     this.addScore(-this.score);
     this.stealthKills = 0;
     this.deathEvent = false;
+    Player.setAllLives(5);
     let level = this.getLevel();
     if (level) {
       if (level.filename) Level.loadLevel(level.filename);
