@@ -62,7 +62,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
         this.stealthKills++;
       }
     }
-    else if (ent instanceof Player&&!Player.canRespawn(ent.slot)) {
+    else if (ent instanceof Player&&!Player.hasLives(ent.slot)) {
       this.deathEvent = true;
       if (Player.getAll().length<=1) wait(60,function() {
         G$("Hud").hide();

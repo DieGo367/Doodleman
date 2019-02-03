@@ -1797,8 +1797,8 @@ class Player extends Entity {
   	this.dragHeldObject(tempVelX,tempVelY);
   }
   die() {
-    Player.loseLife(this.slot);
-  	if (Player.canRespawn(this.slot)) {
+    let canRespawn = Player.loseLife(this.slot);
+  	if (canRespawn) {
       this.warpLimbo();
       this.hadDied = true;
       this.wait(60,function() {
@@ -1832,7 +1832,7 @@ class Player extends Entity {
   }
 
   static add(number) {
-    if (!this.canRespawn(number)) return;
+    if (!this.hasLives(number)) return;
     let sheet = ["Blueman.json","Redman.json","Greenman.json","Yellowman.json"][number];
     if (!multiplayer) sheet = "Doodleman.json";
   	let spawn = Level.level.playerSpawns[number] || Level.level.playerSpawns[0] || {x: 0, y: 0, direction: RIGHT};
@@ -1853,6 +1853,14 @@ class Player extends Entity {
   	if (this.slots[player.slot]==player) {
   		this.slots[player.slot] = null;
   	}
+  }
+  static findAllOfSlot(slot) {
+    let all = this.getAll();
+    let result = [];
+    for (var i in all) {
+      if (all[i].slot==slot) result.push(all[i]);
+    }
+    return result;
   }
   static relinkCtrls() {
     var all = this.getAll();
@@ -1890,12 +1898,17 @@ class Player extends Entity {
     return 0;
   }
   static loseLife(slot) {
-    if (typeof this.lives[slot] == "number") {
-      this.lives[slot]--;
+    let ps = this.findAllOfSlot(slot);
+    if (ps.length==1) {
+      if (typeof this.lives[slot] == "number") {
+        this.lives[slot]--;
+        return this.lives[slot] > 0;
+      }
     }
+    return false;
   }
-  static canRespawn(slot) {
-    return this.getLives(slot) > 0;
+  static hasLives(slot) {
+    return this.lives[slot] > 0;
   }
   static hasHealthCached(slot) {
     return typeof this.healthCache[slot] == "number";

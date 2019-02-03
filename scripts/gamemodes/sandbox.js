@@ -30,7 +30,7 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
     if (focused) pauseGame(false);
   },
   onDeath: function(ent,attacker) {
-    if (ent instanceof Player && !Player.canRespawn(ent.slot)) {
+    if (ent instanceof Player && !Player.hasLives(ent.slot)) {
       let slot = ent.slot;
       let buttons = [multiplayer?"AddP1Button":"RespawnP1Button","AddP2Button"];
       G$(buttons[slot]).show();
