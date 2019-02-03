@@ -178,6 +178,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     else MaxHeart.create(Level.level.width/2,Level.level.height/2);
     this.scoreDelta = 0;
     Timer.wait(120,function() {
+      Player.cacheAllHealth();
       Level.loadLevel(Game.getLevel().filename);
     });
   },

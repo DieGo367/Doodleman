@@ -1565,6 +1565,11 @@ class Player extends Entity {
     this.spawnDirection = this.direction;
   	this.slot = slot; //new for players
   	if (slot!=null) Player.setSlot(slot,this);
+    if (Player.hasHealthCached(slot)) {
+      let cache = Player.takeHealthCache(slot);
+      this.health = cache[0];
+      this.maxHealth = cache[1];
+    }
   	this.attackCooldown = 0;
   	this.attackHeld = 0;
     this.canUpAirAttack = true;
@@ -1892,6 +1897,30 @@ class Player extends Entity {
   static canRespawn(slot) {
     return this.getLives(slot) > 0;
   }
+  static hasHealthCached(slot) {
+    return typeof this.healthCache[slot] == "number";
+  }
+  static cacheHealth(slot,health,max) {
+    if (this.hasHealthCached(slot)) {
+      if (health > this.healthCache[slot]) this.healthCache[slot] = health;
+      if (max > this.maxHealthCache[slot]) this.maxhealthCache[slot] = max;
+    }
+    else {
+      this.healthCache[slot] = health;
+      this.maxHealthCache[slot] = max;
+    }
+  }
+  static cacheAllHealth() {
+    let all = this.getAll();
+    for (var i in all) this.cacheHealth(all[i].slot,all[i].health,all[i].maxHealth);
+  }
+  static takeHealthCache(slot) {
+    let health = this.healthCache[slot];
+    let max = this.maxHealthCache[slot];
+    this.healthCache[slot] = null;
+    this.maxHealthCache[slot] = null;
+    return [health, max];
+  }
 
   static onInit() {
     this.modifyPrototype({
@@ -1906,6 +1935,8 @@ class Player extends Entity {
     this.tapIds = [0,null,null,null];
     this.webIds = [null,null,null,null];
     this.lives = [0,0,0,0];
+    this.healthCache = [null,null,null,null];
+    this.maxHealthCache = [null,null,null,null];
     this.defineAttack("attack",1,20,30,null,null,null,function() {
       Sound.play("sword-swipe.ogg");
     });
