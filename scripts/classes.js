@@ -1852,7 +1852,17 @@ class Player extends Entity {
   static clearFromSlot(player) {
   	if (this.slots[player.slot]==player) {
   		this.slots[player.slot] = null;
+      let ps = this.findAllOfSlot(player.slot);
+      for (var i in ps) {
+        if (ps[i]!=player) {
+          this.setSlot(player.slot,ps[i]);
+          break;
+        }
+      }
   	}
+  }
+  static getSlot(slot) {
+    return this.slots[slot];
   }
   static findAllOfSlot(slot) {
     let all = this.getAll();
