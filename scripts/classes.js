@@ -1822,9 +1822,10 @@ class Player extends Entity {
   }
 
   drawHud() {
-  	let playerNumber = Player.getAll().indexOf(this);
-  	Images.drawImage(this.sheet.pages[this.animPage],10,10+(24*playerNumber),19,19,0,0,19,19);
-    fontPlayerHud.draw("/ "+Player.getLives(this.slot),35,27+(24*playerNumber),WIDTH,LEFT);
+    if (Player.getSlot(this.slot)==this) {
+      Images.drawImage(this.sheet.pages[this.animPage],10,10+(24*this.slot),19,19,0,0,19,19);
+      fontPlayerHud.draw("/ "+Player.getLives(this.slot),35,27+(24*this.slot),WIDTH,LEFT);
+    }
   }
   drawElements() {
   	if (this.attackHeld>=chargeAttackReq&&!this.held) Images.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
