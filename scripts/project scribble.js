@@ -143,11 +143,15 @@ function isOdd(n) {
 }
 function averageCoords(e) {
 	var tx = 0, ty = 0;
+	var count = e.length;
 	for (var i in e) {
-		tx += e[i].x;
-		ty += e[i].y;
+		if (isNaN(e[i].x)||isNaN(e[i].y)) count--;
+		else {
+			tx += e[i].x;
+			ty += e[i].y;
+		}
 	}
-	return [tx/e.length,ty/e.length];
+	return [tx/count,ty/count];
 }
 function angleTo(p1,p2) {
 	return Math.atan2(p2.y-p1.y,p2.x-p1.x);
