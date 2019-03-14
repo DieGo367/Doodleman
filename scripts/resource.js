@@ -1,6 +1,6 @@
 const ResourceManager = {
   saved: {}, groupStatuses: {},
-  request: function(url,onComplete) {
+  request: function(url,onComplete,onFail) {
     if (typeof url!="string") return console.warn("Invalid request url");
     var data = this.saved[url];
     if (data!=void(0)) {
@@ -8,11 +8,18 @@ const ResourceManager = {
         onComplete(data);
       },0);
     }
-    else $.get(url,function(data) {
-      if (typeof data=="object") data = JSON.stringify(data);
-      ResourceManager.store(this.url,data);
-      if (typeof onComplete=="function") onComplete(data);
-    });
+    else try {
+      $.get(url,function(data) {
+        if (typeof data=="object") data = JSON.stringify(data);
+        ResourceManager.store(this.url,data);
+        if (typeof onComplete=="function") onComplete(data);
+      }).
+      error(function() {
+        if (typeof onFail == "function") onFail();
+      });
+    }
+    catch(e) {
+    }
   },
   requestGroup: function(groupName,forEach,onComplete) {
     $.get(groupName+"/_list_.json",function(list) {
