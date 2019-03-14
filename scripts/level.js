@@ -144,12 +144,18 @@ const Level = {
 			else console.log('Failed to load Level "'+file.name+'" from local file');
 		});
 	},
-	loadLevel: function(levelName) {
+	loadLevel: function(levelName,onLoad,onFail) {
 		canvas.showLoadScreen();
 		ResourceManager.request("levels/"+levelName,function(data) {
-      Level.load(data);
+      let success = Level.load(data);
 			canvas.clearLoadScreen();
-    });
+			if (success && typeof onLoad == "function") onLoad();
+			else if (!success && typeof onFail == "function") onFail();
+    },function() {
+			canvas.clearLoadScreen();
+			console.log("fail from ResourceManager");
+			if (typeof onFail == "function") onFail();
+		});
 	},
 	export: function() {
 		let data = niceJSON(Level.level);
