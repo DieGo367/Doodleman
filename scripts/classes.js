@@ -476,12 +476,13 @@ class AttackBox extends HurtBox {
 initClass(AttackBox,HurtBox);
 
 class Entrance extends Interactable {
-  constructor(x,y,width,height,gfx,targetClass,linkId,destination,preventEnter,preventExit) {
+  constructor(x,y,width,height,gfx,targetClass,linkId,destination,preventEnter,preventExit,destLevel) {
     super(x,y,width,height,gfx,targetClass);
     this.linkId = linkId;
     this.destination = destination;
     this.preventEnter = !!preventEnter;
     this.preventExit = !!preventExit;
+    this.destLevel = destLevel || '';
     this.enterStep = 0;
     this.exitStep = 0;
     this.obj = null;
@@ -528,15 +529,33 @@ class Entrance extends Interactable {
     let obj = this.obj;
     this.forget();
     // find destination
-    let dest = Entrance.findEntrance(this.destination,this.targetClass);
-    if (dest) {
-      // send the object into limbo first
-      obj.warpLimbo()
-      // then trigger the destination
-      dest.useEntrance(obj);
+    if (this.destLevel && this.destLevel.length > 0) {
+      let dest = this.destination, cls = this.targetClass;
+      let pSlot = obj.slot;
+      let failEntr = this;
+      Level.loadLevel(this.destLevel,function() {
+        dest = Entrance.findEntrance(dest,cls);
+        let p = Player.getSlot(pSlot);
+        if (p && dest) {
+          p.warpLimbo();
+          dest.useEntrance(p);
+        }
+      },
+      function() { // fail load level
+        failEntr.useEntrance(obj);
+      });
     }
-    else { // destination wasn't found
-      obj.warp(0,0);
+    else {
+      let dest = Entrance.findEntrance(this.destination,this.targetClass);
+      if (dest) {
+        // send the object into limbo first
+        obj.warpLimbo()
+        // then trigger the destination
+        dest.useEntrance(obj);
+      }
+      else { // destination wasn't found
+        obj.warp(0,0);
+      }
     }
   }
   useEntrance(obj) {
@@ -568,8 +587,8 @@ class Entrance extends Interactable {
 initClass(Entrance,Box);
 
 class Door extends Entrance {
-  constructor(x,y,linkId,destination,preventEnter,preventExit) {
-    super(x,y,32,55,void(0),Player,linkId,destination,preventEnter,preventExit);
+  constructor(x,y,linkId,destination,preventEnter,preventExit,destLevel) {
+    super(x,y,32,55,void(0),Player,linkId,destination,preventEnter,preventExit,destLevel);
     this.sheet = Animation.getSpritesheet("Door.json");
     this.doorOpen = false;
   }
