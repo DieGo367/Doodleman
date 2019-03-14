@@ -626,7 +626,10 @@ class TypeAnnotation {
 		return this.notes;
 	}
 	validate(data) {
-		if (this.dataType=="boolean") return !!data;
+		if (this.dataType=="boolean") {
+			if (typeof data == "undefined" || data === null) return data;
+			else return !!data;
+		}
 		else if (this.dataType=="number") {
 			let parsed = parseFloat(data);
 			if (!isNaN(parsed)) return parsed;
