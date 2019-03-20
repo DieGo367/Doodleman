@@ -658,6 +658,7 @@ class Door extends Entrance {
     super.useEntrance(player);
     this.openDoor();
     player.warp(this.x,this.y);
+    player.velX = player.velY = 0;
     player.defyGravity = true;
     player.collisionType = C_NONE;
     player.invulnerability = 3;
