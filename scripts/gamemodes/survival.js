@@ -1,12 +1,22 @@
 const GAME_SURVIVAL = GameManager.addMode(new GameMode({
+  levels: [],
   start: function() {
+    if (this.levels.length==0) ResourceManager.request("data/roadmap.json",function(data) {
+      try {
+        Game.levels = JSON.parse(data);
+      }
+      catch(e) {
+        console.log("Roadmap couldn't parse");
+      }
+    });
     this.ready = false;
     this.score = 0;
     this.gameState = "none";
     this.addGui();
     G$("Hud").show();
     if (EditorTools.levelCopy) this.setTestLevel();
-    else this.firstStep();
+    else if (this.levels.length>0) this.firstStep();
+    else this.waitForLevels();
   },
   quit: function() {
     this.removeGui();
@@ -200,6 +210,16 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     }
   },
 
+  waitForLevels: function() {
+    canvas.showLoadScreen();
+    Timer.wait(5,function() {
+      if (Game.levels.length>0) {
+        canvas.clearLoadScreen();
+        Game.firstStep();
+      }
+      else Game.waitForLevels();
+    });
+  },
   setTestLevel: function() {
     this.level = this.wave = this.lineup = 0;
     this.score = 0;
@@ -256,36 +276,5 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     G$("HelpView").remove();
     G$("DevTools").remove();
     G$("DeathScreen").remove();
-  },
-
-  levels: [
-    {
-      filename: "Room-1.json",
-      bonusThresh: 70,
-      waves: [
-        [ // a wave
-          [ // a lineup
-            [10], // actor data
-          ],
-          [[10],[10]], [[10],[10],[10]], [[10],[10],[10],[10],[10]],
-          [[10],[10],[10],[10],[10],[10],[10]],
-          [[10],[10],[10],[10],[10],[10],[10],[10],[10],[10]]
-        ]
-      ]
-    },
-    {
-      filename: "Room-1.json",
-      bonusThresh: 70,
-      waves: [
-        [ // a wave
-          [ // a lineup
-            [10], // actor data
-          ],
-          [[10],[10]], [[10],[10],[10]], [[10],[10],[10],[10],[10]],
-          [[10],[10],[10],[10],[10],[10],[10]],
-          [[10],[10],[10],[10],[10],[10],[10],[10],[10],[10]]
-        ]
-      ]
-    }
-  ]
+  }
 }));
