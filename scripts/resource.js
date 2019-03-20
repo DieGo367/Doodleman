@@ -9,13 +9,16 @@ const ResourceManager = {
       },0);
     }
     else try {
-      $.get(url,function(data) {
-        if (typeof data=="object") data = JSON.stringify(data);
-        ResourceManager.store(this.url,data);
-        if (typeof onComplete=="function") onComplete(data);
-      }).
-      error(function() {
-        if (typeof onFail == "function") onFail();
+      $.ajax({
+        url: url,
+        success: function(data) {
+          if (typeof data=="object") data = JSON.stringify(data);
+          ResourceManager.store(this.url,data);
+          if (typeof onComplete=="function") onComplete(data);
+        },
+        error: function(e,type) {
+          if (typeof onFail == "function") onFail(type);
+        }
       });
     }
     catch(e) {
