@@ -1,14 +1,21 @@
 const Images = {
-	imgData: {}, filter: null,
+	imgData: {}, filter: null, loadingCount: 0,
 	subCanvas: document.createElement("canvas"),
 	sc: null,
+	areLoaded: function() {
+		return this.loadingCount == 0;
+	},
 	loadImageB64: function(name,b64) {
 		this.imgData[name] = new Image();
 		this.imgData[name].src = "data:image/png;base64, "+b64;
 	},
 	loadImage: function(name) {
-		this.imgData[name] = new Image();
-		this.imgData[name].src = "res/"+name;
+		let img = this.imgData[name] = new Image();
+		img.src = "res/"+name;
+		this.loadingCount++;
+		img.onload = function() {
+			Images.loadingCount--;
+		}
 	},
 	getImage: function(imageName) {
 		let img = this.imgData[imageName];
