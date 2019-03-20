@@ -241,7 +241,7 @@ const BlankLevel = clone(Level.level);
 const ActorManager = {
 	actorData: [],
 	init: function() {
-		ResourceManager.request("scripts/actors.json",function(data) {
+		ResourceManager.request("data/actors.json",function(data) {
 			var rawData = JSON.parse(data);
 			for (var i in rawData) {
 				var id = rawData[i].id;

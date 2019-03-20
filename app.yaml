@@ -21,6 +21,9 @@ handlers:
 - url: /animations
   static_dir: animations
 
+- url: /data
+  static_dir: data
+
 - url: .*
   script: main.app
   secure: always
