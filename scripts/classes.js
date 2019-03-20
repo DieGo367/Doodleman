@@ -511,10 +511,12 @@ class Entrance extends Interactable {
   forget() {
     // clear connections
     let obj = this.obj;
-    this.obj = null;
-    obj.exit = obj.entrance = null;
-    // clear step counters
-    this.exitStep = this.enterStep = 0;
+    if (obj) {
+      this.obj = null;
+      obj.exit = obj.entrance = null;
+      // clear step counters
+      this.exitStep = this.enterStep = 0
+    }
   }
   useExit(obj) {
     // store objects and set step counter
@@ -608,10 +610,12 @@ class Door extends Entrance {
   }
   forget() {
     if (this.doorOpen) this.closeDoor();
-    this.obj.defyGravity = false;
-    this.obj.collisionType = C_ENT;
-    Collision.removeAllPairsWith(this.obj);
-    this.obj.invulnerability = 0;
+    if (this.obj) {
+      this.obj.defyGravity = false;
+      this.obj.collisionType = C_ENT;
+      Collision.removeAllPairsWith(this.obj);
+      this.obj.invulnerability = 0;
+    }
     super.forget();
   }
   useExit(player) {
