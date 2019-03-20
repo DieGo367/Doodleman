@@ -75,6 +75,13 @@ $(window).on("load",function() {
 	ResourceManager.requestGroup("res",function(item,name) {
 		Images.loadImage(name);
 	});
+  ResourceManager.request("levels/_list_.json",function(data) {
+    try {
+      Level.list = JSON.parse(data);
+    }
+    catch(e) {
+    }
+  });
 
 	ResourceManager.requestGroup("animations",function(item,name) {
 		Animation.loadSpritesheet(name,item);
@@ -89,6 +96,6 @@ $(window).on("load",function() {
   ResourceManager.requestGroup("res/tracks",function(item,name) {
     Sound.addTrack(name);
   });
-  
+
 	loadLoop();
 });

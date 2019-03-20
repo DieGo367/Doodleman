@@ -21,6 +21,10 @@ const Level = {
 		],
 		_version_: 0
 	},
+	list: [],
+	exists: function(name) {
+		return this.list.indexOf(name) != -1;
+	},
 	addTerrainData: function(data) {
 		let index = this.findMatchingTerrainDefinitionIndex(data);
 		if (index==-1) this.level.terrain.push(data);

@@ -528,34 +528,30 @@ class Entrance extends Interactable {
   finishExit() {
     let obj = this.obj;
     this.forget();
-    // find destination
-    if (this.destLevel && this.destLevel.length > 0) {
-      let dest = this.destination, cls = this.targetClass;
-      let pSlot = obj.slot;
-      let failEntr = this;
-      Level.loadLevel(this.destLevel,function() {
-        dest = Entrance.findEntrance(dest,cls);
-        let p = Player.getSlot(pSlot);
-        if (p && dest) {
-          p.warpLimbo();
-          dest.useEntrance(p);
-        }
-      },
-      function() { // fail load level
-        failEntr.useEntrance(obj);
-      });
+    let go = function(obj,dest) {
+      // send the object into limbo first
+      obj.warpLimbo()
+      // then trigger the destination
+      dest.useEntrance(obj);
     }
-    else {
+    // find target level
+    if (this.destLevel && this.destLevel.length > 0) {
+      if (Level.exists(this.destLevel)) {
+        let dest = this.destination, cls = this.targetClass;
+        let pSlot = obj.slot;
+        let failEntr = this;
+        Level.loadLevel(this.destLevel,function() {
+          dest = Entrance.findEntrance(dest,cls);
+          let p = Player.getSlot(pSlot);
+          if (p && dest) go(p,dest)
+        }, function() { go(obj,failEntr); }); // failed to load
+      }
+      else go(obj,this); // return to same entrance
+    }
+    else { // find destination
       let dest = Entrance.findEntrance(this.destination,this.targetClass);
-      if (dest) {
-        // send the object into limbo first
-        obj.warpLimbo()
-        // then trigger the destination
-        dest.useEntrance(obj);
-      }
-      else { // destination wasn't found
-        obj.warp(0,0);
-      }
+      if (dest) go(obj,dest);
+      else obj.warp(0,0); // destination wasn't found
     }
   }
   useEntrance(obj) {
