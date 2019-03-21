@@ -1,17 +1,20 @@
 const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   levels: [],
   start: function() {
-    if (this.levels.length==0) Resources.requestJSON("data/roadmap.json",function(data) {
-      Game.levels = data;
-    });
     this.ready = false;
     this.score = 0;
     this.gameState = "none";
     this.addGui();
     G$("Hud").show();
     if (EditorTools.levelCopy) this.setTestLevel();
-    else if (this.levels.length>0) this.firstStep();
-    else this.waitForLevels();
+    else {
+      canvas.showLoadScreen();
+      Resources.requestJSON("data/roadmap.json",function(data) {
+        Game.levels = data;
+        canvas.clearLoadScreen();
+        Game.firstStep();
+      });
+    }
   },
   quit: function() {
     this.removeGui();
@@ -205,16 +208,6 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     }
   },
 
-  waitForLevels: function() {
-    canvas.showLoadScreen();
-    Timer.wait(5,function() {
-      if (Game.levels.length>0) {
-        canvas.clearLoadScreen();
-        Game.firstStep();
-      }
-      else Game.waitForLevels();
-    });
-  },
   setTestLevel: function() {
     this.level = this.wave = this.lineup = 0;
     this.score = 0;
@@ -232,6 +225,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
         reward: []
       }
     ];
+    this.firstStep();
   },
 
   addGui: function() {
