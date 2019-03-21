@@ -178,8 +178,7 @@ const Animation = {
 		c.fillRect(entity.x-entity.halfW(),entity.y,entity.width,-entity.height);
 	},
 	spritesheets: {}, loadStatus: 1, appliedClasses: [],
-	loadSpritesheet: function(name,data) {
-		var sheet = JSON.parse(data);
+	loadSpritesheet: function(name,sheet) {
 		sheet.getAnimation = function(action) {
 			for (var i in this.animations) {
 				if (this.animations[i].action==action) return this.animations[i];

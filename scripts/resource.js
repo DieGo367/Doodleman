@@ -5,46 +5,54 @@ const ResourceManager = {
     var data = this.saved[url];
     if (data!=void(0)) {
       if (typeof onComplete=="function") setTimeout(function() {
-        onComplete(data);
+        onComplete(data,url);
       },0);
     }
-    else try {
+    else {
       $.ajax({
-        url: url,
+        url: url, dataType: "text",
         success: function(data) {
           if (typeof data=="object") data = JSON.stringify(data);
           ResourceManager.store(this.url,data);
-          if (typeof onComplete=="function") onComplete(data);
+          if (typeof onComplete=="function") onComplete(data,this.url);
         },
         error: function(e,type) {
-          if (typeof onFail == "function") onFail(type);
+          if (typeof onFail == "function") onFail(type,this.url);
         }
       });
     }
-    catch(e) {
-    }
+  },
+  requestJSON: function(url,onComplete,onFail) {
+    this.request(url,function(str,url) {
+      let data = null;
+      try {
+        data = JSON.parse(str);
+      }
+      catch(e) {
+        if (typeof onFail=="function") onFail("JSON parse error",url);
+      }
+      if (data && typeof onComplete=="function") onComplete(data,url);
+    },onFail);
   },
   requestGroup: function(groupName,forEach,onComplete) {
-    $.get(groupName+"/_list_.json",function(list) {
-      try {
-        if (typeof list != "object") list = JSON.parse(list);
-      } catch(err) {
-        return console.warn(err);
-      }
-      ResourceManager.store(this.url,list);
+    this.requestJSON(groupName+"/_list_.json",function(list) {
       if (!(list instanceof Array)) return console.warn(groupName + " list wasn't a proper array");
       ResourceManager.setStatus(groupName,list.length);
       for (var i in list) {
         if (typeof list[i]!="string") continue;
-        $.get(groupName+"/"+list[i],function(item) {
-          if (typeof item=="object") item = JSON.stringify(item);
-          ResourceManager.store(this.url,item);
-          if (typeof forEach=="function") forEach(item,this.url.split("/").pop());
-          var status = ResourceManager.checkStatus(groupName);
+        ResourceManager.requestJSON(groupName+"/"+list[i],function(data,url) {
+          if (typeof forEach == "function") forEach(data,url.split("/").pop());
+          let status = ResourceManager.checkStatus(groupName);
           if (status==1&&typeof onComplete=="function") onComplete(list,groupName);
           ResourceManager.setStatus(groupName,-1);
+        },
+        function(e) {
+          console.warn("Group item '"+list[i]+"' failed to load due to: "+e);
         });
       }
+    },
+    function(e) {
+      console.warn("Group list for '"+groupName+"' failed to load due to: "+e);
     });
     this.setStatus(groupName,1);
   },
