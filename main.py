@@ -1,24 +1,9 @@
-#!/usr/bin/env python
-#
-# Copyright 2007 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-import jinja2
-import webapp2
-from google.appengine.api import users
+from flask import Flask
+from flask import make_response
+from flask import render_template
+from flask import send_from_directory
+app = Flask(__name__)
 
-env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 scripts = [
   "peer.min.js",
   "game.js",
@@ -40,53 +25,57 @@ gamemodes = [
   "survival.js",
   "online-lobby.js"
 ]
+static_folders = [
+  "animations",
+  "data",
+  "levels",
+  "res",
+  "scripts"
+]
 
-def get_script_html(launch_mode):
-    script_html = "<script src=\"scripts/loadSetup.js\"></script>"
+def get_script_lists(launch_mode):
+    scs = []
     for script in scripts:
-        script_html += "<script defer src=\"scripts/%s\"></script>" % (script)
+        scs.append(f"scripts/{script}")
     for script in gamemodes:
-        script_html += "<script defer src=\"scripts/gamemodes/%s\"></script>" % (script)
-    return script_html + "<script defer>const GAME_LAUNCH = %s;</script>" % launch_mode
+        scs.append(f"scripts/gamemodes/{script}")
+    return [scs, [f"const GAME_LAUNCH = {launch_mode};"]]
 
-def get_user_vars():
-    # user = users.get_current_user()
-    # if user:
-    #     name = user.nickname().split('@')[0]
-    #     log_url = users.create_logout_url('/')
-    # else:
-    #     name = "Guest"
-    #     log_url = users.create_login_url('/')
-    # return {"user": user, "name": name, "log_url": log_url}
-    return {}
+def get_content_type(ext):
+    types = {
+        "css": "text/css",
+        "js": "text/javascript",
+        "json": "application/json",
+        "ogg": "audio/ogg",
+        "png": "image/png"
+    }
+    if ext in types.keys():
+        return types[ext]
+    else:
+        return "text/html"
 
-class MainHandler(webapp2.RequestHandler):
-    def get(self):
-        script_html = get_script_html(0)
-        temp_vars = get_user_vars()
-        temp_vars["scripts"] = script_html
-        temp = env.get_template("main.html")
-        self.response.out.write(temp.render(temp_vars))
+@app.route('/')
+def game():
+    script_list = get_script_lists(0)
+    return render_template('main.html',scripts=script_list[0],statements=script_list[1])
 
-class EditorHandler(webapp2.RequestHandler):
-    def get(self):
-        script_html = get_script_html(1)
-        temp_vars = get_user_vars()
-        temp_vars["scripts"] = script_html
-        temp = env.get_template("main.html")
-        self.response.out.write(temp.render(temp_vars))
+@app.route('/edit')
+def editor():
+    script_list = get_script_lists(1)
+    return render_template('main.html',scripts=script_list[0],statements=script_list[1])
 
-class InviteHandler(webapp2.RequestHandler):
-    def get(self):
-        script_html = get_script_html(0)
-        script_html += "<script>netInvite = '%s';</script>" % (self.request.get("id"))
-        temp_vars = get_user_vars()
-        temp_vars["scripts"] = script_html
-        temp = env.get_template("main.html")
-        self.response.out.write(temp.render(temp_vars))
+@app.route('/join/<int:id>')
+def join(id):
+    script_list = get_script_lists(0)
+    script_list[1].append(f"netInvite = '{id}';</script>")
+    return render_template('main.html',scripts=script_list[0],statements=script_list[1])
 
-app = webapp2.WSGIApplication([
-    ('/', MainHandler),
-    ('/edit', EditorHandler),
-    ('/join', InviteHandler)
-], debug=True)
+@app.route('/<folder>/<path:subpath>')
+def get_static(folder,subpath):
+    if folder in static_folders:
+        return send_from_directory(folder,subpath)
+    else:
+        return "this be a 404", 404
+
+if __name__ == "__main__":
+    app.run()

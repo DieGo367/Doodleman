@@ -1,8 +1,4 @@
-application: doodle-man
-version: 1
-runtime: python27
-api_version: 1
-threadsafe: yes
+runtime: python37
 
 handlers:
 - url: /favicon\.ico
@@ -25,12 +21,5 @@ handlers:
   static_dir: data
 
 - url: .*
-  script: main.app
+  script: auto
   secure: always
-
-libraries:
-- name: jinja2
-  version: latest
-
-- name: webapp2
-  version: "2.5.2"
