@@ -1,13 +1,8 @@
 const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   levels: [],
   start: function() {
-    if (this.levels.length==0) Resources.request("data/roadmap.json",function(data) {
-      try {
-        Game.levels = JSON.parse(data);
-      }
-      catch(e) {
-        console.log("Roadmap couldn't parse");
-      }
+    if (this.levels.length==0) Resources.requestJSON("data/roadmap.json",function(data) {
+      Game.levels = data;
     });
     this.ready = false;
     this.score = 0;

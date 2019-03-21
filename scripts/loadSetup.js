@@ -72,18 +72,13 @@ $(window).on("load",function() {
   },0);
   addEvents();
 
-	Resources.request("res/_list_.json",function(data) {
-    let list = JSON.parse(data);
-		for (var i in list) {
+	Resources.requestJSON("res/_list_.json",function(list) {
+    for (var i in list) {
       Images.loadImage(list[i]);
     }
 	});
-  Resources.request("levels/_list_.json",function(data) {
-    try {
-      Level.list = JSON.parse(data);
-    }
-    catch(e) {
-    }
+  Resources.requestJSON("levels/_list_.json",function(list) {
+    Level.list = list;
   });
 
 	Resources.requestGroup("animations",function(item,name) {
@@ -93,9 +88,8 @@ $(window).on("load",function() {
 		Animation.doInheritance(list);
 	});
 
-  Resources.request("res/sound/_list_.json",function(data) {
-    let list = JSON.parse(data);
-		for (var i in list) {
+  Resources.requestJSON("res/sound/_list_.json",function(list) {
+    for (var i in list) {
       Sound.loadSound(list[i]);
     }
   });
