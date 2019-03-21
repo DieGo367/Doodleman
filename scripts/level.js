@@ -90,7 +90,7 @@ const Level = {
 	makeBackground: function(bg,slot) {
 		if (!bg) return;
 		if (bg.type=="name") {
-			ResourceManager.request("res/"+bg.name,function(data) {
+			Resources.request("res/"+bg.name,function(data) {
 				Images.loadImage(bg.name);
 			});
 			Background.create(slot,bg.name,bg.layer,bg.scale,bg.parallax);
@@ -150,14 +150,14 @@ const Level = {
 	},
 	loadLevel: function(levelName,onLoad,onFail) {
 		canvas.showLoadScreen();
-		ResourceManager.request("levels/"+levelName,function(data) {
+		Resources.request("levels/"+levelName,function(data) {
       let success = Level.load(data);
 			canvas.clearLoadScreen();
 			if (success && typeof onLoad == "function") onLoad();
 			else if (!success && typeof onFail == "function") onFail();
     },function() {
 			canvas.clearLoadScreen();
-			console.log("fail from ResourceManager");
+			console.log("fail from Resources");
 			if (typeof onFail == "function") onFail();
 		});
 	},
@@ -241,7 +241,7 @@ const BlankLevel = clone(Level.level);
 const ActorManager = {
 	actorData: [],
 	init: function() {
-		ResourceManager.request("data/actors.json",function(data) {
+		Resources.request("data/actors.json",function(data) {
 			var rawData = JSON.parse(data);
 			for (var i in rawData) {
 				var id = rawData[i].id;

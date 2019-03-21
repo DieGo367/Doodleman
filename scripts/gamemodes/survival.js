@@ -1,7 +1,7 @@
 const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   levels: [],
   start: function() {
-    if (this.levels.length==0) ResourceManager.request("data/roadmap.json",function(data) {
+    if (this.levels.length==0) Resources.request("data/roadmap.json",function(data) {
       try {
         Game.levels = JSON.parse(data);
       }

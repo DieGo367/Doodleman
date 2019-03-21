@@ -172,7 +172,7 @@ function buildLevelSelectMenu() {
 		G$("PauseMenu").show();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
-  ResourceManager.request("levels/_list_.json", function(data) {
+  Resources.request("levels/_list_.json", function(data) {
 		var levelNames = JSON.parse(data);
 		let grid = [], rightSide = [];
 		for (var i in levelNames) {

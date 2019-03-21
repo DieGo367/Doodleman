@@ -62,7 +62,7 @@ function canvasSetup() {
   canvas.showLoadScreen();
 }
 function loadLoop() {
-	if (ResourceManager.pendingRequests()==0 && Images.areLoaded()) init();
+	if (Resources.pendingRequests()==0 && Images.areLoaded()) init();
 	else window.requestAnimationFrame(loadLoop);
 }
 $(window).on("load",function() {
@@ -72,13 +72,13 @@ $(window).on("load",function() {
   },0);
   addEvents();
 
-	ResourceManager.request("res/_list_.json",function(data) {
+	Resources.request("res/_list_.json",function(data) {
     let list = JSON.parse(data);
 		for (var i in list) {
       Images.loadImage(list[i]);
     }
 	});
-  ResourceManager.request("levels/_list_.json",function(data) {
+  Resources.request("levels/_list_.json",function(data) {
     try {
       Level.list = JSON.parse(data);
     }
@@ -86,20 +86,20 @@ $(window).on("load",function() {
     }
   });
 
-	ResourceManager.requestGroup("animations",function(item,name) {
+	Resources.requestGroup("animations",function(item,name) {
 		Animation.loadSpritesheet(name,item);
 	},
 	function(list,groupName) {
 		Animation.doInheritance(list);
 	});
 
-  ResourceManager.request("res/sound/_list_.json",function(data) {
+  Resources.request("res/sound/_list_.json",function(data) {
     let list = JSON.parse(data);
 		for (var i in list) {
       Sound.loadSound(list[i]);
     }
   });
-  ResourceManager.requestGroup("res/tracks",function(item,name) {
+  Resources.requestGroup("res/tracks",function(item,name) {
     Sound.addTrack(name);
   });
 
