@@ -90,10 +90,8 @@ const Level = {
 	makeBackground: function(bg,slot) {
 		if (!bg) return;
 		if (bg.type=="name") {
-			Resources.request("res/"+bg.name,function(data) {
-				Images.loadImage(bg.name);
-			});
 			Background.create(slot,bg.name,bg.layer,bg.scale,bg.parallax);
+			if (!Images.getImage(bg.name)) return Images.loadImage(bg.name);
 		}
 		else if (bg.raw!="") BackgroundB64.create(slot,bg.raw,bg.layer,bg.scale,bg.parallax);
 	},
@@ -117,7 +115,7 @@ const Level = {
 		this.level = clone(BlankLevel);
 		Camera.reset();
 	},
-	load: function(file,doLog) {
+	load: async function(file,doLog) {
 		if (doLog==void(0)) doLog = true;
 		try {
 			var newLevel = JSON.parse(file);
@@ -132,7 +130,12 @@ const Level = {
 		for (var p in newLevel) this.level[p] = newLevel[p];
 		for (var s in this.level.actors) ActorManager.make(...this.level.actors[s]);
 		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
-		for (var b in this.level.bg) this.makeBackground(this.level.bg[b],b);
+		let imgPromises = [];
+		for (var b in this.level.bg) {
+			let promise = this.makeBackground(this.level.bg[b],b);
+			if (promise) imgPromises.push(promise);
+		}
+		for (var i in imgPromises) await imgPromises[i];
 		Camera.reset();
 		Game.onLevelLoad();
 		if (doLog) console.log("Loaded Level "+this.level.name);
@@ -151,10 +154,14 @@ const Level = {
 	loadLevel: function(levelName,onLoad,onFail) {
 		canvas.showLoadScreen();
 		Resources.request("levels/"+levelName,function(data) {
-      let success = Level.load(data);
-			canvas.clearLoadScreen();
-			if (success && typeof onLoad == "function") onLoad();
-			else if (!success && typeof onFail == "function") onFail();
+			new Promise(function(resolve) {
+				resolve(Level.load(data));
+			}).
+			then(function(success) {
+				canvas.clearLoadScreen();
+				if (success && typeof onLoad == "function") onLoad();
+				else if (!success && typeof onFail == "function") onFail();
+			});
     },function() {
 			canvas.clearLoadScreen();
 			console.log("fail from Resources");

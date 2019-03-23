@@ -11,11 +11,18 @@ const Images = {
 	},
 	loadImage: function(name) {
 		let img = this.imgData[name] = new Image();
-		img.src = "res/"+name;
 		this.loadingCount++;
-		img.onload = function() {
-			Images.loadingCount--;
-		}
+		return new Promise(function(resolve) {
+			img.onload = function() {
+				Images.loadingCount--;
+				resolve(true);
+			}
+			img.onerror = function() {
+				Images.loadingCount--;
+				resolve(false);
+			}
+			img.src = "res/"+name;
+		});
 	},
 	getImage: function(imageName) {
 		let img = this.imgData[imageName];
