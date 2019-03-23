@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import make_response
 from flask import render_template
+from flask import send_file
 from flask import send_from_directory
 app = Flask(__name__)
 
@@ -76,6 +77,10 @@ def get_static(folder,subpath):
         return send_from_directory(folder,subpath)
     else:
         return "this be a 404", 404
+
+@app.route('/favicon.ico')
+def get_ico():
+    return send_file('favicon.ico')
 
 if __name__ == "__main__":
     app.run()
