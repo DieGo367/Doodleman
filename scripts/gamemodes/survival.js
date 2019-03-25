@@ -36,12 +36,14 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       G$("PauseMenu").show();
       G$("Hud").hide();
       G$("DevTools").hide();
+      Tap.ctrlEnabled = false;
     }
     else {
       if (Pointer.focusLayer>0 && !G$("PauseMenu").visible) return CANCEL;
       G$("PauseMenu").hide();
       G$("Hud").show();
       if (devEnabled) G$("DevTools").show();
+      Tap.ctrlEnabled = true;
     }
   },
   onBlur: function() {
