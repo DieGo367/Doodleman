@@ -4,6 +4,7 @@ from flask import render_template
 from flask import send_file
 from flask import send_from_directory
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 scripts = [
   "peer.min.js",
