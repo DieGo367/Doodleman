@@ -426,12 +426,12 @@ class AttackBox extends HurtBox {
 
       var widthVal = this.frames.width[frameIndex];
       if (widthVal==null) widthVal = this.frames.width[0];
-      if (widthVal!=null) this.width = widthVal;
+      if (widthVal!=null) this.width = parseInt(widthVal);
 
       var frameVal = this.frames.x[frameIndex];
       if (frameVal==null) frameVal = this.frames.x[0];
       if (frameVal==null) return ent.x;
-      return ent.x + ent.direction*frameVal;
+      return ent.x + ent.direction*parseInt(frameVal);
     };
     var formulaY = function(ent) {
       var frameIndex = Math.floor(this.frame*this.framerate);
@@ -439,12 +439,12 @@ class AttackBox extends HurtBox {
 
       var heightVal = this.frames.height[frameIndex];
       if (heightVal==null) heightVal = this.frames.height[0];
-      if (heightVal!=null) this.height = heightVal;
+      if (heightVal!=null) this.height = parseInt(heightVal);
 
       var frameVal = this.frames.y[frameIndex];
       if (!frameVal) frameVal = this.frames.y[0];
       if (!frameVal) return ent.y;
-      return ent.y + frameVal;
+      return ent.y + parseInt(frameVal);
     };
     super(x,y,width,height,attacker,damage,duration,formulaX,formulaY);
     this.frames = frames;
