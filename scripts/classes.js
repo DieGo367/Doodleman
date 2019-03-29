@@ -412,13 +412,6 @@ class HurtBox extends Interactable {
   	}
   	else this.remove();
   }
-  remove() {
-  	if (this.attacker&&Entity.has(this.attacker)) {
-  		this.attacker.setAnimation("stand");
-  		this.attacker.attackBox = null;
-  	}
-  	super.remove();
-  }
 
   static onInit() {
     this.prototype.hitBoxStroke = "red";
@@ -469,7 +462,10 @@ class AttackBox extends HurtBox {
     super.update();
   }
   remove() {
-    if (this.attacker!=null) this.attacker.completeAttack();
+    if (this.attacker!=null) {
+      let index = this.attacker.attackBoxes.indexOf(this);
+      if (index!=-1) this.attacker.attackBoxes.splice(index,1);
+    }
     super.remove();
   }
 }
@@ -1362,10 +1358,11 @@ class Entity extends PhysicsBox {
   	this.direction = RIGHT;
   	this.stun = 0;
   	this.invulnerability = 0;
-    this.attackCooldown = 0;
+    this.actionCooldown = 0;
     this.actionLocked = false;
     this.movementLocked = false;
     this.justSpawned = true;
+    this.attackBoxes = [];
   }
   distanceTo(target) {
   	if (typeof target=="object") return Math.abs(this.x-target.x);
@@ -1442,11 +1439,21 @@ class Entity extends PhysicsBox {
   update() {
   	if (this.stun>0) this.stun -= 1;
   	if (this.invulnerability>0) this.invulnerability -= 1;
+    if (this.actionCooldown>0) this.actionCooldown--;
+    if (this.actionTick>-1) {
+      let action = this.constructor.getAction(this.currentAction);
+      this.actionTick++;
+      if (action) {
+        action.callFrameFunc(this,this.actionTick);
+        if (this.actionTick == action.duration) this.completeAction();
+      }
+      else this.actionTick = -1;
+    }
   	super.update();
   }
   respawn() {
   	this.breakConnections();
-    if (this.currentAttack!=null) this.completeAttack();
+    if (this.currentAction!=null) this.completeAction();
     this.animLock = 0;
     this.justSpawned = true;
     this.isGrounded = false;
@@ -1472,7 +1479,7 @@ class Entity extends PhysicsBox {
   		this.held.heldBy = null;
   		this.held = null;
   	}
-  	if (this.attackBox!=null) this.attackBox.remove();
+    for (var i = this.attackBoxes.length-1; i >= 0; i--) this.attackBoxes[i].remove();
   }
   remove() {
   	this.breakConnections();
@@ -1486,73 +1493,79 @@ class Entity extends PhysicsBox {
   	}
   }
 
-  static defineAttack(name,damage,duration,cooldown,lockMovement,lockActions,defyGravity,prep,onHurt,specialFrames,specialFuncs) {
-    // defines an attack and stores it in this class's attack list
-    if (!name) return;
-    if (!this.attacks) this.attacks = [];
-    this.attacks.push({ // default parameters provided as well
-      name: name,
-      damage: damage||0,
-      duration: duration||0,
-      cooldown: cooldown||0,
-      lockMovement: lockMovement||false,
-      lockActions: lockActions||false,
-      defyGravity: defyGravity||false,
-      prep: prep,
-      onHurt: onHurt,
-      specialFrames: specialFrames||[],
-      specialFuncs: specialFuncs||[]
-    });
-  }
-  static getAttack(name) { //returns attack obj from the class's (or parents') list of attack
-    if (!name) return console.log("missing attack: "+name);
-    if (!this.attacks) this.attacks = [];
-    for (var i in this.attacks) {
-      if (this.attacks[i].name==name) return this.attacks[i]; //found attack
+  getHitCount() {
+    let count = 0;
+    for (var i in this.attackBoxes.length) {
+      count += this.attackBoxes[i].hitCount;
     }
-    if (this!=Entity) return this.parent.getAttack(name); //look for attack in parent class
+    return count;
   }
-  activateAttack(name) { //creates attack boxes and sets player states
-    if (this.attackCooldown!=0||this.direction==CENTER||isNaN(this.x)||isNaN(this.y)) return; //don't attack if you can't
-    var attack = this.constructor.getAttack(name);
-    if (attack) { //found valid attack
-      var action = this.sheet.getAnimation(attack.name);
-      if (action&&action.attack) { //found valid attack info from animation sheet
-        if (attack.prep) attack.prep.call(this); //call special code for this attack
-        //make attack box
-        var a = action.attack;
-        var box = this.attackBox = AttackBox.create(a.x[0],a.y[0],a.width,a.height,this,attack.damage,attack.duration,a,action.framerate);
-        //apply extra methods
-        if (attack.onHurt) {
-          box.onHurt = function(victim) {
-            if (typeof this.attackHurtFunc=="function") {
-              this.attackHurtFunc.call(this.attacker,victim);
+
+  static defineAction(name,duration,cooldown,lockMovement,lockActions,defyGravity,prep) {
+    if (!name) return;
+    if (!this.actions) this.actions = {};
+    let action = new Entity.Action(name,duration,cooldown,lockMovement,lockActions,defyGravity,prep);
+    this.actions[name] = action;
+    return action;
+  }
+  static getAction(name) {
+    if (!name) return console.warn("No action specified");
+    if (!this.actions) return console.warn("No actions defined for this class.");
+    let action = this.actions[name];
+    if (action) return action;
+    else if (this!=Entity) return this.parent.getAction(name); // look for action in parent class
+  }
+  runAction(name) {
+    if (this.actionCooldown!=0||this.direction==CENTER||isNaN(this.x)||isNaN(this.y)) return; // any of these conditions prevent actions
+    let action = this.constructor.getAction(name);
+    if (action) { // found valid action
+      let animation = this.sheet.getAnimation(action.name);
+      if (animation) { // found valid animation for action
+        action.callPrep(this); // call special code for this action
+        // make attack boxes, if any
+        if (action.attackBoxes.length>0) {
+          let attacks = animation.attacks;
+          if (attacks) for (var i in action.attackBoxes) {
+            let values = action.attackBoxes[i];
+            if (values) {
+              let attack = attacks[values.index];
+              if (attack) {
+                let box = AttackBox.create(attack.x[0],attack.y[0],attack.width[0],attack.height[0],this,values.damage,action.duration,attack,animation.framerate);
+                if (values.onHurt) {
+                  box.onHurt = function(victim) {
+                    this.actionHurt.call(this.attacker,victim);
+                  }
+                  box.actionHurt = values.onHurt;
+                }
+                this.attackBoxes.push(box);
+              }
+              else console.warn("Couldn't add attack #"+values.index);
             }
           }
-          box.attackHurtFunc = attack.onHurt;
+          else console.warn("Attacks not defined for animation: "+animation.action);
         }
-        if (attack.specialFrames&&attack.specialFuncs) {
-          box.specialFrames = attack.specialFrames;
-          box.specialFuncs = attack.specialFuncs;
-        }
-        //set player states
-        this.attackCooldown = attack.cooldown;
-        if (attack.defyGravity) this.defyGravity = attack.defyGravity;
-        this.actionLocked = attack.lockActions;
-        this.movementLocked = attack.lockMovement;
-        this.currentAttack = attack.name;
-        this.setAnimation(attack.name,null,attack.duration);
+        // set entity states
+        this.actionTick = 0;
+        this.actionCooldown = action.cooldown;
+        if (action.defyGravity) this.defyGravity = action.defyGravity;
+        this.actionLocked = action.lockActions;
+        this.movementLocked = action.lockMovement;
+        this.currentAction = action.name;
+        this.setAnimation(action.name,null,action.duration);
       }
+      else console.warn("Invalid animation: "+name);
     }
+    else console.warn("Invalid action: "+name);
   }
-  completeAttack() { //resets player states back to normal when attack is finished
-    var attack = this.constructor.getAttack(this.currentAttack);
-    if (attack) {
-      if (attack.defyGravity) this.inherit("defyGravity");
+  completeAction() {
+    let action = this.constructor.getAction(this.currentAction);
+    if (action) {
+      if (action.defyGravity) this.inherit("defyGravity");
       this.actionLocked = false;
       this.movementLocked = false;
     }
-    this.currentAttack = null;
+    this.currentAction = null;
+    this.actionTick = -1;
   }
 
   static onInit() {
@@ -1569,7 +1582,36 @@ class Entity extends PhysicsBox {
       collisionType: C_ENT,
       canBeCarried: false
     });
-    this.attacks = [];
+    this.Action = class {
+      constructor(name,duration,cooldown,lockMovement,lockActions,defyGravity,prep) {
+        this.name = name;
+        this.duration = parseInt(duration) || 0;
+        this.cooldown = parseInt(cooldown) || 0;
+        this.lockMovement = !!lockMovement;
+        this.lockActions = !!lockActions;
+        this.defyGravity = !!defyGravity;
+        this.prep = prep;
+        this.frameFuncs = [];
+        this.attackBoxes = [];
+      }
+      onFrame(frameNum,func) {
+        if (typeof func == "function") this.frameFuncs[frameNum] = func;
+        return this;
+      }
+      addAttackBox(index,damage,onHurt) {
+        if (typeof onHurt != "function") onHurt = null;
+        this.attackBoxes.push({index: index, damage: damage, onHurt: onHurt});
+        return this;
+      }
+      callPrep(caller) {
+        if (typeof this.prep == "function") this.prep.call(caller);
+      }
+      callFrameFunc(caller,frameNum) {
+        let f = this.frameFuncs[frameNum];
+        if (typeof f == "function") f.call(caller);
+      }
+    }
+    this.actions = {};
   }
 }
 initClass(Entity,PhysicsBox);
@@ -1583,14 +1625,13 @@ class Player extends Entity {
     this.alwaysLoaded = true;
     if (direction!=void(0)) this.direction = direction;
     this.spawnDirection = this.direction;
-  	this.slot = slot; //new for players
+    this.slot = slot; //new for players
   	if (slot!=null) Player.setSlot(slot,this);
     if (Player.hasHealthCached(slot)) {
       let cache = Player.takeHealthCache(slot);
       this.health = cache[0];
       this.maxHealth = cache[1];
     }
-  	this.attackCooldown = 0;
   	this.attackHeld = 0;
     this.canUpAirAttack = true;
     this.hadDied = false;
@@ -1619,7 +1660,7 @@ class Player extends Entity {
 
   handleControls(pad) {
     if (pad.pressed("moveLeft")&&!pad.pressed("moveRight")&&!this.movementLocked) {
-      if (this.attackBox!=null&&this.direction==RIGHT) this.velX = 0;
+      if (this.attackBoxes.length>0&&this.direction==RIGHT) this.velX = 0;
       else if (this.heldBy!=null) this.direction = LEFT;
       else this.move(4.5,LEFT);
     }
@@ -1628,7 +1669,7 @@ class Player extends Entity {
       this.jump();
     }
     if (pad.pressed("moveRight")&&!pad.pressed("moveLeft")&&!this.movementLocked) {
-      if (this.attackBox!=null&&this.direction==LEFT) this.velX = 0;
+      if (this.attackBoxes.length>0&&this.direction==LEFT) this.velX = 0;
       else if (this.heldBy!=null) this.direction = RIGHT;
       else this.move(4.5,RIGHT);
     }
@@ -1644,14 +1685,14 @@ class Player extends Entity {
     if (pad.ready("attack")) {
       if (this.held==null) {
         if (pad.pressed("lookUp",0.8)||pad.ready("jump")) {
-          if (this.isGrounded) this.activateAttack("attack-upward");
-          else if (this.canUpAirAttack) this.activateAttack("attack-upward-air");
+          if (this.isGrounded) this.runAction("attack-upward");
+          else if (this.canUpAirAttack) this.runAction("attack-upward-air");
         }
-        else if (pad.pressed("crouch",0.8)&&!this.isGrounded) this.activateAttack("attack-down-stab");
-        else this.activateAttack("attack");
+        else if (pad.pressed("crouch",0.8)&&!this.isGrounded) this.runAction("attack-down-stab");
+        else this.runAction("attack");
         pad.use("attack");
       }
-      else if (!this.inLiftAnim) {
+      else if (this.currentAction!="lift") {
         if (pad.pressed("crouch",0.8)&&this.isGrounded) this.dropHeldObject();
         else this.throwHeldObject();
         pad.use("attack");
@@ -1660,8 +1701,8 @@ class Player extends Entity {
     else if (pad.pressed("attack")) this.attackHeld += 1;
     else {
       if (this.attackHeld>=chargeAttackReq&&this.held==null) {
-        if (this.ducking) this.activateAttack("attack-upward");
-        else this.activateAttack(this.isGrounded?"attack-charge":"attack-charge-air");
+        if (this.ducking) this.runAction("attack-upward");
+        else this.runAction(this.isGrounded?"attack-charge":"attack-charge-air");
       }
       this.attackHeld = 0;
     }
@@ -1687,6 +1728,7 @@ class Player extends Entity {
   }
 
   liftObject() {
+    if (this.actionCooldown!=0) return;
     var objs = PhysicsBox.getLoaded();
     for (var i in objs) {
       var box = objs[i];
@@ -1696,11 +1738,8 @@ class Player extends Entity {
         this.held = box;
         box.heldBy = this;
         Collision.findPair(this,box).refresh();
-        this.setAnimation("lift",null,15);
-        this.defyGravity = true;
-        this.movementLocked = true;
         this.velY = 0;
-        this.inLiftAnim = true;
+        this.runAction("lift");
         break;
       }
     }
@@ -1774,38 +1813,9 @@ class Player extends Entity {
 
     if (this.justSpawned) {
       this.invulnerability = 3;
-      if (this.collisionType!=C_NONE) {
-        this.movementLocked = true;
-        this.defyGravity = true;
-        this.collisionType = C_NONE;
-        this.setAnimation("drawing",null,"full");
-        this.attackCooldown = Infinity;
-      }
-      else if (this.animLock==0) {
-        this.movementLocked = false;
-        this.inherit("defyGravity")
-        this.inherit("collisionType");
-        Collision.removeAllPairsWith(this);
-        this.justSpawned = false;
-        if (this.hadDied) {
-          this.invulnerability = 60;
-          this.hadDied = false;
-        }
-        else this.invulnerability = 0;
-        this.attackCooldown = 0;
-      }
+      if (this.animLock==0) this.runAction("drawing");
     }
-
-  	if (this.attackCooldown>0) this.attackCooldown -= 1;
-
     if (this.isGrounded) this.canUpAirAttack = true;
-
-    //return player state to normal when lift animation is complete
-    if (this.inLiftAnim&&(this.animCurrent!="lift")) {
-      this.inLiftAnim = false;
-      this.defyGravity = false;
-      this.movementLocked = false;
-    }
 
     //if not stunned, run controls
   	if (this.stun==0&&!this.usingEntrance()) this.handleControls(controller);
@@ -1972,7 +1982,6 @@ class Player extends Entity {
       respawnsOnDeath: true,
       multiJump: false
     });
-    this.attacks = [];
     this.slots = [null,null,null,null];
     this.keyIds = [0,1,null,null];
     this.gpIds = [null,null,null,null];
@@ -1981,49 +1990,65 @@ class Player extends Entity {
     this.lives = [0,0,0,0];
     this.healthCache = [null,null,null,null];
     this.maxHealthCache = [null,null,null,null];
-    this.defineAttack("attack",1,20,30,null,null,null,function() {
-      Sound.play("sword-swipe.ogg");
+    this.actions = {};
+    this.defineAction("drawing",35,35,true,true,true,function() {
+      this.collisionType = C_NONE;
+    }).
+    onFrame(35,function() {
+      this.inherit("collisionType");
+      Collision.removeAllPairsWith(this);
+      this.justSpawned = false;
+      if (this.hadDied) {
+        this.invulnerability = 60;
+        this.hadDied = false;
+      }
+      else this.invulnerability = 0;
     });
-    this.defineAttack("attack-charge",2,20,30,true,true,true,function() {
+    this.defineAction("lift",15,15,true,false,true);
+    this.defineAction("attack",20,30,false,false,false,function() {
+      Sound.play("sword-swipe.ogg");
+    }).addAttackBox(0,1);
+    this.defineAction("attack-charge",20,30,true,true,true,function() {
       this.move(10);
       this.velY = 0;
       Sound.play("sword-swipe.ogg");
-    });
-    this.defineAttack("attack-charge-air",2,20,30,true,true,true,function() {
+    }).addAttackBox(0,2);
+    this.defineAction("attack-charge-air",20,30,true,true,true,function() {
       this.move(10);
       this.velY = 0;
       Sound.play("sword-swipe.ogg");
-    });
-    this.defineAttack("attack-upward",1,20,30,true,null,null,function() {
+    }).addAttackBox(0,2);
+    this.defineAction("attack-upward",20,30,true,null,null,function() {
       Sound.play("sword-swipe.ogg");
-    });
-    this.defineAttack("attack-upward-air",1,20,30,false,true,true,function() {
+    }).addAttackBox(0,1);
+    this.defineAction("attack-upward-air",20,30,false,true,true,function() {
       this.velY = -6;
       this.move(5);
       this.canUpAirAttack = false;
       Sound.play("sword-swipe.ogg");
-    },
-    function() { // if hurt something, can up-attack again
+    }).
+    addAttackBox(0,1,function() { // if hurt something, can up-attack again
       this.canUpAirAttack = true;
-      this.attackCooldown = this.animLock+2;
+      this.actionCooldown = this.animLock+2;
     });
-    this.defineAttack("attack-down-stab",1,30,60,true,true,false,function() {
+    this.defineAction("attack-down-stab",30,60,true,true,false,function() {
       this.velY = -7;
-    },null,
-    [4,11],[function() {
+    }).addAttackBox(0,1).
+    onFrame(5,function() {
       this.velY = 5;
       this.stun = 40;
       Sound.play("sword-swipe.ogg");
-    },
-    function() {
+    }).
+    onFrame(12,function() {
       if (!this.ground&&!this.lineGround&&this.y!=Level.level.height) {
-        this.attackBox.time++;
-        this.attackBox.frame--;
+        this.attackBoxes[0].time++;
+        this.attackBoxes[0].frame--;
         this.animFrame--;
         this.animLock++;
-        this.attackCooldown++;
+        this.actionCooldown++;
+        this.actionTick--;
       }
-    }]);
+    });
   }
 }
 initClass(Player,Entity);
@@ -2033,7 +2058,6 @@ class Enemy extends Entity {
     super(x,y,width,height,duckHeight,health,sheet);
     this.canBeCarried = true; //overwrites
     this.thrownDamage = 1;
-  	this.attackCooldown = 0;//also in player
   	this.target = null;//new to enemy
   	this.post = null;
   	this.paceTarget = null;
@@ -2098,7 +2122,7 @@ class Enemy extends Entity {
       }
       else {
         //attack
-        if (this.target.intersect(frontBox)&&this.stun==0) this.activateAttack("attack");
+        if (this.target.intersect(frontBox)&&this.stun==0) this.runAction("attack");
       }
     }
     //forget
@@ -2111,7 +2135,6 @@ class Enemy extends Entity {
   }
   chooseAnimation() {
     if (this.justSpawned) this.setAnimation("invisible");
-    else if (this.attackBox!=null) this.setAnimation("attack");
   	else if (!this.isGrounded&&this.heldBy==null) this.setAnimation("jump");
   	else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
   	else this.setAnimation("stand");
@@ -2225,11 +2248,11 @@ class Enemy extends Entity {
 
   static onInit() {
     this.prototype.particleColor = "#6a00d8";
-    this.attacks = [];
-    this.defineAttack("attack",1,18,30,false,false,false,function() {
+    this.actions = {};
+    this.defineAction("attack",18,30,false,false,false,function() {
       this.stun = 30;
       Sound.play("punch.ogg");
-    });
+    }).addAttackBox(0,1);
   }
 }
 initClass(Enemy,Entity);

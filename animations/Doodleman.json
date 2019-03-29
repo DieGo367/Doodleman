@@ -62,12 +62,14 @@
       "framerate": 0.2,
       "frames": [ 0, 1, 2, 3 ],
       "alphas": [ 1 ],
-      "attack": {
-        "x": [ 18.5 ],
-        "y": [ 0 ],
-        "width": [ 18 ],
-        "height": [ 33 ]
-      }
+      "attacks": [
+        {
+          "x": [ 18.5 ],
+          "y": [ 0 ],
+          "width": [ 18 ],
+          "height": [ 33 ]
+        }
+      ]
     },
     {
       "action": "lift",
@@ -166,12 +168,14 @@
       "framerate": 0.2,
       "frames": [ 0, 1, 2, 3 ],
       "alphas": [ 1 ],
-      "attack": {
-        "x": [ 26.5 ],
-        "y": [ -11 ],
-        "width": [ 34 ],
-        "height": [ 22 ]
-      }
+      "attacks": [
+        {
+          "x": [ 26.5 ],
+          "y": [ -11 ],
+          "width": [ 34 ],
+          "height": [ 22 ]
+        }
+      ]
     },
     {
       "action": "attack-charge-air",
@@ -180,12 +184,14 @@
       "framerate": 0.2,
       "frames": [ 0, 1, 2, 3 ],
       "alphas": [ 1 ],
-      "attack": {
-        "x": [ 26.5 ],
-        "y": [ -11 ],
-        "width": [ 34 ],
-        "height": [ 22 ]
-      }
+      "attacks": [
+        {
+          "x": [ 26.5 ],
+          "y": [ -11 ],
+          "width": [ 34 ],
+          "height": [ 22 ]
+        }
+      ]
     },
     {
       "action": "attack-upward",
@@ -194,12 +200,14 @@
       "framerate": 0.2,
       "frames": [ 0, 1, 2, 3 ],
       "alphas": [ 1 ],
-      "attack": {
-        "x": [ 0 ],
-        "y": [ -26 ],
-        "width": [ 73 ],
-        "height": [ 22 ]
-      }
+      "attacks": [
+        {
+          "x": [ 0 ],
+          "y": [ -26 ],
+          "width": [ 73 ],
+          "height": [ 22 ]
+        }
+      ]
     },
     {
       "action": "attack-upward-air",
@@ -208,12 +216,14 @@
       "framerate": 0.2,
       "frames": [ 0, 3, 2, 1 ],
       "alphas": [ 1 ],
-      "attack": {
-        "x": [ 22 ],
-        "y": [ -9 ],
-        "width": [ 25 ],
-        "height": [ 40 ]
-      }
+      "attacks": [
+        {
+          "x": [ 22 ],
+          "y": [ -9 ],
+          "width": [ 25 ],
+          "height": [ 40 ]
+        }
+      ]
     },
     {
       "action": "attack-down-stab",
@@ -222,12 +232,14 @@
       "framerate": 0.2,
       "frames": [ 0, 0, 1, 1, 2, 3 ],
       "alphas": [ 1 ],
-      "attack": {
-        "x": [ 0, 0, 7.5, 7.5, 7.5, 0 ],
-        "y": [ 0, 0, 5, 5, 5, 0 ],
-        "width": [ 0, 0, 34, 34, 34, 0 ],
-        "height": [ 0, 0, 40, 40, 40, 0 ]
-      }
+      "attacks": [
+        {
+          "x": [ 0, 0, 7.5, 7.5, 7.5, 0 ],
+          "y": [ 0, 0, 5, 5, 5, 0 ],
+          "width": [ 0, 0, 34, 34, 34, 0 ],
+          "height": [ 0, 0, 40, 40, 40, 0 ]
+        }
+      ]
     },
     {
       "action": "exit-through-door",

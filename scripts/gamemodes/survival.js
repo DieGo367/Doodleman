@@ -61,7 +61,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   onHurt: function(ent,attacker) {
     if (ent instanceof Player && attacker instanceof Player) return CANCEL;
     if (ent instanceof Enemy && attacker instanceof Player) {
-      if (attacker.attackBox.hitCount>1) this.addScore(1);
+      if (attacker.getHitCount()>1) this.addScore(1);
     }
   },
   onDeath: function(ent,attacker) {
