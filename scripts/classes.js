@@ -1453,7 +1453,7 @@ class Entity extends PhysicsBox {
   }
   respawn() {
   	this.breakConnections();
-    if (this.currentAction!=null) this.completeAction();
+    if (this.currentAction!=null) this.cancelAction();
     this.animLock = 0;
     this.justSpawned = true;
     this.isGrounded = false;
@@ -1566,6 +1566,12 @@ class Entity extends PhysicsBox {
     }
     this.currentAction = null;
     this.actionTick = -1;
+  }
+  cancelAction() {
+    if (this.currentAction) this.completeAction();
+    for (var i = this.attackBoxes.length-1; i >= 0; i--) this.attackBoxes[i].remove();
+    this.animLock = 0;
+    this.actionCooldown = 0;
   }
 
   static onInit() {
