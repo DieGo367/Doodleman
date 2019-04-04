@@ -1604,6 +1604,12 @@ class Entity extends PhysicsBox {
         if (typeof func == "function") this.frameFuncs[frameNum] = func;
         return this;
       }
+      onFrames(frameStart,frameEnd,func) {
+        for (var i = frameStart; i <= frameEnd; i++) {
+          this.onFrame(i,func);
+        }
+        return this;
+      }
       addAttackBox(index,damage,onHurt) {
         if (typeof onHurt != "function") onHurt = null;
         this.attackBoxes.push({index: index, damage: damage, onHurt: onHurt});
