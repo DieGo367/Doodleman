@@ -246,6 +246,7 @@ const Camera = {
 	zoom: 1,
 	requestedZoom: 1,
 	centerPlayer: null,
+	controllable: false,
 	setX: function(px) {
 		this.x = Math.floor(px);
 	},
@@ -315,6 +316,7 @@ const Camera = {
 		this.approachY();
 	},
 	update: function() {
+		if (Camera.controllable) return;
 		var allP = Player.getAll();
 		if (allP.length>0) {
 			var target = averageCoords(allP);
@@ -989,16 +991,22 @@ function doGlobalControls(controller) {
 			var code = prompt("Run code snippet:");
 			eval(code);
 		}
-		if (controller.ready("enableFrameByFrame")) {
-			setFrameByFrame(!frameByFrame);
-			controller.use("enableFrameByFrame");
-		}
-		if (frameByFrame) {
-			if (controller.ready("nextFrame")) {
-				paused = false;
-				controller.use("nextFrame");
+		if (devEnabled) {
+			if (controller.ready("enableFrameByFrame")) {
+				setFrameByFrame(!frameByFrame);
+				controller.use("enableFrameByFrame");
 			}
-			else paused = true;
+			if (frameByFrame) {
+				if (controller.ready("nextFrame")) {
+					paused = false;
+					controller.use("nextFrame");
+				}
+				else paused = true;
+			}
+			if (controller.ready("enableCamera")) {
+				Camera.controllable = !Camera.controllable;
+				controller.use("enableCamera");
+			}
 		}
 	}
 	if (controller.ready("showInfo")) {
@@ -1009,7 +1017,7 @@ function doGlobalControls(controller) {
 	}
 	else {
 		if (!multiplayer&&controller.ready("respawn")) { PhysicsBox.callForAll("respawn"); controller.use("respawn"); }
-		if ((devEnabled||Game.mode==GAME_EDITOR)&&controller.type==KEYBOARD&&Pointer.focusLayer==0) {
+		if (((devEnabled&&Camera.controllable)||Game.mode==GAME_EDITOR)&&controller.type==KEYBOARD&&Pointer.focusLayer==0) {
 			if (controller.pressed("camLeft")) Camera.x -= 5;
 			if (controller.pressed("camRight")) Camera.x += 5;
 			if (controller.pressed("camDown")) Camera.y += 5;
