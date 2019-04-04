@@ -2,7 +2,7 @@
 var canvas, c; //canvas and context
 var interval, gameSpeed = 50/3;
 var pixelDensity = 1, heightScale, widthScale;
-var paused = false, pausedBy, focused = true, fullScreen = false, fullScreenChanging = false;
+var paused = false, pausedBy, focused = true, fullScreen = false, fullScreenChanging = false, frameByFrame = false;
 var viewLock = false;
 var gameMode = 0, multiplayer = false, clickSpawn = false;
 var globalKeyboard;
@@ -467,6 +467,7 @@ var fontInputType = Font.copy(fontInput,{color:"yellow"});
 var fontInputDesc = Font.copy(fontInput,{color:"white"});
 var fontHudScore = new Font("Fredoka One",30,false,"yellow").setStroke("black",6);
 var fontDebug10 = new Font("Consolas",10,false,"black");
+var fontFrameByFrame = Font.copy(fontDebug10,{color:"blue", size: 12});
 var fontPlayerHud = new Font("Fredoka One",20,false,"black").setStroke("white",1.5);
 const DrawableClasses = [];
 DrawableClasses.forAll = function(method) {
@@ -926,6 +927,7 @@ function drawGame() {
 			for (var i in textGroup) c.fillText(textGroup[i],10,textY+(14*i));
 		}
 	}
+	if (frameByFrame) fontFrameByFrame.draw("Frame-By-Frame Enabled",WIDTH/2,15,null,CENTER);
 
 	//normalPixels
 	c.restore();
@@ -962,6 +964,14 @@ function pauseGame(pause,player) {
 	}
 }
 
+function setFrameByFrame(bool) {
+	frameByFrame = bool;
+	if (bool) {
+		paused = true; //don't trigger the normal stuff
+	}
+	else pauseGame(false);
+}
+
 function doGlobalControls(controller) {
 	if (controller.ready("pause")) {
 		var slot = -1;
@@ -978,6 +988,17 @@ function doGlobalControls(controller) {
 			controller.use("snippet")
 			var code = prompt("Run code snippet:");
 			eval(code);
+		}
+		if (controller.ready("enableFrameByFrame")) {
+			setFrameByFrame(!frameByFrame);
+			controller.use("enableFrameByFrame");
+		}
+		if (frameByFrame) {
+			if (controller.ready("nextFrame")) {
+				paused = false;
+				controller.use("nextFrame");
+			}
+			else paused = true;
 		}
 	}
 	if (controller.ready("showInfo")) {
