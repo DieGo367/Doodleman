@@ -764,6 +764,7 @@ class PhysicsBox extends Box {
     //prepare values for collision detection
   	if (this.defyPhysics||this.heldBy) return;
     //clear values relating to ground and side detection
+    this.wasGrounded = this.isGrounded;
     this.isGrounded = false;
     this.cSidesPrev = this.cSides;
     this.cSides = {u:0,r:0,d:0,l:0};
@@ -2070,6 +2071,7 @@ class Enemy extends Entity {
     super(x,y,width,height,duckHeight,health,sheet);
     this.canBeCarried = true; //overwrites
     this.thrownDamage = 1;
+    this.direction = LEFT;
   	this.target = null;//new to enemy
   	this.post = null;
   	this.paceTarget = null;
@@ -2082,11 +2084,26 @@ class Enemy extends Entity {
     Iterates over all loaded boxes and lines, and runs tests on them.
     Returns an object that contains the results of both tests.
     First test: to see if there is something intersects the blockBox,
-      indicating that it is obstructing the Enemy
+      indicating that it is obstructing the Enemy. This includes solid/kill screen edges
     Second test: custom, defined by parameters
     If at any point the first test succeeds, the results are returned immediately,
       regardless of whether or not the second test has passed yet (will get false negatives)
     */
+    // Check for solid screen edges first
+    let edge = Level.level.edge;
+    if (edge.left == EDGE_SOLID || edge.left == EDGE_KILL) {
+      if (blockBox.leftX() <= 0) return {blocked: true, custom: false};
+    }
+    else if (edge.right == EDGE_SOLID || edge.right == EDGE_KILL) {
+      if (blockBox.rightX() >= Level.level.width) return {blocked: true, custom: false};
+    }
+    else if (edge.top == EDGE_SOLID || edge.top == EDGE_KILL) {
+      if (blockBox.topY() <= 0) return {blocked: true, custom: false};
+    }
+    else if (edge.bottom == EDGE_SOLID || edge.bottom == EDGE_KILL) {
+      if (blockBox.bottomY() >= Level.level.height) return {blocked: true, custom: false};
+    }
+    // now run the actual test
     if (!ignoreUIDs) ignoreUIDs = {};
     let customSuccess = false;
     let boxes = PhysicsBox.getLoaded();
@@ -2107,6 +2124,16 @@ class Enemy extends Entity {
     }
     return {blocked: false, custom: customSuccess};
   }
+  walkingTest(frontBox,groundBox) {
+    let test = this.levelTest(frontBox,null,function(box) {
+      return box.intersect(groundBox);
+    },
+    function(line) {
+      if (line.direction==LINE_UP) return line.intersect(groundBox);
+      else return false;
+    });
+    return !test.blocked&&(test.custom || groundBox.y >= Level.level.height);
+  }
 
   handleTarget() {
     this.faceTo(this.target);
@@ -2118,7 +2145,7 @@ class Enemy extends Entity {
       let searchUp = this.target.y<this.topY()-10;
       if (dist>30&&this.stun==0) {
         // follow
-        this.move(2.5);
+        if (!this.movementLocked) this.move(2.5);
         // jump
         if (this.isGrounded) {
           let ignores = {};
@@ -2151,7 +2178,7 @@ class Enemy extends Entity {
   	else if (this.velX!=0&&this.heldBy==null) this.setAnimation("run");
   	else this.setAnimation("stand");
   }
-  doRandomPacing() {
+  neutralBehavior() {
     if (this.standbyTick>=240) {
       this.paceTarget = this.post+Math.floor(25+Math.round(Math.random()*40)+1)*(Math.random()<0.5? -1:1);
       if (this.paceTarget<0||this.paceTarget>Level.level.width) this.paceTarget = this.post;
@@ -2163,15 +2190,7 @@ class Enemy extends Entity {
       if (this.stun==0) {
         let frontBox = new Box(this.calcXPosInFront(1),this.y-1,2,this.height-2);
         let groundBox = new Box(this.calcXPosInFront(0.8),this.y+1,1.5,2);
-
-        let test = this.levelTest(frontBox,{},function(box) {
-          return box.intersect(groundBox);
-        },
-        function(line) {
-          if (line.direction==LINE_UP) return line.intersect(groundBox);
-          else return false;
-        });
-        if (!test.blocked&&test.custom) this.move(1.5);
+        if (this.walkingTest(frontBox,groundBox)) this.move(1.5);
       }
     }
     else this.paceTarget = null;
@@ -2214,15 +2233,13 @@ class Enemy extends Entity {
   	else {
       //counters
   		this.exclaim -= 1;
-  		if (this.attackCooldown>0) this.attackCooldown -= 1;
-
       //choose which behavior to use based on whether or not target is around
   		if (this.target!=null) {
   			if (!PhysicsBox.has(this.target)) this.target = null; //lost target
   			else this.handleTarget();
   		}
   		else {
-        this.doRandomPacing();
+        this.neutralBehavior();
         this.findPlayers();
       }
   	}
@@ -2275,6 +2292,65 @@ class PaintMinion extends Enemy {
   }
 }
 initClass(PaintMinion,Enemy);
+
+class PaintBlob extends Enemy {
+  constructor(x,y) {
+    super(x,y,26,22,1,"PaintBlob.json");
+    this.idleTick = 0;
+  }
+  update() {
+    super.update();
+    if (!this.wasGrounded && this.isGrounded) {
+      this.cancelAction();
+      this.runAction("land");
+    }
+
+  }
+  move(vel,dir) {
+    if (this.isGrounded && !this.currentAction) {
+      super.move(vel,dir);
+      this.cancelAction();
+      this.runAction("hop");
+    }
+  }
+  jump() {
+    if (!this.currentAction) super.jump();
+  }
+  neutralBehavior() {
+    if (this.stun==0) {
+      if (this.idleTick==0) {
+        let frontBox = new Box(this.calcXPosInFront(1),this.y-1,2,this.height-2);
+        let groundBox = new Box(this.calcXPosInFront(0.8),this.y+1,1.5,2);
+        if (this.walkingTest(frontBox,groundBox) && !this.movementLocked) this.move(1.5);
+        // else if (this.direction==LEFT) this.direction = RIGHT;
+        // else this.direction = LEFT;
+        else this.direction *= -1;
+        this.idleTick = 120;
+      }
+      else this.idleTick--;
+    }
+  }
+  chooseAnimation() {
+    if (this.justSpawned) this.setAnimation("invisible");
+    else if (!this.isGrounded) this.setAnimation("fall");
+  	else this.setAnimation("stand");
+  }
+  static onInit() {
+    this.actions = {};
+    this.defineAction("hop",20,20,true,false,false).onFrame(2,function() {
+      this.velY -= 8;
+      this.hopVelX = this.velX;
+    }).onFrames(3,20,function() { this.velX = this.hopVelX });
+    this.defineAction("land",10,10,true,true,false);
+    let spray = function() {
+      Particle.generate(this.x,this.y,0,30,4,10,false,this.particleColor,-90,90,10,2,false);
+    };
+    this.defineAction("attack",75,100,true,true,false).onFrame(75,function() {
+      this.stun = 10;
+    }).onFrame(15,spray).onFrame(60,spray).addAttackBox(0,1).addAttackBox(1,1);
+  }
+}
+initClass(PaintBlob,Enemy);
 
 class Skeltal extends Enemy {
   constructor(x,y) {

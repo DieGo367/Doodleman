@@ -14,6 +14,12 @@
     "valueNames": ["x","y"]
   },
   {
+    "id": 11,
+    "class": "PaintBlob",
+    "properties": ["val0","val1"],
+    "valueNames": ["x", "y"]
+  },
+  {
     "id": 20,
     "class": "MovingPlatform",
     "properties": [
