@@ -633,7 +633,7 @@ class Door extends Entrance {
       this.obj.defyGravity = false;
       this.obj.collisionType = C_ENT;
       Collision.removeAllPairsWith(this.obj);
-      this.obj.invulnerability = 0;
+      this.obj.forcedInvuln = false;
     }
     super.forget();
   }
@@ -645,11 +645,11 @@ class Door extends Entrance {
     player.velY = 0;
     player.defyGravity = true;
     player.collisionType = C_NONE;
-    player.invulnerability = 3;
+    player.forcedInvuln = true;
     player.faceTo(this);
   }
   doExitSteps() {
-    this.obj.invulnerability = 3;
+    this.obj.forcedInvuln = true;
     switch(this.exitStep) {
       case 1:
         if (this.animCurrent=="open") this.exitStep++;
@@ -680,10 +680,10 @@ class Door extends Entrance {
     player.velX = player.velY = 0;
     player.defyGravity = true;
     player.collisionType = C_NONE;
-    player.invulnerability = 3;
+    player.forcedInvuln = true;
   }
   doEnterSteps() {
-    this.obj.invulnerability = 3;
+    this.obj.forcedInvuln = true;
     switch(this.enterStep) {
       case 1:
         if (this.animCurrent=="open") {
@@ -1381,7 +1381,8 @@ class Entity extends PhysicsBox {
   	this.sheet = Animation.getSpritesheet(sheet);
   	this.direction = RIGHT;
   	this.stun = 0;
-  	this.invulnerability = 0;
+    this.iframes = 0;
+    this.forcedInvuln = false;
     this.actionCooldown = 0;
     this.actionLocked = false;
     this.movementLocked = false;
@@ -1432,7 +1433,7 @@ class Entity extends PhysicsBox {
   	this.height = this.ducking?this.duckHeight:this.fullHeight;
   }
   hurt(damage,attacker) {
-  	if (this.invulnerability>0) return;
+  	if (this.isInvuln()) return;
     if (Game.onHurt(this,attacker,damage)==CANCEL) return;
   	Particle.generate(this.x,this.midY(),0,8,4,10,true,this.particleColor||"red",0,360,5,0);
     Sound.play("hurt.ogg");
@@ -1450,7 +1451,7 @@ class Entity extends PhysicsBox {
       Collision.requestRefresh(this,attacker,2);
   		if (this instanceof Player) {
   			this.stun = 5;
-  			this.invulnerability = 60;
+  			this.iframes = 60;
   		}
   		else this.stun = 60;
   	}
@@ -1461,8 +1462,8 @@ class Entity extends PhysicsBox {
   }
 
   update() {
-  	if (this.stun>0) this.stun -= 1;
-  	if (this.invulnerability>0) this.invulnerability -= 1;
+  	if (this.stun>0) this.stun--;
+  	if (this.iframes>0) this.iframes--;
     if (this.actionCooldown>0) this.actionCooldown--;
     if (this.actionTick>-1) {
       let action = this.constructor.getAction(this.currentAction);
@@ -1523,6 +1524,9 @@ class Entity extends PhysicsBox {
       count += this.attackBoxes[i].hitCount;
     }
     return count;
+  }
+  isInvuln() {
+    return this.iframes>0 || this.forcedInvuln;
   }
 
   static defineAction(name,duration,cooldown,lockMovement,lockActions,defyGravity,prep) {
@@ -1602,7 +1606,7 @@ class Entity extends PhysicsBox {
     Animation.applyToClass(this);
     this.modifyPrototype({
       draw: function(preventAnimTick) {
-        if (this.invulnerability%2==1) return;
+        if (this.iframes%2==1) return;
         else Animation.protoDraw.call(this,preventAnimTick);
       },
       drawLayer: 1,
@@ -1847,10 +1851,7 @@ class Player extends Entity {
       console.log("missing controller");
     }
 
-    if (this.justSpawned) {
-      this.invulnerability = 3;
-      if (this.animLock==0) this.runAction("drawing");
-    }
+    if (this.justSpawned&&!this.currentAction) this.runAction("drawing");
     if (this.isGrounded) this.canUpAirAttack = true;
 
     //if not stunned, run controls
@@ -2029,16 +2030,17 @@ class Player extends Entity {
     this.actions = {};
     this.defineAction("drawing",35,35,true,true,true,function() {
       this.collisionType = C_NONE;
+      this.forcedInvuln = true;
     }).
     onFrame(35,function() {
       this.inherit("collisionType");
       Collision.removeAllPairsWith(this);
       this.justSpawned = false;
       if (this.hadDied) {
-        this.invulnerability = 60;
+        this.iframes = 60;
         this.hadDied = false;
       }
-      else this.invulnerability = 0;
+      this.forcedInvuln = false;
     });
     this.defineAction("lift",15,15,true,false,true);
     this.defineAction("attack",20,30,false,false,false,function() {
