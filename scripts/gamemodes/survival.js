@@ -174,7 +174,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   },
 
   waveReward: function() {
-    gameAlert("Wave "+(this.wave+this.surplusWave+1)+" complete!",120);
+    gameAlert("Wave "+(this.wave+this.surplusWave)+" complete!",120);
     PlusHeart.create(Level.level.width/2,Level.level.height/2,1);
     Timer.wait(120,function() {
       Game.spawnStep();
@@ -187,10 +187,13 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     }
     else MaxHeart.create(Level.level.width/2,Level.level.height/2);
     this.scoreDelta = 0;
-    Timer.wait(120,function() {
-      Player.cacheAllHealth();
-      Level.loadLevel(Game.getLevel().filename);
-    });
+    let marker = Marker.find("survival_exit_door");
+    if (!marker) marker = Player.getSlot(0) || {x:0,y:0};
+    Door.create(marker.x,marker.y,99,99,true,false,Game.getLevel().filename);
+    // Timer.wait(120,function() {
+    //   Player.cacheAllHealth();
+    //   Level.loadLevel(Game.getLevel().filename);
+    // });
   },
   stealthBonus: function() {
     let kills = this.stealthKills;

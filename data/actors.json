@@ -8,6 +8,12 @@
     "valueNames": ["x","y","#playerSlot","@direction:LEFT,RIGHT"]
   },
   {
+    "id": 1,
+    "class": "Marker",
+    "properties": ["val0","val1","val2"],
+    "valueNames": ["x","y","name"]
+  },
+  {
     "id": 10,
     "class": "PaintMinion",
     "properties": ["val0","val1"],

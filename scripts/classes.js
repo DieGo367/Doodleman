@@ -348,6 +348,28 @@ class Box extends _c_ {
 }
 initClass(Box,{drawable: true, listType: "uid"});
 
+class Marker extends Box {
+  constructor(x,y,name) {
+    super(x,y,10,10);
+    this.name = name;
+  }
+  drawDebug() {
+    c.fillStyle = "gray";
+    c.beginPath();
+  	c.arc(this.x,this.y,4,0,2*Math.PI);
+  	c.fill();
+    Font.copy(fontDebug10,{color:"yellow"}).draw(this.name,this.x,this.y,null,CENTER);
+  }
+  static find(name) {
+    let all = this.getAll();
+    for (var i in all) {
+      if (all[i].name==name) return all[i];
+    }
+    return null;
+  }
+}
+initClass(Marker,Box);
+
 class Interactable extends Box {
   constructor(x,y,width,height,gfx,targetClass) {
     super(x,y,width,height,gfx);
@@ -538,6 +560,7 @@ class Entrance extends Interactable {
         let dest = this.destination, cls = this.targetClass;
         let pSlot = obj.slot;
         let failEntr = this;
+        Player.cacheAllHealth();
         Level.loadLevel(this.destLevel,function() {
           dest = Entrance.findEntrance(dest,cls);
           let p = Player.getSlot(pSlot);
