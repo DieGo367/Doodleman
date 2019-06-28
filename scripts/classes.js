@@ -367,6 +367,14 @@ class Marker extends Box {
     }
     return null;
   }
+  static findAll(name) {
+    let all = this.getAll();
+    let found = [];
+    for (var i in all) {
+      if (all[i].name==name) found.push(all[i]);
+    }
+    return found;
+  }
 }
 initClass(Marker,Box);
 
@@ -392,6 +400,7 @@ class Interactable extends Box {
   		else if (this.touches[all[i].uid]) {
   			if (this.onStopIntersect) this.onStopIntersect(all[i]);
   		}
+      if (this.deleted) return;
   	}
   	delete this.touches;
   	this.touches = newTouches;
@@ -2391,13 +2400,9 @@ class Collectable extends Interactable {
   constructor(x,y,width,height) {
     super(x,y,width,height,void(0),Player);
   }
-  update() {
-    super.update();
-    for (var i in this.touches) {
-      this.affect(this.touches[i]);
-      this.remove();
-      return;
-    }
+  onIntersect(player) {
+    this.affect(player);
+    this.remove();
   }
   affect(p) {}
 }

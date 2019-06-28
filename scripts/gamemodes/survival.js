@@ -173,27 +173,35 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     else this.spawnStep();
   },
 
+  findOpenRewardSpot: function() {
+    let spots = Marker.findAll("survival_reward");
+    if (spots.length>0) {
+      for (var i in spots) {
+        let spot = spots[i];
+        if (!spot.rewarded || !Collectable.has(spot.rewarded)) return spot;
+      }
+    }
+    else return new Point(Level.level.width/2,Level.level.height/2);
+  },
   waveReward: function() {
     gameAlert("Wave "+(this.wave+this.surplusWave)+" complete!",120);
-    PlusHeart.create(Level.level.width/2,Level.level.height/2,1);
+    let spot = this.findOpenRewardSpot();
+    spot.rewarded = PlusHeart.create(spot.x,spot.y,1);
     Timer.wait(120,function() {
       Game.spawnStep();
     });
   },
   levelReward: function() {
     gameAlert("Level complete!",120);
+    let spot = this.findOpenRewardSpot();
     if (this.scoreDelta>this.levelBonusThreshold()) {
-      GoldenHeart.create(Level.level.width/2,Level.level.height/2);
+      spot.rewarded = GoldenHeart.create(spot.x,spot.y);
     }
-    else MaxHeart.create(Level.level.width/2,Level.level.height/2);
+    else spot.rewarded = MaxHeart.create(spot.x,spot.y);
     this.scoreDelta = 0;
-    let marker = Marker.find("survival_exit_door");
-    if (!marker) marker = Player.getSlot(0) || {x:0,y:0};
-    Door.create(marker.x,marker.y,99,99,true,false,Game.getLevel().filename);
-    // Timer.wait(120,function() {
-    //   Player.cacheAllHealth();
-    //   Level.loadLevel(Game.getLevel().filename);
-    // });
+    let exit = Marker.find("survival_exit_door");
+    if (!exit) exit = Player.getSlot(0) || new Point(0,0);
+    Door.create(exit.x,exit.y,99,99,true,false,Game.getLevel().filename);
   },
   stealthBonus: function() {
     let kills = this.stealthKills;

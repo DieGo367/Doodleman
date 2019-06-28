@@ -16,9 +16,13 @@
 	"actors": [
 		[24, 225, 308, 150, 2, false],
 		[24, 405, 308, 150, 2, false],
-		[24, 317, 234, 80, 1, false],
-		[24, 406, 308, 50, 50, false],
-		[1, 321, 237, "survival_exit_door"]
+		[24, 317, 233, 80, 1, false],
+		[1, 321, 236, "survival_exit_door"],
+		[24, 431, 308, 100, 25, false],
+		[1, 321, 150, "survival_reward"],
+		[1, 277, 216, "survival_reward"],
+		[1, 367, 216, "survival_reward"],
+		[1, 321, 303, "survival_reward"]
 	],
 	"terrain": [
 		{
@@ -61,7 +65,7 @@
 			"type": 1,
 			"properties": [1, "", 2, false],
 			"pieces": [
-				[257, 237, 386, 237]
+				[257, 236, 386, 236]
 			]
 		}
 	],
