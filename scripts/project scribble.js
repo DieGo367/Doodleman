@@ -526,6 +526,9 @@ function Point(x,y) {
 	this.x = x;
 	this.y = y;
 }
+function P(x,y) {
+	return new Point(x,y);
+}
 const Sound = {
 	soundData: {}, tracks: {}, playing: null, volume: 1,
 	loadSound: function(name) {

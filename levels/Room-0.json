@@ -19,7 +19,7 @@
 		[24, 317, 233, 80, 1, false],
 		[1, 321, 236, "survival_exit_door"],
 		[24, 431, 308, 100, 25, false],
-		[1, 321, 150, "survival_reward"],
+		[1, 321, 150, "survival_reward_final"],
 		[1, 277, 216, "survival_reward"],
 		[1, 367, 216, "survival_reward"],
 		[1, 321, 303, "survival_reward"]

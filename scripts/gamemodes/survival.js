@@ -175,13 +175,11 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 
   findOpenRewardSpot: function() {
     let spots = Marker.findAll("survival_reward");
-    if (spots.length>0) {
-      for (var i in spots) {
-        let spot = spots[i];
-        if (!spot.rewarded || !Collectable.has(spot.rewarded)) return spot;
-      }
+    for (var i in spots) {
+      let spot = spots[i];
+      if (!spot.rewarded || !Collectable.has(spot.rewarded)) return spot;
     }
-    else return new Point(Level.level.width/2,Level.level.height/2);
+    return new Point(Level.level.width/2,Level.level.height/2);
   },
   waveReward: function() {
     gameAlert("Wave "+(this.wave+this.surplusWave)+" complete!",120);
@@ -193,14 +191,11 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   },
   levelReward: function() {
     gameAlert("Level complete!",120);
-    let spot = this.findOpenRewardSpot();
-    if (this.scoreDelta>this.levelBonusThreshold()) {
-      spot.rewarded = GoldenHeart.create(spot.x,spot.y);
-    }
-    else spot.rewarded = MaxHeart.create(spot.x,spot.y);
+    let spot = Marker.find("survival_reward_final") || this.findOpenRewardSpot();
+    if (this.scoreDelta>this.levelBonusThreshold()) GoldenHeart.create(spot.x,spot.y);
+    else MaxHeart.create(spot.x,spot.y);
     this.scoreDelta = 0;
-    let exit = Marker.find("survival_exit_door");
-    if (!exit) exit = Player.getSlot(0) || new Point(0,0);
+    let exit = Marker.find("survival_exit_door") || Player.getSlot(0) || P(0,0);
     Door.create(exit.x,exit.y,99,99,true,false,Game.getLevel().filename);
   },
   stealthBonus: function() {
