@@ -1,5 +1,5 @@
 {
-	"name": "Room-1",
+	"name": "Room-2",
 	"width": 640,
 	"height": 360,
 	"edge": {"top": 3, "bottom": 3, "left": 3, "right": 3},
@@ -14,14 +14,11 @@
 		{"x": 472, "y": 315, "direction": -1}
 	],
 	"actors": [
+		[24, 324, 167, 150, 20],
 		[24, 199, 236, 100, 20],
 		[24, 440, 236, 100, 20],
-		[24, 324, 311, 340, 25, false],
-		[1, 323, 317, "survival_exit_door"],
-		[1, 198, 202, "survival_reward"],
-		[1, 440, 202, "survival_reward"],
-		[1, 323, 242, "survival_reward"],
-		[1, 323, 190, "survival_reward_final"]
+		[24, 440, 101, 100, 20],
+		[24, 200, 101, 100, 20]
 	],
 	"terrain": [
 		{
@@ -65,13 +62,15 @@
 			"properties": [1, null, 2, false],
 			"pieces": [
 				[380, 238, 515, 238],
+				[247, 169, 401, 169],
+				[379, 103, 525, 103],
+				[268, 103, 132, 103],
 				[272, 238, 127, 238]
 			]
 		}
 	],
 	"bg": [
 		{"type": "name", "name": "BG-Paper.png", "raw": "", "layer": -2, "scale": 1, "parallax": 1},
-		{"type": "name", "name": "FG-Room-1.png", "raw": "", "layer": -1, "scale": 1, "parallax": 1}
-	],
-	"_version_": 0
+		{"type": "name", "name": "FG-Room-2.png", "raw": "", "layer": -1, "scale": 1, "parallax": 1}
+	]
 }
