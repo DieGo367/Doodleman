@@ -44,6 +44,7 @@ class GameMode {
 	onLevelLoad() {}
 	onHurt(ent,attacker,damage) {}
 	onDeath(ent,attacker) {}
+	onCollect(player,item) {}
 	onBlur() {}
 	onFocus() {}
 	onPointerMove() {}

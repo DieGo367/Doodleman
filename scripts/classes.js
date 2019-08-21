@@ -2401,8 +2401,10 @@ class Collectable extends Interactable {
     super(x,y,width,height,void(0),Player);
   }
   onIntersect(player) {
-    this.affect(player);
-    this.remove();
+    if (Game.onCollect(player,this)!=CANCEL) {
+      this.affect(player);
+      this.remove();
+    }
   }
   affect(p) {}
 }

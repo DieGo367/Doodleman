@@ -77,6 +77,15 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       });
     }
   },
+  onCollect: function(player,item) {
+    if (item instanceof PlusHeart) {
+      if (player.health==player.maxHealth) {
+        let bonus = item.hp*2;
+        if (item instanceof MaxHeart) bonus = player.health;
+        this.addScore(bonus);
+      }
+    }
+  },
 
   getLevel: function(levelNum) {
     if (levelNum==void(0)) levelNum = this.level;
