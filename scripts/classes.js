@@ -2453,18 +2453,20 @@ initClass(GoldenHeart,PlusHeart);
 
 
 class View extends _c_ {
-  constructor(name,layer,x,y,width,height,style,fill) {
+  constructor(name,x,y,width,height,style,fill) {
     super();
     this.name = name;
-    this.layer = layer;
   	this.x = x;
   	this.y = y;
   	this.width = width;
   	this.height = height;
   	this.style = style;
   	this.fill = fill;
+    this.layer = null;
   	this.visible = false;
   	this.children = [];
+    this.subviews = [];
+    this.startElement = null;
     this.pathNodeCount = 0;
     this.onShowFunction = function() {};
     this.requireUserAction = false;
@@ -2472,25 +2474,12 @@ class View extends _c_ {
   }
   show(src) {
   	this.visible = true;
-  	if (Pointer.focusLayer!=this.layer) {
-      this.subLayer = Pointer.focusLayer;
-      Pointer.focusLayer = this.layer;
-      this.subLayerStartElement = guiStartElement;
-      guiStartElement = guiSelectedElement = null;
-    }
-    else this.subLayer = null;
-    if (this.startElement) guiStartElement = this.startElement;
     this.onShow(src);
   	for (var i in this.children) this.children[i].onViewShown();
   	return this;
   }
   hide() {
     this.visible = false;
-    if (this.startElement) guiStartElement = guiSelectedElement = null;
-    if (this.subLayer!=null) {
-      Pointer.focusLayer = this.subLayer;
-      if (this.subLayerStartElement) guiStartElement = this.subLayerStartElement;
-    }
     return this;
   }
   onShow(src) {
@@ -2505,6 +2494,77 @@ class View extends _c_ {
     this.onShowFunction = func;
     this.requireUserAction = requireUserAction;
     return this;
+  }
+  open(src,keepOpen) {
+    if (this.layer) console.log("View '"+this.name+"' is already open");
+    else {
+      if (!keepOpen&&View.focus>0) this.prevLayer = View.uiStack[View.focus].hide();
+      View.uiStack.push(this);
+      this.layer = ++View.focus;
+      this.show(src);
+      guiStartElement = this.startElement;
+      guiSelectedElement = guiSelectedElement? this.startElement : null;
+    }
+    return this;
+  }
+  openOnTop(src) {
+    return this.open(src,true);
+  }
+  close() {
+    if (this.layer==null) console.log("View '"+this.name+"' is already closed.");
+    else {
+      let top = View.uiStack.pop();
+      if (this==top) {
+        this.hide();
+        for (var i = this.subviews.length-1; i >= 0; i--) this.subviews[i].closesub();
+        View.focus--;
+        this.layer = null;
+        if (this.prevLayer) {
+          this.prevLayer.show();
+          this.prevLayer = null;
+        }
+        let newTop = View.uiStack[View.focus];
+        if (newTop) {
+          guiStartElement = newTop.startElement;
+          guiSelectedElement = guiStartElement? newTop.startElement : null;
+        }
+        else guiStartElement = guiSelectedElement = null;
+      }
+      else { // close all layers on top to close this one
+        View.uiStack.push(top);
+        let i = View.uiStack.indexOf(this);
+        while (View.uiStack.length > i) {
+          View.uiStack[View.focus].close();
+        }
+      }
+    }
+    return this;
+  }
+  opensub(src) {
+    // opens as a subview, not unfocusing the previous stuff
+    if (this.layer) console.log("View '"+this.name+"' is already open");
+    else {
+      this.baseview = View.uiStack[View.focus];
+      this.baseview.subviews.push(this);
+      this.layer = View.focus;
+      this.show(src);
+    }
+    return this;
+  }
+  closesub() {
+    if (this.layer==null) console.log("View '"+this.name+"' is already closed.");
+    else if (this.baseview) {
+      if (guiSelectedElement&&guiSelectedElement.view==this) guiSelectedElement = this.baseview.startElement;
+      this.baseview.subviews.splice(this.baseview.subviews.indexOf(this),1);
+      this.layer = this.baseview = null;
+      this.hide();
+    }
+    else console.log("'"+this.name+"' is open as a base View, not a subview.")
+    return this;
+  }
+  subMoveToTop(src) {
+    this.closesub();
+    this.opensub(src);
   }
   drawHud() {
     if (!this.style||!this.visible) return;
@@ -2524,9 +2584,15 @@ class View extends _c_ {
   }
   remove() {
     this.hide();
+    if (this.baseview) this.closesub();
+    if (this.layer) this.close();
     this.removeAllChildren();
     G$.delete(this.name);
     super.remove();
+  }
+  static onInit() {
+    this.uiStack = [null]; // layer "0" means don't draw
+    this.focus = 0;
   }
 }
 initClass(View,{listType: "array"});
@@ -2800,7 +2866,7 @@ class Button extends GuiElement {
   }
   checkMouse() {
   	if (!this.isVisible()||viewLock) return;
-  	if (this.view.layer!=Pointer.focusLayer) {
+  	if (this.view.layer!=View.focus) {
       this.heldDown = false;
   		return this.hovered = false;
   	}
@@ -2888,7 +2954,7 @@ class TextInput extends Button {
         buildSelector(strs,function(index,selection) {
           if (bases[index]!=void(0)) selection = bases[index] + "_" + selection;
           thisInput.store(selection);
-        },null,this.view.layer+1);
+        },null);
       }
       else {
         this.typing = true;
@@ -2945,12 +3011,11 @@ class TextInput extends Button {
   }
   setTypingView() {
     let tw = fontInputDesc.measureWidth(this.promptMsg);
-    View.create("TextInput",this.view.layer+1,this.x-5,this.y-5,Math.max(this.width,tw)+10,this.height+10+22,"tint","black").show();
+    View.create("TextInput",this.x-5,this.y-5,Math.max(this.width,tw)+10,this.height+10+22,"tint","black").openOnTop();
     TextElement.create("TextInput:TE","TextInput",this.x+this.width/2,this.y+this.height/2+7,fontInputSelect,this.typingText,this.width,CENTER).show();
     TextElement.create("TextInput:NE","TextInput",this.x,this.y+this.height+22,fontInputDesc,this.promptMsg,tw,LEFT).show();
   }
   removeTypingView() {
-    G$("TextInput").hide();
     G$("TextInput:NE").remove();
     G$("TextInput:TE").remove();
     G$("TextInput").remove();

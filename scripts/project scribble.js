@@ -202,7 +202,7 @@ function wait(ticks,func) {
 //helper objects
 const Pointer = {
 	x:0,y:0,
-	focusLayer: 0, cursor: POINTER_NORMAL, downPoint: null, downButton: null,
+	cursor: POINTER_NORMAL, downPoint: null, downButton: null,
 	styles: [POINTER_NORMAL,POINTER_CROSSHAIR,POINTER_PENCIL,POINTER_ERASER,POINTER_MOVE],
 	mousemove: function(event) {
 		let coords = readEventCoords(event);
@@ -905,12 +905,23 @@ function drawGame() {
 	}
 	//hud
 	DrawableClasses.forAll("drawHud");
-	allViews = View.getAll();
-	for (var layer = 0; layer<3; layer++) {
-		for (var i in allViews) {
-			if (allViews[i].layer==layer) {
-				allViews[i].drawHud();
-				for (var j in allViews[i].children) allViews[i].children[j].drawHud();
+	// allViews = View.getAll();
+	// for (var layer = 0; layer<=View.focus; layer++) {
+	// 	for (var i in allViews) {
+	// 		if (allViews[i].layer==layer) {
+	// 			allViews[i].drawHud();
+	// 			for (var j in allViews[i].children) allViews[i].children[j].drawHud();
+	// 		}
+	// 	}
+	// }
+	for (var i in View.uiStack) {
+		let view = View.uiStack[i];
+		if (view) {
+			view.drawHud();
+			for (var j in view.children) view.children[j].drawHud();
+			for (var j in view.subviews) {
+				view.subviews[j].drawHud();
+				for (var k in view.subviews[j].children) view.subviews[j].children[k].drawHud();
 			}
 		}
 	}
@@ -1014,13 +1025,13 @@ function doGlobalControls(controller) {
 	}
 	if (controller.ready("showInfo")) {
 		G$("CtrlDevMode").on = devEnabled = !devEnabled;
-		if (!paused&&devEnabled&&Pointer.focusLayer==0&&Game.mode!=GAME_EDITOR) G$("DevTools").show();
+		if (!paused&&devEnabled&&View.focus==0&&Game.mode!=GAME_EDITOR) G$("DevTools").show();
 		else G$("DevTools").hide();
 		controller.use("showInfo");
 	}
 	else {
 		if (!multiplayer&&controller.ready("respawn")) { PhysicsBox.callForAll("respawn"); controller.use("respawn"); }
-		if (((devEnabled&&Camera.controllable)||Game.mode==GAME_EDITOR)&&controller.type==KEYBOARD&&Pointer.focusLayer==0) {
+		if (((devEnabled&&Camera.controllable)||Game.mode==GAME_EDITOR)&&controller.type==KEYBOARD&&View.focus==0) {
 			if (controller.pressed("camLeft")) Camera.x -= 5;
 			if (controller.pressed("camRight")) Camera.x += 5;
 			if (controller.pressed("camDown")) Camera.y += 5;

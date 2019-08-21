@@ -17,25 +17,25 @@ G$.on = function(q) {
 };
 
 //useful game functions
-function buildSelector(list,onSelect,onCancel,viewLayer) {
-	View.create("_Selector_",viewLayer===void(0)?1:viewLayer,0,0,WIDTH,HEIGHT,"tint","darkBlue").show();
+function buildSelector(list,onSelect,onCancel) {
+	let hadSelected = guiSelectedElement;
+	View.create("_Selector_",0,0,WIDTH,HEIGHT,"tint","darkBlue").openOnTop();
 	let path = [];
 	for (var i in list) {
 		let b = Button.create("_Selector_::"+i,"_Selector_",WIDTH/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
 			if (typeof onSelect=="function") onSelect(this.name.split("::")[1],this.text);
-			G$("_SelectorClose_").onClickFunction();
+			this.view.remove();
 		}).show();
 		path.push(b.name);
 	}
 	Button.create("_SelectorClose_","_Selector_",WIDTH/2-150,HEIGHT-70,300,40,"Cancel").setOnClick(function() {
 		if (typeof onCancel=="function") onCancel();
-		let view = G$("_Selector_");
-		for (var i in view.children) view.children[i].remove();
-		view.hide().remove();
+		this.view.remove();
 	}).setClose(true).show();
 	path.push("_SelectorClose_");
 	Button.pathVert(path);
 	G$(path[0]).setAsStart();
+	if (hadSelected) guiSelectedElement = guiStartElement;
 }
 
 function attemptUserAction(action,src,caller) {
@@ -45,9 +45,9 @@ function attemptUserAction(action,src,caller) {
 	}
 	else {
 		viewLock = true;
-		let uav = View.create("_UAV_",Pointer.focusLayer+1,15,15,WIDTH-30,HEIGHT-30,"window");
+		let uav = View.create("_UAV_",15,15,WIDTH-30,HEIGHT-30,"window");
 		TextElement.create("_UAText_","_UAV_",WIDTH/2,HEIGHT/2,fontMenuTitle,"Press any key or click to continue.",WIDTH-30,CENTER).show();
-		setTimeout(function() {if (uav) uav.show();}, 100);
+		setTimeout(function() {if (uav) uav.openOnTop();}, 100);
 		Staller.useEvent(function() {
 			viewLock = false;
 			uav.remove();
@@ -59,7 +59,8 @@ function attemptUserAction(action,src,caller) {
 }
 
 function gameConfirm(text,onResponse) {
-	View.create("_Confirm_",Pointer.focusLayer+1,15,15,WIDTH-30,HEIGHT-30,"window").show();
+	let hadSelected = guiSelectedElement;
+	View.create("_Confirm_",15,15,WIDTH-30,HEIGHT-30,"window").openOnTop();
 	TextElement.create("_ConfirmText_","_Confirm_",WIDTH/2,HEIGHT/2,fontMenuTitle,text,WIDTH-30,CENTER).show();
 	Button.create("_ConfirmYes_","_Confirm_",WIDTH/2-105,HEIGHT-150,100,40,"OK!").setOnClick(function() {
 		this.view.remove();
@@ -70,11 +71,12 @@ function gameConfirm(text,onResponse) {
 		onResponse(false);
 	}).show().setAsStart();
 	Button.pathHor(["_ConfirmYes_","_ConfirmNo_"]);
+	if (hadSelected) guiSelectedElement = guiStartElement;
 }
 function gameAlert(text,duration) {
 	if (typeof duration != "number" || duration <= 0) return;
 	let v = G$("_Alert_"), t = G$("_AlertText_");
-	if (!v.visible) v = View.create("_Alert_",Pointer.focusLayer+1,0,HEIGHT*7/8,WIDTH,HEIGHT/8,"tint","black");
+	if (!v.visible) v = View.create("_Alert_",0,HEIGHT*7/8,WIDTH,HEIGHT/8,"tint","black");
 	if (!t.visible) {
 		t = TextElement.create("_AlertText_","_Alert_",WIDTH/2,HEIGHT*7/8+30,fontMenuTitle,text,WIDTH,CENTER).show();
 		t.update = function() {
@@ -82,32 +84,32 @@ function gameAlert(text,duration) {
 			if (this.time<=0) {
 				let v = this.view;
 				this.remove();
-				v.hide().remove();
+				v.remove();
 			}
 		}
 	}
 	else t.text = text;
 	t.time = duration;
-	v.show();
+	if (!v.layer) v.opensub();
 }
 
 //just definining menus and their functions
 
 function buildMainHud() {
-  View.create("Hud",0,0,0,WIDTH,HEIGHT);
+  View.create("Hud",0,0,WIDTH,HEIGHT);
 	Button.create("PauseButton","Hud",WIDTH-60,10,50,50).setOnClick(function() {
 		pauseGame(true);
 	}).setIcon("GUI-Icons.png",0,0,42,4).show();
 }
 
 function buildPauseMenu() {
-  View.create("PauseMenu",0,0,0,WIDTH,HEIGHT,"tint","black");
+  View.create("PauseMenu",0,0,WIDTH,HEIGHT,"tint","black");
 
 	TextElement.create("PauseText","PauseMenu",WIDTH/2,HEIGHT/2,fontPaused,"Paused",WIDTH,CENTER).show();
 
   Button.create("PauseClose","PauseMenu",WIDTH-60,10,50,50).setOnClick(function() {
 		pauseGame(false);
-	}).setIcon("GUI-Icons.png",1,0,42,4).show();
+	}).setIcon("GUI-Icons.png",1,0,42,4).show().setAsStart();
 
 	Button.create("QuitGame","PauseMenu",WIDTH/2-150,HEIGHT-60,300,40,"Quit to Title").setOnClick(function(ctrl) {
 		gameConfirm("Are you sure you want to quit?",function(response) {
@@ -116,7 +118,7 @@ function buildPauseMenu() {
 				Game.mode = GAME_LAUNCH;
 			}
 		})
-	}).show().setAsStart();
+	}).show();
 
   Button.create("FSToggle","PauseMenu",WIDTH-120,10,50,50).setToggle(function() {
 		callPrefixedFunction(canvas,"requestFullscreen");
@@ -134,8 +136,7 @@ function buildPauseMenu() {
   }).setIcon("GUI-Icons.png",2,0,42,4).show();
 
   Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
-		G$("PauseMenu").hide();
-		G$("CtrlSettingsView").show();
+		G$("CtrlSettingsView").open();
 	}).setIcon("GUI-Icons.png",3,1,42,4).show();
 
 	Button.create("VolumeButton","PauseMenu",70,10,50,50).setOnClick(function() {
@@ -163,7 +164,7 @@ function buildPauseMenu() {
 }
 
 function buildLevelSelectMenu() {
-  View.create("LevelSelectView",1,0,0,WIDTH,HEIGHT,"tint","black");
+  View.create("LevelSelectView",0,0,WIDTH,HEIGHT,"tint","black");
 
   TextElement.create("LSText","LevelSelectView",WIDTH/2,30,fontMenuTitle,"Select a level",WIDTH,CENTER).show();
 
@@ -197,12 +198,11 @@ function buildLevelSelectMenu() {
 }
 
 function buildControllerSettingsMenu() {
-  View.create("CtrlSettingsView",1,0,0,WIDTH,HEIGHT,"tint","black");
+  View.create("CtrlSettingsView",0,0,WIDTH,HEIGHT,"tint","black");
 	TextElement.create("CtrlSettingsText","CtrlSettingsView",WIDTH/2,30,fontMenuTitle,"Controller Settings",WIDTH,CENTER).show();
 
   Button.create("CtrlSettingsClose","CtrlSettingsView",WIDTH-60,10,50,50).setOnClick(function() {
-		G$("CtrlSettingsView").hide();
-		G$("PauseMenu").show();
+		G$("CtrlSettingsView").close();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
 	TextElement.create("CtrlP1","CtrlSettingsView",WIDTH/2-135,100,fontMenuItem,"Player 1",WIDTH,CENTER).show();
@@ -257,14 +257,12 @@ function buildControllerSettingsMenu() {
 			this.mode = BUTTON_NO;
 		}
 		else this.setOnClick(function() {
-			G$("CtrlSettingsView").hide();
-			G$("MapperView").show();
+			G$("MapperView").open();
 		});
 	}).show();
 
 	Button.create("HelpButton","CtrlSettingsView",10,10,50,50,"Help").setOnClick(function() {
-		G$("CtrlSettingsView").hide();
-		G$("HelpView").show();
+		G$("HelpView").open();
 	}).show();
 
 	Button.pathGrid([
@@ -290,15 +288,14 @@ function buildControllerSelector(list,type,sourceButton) {
 	buildSelector(names,function(i,item) {
 		sourceButton.text = item;
 		Player.changeControlSlots(sourceButton.playerSlot,type,finalList[i]);
-	},null,2);
+	},null);
 }
 
 function buildHelpPage() {
-	View.create("HelpView",1,0,0,WIDTH,HEIGHT,"tint","black");
+	View.create("HelpView",0,0,WIDTH,HEIGHT,"tint","black");
 	Button.create("HelpClose","HelpView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("WASDPage").onClickFunction();
-		G$("HelpView").hide();
-		G$("CtrlSettingsView").show();
+		G$("HelpView").close();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
 	var actions = ["Move Left / Right", "Jump", "Crouch", "Attack", "Enter Door / Up"];
@@ -333,13 +330,12 @@ function buildControlList(buttons,actions) {
 }
 
 function buildMapperView() {
-  View.create("MapperView",1,0,0,WIDTH,HEIGHT,"tint","black");
+  View.create("MapperView",0,0,WIDTH,HEIGHT,"tint","black");
 	// ImgElement.create("MapperImg","MapperView",WIDTH/2,HEIGHT/2,"GUI-Controller.png",640,360).show();
 	TextElement.create("MapperTitle","MapperView",WIDTH/2,30,fontMenuTitle,"Gamepad Mapper",WIDTH,CENTER).show();
 
 	Button.create("MapperClose","MapperView",WIDTH-60,10,50,50).setOnClick(function() {
-		G$("MapperView").hide();
-		G$("CtrlSettingsView").show();
+		G$("MapperView").close();
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
 
 	TextElement.create("MapperSelectText","MapperView",WIDTH/3-5,115,fontMenuItem,"Settings for: ",WIDTH,RIGHT).show();
@@ -360,7 +356,7 @@ function buildMapperView() {
 			b.text = item;
 			b.selectedId = ids[i];
 			updateMapText(ids[i]);
-		},null,2);
+		},null);
 	}).show().setAsStart();
 
 	TextElement.create("MapperCurrentMapText","MapperView",WIDTH/3-5,165,fontMenuItem,"Current Mapping: ",WIDTH,RIGHT).show();
@@ -374,7 +370,7 @@ function buildMapperView() {
 		else this.setOnClick(function() {
 			let id = G$("MapperGPSelect").selectedId;
 			G$("MapperTool").selectedId = id;
-			G$("MapperTool").show();
+			G$("MapperTool").openOnTop();
 		});
 	}).show();
 	Button.create("MapperSetDefault","MapperView",WIDTH*2/3-100,HEIGHT-90,200,40,"Reset to Default").setOnViewShown(function() {
@@ -418,9 +414,9 @@ function genMapDetails(standardMap) {
 }
 
 function buildMapperTool() {
-	View.create("MapperTool",2,70,70,WIDTH-140,HEIGHT-140,"window");
+	View.create("MapperTool",70,70,WIDTH-140,HEIGHT-140,"window");
 	Button.create("MapperToolClose","MapperTool",WIDTH-130,80,50,50).setOnClick(function() {
-		G$("MapperTool").hide();
+		G$("MapperTool").close();
 		GamePad.buttonListeners = [];
 		GamePad.axisListeners = [];
 	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
@@ -516,7 +512,7 @@ function mapperStep(gpId,step,titles,type,mappings) {
 }
 
 function buildDevToolsHud() {
-  View.create("DevTools",0,WIDTH-70,70,70,210,"tint","lightBlue");
+  View.create("DevTools",WIDTH-70,70,70,210,"tint","lightBlue");
 	Button.create("DevSpawnPM","DevTools",WIDTH-60,80,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
 	Button.create("DevPencil","DevTools",WIDTH-60,150,50,50).setIcon("GUI-Icons.png",1,2,42,4).show();
 	Button.setRadioGroup(["DevPencil","DevSpawnPM"],function() {

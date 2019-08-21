@@ -1,7 +1,7 @@
 const GAME_SANDBOX = GameManager.addMode(new GameMode({
   start: function() {
     this.addGui();
-    G$("Hud").show();
+    G$("Hud").open();
     this.onLevelLoad();
   },
   quit: function() {
@@ -9,15 +9,13 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
   },
   onPause: function(paused) {
     if (paused) {
-      G$("PauseMenu").show();
-      G$("Hud").hide();
+      G$("PauseMenu").open();
       G$("DevTools").hide();
       Tap.ctrlEnabled = false;
     }
     else {
-      if (Pointer.focusLayer>0 && !G$("PauseMenu").visible) return CANCEL;
-      G$("PauseMenu").hide();
-      G$("Hud").show();
+      if (View.focus>2) return CANCEL;
+      G$("PauseMenu").close();
       if (devEnabled) G$("DevTools").show();
       Tap.ctrlEnabled = true;
     }
@@ -28,7 +26,8 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
   onLevelLoad: function() {
     Player.setAllLives(5);
     Player.addAll();
-    G$("LevelSelectView").hide();
+    let ls = G$("LevelSelectView")
+    if (ls.layer) ls.close();
     if (focused) pauseGame(false);
   },
   onDeath: function(ent,attacker) {
@@ -57,9 +56,8 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
     });
     buildPauseMenu();
     Button.create("LevelSelectButton","PauseMenu",WIDTH/2-150,HEIGHT-120,300,40,"Level Select").setOnClick(function() {
-      G$("PauseMenu").hide();
-      G$("LevelSelectView").show();
-    }).show().setPressDelay(1).up("CtrlSettingsButton").setAsStart();
+      G$("LevelSelectView").open();
+    }).show().setPressDelay(1).up("CtrlSettingsButton");
     Button.funnelTo("LevelSelectButton","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
     Button.pathVert(["LevelSelectButton","QuitGame"]);
     buildLevelSelectMenu();

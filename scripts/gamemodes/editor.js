@@ -33,14 +33,14 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
   },
   onPause: function() {
     if (!G$("LevelSettingsView").visible) {
-      if (Pointer.focusLayer==0) {
+      if (View.focus<2) {
         if (G$("EditPropView").visible) G$("EditPropBttn").onClick(null,true);
         if (G$("EditorToolbar").visible) G$("ExpandButton").onClick(null,true);
         G$("LevelSettingsBttn").onClick(null,true);
       }
     }
     else {
-      if (Pointer.focusLayer==1) G$("LevelSettingsClose").onClick(null,true);
+      if (View.focus<3) G$("LevelSettingsClose").onClick(null,true);
     }
   },
   onPointerMove: function(x,y) {
@@ -62,7 +62,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 		}
   },
   doControls: function(ctrl) {
-    if (!ctrl.type==KEYBOARD||viewLock||Pointer.focusLayer!=0||Pointer.downPoint) return;
+    if (!ctrl.type==KEYBOARD||viewLock||View.focus>1||Pointer.downPoint) return;
     for (var i in EditorTools.tools) if (!ctrl.pressed("Ctrl")&&ctrl.ready(EditorTools.tools[i].name+"Tool")) {
       G$(EditorTools.tools[i].name+"Tool").onClick(ctrl,true);
       ctrl.use(EditorTools.tools[i].name+"Tool");
@@ -89,13 +89,14 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     }
   },
   addGui: function() {
-    View.create("EditorToolbar",0,0,0,WIDTH,70,"tint","purple");
-    View.create("EditorHud",0,0,0,WIDTH,70).show();
+    View.create("EditorToolbar",0,0,WIDTH,70,"tint","purple");
+    View.create("EditorHud",0,0,WIDTH,70).open();
     TextElement.create("EditorModeText","EditorHud",70,40,fontMenuEdit,"",WIDTH,LEFT).show();
 
-    View.create("ExpandButtonView",0,0,0,70,70).show();
+    View.create("ExpandButtonView",0,0,70,70).opensub();
     Button.create("ExpandButton","ExpandButtonView",10,10,50,50).setToggle(function() {
-      G$("EditorToolbar").show();
+      G$("EditorToolbar").opensub();
+      this.view.subMoveToTop();
       G$("EditorHud").hide();
       this.setIcon("GUI-Icons.png",3,0,42,4);
       this.toggleState = 1;
@@ -103,7 +104,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     function(ctrl) {
       let p = G$("EditPropBttn");
       if (p.on) p.callToggleState(1);
-      G$("EditorToolbar").hide();
+      G$("EditorToolbar").closesub();
       G$("EditorHud").show();
       this.setIcon("GUI-Icons.png",0,1,42,4);
       this.toggleState = 0;
@@ -123,17 +124,17 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     },false);
 
     Button.create("EditPropBttn","EditorToolbar",WIDTH-60,10,50,50).setToggle(function() {
-      G$("EditPropView").show();
+      G$("EditPropView").opensub();
       this.on = true;
       this.toggleState = 1;
     },
     function() {
-      G$("EditPropView").hide();
+      G$("EditPropView").closesub();
       this.on = false;
       this.toggleState = 0;
     }).setIcon("GUI-Icons.png",2,1,42,4).show();
 
-    View.create("EditPropView",0,0,70,WIDTH,60,"tint","green").setOnShow(function() {
+    View.create("EditPropView",0,70,WIDTH,60,"tint","green").setOnShow(function() {
       this.removeAllChildren();
       let props = EditorTools.getToolPropertyNames();
       for (var i = 0; i < props.length; i++) {
@@ -152,19 +153,17 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     });
 
     Button.create("LevelSettingsBttn","EditorHud",WIDTH-60,10,50,50).setOnClick(function() {
-      G$("LevelSettingsView").show();
-      G$("EditorHud").hide();
+      G$("LevelSettingsView").open();
     }).setIcon("GUI-Icons.png",1,1,42,4).show();
 
-    View.create("LevelSettingsView",1,0,0,WIDTH,HEIGHT,"tint","purple");
+    View.create("LevelSettingsView",0,0,WIDTH,HEIGHT,"tint","purple");
     Button.create("LevelSettingsClose","LevelSettingsView",WIDTH-60,10,50,50).setOnClick(function() {
       G$(this.view.activeMenu).hide();
-      G$("LevelSettingsView").hide();
-      G$("EditorHud").show();
+      G$("LevelSettingsView").close();
     }).
     setOnViewShown(function() {
       if (!this.view.activeMenu) this.view.activeMenu = "LS:File:Menu";
-      G$(this.view.activeMenu).show();
+      G$(this.view.activeMenu).opensub();
       G$("LS:Dimensions:width").store(Level.level.width);
       G$("LS:Dimensions:height").store(Level.level.height);
       G$("LS:CamStart:x").store(Level.level.camStart.x);
@@ -203,15 +202,15 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     Button.create("LS:Cam","LevelSettingsView",WIDTH*3/5-50,75,100,40,"Camera").down("LS:CamStart:x").show();
     Button.create("LS:BG","LevelSettingsView",WIDTH*4/5-50,75,100,40,"BG").down("LS:BG:0").show();
     Button.setRadioGroup(["LS:File","LS:Edit","LS:Cam","LS:BG"],function() {
-      G$(this.view.activeMenu).hide();
+      G$(this.view.activeMenu).closesub();
       this.view.activeMenu = this.name+":Menu";
-      G$(this.view.activeMenu).show();
+      G$(this.view.activeMenu).opensub();
     },true);
     Button.pathHor(["LS:File","LS:Edit","LS:Cam","LS:BG"]);
 
     PathNode.tieVert("LevelSettingsView",["FSToggle","LevelSettingsClose"],["LS:File","LS:Edit","LS:Cam","LS:BG"]);
 
-    View.create("LS:File:Menu",1,0,0,WIDTH,HEIGHT);
+    View.create("LS:File:Menu",0,0,WIDTH,HEIGHT);
     TextElement.create("LS:File:Name","LS:File:Menu",WIDTH/4-150,155,fontMenuItem,"Level Name",WIDTH,LEFT).show();
     TextInput.create("LS:File:Name:input","LS:File:Menu",WIDTH/2-175,130,205,40,"name",Level.level.name,"Enter the level name").setOnInputChange(function(val) {
       Level.level.name = val;
@@ -235,7 +234,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     ]);
     Button.pathHor(["LS:File:Test:Mode","LS:File:Test:MP","LS:File:Test:Button"]);
 
-    View.create("LS:Edit:Menu",1,0,0,WIDTH,HEIGHT);
+    View.create("LS:Edit:Menu",0,0,WIDTH,HEIGHT);
     TextElement.create("LS:Dimensions","LS:Edit:Menu",WIDTH/4-150,155+55*0,fontMenuItem,"Dimensions",WIDTH,LEFT).show();
     TextInput.create("LS:Dimensions:width","LS:Edit:Menu",WIDTH/2-175,130,100,40,"#width",Level.level.width,"Enter a width").setOnInputChange(function(val) {
       Level.level.width = val;
@@ -263,7 +262,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     ]);
     Button.pathHor(["LS:Edge:bottom","LS:Edge:left","LS:Edge:right"]);
 
-    View.create("LS:Cam:Menu",1,0,0,WIDTH,HEIGHT);
+    View.create("LS:Cam:Menu",0,0,WIDTH,HEIGHT);
     TextElement.create("LS:CamStart","LS:Cam:Menu",WIDTH/4-150,155,fontMenuItem,"Camera Start",WIDTH,LEFT).show();
     TextInput.create("LS:CamStart:x","LS:Cam:Menu",WIDTH/2-175,130,100,40,"#x",Level.level.camStart.x,"Enter starting x point").setOnInputChange(function(val) {
       Level.level.camStart.x = val;
@@ -296,7 +295,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       ["LS:ZoomLimit:min","LS:ZoomLimit:max"]
     ]);
 
-    View.create("LS:BG:Menu",1,0,0,WIDTH,HEIGHT).setOnShow(function() {
+    View.create("LS:BG:Menu",0,0,WIDTH,HEIGHT).setOnShow(function() {
       if (this.numBG==void(0)) {
         this.numBG = 0;
         G$("LS:BG:0").on = true;

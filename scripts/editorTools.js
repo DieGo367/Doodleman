@@ -17,7 +17,7 @@ const EditorTools = {
     this.future = [];
   },
   canUseTools: function() {
-    return Pointer.focusLayer==0 && !Button.underPointer();
+    return View.focus<2 && !Button.underPointer();
   },
   onDown: function() {
     let tool = this.getTool();

@@ -10,7 +10,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
     else {
       let inviteURL = "http://"+window.location.href.split("/")[2]+"/join?id="+peerId;
       console.log(inviteURL);
-      View.create("OHUD",0,0,0,WIDTH,HEIGHT,GUI_TINT,"yellow").show();
+      View.create("OHUD",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow").open();
       Button.create("copy","OHUD",10,10,100,40,"Copy").setOnClick(function() {
         $("#clipboard").val(inviteURL).select();
   			document.execCommand("copy");

@@ -5,7 +5,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     this.score = 0;
     this.gameState = "none";
     this.addGui();
-    G$("Hud").show();
+    G$("Hud").open();
     if (EditorTools.levelCopy) this.setTestLevel();
     else {
       canvas.showLoadScreen();
@@ -33,15 +33,13 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   onPause: function(paused) {
     if (this.deathEvent) return CANCEL;
     if (paused) {
-      G$("PauseMenu").show();
-      G$("Hud").hide();
+      G$("PauseMenu").open();
       G$("DevTools").hide();
       Tap.ctrlEnabled = false;
     }
     else {
-      if (Pointer.focusLayer>0 && !G$("PauseMenu").visible) return CANCEL;
-      G$("PauseMenu").hide();
-      G$("Hud").show();
+      if (View.focus>2) return CANCEL;
+      G$("PauseMenu").close();
       if (devEnabled) G$("DevTools").show();
       Tap.ctrlEnabled = true;
     }
@@ -75,9 +73,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     else if (ent instanceof Player&&!Player.hasLives(ent.slot)) {
       this.deathEvent = true;
       if (Player.getAll().length<=1) wait(60,function() {
-        G$("Hud").hide();
-        G$("DeathText").setVar(G$("ScoreText").var);
-        G$("DeathScreen").show();
+        G$("DeathScreen").open();
       });
     }
   },
@@ -244,7 +240,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
       gameConfirm("Are you sure you want to restart?",function(response) {
         if (response) Game.firstStep();
       });
-    }).show().up("CtrlSettingsButton").setAsStart();
+    }).show().up("CtrlSettingsButton");
     Button.funnelTo("RetryButton","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
     Button.pathVert(["RetryButton","QuitGame"]);
     buildLevelSelectMenu();
@@ -253,11 +249,12 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     buildMapperTool();
     buildHelpPage();
     buildDevToolsHud();
-    View.create("DeathScreen",1,0,0,WIDTH,HEIGHT,"tint","black");
+    View.create("DeathScreen",0,0,WIDTH,HEIGHT,"tint","black").setOnShow(function() {
+      G$("DeathText").setVar(G$("ScoreText").var);
+    });
     TextElement.create("DeathText","DeathScreen",WIDTH/2,HEIGHT/4,fontPaused,"Score: {{var}}",WIDTH,CENTER).setVar(0).show();
     Button.create("PlayAgain","DeathScreen",WIDTH/2-150,HEIGHT-120,300,40,"Play Again").setOnClick(function() {
-      this.view.hide();
-      G$("Hud").show();
+      this.view.close();
       Game.firstStep();
     }).show().setAsStart();
     Button.create("DeathScreenQuit","DeathScreen",WIDTH/2-150,HEIGHT-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
