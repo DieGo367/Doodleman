@@ -1962,7 +1962,7 @@ class Player extends Entity {
   }
   static changeControlSlots(slot,type,index) {
   	if (slot==void(0)||type==void(0)||index==void(0)) return;
-  	if (type<1) return;
+  	if (!type) return;
   	let ids = [null,"keyIds","gpIds","tapIds","webIds"][type];
   	this[ids][slot] = index=="None"?null:index;
   	this.relinkCtrls();

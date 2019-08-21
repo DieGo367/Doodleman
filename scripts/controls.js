@@ -79,8 +79,11 @@ const GamePad = {
 		for (var i in gamepads) {
 			if (gamepads[i]&&gamepads[i].index!=null) {
 				if (gamepads[i].index in this.controllers) {
-					this.controllers[gamepads[i].index] = gamepads[i];
-					this.controllers[gamepads[i].index].detected = true;
+					let gpIndex = gamepads[i].index;
+					let name = this.controllers[gpIndex].name;
+					let gp = this.controllers[gpIndex] = gamepads[i];
+					gp.detected = true;
+					gp.name = name;
 				}
 				else this.connect(gamepads[i]);
 			}

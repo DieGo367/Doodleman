@@ -344,13 +344,13 @@ function buildMapperView() {
 		if (ids.length==0) G$("MapperClose").onClickFunction();
 		else {
 			this.selectedId = ids[0];
-			this.text = GamePad.controllers[ids[0]].name;
+			this.text = Ctrl.getDisplayName(GAMEPAD,ids[0]);
 			updateMapText(ids[0]);
 		}
 	}).
 	setOnClick(function() {
 		var ids = GamePad.slotsFilled(), names = [];
-		for (var i in ids) names.push(GamePad.controllers[ids[i]].name);
+		for (var i in ids) names.push(Ctrl.getDisplayName(GAMEPAD,ids[i]));
 		buildSelector(names,function(i,item) {
 			var b = G$("MapperGPSelect");
 			b.text = item;
@@ -390,7 +390,7 @@ function buildMapperView() {
 	Button.pathHor(["MapperRemap","MapperSetDefault"]);
 }
 function updateMapText(id) {
-	var map = GamePad.ctrlMaps[id]
+	var map = GamePad.ctrlMaps[id];
 	G$("MapperMappingName").text = map.name;
 	strs = genMapDetails(map);
 	G$("MapperMappingDetails").text = strs[0];
