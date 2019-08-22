@@ -301,24 +301,26 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
         G$("LS:BG:0").on = true;
       }
       let bg = Level.level.bg[this.numBG];
-      if (!bg) {
-        bg = {};
+      if (bg) {
+        G$("LS:BG:Empty").hide();
+        G$("LS:BG:Desc").show().text = bg.name || ((bg.raw&&bg.raw!="")?"imported":"none");
+        G$("LS:BG:PreviewWrap").show();
+        G$("LS:BG:Preview").show().img = (bg.name || "BGRaw:"+this.numBG);
+        G$("LS:BG:Name").val(bg.name);
+        G$("LS:BG:Layer:num").val(bg.layer);
+        G$("LS:BG:Scale:num").val(bg.scale);
+        G$("LS:BG:Parallax:num").val(bg.parallax);
+      }
+      else {
         G$("LS:BG:Empty").show();
         G$("LS:BG:Desc").hide();
         G$("LS:BG:PreviewWrap").hide();
         G$("LS:BG:Preview").hide();
+        G$("LS:BG:Name").val("");
+        G$("LS:BG:Layer:num").val("");
+        G$("LS:BG:Scale:num").val("");
+        G$("LS:BG:Parallax:num").val("");
       }
-      else {
-        G$("LS:BG:Empty").hide();
-        G$("LS:BG:Desc").show();
-        G$("LS:BG:PreviewWrap").show();
-        G$("LS:BG:Preview").show().img = (bg.name || "BGRaw:"+this.numBG);
-      }
-      G$("LS:BG:Desc").text = bg.name || ((bg.raw&&bg.raw!="")?"imported":"none");
-      G$("LS:BG:Name").val(bg.name);
-      G$("LS:BG:Layer:num").val(bg.layer);
-      G$("LS:BG:Scale:num").val(bg.scale);
-      G$("LS:BG:Parallax:num").val(bg.parallax);
     })
     .setBGVal = function(key,val,preventRefresh) {
       let bg = Level.level.bg[this.numBG];
