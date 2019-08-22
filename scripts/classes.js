@@ -3014,15 +3014,19 @@ class TextInput extends Button {
     }
   }
   setTypingView() {
+    let selectionState = {start: guiStartElement, selected: guiSelectedElement};
     let tw = fontInputDesc.measureWidth(this.promptMsg);
-    View.create("TextInput",this.x-5,this.y-5,Math.max(this.width,tw)+10,this.height+10+22,"tint","black").openOnTop();
+    View.create("TextInput",this.x-5,this.y-5,Math.max(this.width,tw)+10,this.height+10+22,"tint","black").openOnTop().selectionState = selectionState;
     TextElement.create("TextInput:TE","TextInput",this.x+this.width/2,this.y+this.height/2+7,fontInputSelect,this.typingText,this.width,CENTER).show();
     TextElement.create("TextInput:NE","TextInput",this.x,this.y+this.height+22,fontInputDesc,this.promptMsg,tw,LEFT).show();
   }
   removeTypingView() {
+    let selState = G$("TextInput").selectionState;
     G$("TextInput:NE").remove();
     G$("TextInput:TE").remove();
     G$("TextInput").remove();
+    guiStartElement = selState.start;
+    guiSelectedElement = selState.selected;
   }
   onKeypress(keycode) {
     if (!this.typing) return;
