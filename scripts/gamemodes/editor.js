@@ -182,18 +182,11 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     TextElement.create("LS:Title","LevelSettingsView",WIDTH/2,30,fontMenuTitle,"Level Properties",WIDTH,CENTER).show();
 
     Button.create("FSToggle","LevelSettingsView",WIDTH-130,10,50,50).setToggle(function() {
-      callPrefixedFunction(canvas,"requestFullscreen");
-      callPrefixedFunction(canvas,"requestFullScreen");
-    },
-    function() {
-      callPrefixedFunction(document,"exitFullscreen");
-      callPrefixedFunction(document,"exitFullScreen");
+      this.on = !this.on;
+  		setFullScreen(this.on);
     },true)
     .setOnViewShown(function() {
-      if (fullScreen) {
-  			this.toggleState = 1;
-  			this.on = true;
-  		}
+      this.on = fullScreen;
     }).setIcon("GUI-Icons.png",2,0,42,4).show();
     Button.pathHor(["FSToggle","LevelSettingsClose"]);
 

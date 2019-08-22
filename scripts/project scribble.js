@@ -484,16 +484,24 @@ DrawableClasses.forAll = function(method) {
 const FileInput = {
 	input: $("#fileInput")[0],
 	onChange: function(event) {
+		this.asking = false;
+		if (this.tempfs) setFullScreen(true);
 		if (this.successAction||this.failureAction) this.readFile(event,this.extensions,this.readMode,this.successAction,this.failureAction);
 		this.input.value = "";
 		this.input.type = "text";
 		this.input.type = "file";
+	},
+	onCancel: function() {
+		this.asking = false;
+		if (this.tempfs) setFullScreen(true);
 	},
 	ask: function(extensions,readMode,success,failure) {
 		this.readMode = (typeof readMode == "string"?readMode:null);
 		this.extensions = (extensions instanceof Array?extensions:null);
 		this.successAction = (typeof success=="function"?success:null);
 		this.failureAction = (typeof failure=="function"?failure:null);
+		this.asking = true;
+		this.tempfs = fullScreen;
 		this.input.click();
 	},
 	readFile: function(event,extensions,readMode,success,failure) {
@@ -949,6 +957,16 @@ function drawGame() {
 	c.restore();
 }
 
+function setFullScreen(fs) {
+	if (fs) {
+		callPrefixedFunction(canvas,"requestFullscreen");
+		callPrefixedFunction(canvas,"requestFullScreen");
+	}
+	else {
+		callPrefixedFunction(document,"exitFullscreen");
+		callPrefixedFunction(document,"exitFullScreen");
+	}
+}
 function screenSize(pxDensity) {
 	if (fullScreen) pixelDensity = Math.ceil(pxDensity*window.devicePixelRatio);
 	else pixelDensity = pxDensity;
@@ -1148,7 +1166,6 @@ function addEvents() {
 		fullScreen = getPrefixedProperty(document,"fullscreenElement") || getPrefixedProperty(document,"fullScreenElement");
 		fullScreen = !!fullScreen;
 		G$("FSToggle").on = fullScreen;
-		G$("FSToggle").toggleState = fullScreen+0;
 		if (fullScreen) {
 			widthScale = window.innerWidth/WIDTH;
 			heightScale = window.innerHeight/HEIGHT;
@@ -1175,5 +1192,6 @@ function addEvents() {
 		focused = true;
 		Game.onFocus();
 		$(canvas).css({cursor: 'none'});
+		if (FileInput.asking && FileInput.input.files.length==0) FileInput.onCancel();
 	});
 }

@@ -11,17 +11,11 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
   	TextElement.create("TitleLogo","Title",WIDTH/2,HEIGHT*11/36,fontLogo,"Doodleman",WIDTH,CENTER).show();
   	TextElement.create("TitleYear","Title",10,HEIGHT-10,fontCredit,"\u00A92019 DieGo",WIDTH,LEFT).show();
     Button.create("FSToggle","Title",WIDTH-60,HEIGHT-60,50,50).setToggle(function() {
-  		callPrefixedFunction(canvas,"requestFullscreen");
-  		callPrefixedFunction(canvas,"requestFullScreen");
-  	}, function() {
-  		callPrefixedFunction(document,"exitFullscreen");
-  		callPrefixedFunction(document,"exitFullScreen");
-  	},true)
+      this.on = !this.on;
+  		setFullScreen(this.on);
+    },true)
     .setOnViewShown(function() {
-      if (fullScreen) {
-  			this.toggleState = 1;
-  			this.on = true;
-  		}
+      this.on = fullScreen;
     }).setIcon("GUI-Icons.png",2,0,42,4).show();
     Button.create("VolumeButton","Title",WIDTH-120,HEIGHT-60,50,50).setOnClick(function() {
   		let vol = G$("VolumeSlider");
