@@ -568,20 +568,22 @@ class Entrance extends Interactable {
       if (Level.exists(this.destLevel)) {
         let dest = this.destination, cls = this.targetClass;
         let pSlot = obj.slot;
-        let failEntr = this;
+        let failEntr = this.preventEnter? null: this;
         Player.cacheAllHealth();
         Level.loadLevel(this.destLevel,function() {
           dest = Entrance.findEntrance(dest,cls);
           let p = Player.getSlot(pSlot);
           if (p && dest) go(p,dest)
-        }, function() { go(obj,failEntr); }); // failed to load
+        }, function() { if (failEntr) go(obj,failEntr); else obj.warp(0,0); }); // failed to load
       }
       else go(obj,this); // return to same entrance
     }
     else { // find destination
       let dest = Entrance.findEntrance(this.destination,this.targetClass);
       if (dest) go(obj,dest);
-      else obj.warp(0,0); // destination wasn't found
+      // destination wasn't found
+      else if (!this.preventEnter) go(obj,this);
+      else obj.warp(0,0);
     }
   }
   useEntrance(obj) {
