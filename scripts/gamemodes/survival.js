@@ -226,7 +226,18 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     this.score = 0;
     this.levels = [
       {
-        filename: null,
+        filename: "__EDITOR_TEST__",
+        isEditorCopy: true,
+        waves: [
+          [ [[11]] ],
+          [ [[11]], [[11],[11]] ],
+          [ [[11],[11]], [[11],[10]] ],
+          [ [[11],[10],[10]], [[10]] ]
+        ],
+        bonusThresh: 1
+      },
+      {
+        filename: "__EDITOR_TEST__",
         isEditorCopy: true,
         waves: [
           [

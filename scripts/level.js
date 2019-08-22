@@ -23,6 +23,7 @@ const Level = {
 	},
 	list: [],
 	exists: function(name) {
+		if (name=="__EDITOR_TEST__") return true;
 		return this.list.indexOf(name) != -1;
 	},
 	addTerrainData: function(data) {
@@ -153,7 +154,14 @@ const Level = {
 	},
 	loadLevel: function(levelName,onLoad,onFail) {
 		canvas.showLoadScreen();
-		Resources.request("levels/"+levelName,function(data) {
+		if (levelName=="__EDITOR_TEST__") {
+			canvas.clearLoadScreen();
+			if (EditorTools.loadTestLevel()) {
+				if (typeof onLoad == "function") onLoad();
+			}
+			else if (typeof onFail == "function") onFail();
+		}
+		else Resources.request("levels/"+levelName,function(data) {
 			new Promise(function(resolve) {
 				resolve(Level.load(data));
 			}).

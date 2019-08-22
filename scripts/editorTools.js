@@ -11,10 +11,13 @@ const EditorTools = {
   actionResult: null,
   setup: function() {
     this.enabled = true;
-    if (this.levelCopy) Level.load(JSON.stringify(this.levelCopy),false);
+    if (this.levelCopy) this.loadTestLevel();
     for (var i in this.tools) this.tools[i].setup()
     this.history = [];
     this.future = [];
+  },
+  loadTestLevel: function() {
+    return Level.load(JSON.stringify(this.levelCopy),false);
   },
   canUseTools: function() {
     return View.focus<2 && !Button.underPointer();
@@ -96,7 +99,7 @@ const EditorTools = {
     this.getTool().cancel();
     this.levelCopy = clone(Level.level);
     Game.mode = mode;
-    Level.load(JSON.stringify(this.levelCopy),false);
+    this.loadTestLevel();
   },
   execAction: function(action) {
     switch(action.action) {
