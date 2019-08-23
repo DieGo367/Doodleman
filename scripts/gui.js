@@ -18,24 +18,28 @@ G$.on = function(q) {
 
 //useful game functions
 function buildSelector(list,onSelect,onCancel) {
-	let hadSelected = guiSelectedElement;
+	let selectionState = {start: guiStartElement, selected: guiSelectedElement};
 	View.create("_Selector_",0,0,WIDTH,HEIGHT,"tint","darkBlue").openOnTop();
 	let path = [];
 	for (var i in list) {
 		let b = Button.create("_Selector_::"+i,"_Selector_",WIDTH/2-150,30+50*i,300,40,list[i]).setOnClick(function() {
 			if (typeof onSelect=="function") onSelect(this.name.split("::")[1],this.text);
 			this.view.remove();
+			guiStartElement = selectionState.start;
+			guiSelectedElement = selectionState.selected;
 		}).show();
 		path.push(b.name);
 	}
 	Button.create("_SelectorClose_","_Selector_",WIDTH/2-150,HEIGHT-70,300,40,"Cancel").setOnClick(function() {
 		if (typeof onCancel=="function") onCancel();
 		this.view.remove();
+		guiStartElement = selectionState.start;
+		guiSelectedElement = selectionState.selected;
 	}).setClose(true).show();
 	path.push("_SelectorClose_");
 	Button.pathVert(path);
 	G$(path[0]).setAsStart();
-	if (hadSelected) guiSelectedElement = guiStartElement;
+	if (selectionState.selected) guiSelectedElement = guiStartElement;
 }
 
 function attemptUserAction(action,src,caller) {
