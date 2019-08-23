@@ -190,10 +190,10 @@ function setPrefixedProperty(source,strProp,val) {
 function callPrefixedFunction(source,strFunc) {
 	var capFunc = strFunc.charAt(0).toUpperCase()+strFunc.slice(1);
 	var useArgs = [...arguments].slice(2);
-	if (typeof source[strFunc]!='undefined') source[strFunc](...useArgs);
-	else if (typeof source["webkit"+capFunc]!='undefined') source["webkit"+capFunc](...useArgs);
-	else if (typeof source["ms"+capFunc]!='undefined') source["ms"+capFunc](...useArgs);
-	else if (typeof source["moz"+capFunc]!='undefined') source["moz"+capFunc](...useArgs);
+	if (typeof source[strFunc]=="function") return source[strFunc](...useArgs);
+	else if (typeof source["webkit"+capFunc]=="function") return source["webkit"+capFunc](...useArgs);
+	else if (typeof source["ms"+capFunc]=="function") return source["ms"+capFunc](...useArgs);
+	else if (typeof source["moz"+capFunc]=="function") return source["moz"+capFunc](...useArgs);
 }
 function wait(ticks,func) {
 	Timer.wait(ticks,func);
@@ -482,10 +482,9 @@ DrawableClasses.forAll = function(method) {
 	}
 }
 const FileInput = {
-	input: $("#fileInput")[0],
+	input: $("#fileInput")[0], asking: false, tempfs: false,
 	onChange: function(event) {
-		this.asking = false;
-		if (this.tempfs) setFullScreen(true);
+		this.onCancel();
 		if (this.successAction||this.failureAction) this.readFile(event,this.extensions,this.readMode,this.successAction,this.failureAction);
 		this.input.value = "";
 		this.input.type = "text";
@@ -493,7 +492,11 @@ const FileInput = {
 	},
 	onCancel: function() {
 		this.asking = false;
-		if (this.tempfs) setFullScreen(true);
+		if (this.tempfs) Timer.wait(1,function() {
+			Staller.useEvent(function() {
+				setFullScreen(true);
+			});
+		});
 	},
 	ask: function(extensions,readMode,success,failure) {
 		this.readMode = (typeof readMode == "string"?readMode:null);
@@ -958,13 +961,31 @@ function drawGame() {
 }
 
 function setFullScreen(fs) {
-	if (fs) {
-		callPrefixedFunction(canvas,"requestFullscreen");
-		callPrefixedFunction(canvas,"requestFullScreen");
+	try {
+		if (fs) {
+			if (fullScreenChanging) return console.log("FullScreen'd too fast.")
+			else {
+				let promise = callPrefixedFunction(canvas,"requestFullscreen")
+				|| callPrefixedFunction(canvas,"requestFullScreen");
+				if (promise) {
+					fullScreenChanging = true;
+					promise.then(function(){
+						fullScreenChanging = false;
+					},
+					function(err) {
+						fullScreenChanging = false;
+						console.log(err);
+					});
+				}
+			}
+		}
+		else {
+			if (!callPrefixedFunction(document,"exitFullscreen"))
+				callPrefixedFunction(document,"exitFullScreen");
+		}
 	}
-	else {
-		callPrefixedFunction(document,"exitFullscreen");
-		callPrefixedFunction(document,"exitFullScreen");
+	catch(e) {
+		console.log(e);
 	}
 }
 function screenSize(pxDensity) {
