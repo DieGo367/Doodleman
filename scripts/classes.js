@@ -2884,6 +2884,7 @@ class Button extends GuiElement {
     let dp = Pointer.downPoint;
   	if (underPointer&&(!dp||this.checkCoord(dp.x,dp.y))) {
       this.heldDown = (dp!=null);
+      if (this.mode!=BUTTON_NO) Pointer.interactCursor = true;
 			return this.hovered = true;
   	}
   	return this.hovered = false;
@@ -2911,6 +2912,7 @@ class Button extends GuiElement {
   }
   static checkAll() {
     this.buttonFound = false;
+    Pointer.interactCursor = false;
     this.callForAll("checkMouse");
     return this.buttonFound;
   }

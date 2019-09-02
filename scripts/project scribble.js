@@ -20,7 +20,7 @@ const LEFT = -1, CENTER = 0, RIGHT = 1, TOP = -1, BOTTOM = 1;
 const LINE_UP = 2, LINE_DOWN = -2, LINE_LEFT = -1, LINE_RIGHT = 1;
 const C_NONE = 0, C_WEAK = 1, C_PUSHABLE = 2, C_ENT = 3, C_SOLID = 4, C_INFINIMASS = 5, C_LINE = 6; //, C_PUSH_UP = 6, C_PUSH_RIGHT = 7, C_PUSH_DOWN = 8, C_PUSH_LEFT = 9, C_PUSH_DIAG_UL = 10, C_PUSH_DIAG_UR = 11, C_PUSH_DIAG_DR = 12, C_PUSH_DIAG_DL = 13;
 const BUTTON_NO = 0, BUTTON_NORMAL = 1, BUTTON_TOGGLE = 2;
-const POINTER_NONE = 0, POINTER_NORMAL = 1, POINTER_CROSSHAIR = 2, POINTER_PENCIL = 3, POINTER_ERASER = 4, POINTER_MOVE = 5;
+const POINTER_NONE = 0, POINTER_NORMAL = 1, POINTER_CROSSHAIR = 2, POINTER_PENCIL = 3, POINTER_ERASER = 4, POINTER_MOVE = 5, POINTER_INTERACT = 6;
 const ORIENT_LIN = 0, ORIENT_CW = 1, ORIENT_CCW = -1;
 const EDGE_NONE = 0, EDGE_SOLID = 1, EDGE_WRAP = 2, EDGE_KILL = 3;
 const CANCEL = -1;
@@ -203,7 +203,7 @@ function wait(ticks,func) {
 const Pointer = {
 	x:0,y:0,
 	cursor: POINTER_NORMAL, downPoint: null, downButton: null,
-	styles: [POINTER_NORMAL,POINTER_CROSSHAIR,POINTER_PENCIL,POINTER_ERASER,POINTER_MOVE],
+	styles: [POINTER_NORMAL,POINTER_CROSSHAIR,POINTER_PENCIL,POINTER_ERASER,POINTER_MOVE,POINTER_INTERACT],
 	mousemove: function(event) {
 		let coords = readEventCoords(event);
 		this.move(coords.x,coords.y);
@@ -238,7 +238,8 @@ const Pointer = {
 	camY: function() { return Math.floor(Camera.y+(this.y-HEIGHT/2)/Camera.zoom); },
 	camPoint: function() { return new Point(this.camX(), this.camY()) },
 	draw: function() {
-		Images.drawImage("GUI-HUD-Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(this.cursor),0,32,32);
+		let cursor = this.interactCursor? POINTER_INTERACT: this.cursor;
+		Images.drawImage("GUI-HUD-Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(cursor),0,32,32);
 	}
 };
 const Camera = {
