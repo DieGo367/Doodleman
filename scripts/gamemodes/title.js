@@ -72,7 +72,7 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
     Button.create("Option_MP:Cancel","Option_MP",WIDTH/2-100,HEIGHT/2+120,200,40,"Back").setOnClick(function() {
       this.view.closesub();
       G$("Option_Mode").opensub();
-    }).setClose(true).show();
+    }).setImage("GUI-Button-Red.png").show();
     Button.pathVert(["Option_MP:Single","Option_MP:Mult","Option_MP:Cancel"]);
     Button.funnelTo("VolumeButton","right",["Option_MP:Single","Option_MP:Mult","Option_MP:Cancel"]);
   },

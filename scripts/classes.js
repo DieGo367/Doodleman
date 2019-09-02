@@ -2592,7 +2592,7 @@ class View extends _c_ {
   			c.globalAlpha = 1;
   			break;
   		case "window":
-  			Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,0,96);
+  			Images.drawBorderedImage("GUI-Window.png",this.x,this.y,this.width,this.height,8,16,0,0);
   	}
   }
   removeAllChildren() {
@@ -2771,7 +2771,7 @@ class Button extends GuiElement {
   	this.height = height;
   	this.text = text||"";
     this.mode = BUTTON_NO;
-    this.isCloseButton = false;
+    this.img = "GUI-Button-Blue.png";
     this.onClickFunction = function() {};
     this.onViewShownFunction = function() {};
     this.requireUserAction = false;
@@ -2843,8 +2843,8 @@ class Button extends GuiElement {
   	else this.useIcon = false;
     return this;
   }
-  setClose(bool) {
-    this.isCloseButton = bool;
+  setImage(img) {
+    this.img = img;
     return this;
   }
   show() {
@@ -2907,15 +2907,15 @@ class Button extends GuiElement {
   drawGUI() {
   	var x = 0, y = 0;
     let drawPressed = this.heldDown && this.hovered;
-    if (drawPressed) y += 64;
-    if (guiSelectedElement==this) y = 32;
-  	if (this.on) x+= 32;
-    if (this.mode==BUTTON_NO) x = 32*3;
-    if (this.isCloseButton) x = 32*2;
-  	Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,x,y);
+    let selected = (guiSelectedElement == this);
+    if (drawPressed) y = 64;
+    if (selected) y = 32;
+  	if (this.on) x = 32;
+    if (this.mode==BUTTON_NO) x = 64;
+  	Images.drawBorderedImage(this.img,this.x,this.y,this.width,this.height,8,16,x,y);
   	if (this.useIcon) Images.drawImage(this.iconImg,Math.floor(this.x+this.iconPad),Math.floor(this.y+this.iconPad)+(drawPressed?2:0),this.width-2*this.iconPad,this.height-2*this.iconPad,this.iconX*this.iconSize,this.iconY*this.iconSize,this.iconSize,this.iconSize);
   	else {
-      let font = (this.hovered&&!Tap.active)?fontButtonBold:fontButton;
+      let font = ((this.hovered||selected)&&!Tap.active)?fontButtonBold:fontButton;
       font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7+(drawPressed?2:0),this.width,CENTER);
   	}
   }

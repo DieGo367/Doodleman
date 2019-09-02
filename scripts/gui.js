@@ -35,7 +35,7 @@ function buildSelector(list,onSelect,onCancel) {
 		this.view.remove();
 		guiStartElement = selectionState.start;
 		guiSelectedElement = selectionState.selected;
-	}).setClose(true).show();
+	}).setImage("GUI-Button-Red.png").show();
 	path.push("_SelectorClose_");
 	Button.pathVert(path);
 	G$(path[0]).setAsStart();
@@ -70,7 +70,7 @@ function gameConfirm(text,onResponse) {
 		this.view.remove();
 		onResponse(true);
 	}).show();
-	Button.create("_ConfirmNo_","_Confirm_",WIDTH/2+5,HEIGHT-150,100,40,"No").setClose(true).setOnClick(function() {
+	Button.create("_ConfirmNo_","_Confirm_",WIDTH/2+5,HEIGHT-150,100,40,"No").setImage("GUI-Button-Red.png").setOnClick(function() {
 		this.view.remove();
 		onResponse(false);
 	}).show().setAsStart();
@@ -168,7 +168,7 @@ function buildLevelSelectMenu() {
 	Button.create("LSClose","LevelSelectView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("LevelSelectView").hide();
 		G$("PauseMenu").show();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
 
   Resources.request("levels/_list_.json", function(data) {
 		var levelNames = JSON.parse(data);
@@ -200,7 +200,7 @@ function buildControllerSettingsMenu() {
 
   Button.create("CtrlSettingsClose","CtrlSettingsView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("CtrlSettingsView").close();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
 
 	TextElement.create("CtrlP1","CtrlSettingsView",WIDTH/2-135,100,fontMenuItem,"Player 1",WIDTH,CENTER).show();
 	TextElement.create("CtrlP2","CtrlSettingsView",WIDTH/2+135,100,fontMenuItem,"Player 2",WIDTH,CENTER).show();
@@ -293,7 +293,7 @@ function buildHelpPage() {
 	Button.create("HelpClose","HelpView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("WASDPage").onClickFunction();
 		G$("HelpView").close();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
 
 	var actions = ["Move Left / Right", "Jump", "Crouch", "Attack", "Enter Door / Up"];
 
@@ -333,7 +333,7 @@ function buildMapperView() {
 
 	Button.create("MapperClose","MapperView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("MapperView").close();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
 
 	TextElement.create("MapperSelectText","MapperView",WIDTH/3-5,115,fontMenuItem,"Settings for: ",WIDTH,RIGHT).show();
 	Button.create("MapperGPSelect","MapperView",WIDTH/3+5,90,300,40).setOnViewShown(function() {
@@ -416,7 +416,7 @@ function buildMapperTool() {
 		G$("MapperTool").close();
 		GamePad.buttonListeners = [];
 		GamePad.axisListeners = [];
-	}).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
 
 	var titles = ["Press Button 0","Press Button 1","Press Start","Press Select","Press Left Bumper","Press Right Bumper",
 	"Move Left Stick Left/Right","Move Left Stick Up/Down","Move Right Stick Left/Right","Move Right Up/Down",

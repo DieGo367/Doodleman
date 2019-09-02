@@ -178,7 +178,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       G$("LS:Edge:left").store(Constants.getKey(Level.level.edge.left));
       G$("LS:Edge:right").store(Constants.getKey(Level.level.edge.right));
       G$("LS:File:Name:input").store(Level.level.name);
-    }).setIcon("GUI-Icons.png",3,0,42,4).setClose(true).show();
+    }).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
     TextElement.create("LS:Title","LevelSettingsView",WIDTH/2,30,fontMenuTitle,"Level Properties",WIDTH,CENTER).show();
 
     Button.create("FSToggle","LevelSettingsView",WIDTH-130,10,50,50).setToggle(function() {
@@ -401,7 +401,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
           view.onShow();
         }
       })
-    }).setClose(true).show();
+    }).setImage("GUI-Button-Red.png").show();
     ImgElement.create("LS:BG:PreviewWrap","LS:BG:Menu",WIDTH/5,261,"GUI-BG-Preview.png",202,160,IMAGE_STRETCH);
     TextElement.create("LS:BG:Desc","LS:BG:Menu",WIDTH/5,320,fontMenuData,null,WIDTH,CENTER);
     ImgElement.create("LS:BG:Preview","LS:BG:Menu",WIDTH/5,240,"",192,108,IMAGE_ZOOM);
