@@ -2610,6 +2610,7 @@ class GuiElement extends _c_ {
   	this.x = x;
   	this.y = y;
   	this.visible = false;
+    this.shouldDoDraws = true;
   	this.neighbors = {up:null, right:null, down:null, left:null};
     G$.store(name,this);
     if (this.view.name&&this.view.visible) this.earlyOnViewShown = true;
@@ -2618,7 +2619,7 @@ class GuiElement extends _c_ {
   hide() { this.visible = false; return this; }
   isVisible() { return this.visible&&this.view.visible; }
   drawHud() {
-  	if (this.isVisible()) this.drawGUI();
+  	if (this.isVisible()&&this.shouldDoDraws) this.drawGUI();
   }
   drawGUI() { }
   update() { }
@@ -2628,6 +2629,10 @@ class GuiElement extends _c_ {
     super.remove();
   }
   onViewShown() { }
+  shouldDraw(bool) {
+    this.shouldDoDraws = bool;
+    return this;
+  }
   up(name) {
     this.neighbors.up = name;
     return this;
