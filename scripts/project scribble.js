@@ -917,15 +917,6 @@ function drawGame() {
 	}
 	//hud
 	DrawableClasses.forAll("drawHud");
-	// allViews = View.getAll();
-	// for (var layer = 0; layer<=View.focus; layer++) {
-	// 	for (var i in allViews) {
-	// 		if (allViews[i].layer==layer) {
-	// 			allViews[i].drawHud();
-	// 			for (var j in allViews[i].children) allViews[i].children[j].drawHud();
-	// 		}
-	// 	}
-	// }
 	for (var i in View.uiStack) {
 		let view = View.uiStack[i];
 		if (view) {

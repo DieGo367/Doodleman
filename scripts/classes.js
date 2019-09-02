@@ -2480,10 +2480,22 @@ class View extends _c_ {
   	this.visible = true;
     this.onShow(src);
   	for (var i in this.children) this.children[i].onViewShown();
+    for (var i in this.subviews) {
+      if (this.subviews[i].wasVisibleInBaseView) {
+        delete this.subviews[i].wasVisibleInBaseView;
+        this.subviews[i].visible = true;
+      }
+    }
   	return this;
   }
   hide() {
     this.visible = false;
+    for (var i in this.subviews) {
+      if (this.subviews[i].visible) {
+        this.subviews[i].visible = false;
+        this.subviews[i].wasVisibleInBaseView = true;
+      }
+    }
     return this;
   }
   onShow(src) {
