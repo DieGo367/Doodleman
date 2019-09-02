@@ -3,7 +3,7 @@ A JavaScript browser game hosted on Google Cloud. It's an action-platformer star
 
 This is a passion project done mostly for fun, but also has served as a way to practice my coding skills and learn things as I go.
 
-[Play the game!](doodle-man.appspot.com)
+[Play the game!](https://doodle-man.appspot.com)
 ## Screenshots
 ![Doodleman Title Screen](https://github.com/DieGo367/Doodleman/blob/master/screenshots/title.png)
 ![Survival Mode](https://github.com/DieGo367/Doodleman/blob/master/screenshots/survival_01.png)
@@ -27,7 +27,7 @@ This is a passion project done mostly for fun, but also has served as a way to p
 	 - Can remap controller inputs
 	 - Assign which controllers/keys control which players.
 	 - Touch support along with the fullscreen mode means this is basically a mobile game now too.
- - [Level Editor](doodle-man.appspot.com/edit)
+ - [Level Editor](https://doodle-man.appspot.com/edit)
 	 - Draw terrain using boxes or lines.
 	 - Import images to use as backgrounds
 	 - Use any of the included Actors
