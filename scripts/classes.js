@@ -3014,7 +3014,7 @@ class TextInput extends Button {
     return this;
   }
   drawGUI() {
-    Images.drawBorderedImage("GUI-Button.png",this.x,this.y,this.width,this.height,8,16,32,96);
+    Images.drawBorderedImage("GUI-TextInput.png",this.x,this.y,this.width,this.height,8,16,0,0);
     if (this.typing) return;
     else {
       let text = "", font = fontInput;
