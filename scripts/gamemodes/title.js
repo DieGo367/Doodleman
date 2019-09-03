@@ -7,9 +7,13 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
     this.removeGui();
   },
   addGui: function() {
+    buildLinksMenu();
     View.create("Title",0,0,WIDTH,HEIGHT).open();
   	TextElement.create("TitleLogo","Title",WIDTH/2,HEIGHT*11/36,fontLogo,"Doodleman",WIDTH,CENTER).show();
   	TextElement.create("TitleYear","Title",10,HEIGHT-10,fontCredit,"\u00A92019 DieGo",WIDTH,LEFT).show();
+    Button.create("LinksButton","Title",0,HEIGHT-25,125,25).setOnClick(function() {
+      G$("Links").open();
+    }).shouldDraw(false).show();
     Button.create("FSToggle","Title",WIDTH-60,HEIGHT-60,50,50).setToggle(function() {
       this.on = !this.on;
   		setFullScreen(this.on);

@@ -523,3 +523,21 @@ function buildDevToolsHud() {
 		Pointer.cursor = this.on?POINTER_ERASER:(G$("DevPencil").on?POINTER_PENCIL:POINTER_CROSSHAIR);
 	}).setIcon("GUI-Icons.png",3,2,42,4).show();
 }
+
+function buildLinksMenu() {
+	View.create("Links",0,0,WIDTH,HEIGHT);
+	TextElement.create("GitHubText","Links",WIDTH/2,50,fontMenuTitle,"This project is on GitHub!",WIDTH,CENTER).show();
+	Button.create("GitHub","Links",WIDTH/2-25,80,50,50).setOnClick(function() {
+		window.open("https://github.com/DieGo367/Doodleman");
+	}).setImage("GUI-Button-Black.png").setIcon("GUI-Icons-Sharing.png",0,0,42,4).show();
+	TextElement.create("ShareText","Links",WIDTH/2,HEIGHT/2,fontMenuTitle,"Share this!",WIDTH,CENTER).show();
+	Button.create("Twitter","Links",WIDTH/2-55,HEIGHT/2+35,50,50).setOnClick(function() {
+		window.open("https://twitter.com/share?text=Play%20Doodleman!&url=https://doodleman.appspot.com");
+	}).setIcon("GUI-Icons-Sharing.png",2,0,42,4).show();
+	Button.create("Facebook","Links",WIDTH/2+5,HEIGHT/2+35,50,50).setOnClick(function() {
+		window.open("https://www.facebook.com/sharer/sharer.php?u=https://doodle-man.appspot.com");
+	}).setImage("GUI-Button-Indigo.png").setIcon("GUI-Icons-Sharing.png",1,0,42,4).show();
+	Button.create("CloseLinks","Links",WIDTH-60,10,50,50).setOnClick(function() {
+		this.view.close();
+	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
+}
