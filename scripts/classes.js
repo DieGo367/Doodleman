@@ -2480,16 +2480,22 @@ class View extends _c_ {
   	this.visible = true;
     this.onShow(src);
   	for (var i in this.children) this.children[i].onViewShown();
+  	return this;
+  }
+  hide() {
+    this.visible = false;
+    return this;
+  }
+  showSubviews() {
     for (var i in this.subviews) {
       if (this.subviews[i].wasVisibleInBaseView) {
         delete this.subviews[i].wasVisibleInBaseView;
         this.subviews[i].visible = true;
       }
     }
-  	return this;
+    return this;
   }
-  hide() {
-    this.visible = false;
+  hideSubviews() {
     for (var i in this.subviews) {
       if (this.subviews[i].visible) {
         this.subviews[i].visible = false;
@@ -2514,7 +2520,7 @@ class View extends _c_ {
   open(src,keepOpen) {
     if (this.layer) console.log("View '"+this.name+"' is already open");
     else {
-      if (!keepOpen&&View.focus>0) this.prevLayer = View.uiStack[View.focus].hide();
+      if (!keepOpen&&View.focus>0) this.prevLayer = View.uiStack[View.focus].hide().hideSubviews();
       View.uiStack.push(this);
       this.layer = ++View.focus;
       this.show(src);
@@ -2536,7 +2542,7 @@ class View extends _c_ {
         View.focus--;
         this.layer = null;
         if (this.prevLayer) {
-          this.prevLayer.show();
+          this.prevLayer.show().showSubviews();
           this.prevLayer = null;
         }
         let newTop = View.uiStack[View.focus];
