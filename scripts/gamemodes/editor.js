@@ -214,9 +214,12 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     Button.create("LS:File:Export","LS:File:Menu",WIDTH*2/3-50,185,205,40,"Export Level").setOnClick(Level.export,true).show();
     TextElement.create("LS:File:Test","LS:File:Menu",WIDTH/4-150,265,fontMenuItem,"Test Level",WIDTH,LEFT).show();
     TextInput.create("LS:File:Test:Mode","LS:File:Menu",WIDTH/2-175,240,100,40,"@Mode:GAME_SURVIVAL,GAME_SANDBOX","GAME_SANDBOX").show();
-    TextInput.create("LS:File:Test:MP","LS:File:Menu",WIDTH/2-70,240,100,40,"?multiplayer",false).up("LS:File:Copy").show();
+    Button.create("LS:File:Test:MP","LS:File:Menu",WIDTH/2-70,240,100,40,"Singleplayer").setOnClick(function() {
+      this.on = !this.on;
+      this.text = this.on? "Multiplayer": "Singleplayer";
+    }).up("LS:File:Copy").show();
     Button.create("LS:File:Test:Button","LS:File:Menu",WIDTH*2/3-50,240,205,40,"Test Level").setOnClick(function() {
-      multiplayer = G$("LS:File:Test:MP").val();
+      multiplayer = G$("LS:File:Test:MP").on;
       EditorTools.testLevel(G$("LS:File:Test:Mode").val());
     }).show();
     Button.funnelTo("LS:File","up",["LS:File:Name:input","LS:File:Load"]);
