@@ -1525,7 +1525,7 @@ class Entity extends PhysicsBox {
   drawElements() {
   	var startX = Math.round(this.x-((8*this.health)-1));
   	for (var i = 0; i < this.health; i++) {
-  		Images.drawImage("GUI-HUD-Hearts.png",startX+(16*i),Math.round(this.y-this.fullHeight-17),14,12,0,0,14,12);
+  		Images.drawImage("GUI/HUD_Hearts.png",startX+(16*i),Math.round(this.y-this.fullHeight-17),14,12,0,0,14,12);
   	}
   }
 
@@ -1906,7 +1906,7 @@ class Player extends Entity {
     }
   }
   drawElements() {
-  	if (this.attackHeld>=chargeAttackReq&&!this.held) Images.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
+  	if (this.attackHeld>=chargeAttackReq&&!this.held) Images.drawImage("GUI/HUD_!.png",this.x-2,this.topY()-4,4,-16);
   	else super.drawElements();
   }
 
@@ -2307,7 +2307,7 @@ class Enemy extends Entity {
   	super.drawDebug();
   }
   drawElements() {
-  	if (this.exclaim!=null&&this.exclaim>=0) Images.drawImage("GUI-HUD-!.png",this.x-2,this.topY()-4,4,-16);
+  	if (this.exclaim!=null&&this.exclaim>=0) Images.drawImage("GUI/HUD_!.png",this.x-2,this.topY()-4,4,-16);
     else if (!this.justSpawned) super.drawElements();
   }
 
@@ -2598,7 +2598,7 @@ class View extends _c_ {
   			c.globalAlpha = 1;
   			break;
   		case "window":
-  			Images.drawBorderedImage("GUI-Window.png",this.x,this.y,this.width,this.height,8,16,0,0);
+  			Images.drawBorderedImage("GUI/Window.png",this.x,this.y,this.width,this.height,8,16,0,0);
   	}
   }
   removeAllChildren() {
@@ -2777,7 +2777,7 @@ class Button extends GuiElement {
   	this.height = height;
   	this.text = text||"";
     this.mode = BUTTON_NO;
-    this.img = "GUI-Button-Blue.png";
+    this.img = "GUI/Button_Blue.png";
     this.onClickFunction = function() {};
     this.onViewShownFunction = function() {};
     this.requireUserAction = false;
@@ -3020,7 +3020,7 @@ class TextInput extends Button {
     return this;
   }
   drawGUI() {
-    Images.drawBorderedImage("GUI-TextInput.png",this.x,this.y,this.width,this.height,8,16,0,0);
+    Images.drawBorderedImage("GUI/TextInput.png",this.x,this.y,this.width,this.height,8,16,0,0);
     if (this.typing) return;
     else {
       let text = "", font = fontInput;

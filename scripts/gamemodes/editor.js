@@ -98,7 +98,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       G$("EditorToolbar").opensub();
       this.view.subMoveToTop();
       G$("EditorHud").hide();
-      this.setIcon("GUI-Icons.png",3,0,42,4);
+      this.setIcon("GUI/Icons.png",3,0,42,4);
       this.toggleState = 1;
     },
     function(ctrl) {
@@ -106,17 +106,17 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       if (p.on) p.callToggleState(1);
       G$("EditorToolbar").closesub();
       G$("EditorHud").show();
-      this.setIcon("GUI-Icons.png",0,1,42,4);
+      this.setIcon("GUI/Icons.png",0,1,42,4);
       this.toggleState = 0;
-    }).setIcon("GUI-Icons.png",0,1,42,4).show();
+    }).setIcon("GUI/Icons.png",0,1,42,4).show();
 
-    Button.create("BoxTool","EditorToolbar",80,10,50,50).setIcon("GUI-Icons.png",0,2,42,4).show();
-    Button.create("LineTool","EditorToolbar",150,10,50,50).setIcon("GUI-Icons.png",1,2,42,4).show();
-    Button.create("ActorTool","EditorToolbar",220,10,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
+    Button.create("BoxTool","EditorToolbar",80,10,50,50).setIcon("GUI/Icons.png",0,2,42,4).show();
+    Button.create("LineTool","EditorToolbar",150,10,50,50).setIcon("GUI/Icons.png",1,2,42,4).show();
+    Button.create("ActorTool","EditorToolbar",220,10,50,50).setIcon("GUI/Icons.png",2,2,42,4).show();
 
-    Button.create("MoveTool","EditorToolbar",WIDTH-270,10,50,50).setIcon("GUI-Icons.png",3,3,42,4).show();
-    Button.create("SelectTool","EditorToolbar",WIDTH-200,10,50,50).setIcon("GUI-Icons.png",2,3,42,4).show();
-    Button.create("EraserTool","EditorToolbar",WIDTH-130,10,50,50).setIcon("GUI-Icons.png",3,2,42,4).show();
+    Button.create("MoveTool","EditorToolbar",WIDTH-270,10,50,50).setIcon("GUI/Icons.png",3,3,42,4).show();
+    Button.create("SelectTool","EditorToolbar",WIDTH-200,10,50,50).setIcon("GUI/Icons.png",2,3,42,4).show();
+    Button.create("EraserTool","EditorToolbar",WIDTH-130,10,50,50).setIcon("GUI/Icons.png",3,2,42,4).show();
     Button.setRadioGroup(["BoxTool","LineTool","ActorTool", "MoveTool","SelectTool","EraserTool"],function() {
       EditorTools.toolOn = this.on;
       EditorTools.setTool(this.radioGroupIndex);
@@ -132,7 +132,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       G$("EditPropView").closesub();
       this.on = false;
       this.toggleState = 0;
-    }).setIcon("GUI-Icons.png",2,1,42,4).show();
+    }).setIcon("GUI/Icons.png",2,1,42,4).show();
 
     View.create("EditPropView",0,70,WIDTH,60,"tint","green").setOnShow(function() {
       this.removeAllChildren();
@@ -154,7 +154,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 
     Button.create("LevelSettingsBttn","EditorHud",WIDTH-60,10,50,50).setOnClick(function() {
       G$("LevelSettingsView").open();
-    }).setIcon("GUI-Icons.png",1,1,42,4).show();
+    }).setIcon("GUI/Icons.png",1,1,42,4).show();
 
     View.create("LevelSettingsView",0,0,WIDTH,HEIGHT,"tint","purple");
     Button.create("LevelSettingsClose","LevelSettingsView",WIDTH-60,10,50,50).setOnClick(function() {
@@ -178,7 +178,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
       G$("LS:Edge:left").store(Constants.getKey(Level.level.edge.left));
       G$("LS:Edge:right").store(Constants.getKey(Level.level.edge.right));
       G$("LS:File:Name:input").store(Level.level.name);
-    }).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
+    }).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
     TextElement.create("LS:Title","LevelSettingsView",WIDTH/2,30,fontMenuTitle,"Level Properties",WIDTH,CENTER).show();
 
     Button.create("FSToggle","LevelSettingsView",WIDTH-130,10,50,50).setToggle(function() {
@@ -187,7 +187,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
     },true)
     .setOnViewShown(function() {
       this.on = fullScreen;
-    }).setIcon("GUI-Icons.png",2,0,42,4).show();
+    }).setIcon("GUI/Icons.png",2,0,42,4).show();
     Button.pathHor(["FSToggle","LevelSettingsClose"]);
 
     Button.create("LS:File","LevelSettingsView",WIDTH*1/5-50,75,100,40,"File").down("LS:File:Name:input").setAsStart().show().on = true;
@@ -404,8 +404,8 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
           view.onShow();
         }
       })
-    }).setImage("GUI-Button-Red.png").show();
-    ImgElement.create("LS:BG:PreviewWrap","LS:BG:Menu",WIDTH/5,261,"GUI-BG-Preview.png",202,160,IMAGE_STRETCH);
+    }).setImage("GUI/Button_Red.png").show();
+    ImgElement.create("LS:BG:PreviewWrap","LS:BG:Menu",WIDTH/5,261,"GUI/BG_Preview.png",202,160,IMAGE_STRETCH);
     TextElement.create("LS:BG:Desc","LS:BG:Menu",WIDTH/5,320,fontMenuData,null,WIDTH,CENTER);
     ImgElement.create("LS:BG:Preview","LS:BG:Menu",WIDTH/5,240,"",192,108,IMAGE_ZOOM);
     TextElement.create("LS:BG:Empty","LS:BG:Menu",WIDTH/5,270,fontFocus,"EMPTY",WIDTH,CENTER);

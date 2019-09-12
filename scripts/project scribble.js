@@ -239,7 +239,7 @@ const Pointer = {
 	camPoint: function() { return new Point(this.camX(), this.camY()) },
 	draw: function() {
 		let cursor = this.interactCursor? POINTER_INTERACT: this.cursor;
-		Images.drawImage("GUI-HUD-Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(cursor),0,32,32);
+		Images.drawImage("GUI/Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(cursor),0,32,32);
 	}
 };
 const Camera = {

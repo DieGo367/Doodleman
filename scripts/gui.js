@@ -35,7 +35,7 @@ function buildSelector(list,onSelect,onCancel) {
 		this.view.remove();
 		guiStartElement = selectionState.start;
 		guiSelectedElement = selectionState.selected;
-	}).setImage("GUI-Button-Red.png").show();
+	}).setImage("GUI/Button_Red.png").show();
 	path.push("_SelectorClose_");
 	Button.pathVert(path);
 	G$(path[0]).setAsStart();
@@ -70,7 +70,7 @@ function gameConfirm(text,onResponse) {
 		this.view.remove();
 		onResponse(true);
 	}).show();
-	Button.create("_ConfirmNo_","_Confirm_",WIDTH/2+5,HEIGHT-150,100,40,"No").setImage("GUI-Button-Red.png").setOnClick(function() {
+	Button.create("_ConfirmNo_","_Confirm_",WIDTH/2+5,HEIGHT-150,100,40,"No").setImage("GUI/Button_Red.png").setOnClick(function() {
 		this.view.remove();
 		onResponse(false);
 	}).show().setAsStart();
@@ -103,7 +103,7 @@ function buildMainHud() {
   View.create("Hud",0,0,WIDTH,HEIGHT);
 	Button.create("PauseButton","Hud",WIDTH-60,10,50,50).setOnClick(function() {
 		pauseGame(true);
-	}).setIcon("GUI-Icons.png",0,0,42,4).show();
+	}).setIcon("GUI/Icons.png",0,0,42,4).show();
 }
 
 function buildPauseMenu() {
@@ -113,7 +113,7 @@ function buildPauseMenu() {
 
   Button.create("PauseClose","PauseMenu",WIDTH-60,10,50,50).setOnClick(function() {
 		pauseGame(false);
-	}).setIcon("GUI-Icons.png",1,0,42,4).show().setAsStart();
+	}).setIcon("GUI/Icons.png",1,0,42,4).show().setAsStart();
 
 	Button.create("QuitGame","PauseMenu",WIDTH/2-150,HEIGHT-60,300,40,"Quit to Title").setOnClick(function(ctrl) {
 		gameConfirm("Are you sure you want to quit?",function(response) {
@@ -130,25 +130,25 @@ function buildPauseMenu() {
 	},true)
 	.setOnViewShown(function() {
 		this.on = fullScreen;
-  }).setIcon("GUI-Icons.png",2,0,42,4).show();
+  }).setIcon("GUI/Icons.png",2,0,42,4).show();
 
   Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
 		G$("CtrlSettingsView").open();
-	}).setIcon("GUI-Icons.png",3,1,42,4).show();
+	}).setIcon("GUI/Icons.png",3,1,42,4).show();
 
 	Button.create("VolumeButton","PauseMenu",70,10,50,50).setOnClick(function() {
 		let vol = G$("VolumeSlider");
 		if (vol.isVisible()) vol.hide();
 		else vol.show();
-	}).setIcon("GUI-Icons.png",0,3,42,4).show();
+	}).setIcon("GUI/Icons.png",0,3,42,4).show();
 	Slider.create("VolumeSlider","PauseMenu",130,15,20,40,100).setOnViewShown(function() {
 		this.hide();
 		this.setValue(Sound.volume);
-		G$("VolumeButton").setIcon("GUI-Icons.png",(this.value==0?1:0),3,42,4);
+		G$("VolumeButton").setIcon("GUI/Icons.png",(this.value==0?1:0),3,42,4);
 	})
 	.setOnSlide(function() {
 		Sound.setVolume(this.value);
-		G$("VolumeButton").setIcon("GUI-Icons.png",(this.value==0?1:0),3,42,4);
+		G$("VolumeButton").setIcon("GUI/Icons.png",(this.value==0?1:0),3,42,4);
 	});
 
 	Button.pathHor(["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
@@ -166,7 +166,7 @@ function buildControllerSettingsMenu() {
 
   Button.create("CtrlSettingsClose","CtrlSettingsView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("CtrlSettingsView").close();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
+	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
 
 	TextElement.create("CtrlP1","CtrlSettingsView",WIDTH/2-135,100,fontMenuItem,"Player 1",WIDTH,CENTER).show();
 	TextElement.create("CtrlP2","CtrlSettingsView",WIDTH/2+135,100,fontMenuItem,"Player 2",WIDTH,CENTER).show();
@@ -259,7 +259,7 @@ function buildHelpPage() {
 	Button.create("HelpClose","HelpView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("WASDPage").onClickFunction();
 		G$("HelpView").close();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
+	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
 
 	var actions = ["Move Left / Right", "Jump", "Crouch", "Attack", "Enter Door / Up"];
 
@@ -294,12 +294,12 @@ function buildControlList(buttons,actions) {
 
 function buildMapperView() {
   View.create("MapperView",0,0,WIDTH,HEIGHT,"tint","black");
-	// ImgElement.create("MapperImg","MapperView",WIDTH/2,HEIGHT/2,"GUI-Controller.png",640,360).show();
+	// ImgElement.create("MapperImg","MapperView",WIDTH/2,HEIGHT/2,"GUI/Controller.png",640,360).show();
 	TextElement.create("MapperTitle","MapperView",WIDTH/2,30,fontMenuTitle,"Gamepad Mapper",WIDTH,CENTER).show();
 
 	Button.create("MapperClose","MapperView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("MapperView").close();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
+	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
 
 	TextElement.create("MapperSelectText","MapperView",WIDTH/3-5,115,fontMenuItem,"Settings for: ",WIDTH,RIGHT).show();
 	Button.create("MapperGPSelect","MapperView",WIDTH/3+5,90,300,40).setOnViewShown(function() {
@@ -382,7 +382,7 @@ function buildMapperTool() {
 		G$("MapperTool").close();
 		GamePad.buttonListeners = [];
 		GamePad.axisListeners = [];
-	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
+	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
 
 	var titles = ["Press Button 0","Press Button 1","Press Start","Press Select","Press Left Bumper","Press Right Bumper",
 	"Move Left Stick Left/Right","Move Left Stick Up/Down","Move Right Stick Left/Right","Move Right Up/Down",
@@ -476,8 +476,8 @@ function mapperStep(gpId,step,titles,type,mappings) {
 
 function buildDevToolsHud() {
   View.create("DevTools",WIDTH-70,70,70,210,"tint","lightBlue");
-	Button.create("DevSpawnPM","DevTools",WIDTH-60,80,50,50).setIcon("GUI-Icons.png",2,2,42,4).show();
-	Button.create("DevPencil","DevTools",WIDTH-60,150,50,50).setIcon("GUI-Icons.png",1,2,42,4).show();
+	Button.create("DevSpawnPM","DevTools",WIDTH-60,80,50,50).setIcon("GUI/Icons.png",2,2,42,4).show();
+	Button.create("DevPencil","DevTools",WIDTH-60,150,50,50).setIcon("GUI/Icons.png",1,2,42,4).show();
 	Button.setRadioGroup(["DevPencil","DevSpawnPM"],function() {
 		if (G$("DevPencil").on) Pointer.cursor = POINTER_PENCIL;
 		else Pointer.cursor = POINTER_CROSSHAIR;
@@ -487,7 +487,7 @@ function buildDevToolsHud() {
 		if (this.on) this.on = false;
 		else if (G$("DevSpawnPM").on||G$("DevPencil").on) this.on = true;
 		Pointer.cursor = this.on?POINTER_ERASER:(G$("DevPencil").on?POINTER_PENCIL:POINTER_CROSSHAIR);
-	}).setIcon("GUI-Icons.png",3,2,42,4).show();
+	}).setIcon("GUI/Icons.png",3,2,42,4).show();
 }
 
 function buildLinksMenu() {
@@ -495,15 +495,15 @@ function buildLinksMenu() {
 	TextElement.create("GitHubText","Links",WIDTH/2,50,fontMenuTitle,"This project is on GitHub!",WIDTH,CENTER).show();
 	Button.create("GitHub","Links",WIDTH/2-25,80,50,50).setOnClick(function() {
 		window.open("https://github.com/DieGo367/Doodleman");
-	}).setImage("GUI-Button-Black.png").setIcon("GUI-Icons-Sharing.png",0,0,42,4).show();
+	}).setImage("GUI/Button_Black.png").setIcon("GUI/Icons_Sharing.png",0,0,42,4).show();
 	TextElement.create("ShareText","Links",WIDTH/2,HEIGHT/2,fontMenuTitle,"Share this!",WIDTH,CENTER).show();
 	Button.create("Twitter","Links",WIDTH/2-55,HEIGHT/2+35,50,50).setOnClick(function() {
 		window.open("https://twitter.com/share?text=Play%20Doodleman!&url=https://doodleman.appspot.com");
-	}).setIcon("GUI-Icons-Sharing.png",2,0,42,4).show();
+	}).setIcon("GUI/Icons_Sharing.png",2,0,42,4).show();
 	Button.create("Facebook","Links",WIDTH/2+5,HEIGHT/2+35,50,50).setOnClick(function() {
 		window.open("https://www.facebook.com/sharer/sharer.php?u=https://doodle-man.appspot.com");
-	}).setImage("GUI-Button-Indigo.png").setIcon("GUI-Icons-Sharing.png",1,0,42,4).show();
+	}).setImage("GUI/Button_Indigo.png").setIcon("GUI/Icons_Sharing.png",1,0,42,4).show();
 	Button.create("CloseLinks","Links",WIDTH-60,10,50,50).setOnClick(function() {
 		this.view.close();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
+	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
 }

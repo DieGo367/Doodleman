@@ -1,5 +1,5 @@
 {
-	"name": "Room-0",
+	"name": "0",
 	"width": 640,
 	"height": 360,
 	"edge": {"top": 3, "bottom": 3, "left": 3, "right": 3},
@@ -70,8 +70,8 @@
 		}
 	],
 	"bg": [
-		{"type": "name", "name": "BG-Paper.png", "raw": "", "layer": -2, "scale": 1, "parallax": 1},
-		{"type": "name", "name": "FG-Room-0.png", "raw": "", "layer": -1, "scale": 1, "parallax": 1}
+		{"type": "name", "name": "BG/paper.png", "raw": "", "layer": -2, "scale": 1, "parallax": 1},
+		{"type": "name", "name": "FG/room_0.png", "raw": "", "layer": -1, "scale": 1, "parallax": 1}
 	],
 	"_version_": 0
 }

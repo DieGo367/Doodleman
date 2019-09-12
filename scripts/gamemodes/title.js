@@ -20,20 +20,20 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
     },true)
     .setOnViewShown(function() {
       this.on = fullScreen;
-    }).setIcon("GUI-Icons.png",2,0,42,4).show();
+    }).setIcon("GUI/Icons.png",2,0,42,4).show();
     Button.create("VolumeButton","Title",WIDTH-120,HEIGHT-60,50,50).setOnClick(function() {
   		let vol = G$("VolumeSlider");
   		if (vol.isVisible()) vol.hide();
   		else vol.show();
-  	}).setIcon("GUI-Icons.png",0,3,42,4).show();
+  	}).setIcon("GUI/Icons.png",0,3,42,4).show();
   	Slider.create("VolumeSlider","Title",WIDTH-125,HEIGHT-110,20,40,100).setOnViewShown(function() {
   		this.hide();
   		this.setValue(Sound.volume);
-  		G$("VolumeButton").setIcon("GUI-Icons.png",(this.value==0?1:0),3,42,4);
+  		G$("VolumeButton").setIcon("GUI/Icons.png",(this.value==0?1:0),3,42,4);
   	})
   	.setOnSlide(function() {
   		Sound.setVolume(this.value);
-  		G$("VolumeButton").setIcon("GUI-Icons.png",(this.value==0?1:0),3,42,4);
+  		G$("VolumeButton").setIcon("GUI/Icons.png",(this.value==0?1:0),3,42,4);
   	});
     Button.pathHor(["VolumeButton","FSToggle"]);
 
@@ -76,7 +76,7 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
     Button.create("Option_MP:Cancel","Option_MP",WIDTH/2-100,HEIGHT/2+120,200,40,"Back").setOnClick(function() {
       this.view.closesub();
       G$("Option_Mode").opensub();
-    }).setImage("GUI-Button-Red.png").show();
+    }).setImage("GUI/Button_Red.png").show();
     Button.pathVert(["Option_MP:Single","Option_MP:Mult","Option_MP:Cancel"]);
     Button.funnelTo("VolumeButton","right",["Option_MP:Single","Option_MP:Mult","Option_MP:Cancel"]);
   },

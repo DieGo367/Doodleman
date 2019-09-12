@@ -67,7 +67,7 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
   	Button.create("LSClose","LevelSelectView",WIDTH-60,10,50,50).setOnClick(function() {
   		G$("LevelSelectView").hide();
   		G$("PauseMenu").show();
-  	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
+  	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
     Resources.request("data/sandbox_levels.json", function(data) {
   		let levels = JSON.parse(data);
   		let grid = [], rightSide = [];

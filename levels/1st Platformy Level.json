@@ -105,6 +105,6 @@
     }
   ],
   "bg": [
-    {"type": "name", "name": "BG-Paper.png", "raw":"", "layer": -2, "scale": 1, "parallax": 1}
+    {"type": "name", "name": "BG/paper.png", "raw":"", "layer": -2, "scale": 1, "parallax": 1}
   ]
 }
