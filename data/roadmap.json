@@ -1,6 +1,6 @@
 [
   {
-    "filename": "Room-0.json",
+    "filename": "room/0.json",
     "bonusThresh": 55,
     "waves": [
       [
@@ -18,7 +18,7 @@
     ]
   },
   {
-    "filename": "Room-1.json",
+    "filename": "room/1.json",
     "bonusThresh": 111,
     "waves": [
       [
@@ -50,7 +50,7 @@
     ]
   },
   {
-    "filename": "Room-2.json",
+    "filename": "room/2.json",
     "bonusThresh": 70,
     "waves": [
       [

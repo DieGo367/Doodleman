@@ -1,0 +1,117 @@
+{
+	"name": "Room-G",
+	"width": 640,
+	"height": 360,
+	"edge": {"top": 3, "bottom": 3, "left": 3, "right": 3},
+	"camStart": {"x": 320, "y": 180},
+	"horScrollBuffer": 240,
+	"vertScrollBuffer": 125,
+	"zoomScale": 1,
+	"minZoom": 1,
+	"maxZoom": 1,
+	"playerSpawns": [
+		{"x": 174, "y": 315, "direction": 1},
+		{"x": 218, "y": 314, "direction": 1}
+	],
+	"actors": [
+		[24, 203, 307, 100, 25, false],
+		[24, 276, 292, 100, 25, false],
+		[24, 322, 273, 100, 25, false],
+		[24, 352, 258, 100, 25, false],
+		[24, 402, 236, 50, 25, false],
+		[24, 416, 218, 50, 25, false],
+		[24, 426, 199, 50, 25, false],
+		[1, 277, 307, "survival_exit_door"],
+		[1, 176, 219, "survival_reward"],
+		[1, 251, 194, "survival_reward"],
+		[1, 318, 157, "survival_reward"],
+		[1, 442, 113, "survival_reward_final"]
+	],
+	"terrain": [
+		{
+			"type": 1,
+			"properties": [1, null, -2, true],
+			"pieces": [
+				[140, 40, 497, 42]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [1, null, 1, true],
+			"pieces": [
+				[135, 154, 139, 85],
+				[139, 85, 140, 40],
+				[135, 154, 140, 292],
+				[140, 292, 143, 317]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [1, null, 2, true],
+			"pieces": [
+				[143, 317, 503, 317]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [1, null, -1, true],
+			"pieces": [
+				[503, 317, 507, 268],
+				[507, 268, 498, 216],
+				[498, 216, 499, 124],
+				[499, 124, 506, 95],
+				[506, 95, 497, 64],
+				[497, 64, 497, 42]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [4, "black", 2, false],
+			"pieces": [
+				[196, 317, 504, 283],
+				[224, 320, 505, 256],
+				[266, 319, 499, 227],
+				[303, 321, 496, 203],
+				[339, 318, 498, 176]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [4, "black", -1, false],
+			"pieces": [
+				[368, 319, 498, 148],
+				[397, 318, 499, 124],
+				[425, 319, 504, 91],
+				[453, 320, 498, 71],
+				[477, 318, 497, 42]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [4, "black", -2, false],
+			"pieces": [
+				[443, 42, 138, 68],
+				[396, 41, 138, 95],
+				[353, 41, 137, 122],
+				[318, 41, 135, 148],
+				[283, 41, 135, 176]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [4, "black", 1, false],
+			"pieces": [
+				[248, 41, 136, 202],
+				[217, 41, 136, 231],
+				[188, 40, 139, 257],
+				[162, 39, 140, 285],
+				[151, 41, 143, 317]
+			]
+		}
+	],
+	"bg": [
+		{"type": "name", "name": "BG-Paper.png", "raw": "", "layer": -2, "scale": 1, "parallax": 1},
+		{"type": "name", "name": "FG-Room-Standard.png", "raw": "", "layer": -1, "scale": 1, "parallax": 1}
+	],
+	"_version_": 0
+}

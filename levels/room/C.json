@@ -1,0 +1,86 @@
+{
+	"name": "Room-C",
+	"width": 640,
+	"height": 360,
+	"edge": {"top": 3, "bottom": 3, "left": 3, "right": 3},
+	"camStart": {"x": 320, "y": 180},
+	"horScrollBuffer": 240,
+	"vertScrollBuffer": 125,
+	"zoomScale": 1,
+	"minZoom": 1,
+	"maxZoom": 1,
+	"playerSpawns": [
+		{"x": 194, "y": 315, "direction": 1},
+		{"x": 161, "y": 315, "direction": 1}
+	],
+	"actors": [
+		[24, 177, 315, 50, 25, false],
+		[1, 468, 123, "survival_exit_door"],
+		[1, 360, 115, "survival_reward_final"],
+		[1, 329, 194, "survival_reward"],
+		[24, 175, 163, 50, 25, false],
+		[24, 243, 181, 50, 25, false],
+		[24, 464, 222, 50, 25, false],
+		[24, 427, 244, 50, 25, false],
+		[24, 320, 120, 150, 25, false],
+		[24, 334, 203, 100, 50, false],
+		[1, 344, 270, "survival_reward"],
+		[1, 261, 115, "survival_reward"],
+		[24, 345, 278, 100, 50, false]
+	],
+	"terrain": [
+		{
+			"type": 1,
+			"properties": [1, null, -2, true],
+			"pieces": [
+				[140, 40, 497, 42]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [1, null, 1, true],
+			"pieces": [
+				[135, 154, 139, 85],
+				[139, 85, 140, 40],
+				[135, 154, 140, 292],
+				[140, 292, 143, 317]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [1, null, 2, true],
+			"pieces": [
+				[143, 317, 503, 317]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [1, null, -1, true],
+			"pieces": [
+				[503, 317, 507, 268],
+				[507, 268, 498, 216],
+				[498, 216, 499, 124],
+				[499, 124, 506, 95],
+				[506, 95, 497, 64],
+				[497, 64, 497, 42]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [4, "black", 2, false],
+			"pieces": [
+				[217, 320, 290, 278],
+				[290, 278, 401, 278],
+				[401, 278, 498, 222],
+				[281, 203, 388, 203],
+				[281, 203, 135, 164],
+				[499, 124, 220, 124]
+			]
+		}
+	],
+	"bg": [
+		{"type": "name", "name": "BG-Paper.png", "raw": "", "layer": -2, "scale": 1, "parallax": 1},
+		{"type": "name", "name": "FG-Room-Standard.png", "raw": "", "layer": -1, "scale": 1, "parallax": 1}
+	],
+	"_version_": 0
+}

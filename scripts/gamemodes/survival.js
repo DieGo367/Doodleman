@@ -263,7 +263,6 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
     }).show().up("CtrlSettingsButton");
     Button.funnelTo("RetryButton","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
     Button.pathVert(["RetryButton","QuitGame"]);
-    buildLevelSelectMenu();
     buildControllerSettingsMenu();
     buildMapperView();
     buildMapperTool();
@@ -283,7 +282,6 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
   removeGui: function() {
     G$("Hud").remove();
     G$("PauseMenu").remove();
-    G$("LevelSelectView").remove();
     G$("CtrlSettingsView").remove();
     G$("MapperView").remove();
     G$("MapperTool").remove();

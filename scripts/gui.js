@@ -160,40 +160,6 @@ function buildPauseMenu() {
 	// })//.show();
 }
 
-function buildLevelSelectMenu() {
-  View.create("LevelSelectView",0,0,WIDTH,HEIGHT,"tint","black");
-
-  TextElement.create("LSText","LevelSelectView",WIDTH/2,30,fontMenuTitle,"Select a level",WIDTH,CENTER).show();
-
-	Button.create("LSClose","LevelSelectView",WIDTH-60,10,50,50).setOnClick(function() {
-		G$("LevelSelectView").hide();
-		G$("PauseMenu").show();
-	}).setIcon("GUI-Icons.png",3,0,42,4).setImage("GUI-Button-Red.png").show();
-
-  Resources.request("levels/_list_.json", function(data) {
-		var levelNames = JSON.parse(data);
-		let grid = [], rightSide = [];
-		for (var i in levelNames) {
-			var name = levelNames[i].split(".")[0];
-			var y = Math.floor(i/2);
-			var x = i%2;
-			let b = Button.create("LSLevel"+i,"LevelSelectView",20+220*x,50+y*60,200,40,name).setOnClick(function() {
-				Level.loadLevel(this.text+".json");
-			}).show();
-			grid[y] = grid[y] || [];
-			grid[y][x] = b.name;
-			if (x==1||i==levelNames.length-1) rightSide.push(b.name);
-			if (x==0&&y==0) b.setAsStart();
-		}
-		Button.pathGrid(grid);
-		Button.funnelTo("LSFileButton","right",rightSide);
-	});
-
-	Button.create("LSFileButton","LevelSelectView",WIDTH-170,HEIGHT-60,150,40,"Load From File").setOnClick(Level.openLocalFile,true).show().setPressDelay(1);
-
-	Button.pathVert(["LSClose","LSFileButton"]);
-}
-
 function buildControllerSettingsMenu() {
   View.create("CtrlSettingsView",0,0,WIDTH,HEIGHT,"tint","black");
 	TextElement.create("CtrlSettingsText","CtrlSettingsView",WIDTH/2,30,fontMenuTitle,"Controller Settings",WIDTH,CENTER).show();

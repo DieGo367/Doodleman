@@ -1,0 +1,101 @@
+{
+	"name": "Room-F",
+	"width": 640,
+	"height": 360,
+	"edge": {"top": 3, "bottom": 3, "left": 3, "right": 3},
+	"camStart": {"x": 320, "y": 180},
+	"horScrollBuffer": 240,
+	"vertScrollBuffer": 125,
+	"zoomScale": 1,
+	"minZoom": 1,
+	"maxZoom": 1,
+	"playerSpawns": [
+		{"x": 156, "y": 148, "direction": 1},
+		{"x": 186, "y": 148, "direction": 1}
+	],
+	"actors": [
+		[24, 316, 257, 50, 25, false],
+		[24, 456, 148, 50, 25, false],
+		[24, 178, 148, 50, 25, false],
+		[24, 315, 314, 50, 25, false],
+		[1, 456, 148, "survival_exit_door"],
+		[1, 178, 87, "survival_reward_final"],
+		[1, 315, 80, "survival_reward"],
+		[1, 253, 80, "survival_reward"],
+		[1, 379, 80, "survival_reward"],
+		[24, 316, 200, 50, 25, false]
+	],
+	"terrain": [
+		{
+			"type": 1,
+			"properties": [1, null, -2, true],
+			"pieces": [
+				[140, 40, 497, 42]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [1, null, 1, true],
+			"pieces": [
+				[135, 154, 139, 85],
+				[139, 85, 140, 40],
+				[135, 154, 140, 292],
+				[140, 292, 143, 317]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [1, null, 2, true],
+			"pieces": [
+				[143, 317, 503, 317]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [1, null, -1, true],
+			"pieces": [
+				[503, 317, 507, 268],
+				[507, 268, 498, 216],
+				[498, 216, 499, 124],
+				[499, 124, 506, 95],
+				[506, 95, 497, 64],
+				[497, 64, 497, 42]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [4, "black", 1, true],
+			"pieces": [
+				[266, 318, 220, 148]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [4, "black", 2, true],
+			"pieces": [
+				[220, 148, 136, 148],
+				[413, 148, 499, 148]
+			]
+		},
+		{
+			"type": 1,
+			"properties": [4, "black", -1, true],
+			"pieces": [
+				[413, 148, 367, 317]
+			]
+		},
+		{
+			"type": 1,
+			"pieces": [
+				[279, 257, 353, 257],
+				[279, 200, 353, 201]
+			],
+			"properties": [4, "black", 2, false]
+		}
+	],
+	"bg": [
+		{"type": "name", "name": "BG-Paper.png", "raw": "", "layer": -2, "scale": 1, "parallax": 1},
+		{"type": "name", "name": "FG-Room-Standard.png", "raw": "", "layer": -1, "scale": 1, "parallax": 1}
+	],
+	"_version_": 0
+}
