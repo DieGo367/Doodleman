@@ -1901,8 +1901,11 @@ class Player extends Entity {
 
   drawHud() {
     if (Player.getSlot(this.slot)==this) {
-      Images.drawImage(this.sheet.pages[this.animPage],10,10+(24*this.slot),19,19,0,0,19,19);
-      fontPlayerHud.draw("/ "+Player.getLives(this.slot),35,27+(24*this.slot),WIDTH,LEFT);
+      let lives = Player.getLives(this.slot);
+      if (lives>0&&lives<Infinity) {
+        Images.drawImage(this.sheet.pages[this.animPage],10,10+(24*this.slot),19,19,0,0,19,19);
+        fontPlayerHud.draw("/ "+lives,35,27+(24*this.slot),WIDTH,LEFT);
+      }
     }
   }
   drawElements() {
