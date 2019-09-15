@@ -714,28 +714,101 @@ const Staller = {
 	}
 };
 const Net = {
-	peer: null,
-	host: null,
+	room: null,
+	// used by host
 	clients: [],
-	setup: function() {
-		this.peer = new Peer(); // from peer.min.js
-		this.peer.on("open",function(id) {
-			Game.onNetConnection(id);
+	discovery: null, discoveryCode: null,
+	clientCheckTick: 0, clientCheckInterval: 10*60, // 20 sec * 60 fps
+	// used by client
+	host: null,
+	clientCode: null,
+	// host methods
+	createRoom: function() {
+		$.post("/net/createroom",function(data) {
+			Net.room = data[0];
+			Net.openToNewClient();
+		},"json");
+	},
+	openToNewClient: function() {
+		if (this.discovery) this.discovery.destroy();
+		this.discovery = new SimplePeer({
+			initiator: true,
+			trickle: false
 		});
-		this.peer.on("connection",function(conn) {
-			Net.addClient(conn);
+		this.discovery.on("signal",function(data) {
+			Net.discoveryCode = JSON.stringify(data);
+			$.ajax({
+				type: "POST", url: "/net/discovery", dataType: "json",
+				contentType: "application/json",
+				data: JSON.stringify({room:Net.room,discover:Net.discoveryCode})
+			});
 		});
-		this.peer.on("error",function(err) {
-			Net.peer = null;
-			console.log("Couldn't establish peer connection.");
-			Game.onNetFailure();
+		this.discovery.on("connect",function() { Net.receiveClient(); });
+	},
+	checkForClients: function() {
+		$.ajax({
+			type: "POST", url: "/net/checkclients", dataType: "json",
+			contentType: "application/json",
+			data: JSON.stringify({room:Net.room}),
+			success: function(data) {
+				if (data.length>0) Net.discovery.signal(data[0]);
+			}
 		});
 	},
+	lockRoom: function() {
+		this.discovery.destroy();
+		this.discovery = null;
+	},
+	receiveClient: function() {
+		let client = this.discovery;
+		client.on("data",function(data) {
+			console.log(data.toString());
+		});
+		this.discovery = null;
+		this.clients.push(client);
+		Game.onNetConnection("host",client);
+		this.openToNewClient();
+	},
+	// client methods
+	joinRoom: function(code) {
+		this.room = code;
+		this.host = new SimplePeer({
+			initiator: false,
+			trickle: false
+		});
+		this.host.on("signal",function(data) {
+			Net.clientCode = JSON.stringify(data);
+			$.ajax({
+				type: "POST", url: "/net/signal", dataType: "json",
+				contentType: "application/json",
+				data: JSON.stringify({room:Net.room,client:Net.clientCode})
+			});
+		});
+		this.host.on("connect",function() {
+			Game.onNetConnection("client",Net.host);
+			$.ajax({
+				type: "POST", url: "/net/confirmation", dataType: "json",
+				contentType: "application/json",
+				data: JSON.stringify({room:Net.room,client:Net.clientCode})
+			});
+		});
+		this.host.on("data",function(data) {
+			console.log(data.toString());
+		});
+		$.ajax({
+			type: "POST", url: "/net/join", dataType: "json",
+			contentType: "application/json",
+			data: JSON.stringify({room:code}),
+			success: function(data) { Net.host.signal(data[0]); }
+		});
+	},
+	// universal methods
 	cleanup: function() {
-		this.peer.destroy();
-		this.peer = null;
-		this.host = null;
+		if (this.host) this.host.destroy();
+		for (var i in this.clients) this.clients[i].destroy();
+		this.room = this.host = this.discovery = null;
 		this.clients = [];
+		this.discoveryCode = this.clientCode = null;
 	},
 	connect: function(id,callback,failure) {
 		if (!this.peer) return;
@@ -774,15 +847,20 @@ const Net = {
 	},
 	sendMsg: function(msg) {
 		if (this.host) {
-			this.host.send({msg: msg});
+			this.host.send(msg);
 		}
 		if (this.clients.length>0) {
 			for (var i in this.clients) {
-				this.clients[i].send({msg: msg});
+				this.clients[i].send(msg);
 			}
 		}
 	},
 	update: function() {
+		if (this.discovery) {
+			if (this.clientCheckTick==0) this.checkForClients();
+			this.clientCheckTick++;
+			if (this.clientCheckTick>this.clientCheckInterval) this.clientCheckTick = 0;
+		}
 		if (this.host) this.clientUpdate();
 		else if (this.clients.length>0) this.hostUpdate();
 	},

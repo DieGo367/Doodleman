@@ -48,7 +48,7 @@ class GameMode {
 	onBlur() {}
 	onFocus() {}
 	onPointerMove() {}
-	onNetConnection(peerId) {}
+	onNetConnection(role,connection) {}
 	onNetFailure() {}
 }
 var Game = new GameMode();

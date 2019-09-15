@@ -1,13 +1,15 @@
+import json
 from flask import Flask
 from flask import make_response
 from flask import render_template
+from flask import request
 from flask import send_file
 from flask import send_from_directory
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 scripts = [
-  "peer.min.js",
+  "simplepeer.min.js",
   "game.js",
   "project scribble.js",
   "resource.js",
@@ -66,6 +68,11 @@ def editor():
     script_list = get_script_lists(1)
     return render_template('main.html',scripts=script_list[0],statements=script_list[1])
 
+@app.route('/online')
+def online_lobby():
+    script_list = get_script_lists(4)
+    return render_template('main.html',scripts=script_list[0],statements=script_list[1])
+
 @app.route('/join/<int:id>')
 def join(id):
     script_list = get_script_lists(0)
@@ -82,6 +89,66 @@ def get_static(folder,subpath):
 @app.route('/favicon.ico')
 def get_ico():
     return send_file('favicon.ico')
+
+# NET CODE
+rooms = []
+@app.route('/net/createroom',methods=["POST"])
+def net_create_room():
+    new_room = {"discover": None, "signaling": []}
+    rooms.append(new_room)
+    return json.dumps([len(rooms)-1])
+
+@app.route('/net/discovery',methods=["POST"])
+def net_set_room_discovery():
+    data = request.get_json()
+    room = rooms[data["room"]]
+    if room:
+        room["discover"] = data["discover"]
+        return "", 200
+    else:
+        return "Room not found", 404
+
+@app.route('/net/signal',methods=["POST"])
+def net_new_client_signal():
+    data = request.get_json()
+    room = rooms[data["room"]]
+    if room:
+        room["signaling"].append(data["client"])
+        return "", 200
+    else:
+        return "Room not found", 404
+
+@app.route('/net/checkclients',methods=["POST"])
+def net_check_for_clients():
+    data = request.get_json()
+    room = rooms[data["room"]]
+    if room:
+        return json.dumps(room["signaling"])
+    else:
+        return "Room not found", 404
+
+@app.route('/net/join',methods=["POST"])
+def net_join_room():
+    data = request.get_json()
+    room = rooms[data["room"]]
+    if room:
+        return json.dumps([room["discover"]])
+    else:
+        return "Room not found", 404
+
+@app.route('/net/confirmation',methods=["POST"])
+def net_client_confirmation():
+    data = request.get_json()
+    room = rooms[data["room"]]
+    if room:
+        client = data["client"]
+        sig = room["signaling"]
+        if client in sig:
+            i = sig.index(client)
+            room["signaling"] = sig[:i] + sig[i+1:]
+        return "", 200
+    else:
+        return "Room not found", 404
 
 if __name__ == "__main__":
     app.run()
