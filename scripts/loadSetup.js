@@ -97,5 +97,11 @@ $(window).on("load",function() {
     Sound.addTrack(name);
   });
 
+  if ("serviceWorker" in navigator) try {
+      navigator.serviceWorker.register("worker.js");
+  } catch (e) {
+    console.log("ServiceWorker registration failed. "+e);
+  }
+
 	loadLoop();
 });

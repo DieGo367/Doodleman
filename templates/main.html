@@ -8,6 +8,7 @@
 		<script src="scripts/loadSetup.js"></script>
 		{% for script in scripts %}<script defer src="{{script}}"></script>{% endfor %}
 		{% for statement in statements %}<script defer>{{statement}}</script>{% endfor %}
+		<link rel="manifest" href="manifest.webmanifest">
 	</head>
 	<body onload="canvasSetup()">
 		<div>

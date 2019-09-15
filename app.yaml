@@ -1,25 +1,6 @@
 runtime: python37
 
 handlers:
-- url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon\.ico
-
-- url: /res
-  static_dir: res
-
-- url: /scripts
-  static_dir: scripts
-
-- url: /levels
-  static_dir: levels
-
-- url: /animations
-  static_dir: animations
-
-- url: /data
-  static_dir: data
-
 - url: .*
   script: auto
   secure: always

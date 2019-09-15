@@ -1,4 +1,6 @@
+import io
 import json
+import os
 from flask import Flask
 from flask import make_response
 from flask import render_template
@@ -89,6 +91,23 @@ def get_static(folder,subpath):
 @app.route('/favicon.ico')
 def get_ico():
     return send_file('favicon.ico')
+
+@app.route('/manifest.webmanifest')
+def get_manifest():
+    return send_file("manifest.webmanifest")
+
+@app.route('/worker.js')
+def build_service_worker():
+    paths = ['/','/edit','/favicon.ico', '/manifest.webmanifest']
+    for dir in static_folders:
+        for dirpath, dirnames, filenames in os.walk(dir):
+            for filename in filenames:
+                paths.append("/"+os.path.join(dirpath,filename).replace("\\","/"))
+    str = ""
+    with open("worker.js") as file:
+        str = file.read()
+    str = str.replace('"""staticFiles"""',f"{paths}")
+    return send_file(io.BytesIO(str.encode()),attachment_filename="worker.js")
 
 # NET CODE
 rooms = []
