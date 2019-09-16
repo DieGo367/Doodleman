@@ -3043,10 +3043,32 @@ class TextInput extends Button {
   }
   setTypingView() {
     let selectionState = {start: guiStartElement, selected: guiSelectedElement};
-    let tw = fontInputDesc.measureWidth(this.promptMsg);
-    View.create("TextInput",this.x-5,this.y-5,Math.max(this.width,tw)+10,this.height+10+22,"tint","black").openOnTop().selectionState = selectionState;
-    TextElement.create("TextInput:TE","TextInput",this.x+this.width/2,this.y+this.height/2+7,fontInputSelect,this.typingText,this.width,CENTER).show();
-    TextElement.create("TextInput:NE","TextInput",this.x,this.y+this.height+22,fontInputDesc,this.promptMsg,tw,LEFT).show();
+    let x, y, w, h, textX, textY, textWidth, promptX, promptY, promptWidth;
+    if (Tap.active) {
+      x = y = 0;
+      promptWidth = w = WIDTH;
+      h = HEIGHT;
+      textX = WIDTH/2;
+      textY = 22;
+      textWidth = WIDTH;
+      promptX = 0;
+      promptY = textY*2;
+      // $("#touchkeyboard").select();
+    }
+    else {
+      x = this.x-5; y = this.y-5;
+      promptWidth = fontInputDesc.measureWidth(this.promptMsg);
+      w = Math.max(this.width,promptWidth)+10;
+      h = this.height+10+22;
+      textX = this.x+this.width/2;
+      textY = this.y+this.height/2+7;
+      textWidth = this.width;
+      promptX = this.x;
+      promptY = this.y+this.height+22;
+    }
+    View.create("TextInput",x,y,w,h,"tint","black").openOnTop().selectionState = selectionState;
+    TextElement.create("TextInput:TE","TextInput",textX,textY,fontInputSelect,this.typingText,textWidth,CENTER).show();
+    TextElement.create("TextInput:NE","TextInput",promptX,promptY,fontInputDesc,this.promptMsg,promptWidth,LEFT).show();
   }
   removeTypingView() {
     let selState = G$("TextInput").selectionState;
