@@ -542,10 +542,29 @@ function P(x,y) {
 	return new Point(x,y);
 }
 const Sound = {
+	ctx: new (AudioContext || webkitAudioContext)(), gain: null,
 	soundData: {}, tracks: {}, playing: null, volume: 1,
+	init: function(trueInit) {
+		if (trueInit) {
+			this.ctx.resume();
+			this.gain = this.ctx.createGain();
+			this.gain.gain.value = this.volume;
+			this.gain.connect(this.ctx.destination);
+			for (var i in this.soundData) this.buffer(this.soundData[i]);
+		}
+		else Staller.useEvent(function() { Sound.init(true); });
+	},
 	loadSound: function(name) {
-		this.soundData[name] = new Audio("res/sound/"+name);
-		this.soundData[name].load();
+		Resources.requestArrayBuffer("res/sound/"+name,function(data,url) {
+			let name = url.split("res/sound/").pop();
+			let sound = Sound.soundData[name] = {raw: data};
+			if (Sound.gain) Sound.buffer(sound);
+		});
+	},
+	buffer: function(sound) {
+		this.ctx.decodeAudioData(sound.raw,function(buf) {
+			sound.buffer = buf;
+		});
 	},
 	getSound: function(name) {
 		return this.soundData[name];
@@ -553,17 +572,11 @@ const Sound = {
 	play: function(name) {
 		let sound = this.getSound(name);
 		if (!sound) return;
-		sound.volume = this.volume;
-		if (sound.currentTime!=0&&!sound.ended) this.playCopy(sound,0);
-		else sound.play();
-	},
-	playCopy: function(sound,loop) {
-		if (loop>10) return console.log("Sound copy limit");
-		let copy = sound.copy;
-		if (!copy) copy = sound.copy = sound.cloneNode();
-		copy.volume = this.volume;
-		if (copy.currentTime!=0&&!copy.ended) this.playCopy(copy,loop+1);
-		else copy.play();
+		if (!sound.buffer) this.buffer(sound);
+		let source = this.ctx.createBufferSource();
+		source.buffer = sound.buffer;
+		source.connect(this.gain);
+		source.start(0);
 	},
 	addTrack: function(name) {
 		this.tracks[name] = new Audio("res/tracks/"+name);
@@ -592,7 +605,7 @@ const Sound = {
 		}
 	},
 	setVolume: function(volume) {
-		this.volume = volume;
+		this.gain.gain.value = this.volume = volume;
 		let track = this.getTrack(this.playing);
 		if (track) track.volume = volume;
 	}

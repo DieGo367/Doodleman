@@ -34,6 +34,28 @@ const Resources = {
       if (data && typeof onComplete=="function") onComplete(data,url);
     },onFail);
   },
+  requestArrayBuffer: function(url,onComplete,onFail) {
+    if (typeof url!="string") return console.warn("Invalid request url");
+    var data = this.saved[url];
+    if (data!=void(0)) {
+      if (typeof onComplete=="function") setTimeout(function() {
+        onComplete(data,url);
+      },0);
+    }
+    else {
+      let req = new XMLHttpRequest();
+      req.open("GET",url,true);
+      req.responseType = "arraybuffer";
+      req.onload = function() {
+        Resources.store(this.responseURL,this.response);
+        if (typeof onComplete=="function") onComplete(this.response,this.responseURL);
+      };
+      req.onerror = function() {
+        if (typeof onFail == "function") onFail(type,this.responseURL);
+      };
+      req.send();
+    }
+  },
   requestGroup: function(groupName,forEach,onComplete) {
     this.requestJSON(groupName+"/_list_.json",function(list) {
       if (!(list instanceof Array)) return console.warn(groupName + " list wasn't a proper array");

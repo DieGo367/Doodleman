@@ -71,6 +71,7 @@ $(window).on("load",function() {
     setPrefixedProperty(c,"imageSmoothingEnabled",false);
   },0);
   addEvents();
+  Sound.init();
 
 	Resources.requestJSON("res/_list_.json",function(list) {
     for (var i in list) {
