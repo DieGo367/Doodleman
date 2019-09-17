@@ -9,6 +9,7 @@
 		{% for script in scripts %}<script defer src="{{script}}"></script>{% endfor %}
 		{% for statement in statements %}<script defer>{{statement}}</script>{% endfor %}
 		<link rel="manifest" href="manifest.webmanifest">
+		<meta name="viewport" content="user-scalable=no">
 	</head>
 	<body onload="canvasSetup()">
 		<div id="space">
