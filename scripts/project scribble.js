@@ -1279,7 +1279,8 @@ function addEvents() {
 		fullScreen = getPrefixedProperty(document,"fullscreenElement") || getPrefixedProperty(document,"fullScreenElement");
 		fullScreen = !!fullScreen;
 		G$("FSToggle").on = fullScreen;
-		screenMatch();
+		if ($("#touchkeyboard").is(":focus")) TextInput.keyboardScreen();
+		else screenMatch();
 	});
 	$(window).on("blur",function() {
 		focused = false;

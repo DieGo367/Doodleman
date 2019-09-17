@@ -3053,7 +3053,7 @@ class TextInput extends Button {
       textWidth = WIDTH;
       promptX = 0;
       promptY = textY*2;
-      // $("#touchkeyboard").select();
+      this.keyboard = $("#touchkeyboard").val("").focus().select();
     }
     else {
       x = this.x-5; y = this.y-5;
@@ -3067,6 +3067,9 @@ class TextInput extends Button {
       promptY = this.y+this.height+22;
     }
     View.create("TextInput",x,y,w,h,"tint","black").openOnTop().selectionState = selectionState;
+    Button.create("TextInput:Cancel","TextInput",0,0,canvas.width,canvas.height).setOnClick(function() {
+      this.textinput.onKeypress(18); // press Alt key to cancel
+    }).setImage("").show().textinput = this;
     TextElement.create("TextInput:TE","TextInput",textX,textY,fontInputSelect,this.typingText,textWidth,CENTER).show();
     TextElement.create("TextInput:NE","TextInput",promptX,promptY,fontInputDesc,this.promptMsg,promptWidth,LEFT).show();
   }
@@ -3077,6 +3080,10 @@ class TextInput extends Button {
     G$("TextInput").remove();
     guiStartElement = selState.start;
     guiSelectedElement = selState.selected;
+    if (this.keyboard) {
+      this.keyboard.val("").blur();
+      this.keyboard = null;
+    }
   }
   onKeypress(keycode) {
     if (!this.typing) return;
@@ -3135,6 +3142,23 @@ class TextInput extends Button {
         }
     }
   }
+  typeOut(str) {
+    if (!this.typing) return "";
+    this.typingText = "";
+    for (var i = 0; i < str.length; i++) {
+      let char = str.charAt(i);
+      if (char.match(/[A-Z0-9a-z\-_#. ]/)) this.typingText += char;
+    }
+    this.onKeypress(32); // space
+    this.onKeypress(8); // backspace
+    return this.typingText;
+  }
+  update() {
+    super.update();
+    if (this.keyboard && this.keyboard.val()!=this.typingText) {
+      this.keyboard[0].value = this.typeOut(this.keyboard.val());
+    }
+  }
   createIncrementers(size,step,min,max) {
     if (this.type!="number"||this.incrementer||this.decrementer) return this;
     let valueSetter = function() {
@@ -3180,6 +3204,9 @@ class TextInput extends Button {
   remove() {
     this.removeIncrementers();
     super.remove();
+  }
+  static keyboardScreen() {
+    // TODO
   }
 }
 initClass(TextInput,Button);
