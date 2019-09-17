@@ -540,11 +540,11 @@ function P(x,y) {
 	return new Point(x,y);
 }
 const Sound = {
-	ctx: new (AudioContext || webkitAudioContext)(), gain: null,
+	ctx: null, gain: null,
 	soundData: {}, tracks: {}, playing: null, volume: 1,
 	init: function(trueInit) {
 		if (trueInit) {
-			this.ctx.resume();
+			this.ctx = new (AudioContext || webkitAudioContext)();
 			this.gain = this.ctx.createGain();
 			this.gain.gain.value = this.volume;
 			this.gain.connect(this.ctx.destination);
