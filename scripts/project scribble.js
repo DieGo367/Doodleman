@@ -197,9 +197,11 @@ function wait(ticks,func) {
 //helper objects
 const Pointer = {
 	x:0,y:0,
+	active: false,
 	cursor: POINTER_NORMAL, downPoint: null, downButton: null,
 	styles: [POINTER_NORMAL,POINTER_CROSSHAIR,POINTER_PENCIL,POINTER_ERASER,POINTER_MOVE,POINTER_INTERACT],
 	mousemove: function(event) {
+		this.active = true;
 		let coords = readEventCoords(event);
 		this.move(coords.x,coords.y);
 	},
@@ -233,6 +235,7 @@ const Pointer = {
 	camY: function() { return Math.floor(Camera.y+(this.y-HEIGHT/2)/Camera.zoom); },
 	camPoint: function() { return new Point(this.camX(), this.camY()) },
 	draw: function() {
+		if (Tap.active||!this.active) return;
 		let cursor = this.interactCursor? POINTER_INTERACT: this.cursor;
 		Images.drawImage("GUI/Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(cursor),0,32,32);
 	}
@@ -1015,7 +1018,7 @@ function drawGame() {
 		}
 	}
 	if (Game.mode!=GAME_EDITOR) Tap.draw();
-	if (focused&&!Tap.active) Pointer.draw();
+	if (focused) Pointer.draw();
 	//debug hud
 	if (devEnabled) {
 		c.fillStyle = "black";
