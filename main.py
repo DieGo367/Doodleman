@@ -92,13 +92,13 @@ def get_static(folder,subpath):
 def get_ico():
     return send_file('favicon.ico')
 
-@app.route('/manifest.webmanifest')
+@app.route('/manifest.json')
 def get_manifest():
-    return send_file("manifest.webmanifest")
+    return send_file("manifest.json")
 
 @app.route('/worker.js')
 def build_service_worker():
-    paths = ['/','/edit','/favicon.ico', '/manifest.webmanifest']
+    paths = ['/','/edit','/favicon.ico', '/manifest.json']
     for dir in static_folders:
         for dirpath, dirnames, filenames in os.walk(dir):
             for filename in filenames:
