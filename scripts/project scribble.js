@@ -34,16 +34,11 @@ function px(densityPixels) {
 }
 function readEventCoords(event,rect) {
 	if (!rect) rect = canvas.getBoundingClientRect();
-	let x = event.clientX-rect.left;
-	let y = event.clientY-rect.top;
-	if (fullScreen) {
-		let scale = Math.min(widthScale,heightScale);
-		let offsetX = (scale-widthScale)*WIDTH/2;
-		let offsetY = (scale-heightScale)*HEIGHT/2;
-		x = (x+offsetX)/scale*dp(1);
-		y = (y+offsetY)/scale*dp(1);
-	}
-	return new Point(px(x),px(y));
+	let x = event.pageX-rect.left;
+	let y = event.pageY-rect.top;
+	x = x/rect.width*WIDTH;
+	y = y/rect.height*HEIGHT;
+	return new Point(x,y);
 }
 function clone(obj) {
 	return JSON.parse(JSON.stringify(obj));
@@ -1048,8 +1043,9 @@ function setFullScreen(fs) {
 		if (fs) {
 			if (fullScreenChanging) return console.log("FullScreen'd too fast.")
 			else {
-				let promise = callPrefixedFunction(canvas,"requestFullscreen")
-				|| callPrefixedFunction(canvas,"requestFullScreen");
+				let div = $("#space")[0];
+				let promise = callPrefixedFunction(div,"requestFullscreen")
+				|| callPrefixedFunction(div,"requestFullScreen");
 				if (promise) {
 					fullScreenChanging = true;
 					promise.then(function(){
@@ -1077,6 +1073,16 @@ function screenSize(pxDensity) {
 	canvas.width = dp(WIDTH);
 	canvas.height = dp(HEIGHT);
 	setPrefixedProperty(c,"imageSmoothingEnabled",false);
+}
+function screenMatch() {
+	widthScale = window.innerWidth/WIDTH;
+	heightScale = window.innerHeight/HEIGHT;
+	var resolution = Math.round(Math.max(widthScale,heightScale));
+	if (resolution<1) resolution = 1;
+	screenSize(resolution);
+	if (widthScale>=heightScale) $(canvas).css({height: '100%', width:'auto'});
+	if (heightScale>=widthScale) $(canvas).css({width: '100%', height:'auto'});
+	drawGame();
 }
 
 function pauseGame(pause,player) {
@@ -1270,21 +1276,7 @@ function addEvents() {
 		fullScreen = getPrefixedProperty(document,"fullscreenElement") || getPrefixedProperty(document,"fullScreenElement");
 		fullScreen = !!fullScreen;
 		G$("FSToggle").on = fullScreen;
-		if (fullScreen) {
-			widthScale = window.innerWidth/WIDTH;
-			heightScale = window.innerHeight/HEIGHT;
-			var resolution = Math.round(Math.max(widthScale,heightScale));
-			if (resolution<1) resolution = 1;
-			screenSize(resolution);
-			if (widthScale>=heightScale) $(canvas).css({height: '100%', width:'auto'});
-			if (heightScale>=widthScale) $(canvas).css({width: '100%', height:'auto'});
-			drawGame();
-		}
-		else {
-			screenSize(1);
-			$(canvas).css({width: 'auto', height: 'auto'});
-			drawGame();
-		}
+		screenMatch();
 	});
 	$(window).on("blur",function() {
 		focused = false;
