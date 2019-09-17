@@ -14,6 +14,8 @@ self.addEventListener("activate", async e => {
 self.addEventListener("fetch", async e => {
   let r = e.request;
   let url = new URL(r.url);
+  e.respondWith(networkFirst(r));
+  return; // TODO: figure out how to do cacheing but still get updated files
   if (url.origin==location.origin) e.respondWith(cacheFirst(r));
   else e.respondWith(networkFirst(r));
 });
