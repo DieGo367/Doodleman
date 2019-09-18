@@ -66,10 +66,11 @@ function loadLoop() {
 	else window.requestAnimationFrame(loadLoop);
 }
 $(window).on("load",function() {
-	canvas = $("#paper")[0], c = canvas.getContext("2d");
+  canvas = $("#paper")[0], c = canvas.getContext("2d");
 	setTimeout(function() {
     setPrefixedProperty(c,"imageSmoothingEnabled",false);
   },0);
+  startedInFullScreen = fullScreen = getPrefixedProperty(document,"fullscreenElement") || getPrefixedProperty(document,"fullScreenElement");
   addEvents();
   screenMatch();
   Sound.init();

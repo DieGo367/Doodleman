@@ -124,13 +124,14 @@ function buildPauseMenu() {
 		})
 	}).show();
 
-  Button.create("FSToggle","PauseMenu",WIDTH-120,10,50,50).setToggle(function() {
+  if (!startedInFullScreen) Button.create("FSToggle","PauseMenu",WIDTH-120,10,50,50).setToggle(function() {
 		this.on = !this.on;
 		setFullScreen(this.on);
 	},true)
 	.setOnViewShown(function() {
 		this.on = fullScreen;
   }).setIcon("GUI/Icons.png",2,0,42,4).show();
+  else Button.create("FSToggle","PauseMenu",0,0,0,0);
 
   Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
 		G$("CtrlSettingsView").open();

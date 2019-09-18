@@ -2,7 +2,8 @@
 var canvas, c; //canvas and context
 var interval, gameSpeed = 50/3;
 var pixelDensity = 1, heightScale, widthScale;
-var paused = false, pausedBy, focused = true, fullScreen = false, fullScreenChanging = false, frameByFrame = false;
+var paused = false, pausedBy, focused = true, frameByFrame = false;
+var fullScreen = false, fullScreenChanging = false, startedInFullScreen = false;
 var viewLock = false;
 var gameMode = 0, multiplayer = false, clickSpawn = false;
 var globalKeyboard;
@@ -1053,6 +1054,7 @@ function setFullScreen(fs) {
 					fullScreenChanging = true;
 					promise.then(function(){
 						fullScreenChanging = false;
+						if (window.screen.lockOrientation) window.screen.lockOrientation("landscape");
 					},
 					function(err) {
 						fullScreenChanging = false;
