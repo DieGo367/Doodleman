@@ -65,44 +65,44 @@ function swapListItems(list,i,j) {
 	return list;
 }
 function niceJSON(obj) {
-  let myChanges = [];
-  let str = JSON.stringify(obj,function(key,val) {
-    if (typeof val == "object" && val!=null) {
+	let myChanges = [];
+	let str = JSON.stringify(obj,function(key,val) {
+		if (typeof val == "object" && val!=null) {
 			let isArray = (val instanceof Array);
-      let arrayString = isArray?'[':'{';
-      let compactable = true;
+			let arrayString = isArray?'[':'{';
+			let compactable = true;
 			let isFirst = true;
-      for (var i in val) {
-        if (val[i]!=null&&typeof val[i]=="object") {
+			for (var i in val) {
+				if (val[i]!=null&&typeof val[i]=="object") {
 					compactable = false;
 					break;
 				}
-        if (compactable) {
+				if (compactable) {
 					if (!isFirst) arrayString += ', ';
 					isFirst = false;
 					if (!isArray) arrayString += '"' + i + '": ';
-          if (val[i]==null) arrayString += "null";
-          else if (typeof val[i]=="string") arrayString += '"' + val[i] + '"';
-          else arrayString += val[i];
-        }
-      }
-      arrayString += isArray?']':'}';
+					if (val[i]==null) arrayString += "null";
+					else if (typeof val[i]=="string") arrayString += '"' + val[i] + '"';
+					else arrayString += val[i];
+				}
+			}
+			arrayString += isArray?']':'}';
 
-      if (compactable) {
-        myChanges.push(arrayString);
-        return "{{{" + (myChanges.length-1) + "}}}";
-      }
-      else return val;
-    }
-    else return val;
-  },'\t');
+			if (compactable) {
+				myChanges.push(arrayString);
+				return "{{{" + (myChanges.length-1) + "}}}";
+			}
+			else return val;
+		}
+		else return val;
+	},'\t');
 
-  let split = str.split('"{{{');
-  for (var i = 1; i < split.length; i++) {
-    let subArr = split[i].split('}}}"');
-    split[i] = myChanges[i-1] + subArr[1];
-  }
-  return split.join("");
+	let split = str.split('"{{{');
+	for (var i = 1; i < split.length; i++) {
+		let subArr = split[i].split('}}}"');
+		split[i] = myChanges[i-1] + subArr[1];
+	}
+	return split.join("");
 }
 function setCookie(key,value,expDays) {
 	if (!expDays) expDays = 7;

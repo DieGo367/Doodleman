@@ -100,18 +100,18 @@ function gameAlert(text,duration) {
 //just definining menus and their functions
 
 function buildMainHud() {
-  View.create("Hud",0,0,WIDTH,HEIGHT);
+	View.create("Hud",0,0,WIDTH,HEIGHT);
 	Button.create("PauseButton","Hud",WIDTH-60,10,50,50).setOnClick(function() {
 		pauseGame(true);
 	}).setIcon("GUI/Icons.png",0,0,42,4).show();
 }
 
 function buildPauseMenu() {
-  View.create("PauseMenu",0,0,WIDTH,HEIGHT,"tint","black");
+	View.create("PauseMenu",0,0,WIDTH,HEIGHT,"tint","black");
 
 	TextElement.create("PauseText","PauseMenu",WIDTH/2,HEIGHT/2,fontPaused,"Paused",WIDTH,CENTER).show();
 
-  Button.create("PauseClose","PauseMenu",WIDTH-60,10,50,50).setOnClick(function() {
+	Button.create("PauseClose","PauseMenu",WIDTH-60,10,50,50).setOnClick(function() {
 		pauseGame(false);
 	}).setIcon("GUI/Icons.png",1,0,42,4).show().setAsStart();
 
@@ -124,16 +124,16 @@ function buildPauseMenu() {
 		})
 	}).show();
 
-  if (!startedInFullScreen) Button.create("FSToggle","PauseMenu",WIDTH-120,10,50,50).setToggle(function() {
+	if (!startedInFullScreen) Button.create("FSToggle","PauseMenu",WIDTH-120,10,50,50).setToggle(function() {
 		this.on = !this.on;
 		setFullScreen(this.on);
 	},true)
 	.setOnViewShown(function() {
 		this.on = fullScreen;
-  }).setIcon("GUI/Icons.png",2,0,42,4).show();
-  else Button.create("FSToggle","PauseMenu",0,0,0,0);
+	}).setIcon("GUI/Icons.png",2,0,42,4).show();
+	else Button.create("FSToggle","PauseMenu",0,0,0,0);
 
-  Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
+	Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
 		G$("CtrlSettingsView").open();
 	}).setIcon("GUI/Icons.png",3,1,42,4).show();
 
@@ -155,30 +155,30 @@ function buildPauseMenu() {
 	Button.pathHor(["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
 	Button.funnelTo("QuitGame","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
 
-  // TextElement.create("UserInfo","PauseMenu",WIDTH/2,HEIGHT-30,"Logged in as "+User.name,"Fredoka One",15,false,"white",CENTER)//.show();
+	// TextElement.create("UserInfo","PauseMenu",WIDTH/2,HEIGHT-30,"Logged in as "+User.name,"Fredoka One",15,false,"white",CENTER)//.show();
 	// Button.create("LoginoutButton","PauseMenu",WIDTH/2-50,HEIGHT-20,100,15,User.loggedIn?"Logout":"Login").setOnClick(function() {
 	// 	User.useLink();
 	// })//.show();
 }
 
 function buildControllerSettingsMenu() {
-  View.create("CtrlSettingsView",0,0,WIDTH,HEIGHT,"tint","black");
+	View.create("CtrlSettingsView",0,0,WIDTH,HEIGHT,"tint","black");
 	TextElement.create("CtrlSettingsText","CtrlSettingsView",WIDTH/2,30,fontMenuTitle,"Controller Settings",WIDTH,CENTER).show();
 
-  Button.create("CtrlSettingsClose","CtrlSettingsView",WIDTH-60,10,50,50).setOnClick(function() {
+	Button.create("CtrlSettingsClose","CtrlSettingsView",WIDTH-60,10,50,50).setOnClick(function() {
 		G$("CtrlSettingsView").close();
 	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
 
 	TextElement.create("CtrlP1","CtrlSettingsView",WIDTH/2-135,100,fontMenuItem,"Player 1",WIDTH,CENTER).show();
 	TextElement.create("CtrlP2","CtrlSettingsView",WIDTH/2+135,100,fontMenuItem,"Player 2",WIDTH,CENTER).show();
 
-  Button.create("CtrlP1Keyboard","CtrlSettingsView",WIDTH/2-260,130,250,40,"Keyboard").setOnViewShown(function() {
+	Button.create("CtrlP1Keyboard","CtrlSettingsView",WIDTH/2-260,130,250,40,"Keyboard").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(KEYBOARD,Player.keyIds[0]);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
 		buildControllerSelector([0,1],KEYBOARD,this);
 	}).show().setAsStart();
-  Button.create("CtrlP1GamePad","CtrlSettingsView",WIDTH/2-260,180,250,40,"GamePad").setOnViewShown(function() {
+	Button.create("CtrlP1GamePad","CtrlSettingsView",WIDTH/2-260,180,250,40,"GamePad").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(GAMEPAD,Player.gpIds[0]);
 		this.playerSlot = 0;
 	}).setOnClick(function() {
@@ -191,7 +191,7 @@ function buildControllerSettingsMenu() {
 		buildControllerSelector([0],TOUCH,this);
 	}).show();
 
-  Button.create("CtrlP2Keyboard","CtrlSettingsView",WIDTH/2+10,130,250,40,"Keyboard").setOnViewShown(function() {
+	Button.create("CtrlP2Keyboard","CtrlSettingsView",WIDTH/2+10,130,250,40,"Keyboard").setOnViewShown(function() {
 		this.text = Ctrl.getDisplayName(KEYBOARD,Player.keyIds[1]);
 		this.playerSlot = 1;
 	}).setOnClick(function() {
@@ -294,7 +294,7 @@ function buildControlList(buttons,actions) {
 }
 
 function buildMapperView() {
-  View.create("MapperView",0,0,WIDTH,HEIGHT,"tint","black");
+	View.create("MapperView",0,0,WIDTH,HEIGHT,"tint","black");
 	// ImgElement.create("MapperImg","MapperView",WIDTH/2,HEIGHT/2,"GUI/Controller.png",640,360).show();
 	TextElement.create("MapperTitle","MapperView",WIDTH/2,30,fontMenuTitle,"Gamepad Mapper",WIDTH,CENTER).show();
 
@@ -476,7 +476,7 @@ function mapperStep(gpId,step,titles,type,mappings) {
 }
 
 function buildDevToolsHud() {
-  View.create("DevTools",WIDTH-70,70,70,210,"tint","lightBlue");
+	View.create("DevTools",WIDTH-70,70,70,210,"tint","lightBlue");
 	Button.create("DevSpawnPM","DevTools",WIDTH-60,80,50,50).setIcon("GUI/Icons.png",2,2,42,4).show();
 	Button.create("DevPencil","DevTools",WIDTH-60,150,50,50).setIcon("GUI/Icons.png",1,2,42,4).show();
 	Button.setRadioGroup(["DevPencil","DevSpawnPM"],function() {

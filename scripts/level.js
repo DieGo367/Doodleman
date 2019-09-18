@@ -77,17 +77,17 @@ const Level = {
 		}
 	},
 	classify: function(list,requirePhysical) {
-    let terrain = [], actors = [], other = [];
-    for (var i in list) {
+		let terrain = [], actors = [], other = [];
+		for (var i in list) {
 			let o = list[i];
 			if (!requirePhysical||o instanceof PhysicsBox||o instanceof Line) {
 				if (o.isTerrain) terrain.push(o);
 				else actors.push(o);
 			}
 			else other.push(list);
-    }
-    return {terrain: terrain, actors: actors, other: other};
-  },
+		}
+		return {terrain: terrain, actors: actors, other: other};
+	},
 	makeBackground: function(bg,slot) {
 		if (!bg) return;
 		if (bg.type=="name") {
@@ -170,7 +170,7 @@ const Level = {
 				if (success && typeof onLoad == "function") onLoad();
 				else if (!success && typeof onFail == "function") onFail();
 			});
-    },function() {
+		},function() {
 			canvas.clearLoadScreen();
 			console.log("fail from Resources");
 			if (typeof onFail == "function") onFail();
@@ -231,10 +231,10 @@ const Level = {
 				let piece = definition.pieces[j];
 				switch(definition.type) {
 					case 0:
-						points.push([piece[0],          piece[1]]);
+						points.push([piece[0],					piece[1]]);
 						points.push([piece[0]+piece[2], piece[1]]);
 						points.push([piece[0]+piece[2], piece[1]-piece[3]]);
-						points.push([piece[0],          piece[1]-piece[3]]);
+						points.push([piece[0],					piece[1]-piece[3]]);
 						break;
 					case 1:
 						points.push([piece[0],piece[1]]);
@@ -342,7 +342,7 @@ ActorManager.init();
 const TerrainManager = {
 	make: function(terrain) {
 		let construct = [PhysicsBox,Line][terrain.type];
-		let results  = [];
+		let results	= [];
 		for (var i in terrain.pieces) {
 			let piece = clone(terrain.pieces[i]);
 			if (terrain.type==0) piece[0] += piece[2]/2;
