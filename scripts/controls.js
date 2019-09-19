@@ -1,6 +1,7 @@
 const NULLCTRL = 0, KEYBOARD = 1, GAMEPAD = 2, TOUCH = 3, WEBIN = 4;
 
 const Key = {
+	type: KEYBOARD,
 	pressedKeys: [],
 	ctrlMaps: [],
 	ctrls: [],
@@ -35,6 +36,7 @@ const Key = {
 	}
 };
 const GamePad = {
+	type: GAMEPAD,
 	controllers: [],
 	ctrlMaps: [],
 	snapshots: [],
@@ -48,18 +50,11 @@ const GamePad = {
 		if (gp.timestamp==0) return;
 		this.controllers[gp.index] = gp;
 		this.controllers[gp.index].detected = true;
-		this.ctrlMaps[gp.index] = this.customMaps[0];
+		this.ctrlMaps[gp.index] = this.ctrlMaps.template;
 		gp.name = gp.index + ": " + gp.id.split("(Vendor")[0].trim(); //remove vendor info and show index
-
 		this.globalCtrls[gp.index] = new Ctrl(GAMEPAD,gp.index);
-
-		for (var i = 0; i < 2; i++) {
-			if (Player.gpIds[i]==null) {
-				Player.changeControlSlots(i,GAMEPAD,gp.index);
-				console.log("Connected Gamepad "+gp.index+" to slot "+i+": "+gp.id);
-				break;
-			}
-		}
+		Player.relinkCtrls();
+		console.log("Connected Gamepad "+gp.index+": "+gp.id);
 	},
 	disconnect: function(gp) {
 		delete this.controllers[gp.index];
@@ -67,11 +62,8 @@ const GamePad = {
 		delete this.ctrlMaps[gp.index];
 		this.globalCtrls[gp.index].selfDestruct();
 		delete this.globalCtrls[gp.index];
-		var slot = Player.gpIds.indexOf(gp.index);
-		if (slot!=-1) {
-			Player.changeControlSlots(slot,GAMEPAD,"None");
-			console.log("Disconnected Gamepad "+gp.index+" from slot "+slot+": "+gp.id);
-		}
+		Player.relinkCtrls();
+		console.log("Disconnected Gamepad "+gp.index+": "+gp.id);
 	},
 	scanGamepads: function() {
 		var gamepads = navigator.getGamepads?navigator.getGamepads():(navigator.webkitGetGamepads?navigator.webkitGetGamepads():[]);
@@ -210,6 +202,7 @@ const GamePad = {
 	}
 };
 const Tap = {
+	type: TOUCH,
 	active: false,
 	ctrlEnabled: true,
 	ctrlMaps: [],
@@ -403,6 +396,7 @@ Tap.buttons[0] = new TouchButton(WIDTH*7/8-35-30,HEIGHT-WIDTH/8-35+30,60,60,fals
 Tap.buttons[1] = new TouchButton(WIDTH*7/8-35+35,HEIGHT-WIDTH/8-35-30,60,60,true,1);
 
 const WebInput = {
+	type: WEBIN,
 	channels: [],
 	ctrls: [],
 	ctrlMaps: [],
@@ -414,22 +408,16 @@ const WebInput = {
 			if (!this.channels[i]) id = i;
 		}
 		this.channels[id] = {id: id, buttons: [], analogs: []};
-		for (var i = 1; i < 4; i++) {
-			if (Player.webIds[i]==null) {
-				Player.changeControlSlots(i,WEBIN,id);
-				console.log("Connected WebInput "+id+" to slot "+i+".");
-				break;
-			}
-		}
+		this.ctrlMaps[id] = this.ctrlMaps.template;
+		Player.relinkCtrls();
+		console.log("Connected WebInput "+id);
 		return id;
 	},
 	removeChannel: function(id) {
 		delete this.channels[id];
-		let slot = Player.webIds.indexOf(id);
-		if (slot!=-1) {
-			Player.changeControlSlots(slot,WEBIN,"None");
-			console.log("Disconnected WebInput "+id+" from slot "+slot+".");
-		}
+		delete this.ctrlMaps[id];
+		Player.relinkCtrls();
+		console.log("Disconnected WebInput "+id);
 	},
 	silenceChannel: function(id) {
 		this.channels[id] = {id: id, buttons: [], analogs: []};
@@ -665,10 +653,42 @@ class NullCtrl extends Ctrl {
 	ready() { return false; }
 	use() {}
 	justReleased() { return false; }
+	static get(id) { return this.ctrls[id]; }
 }
+NullCtrl.type = NULLCTRL;
 NullCtrl.ctrls = [];
 NullCtrl.ctrlMaps = [{name:"NullCtrl",type:NULLCTRL,inputs:[],mappings:[],actions:[],groups:[]}];
 new NullCtrl();
+
+class CtrlPack {
+	constructor() {
+		this.pack = [];
+		this.hasType = [false,false,false,false];
+		let managers = [Key,GamePad,Tap];
+		for (var i in managers) {
+			let manager = managers[i];
+			for (var j in manager.ctrlMaps) {
+				let num = parseInt(j);
+				if (!isNaN(num)) {
+					this.pack.push(new Ctrl(manager.type,j));
+					this.hasType[manager.type] = true;
+				}
+			}
+		}
+	}
+	mostRecent() {
+		let timestamps = [];
+		for (var i in this.pack) timestamps.push(this.pack[i].timestamp);
+		let newest = Math.max(...timestamps);
+		let mostRecent = this.pack[timestamps.indexOf(newest)];
+		if (newest!=0&&this.hasType[TOUCH]&&mostRecent.type!=TOUCH) Tap.tryDeactivate();
+		return mostRecent;
+	}
+	selfDestructAll() {
+		for (var i in this.pack) this.pack[i].selfDestruct();
+		this.pack = [];
+	}
+}
 
 let dmInputs = ["A","B","Start","Select","BumperL","BumperR","AnalogL_X","AnalogL_Y","AnalogR_X","AnalogR_Y","Dpad","Up","Down","Left","Right"];
 let dmActions = ["lookUp","moveRight","crouch","moveLeft","jump","attack","pause","showInfo","click","respawn","pointerMoveX","pointerMoveY"];
@@ -693,6 +713,6 @@ Key.ctrlMaps.global = new CtrlMap("GlobalKeyboard",KEYBOARD,
 
 Key.ctrlMaps[0] = new CtrlMap("WASD",KEYBOARD,dmInputs,[87,71,null,null,null,null,null,null,null,null,null,69,83,65,68],dmActions,["Up","Right","Down","Left","A","B"]);
 Key.ctrlMaps[1] = new CtrlMap("IJKL",KEYBOARD,dmInputs,[73,222,null,null,null,null,null,null,null,null,null,79,75,74,76],dmActions,["Up","Right","Down","Left","A","B"]);
-GamePad.customMaps[0] = new CtrlMap("GPAD",GAMEPAD,dmInputs,[0,2,9,8,4,5,'a0','a1','a2','a5','a9',12,13,14,15],dmActions,gpadGroupings);
-Tap.ctrlMaps[0] = new CtrlMap("TOUCH",TOUCH,dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
-WebInput.ctrlMaps[0] = new CtrlMap("WEBIN",WEBIN,dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
+GamePad.ctrlMaps.template = new CtrlMap("GPAD",GAMEPAD,dmInputs,[0,2,9,8,4,5,'a0','a1','a2','a5','a9',12,13,14,15],dmActions,gpadGroupings);
+Tap.ctrlMaps.template = new CtrlMap("TOUCH",TOUCH,dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);
+WebInput.ctrlMaps.template = new CtrlMap("WEBIN",WEBIN,dmInputs,[0,1,null,null,null,null,'a0','a1'],dmActions,["AnalogL_Y::-","AnalogL_X::+","AnalogL_Y::+","AnalogL_X::-","A","B"]);

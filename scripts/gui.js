@@ -97,6 +97,13 @@ function gameAlert(text,duration) {
 	if (!v.layer) v.opensub();
 }
 
+function assignCtrlGUI() {
+	View.create("_AssignCtrls_",0,0,WIDTH,HEIGHT).open();
+	Button.create("_CancelAssignCtrls_","_AssignCtrls_",WIDTH-60,10,50,50).setOnClick(function() {
+		this.view.remove();
+	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
+}
+
 //just definining menus and their functions
 
 function buildMainHud() {

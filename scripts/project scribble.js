@@ -1264,6 +1264,7 @@ function addEvents() {
 		GamePad.scanGamepads();
 	}
 	if ("ontouchstart" in window) {
+		Tap.ctrlMaps.push(Tap.ctrlMaps.template);
 		$(canvas).on("touchstart",function(event) { Tap.handler(event,true); Staller.stall(event);	});
 		$(canvas).on("touchmove",function(event) { Tap.handler(event); });
 		$(canvas).on("touchend",function(event) { Tap.handleEnd(event); });

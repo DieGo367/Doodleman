@@ -1686,27 +1686,18 @@ class Player extends Entity {
 		this.attackHeld = 0;
 		this.canUpAirAttack = true;
 		this.hadDied = false;
+		this.registerCtrls();
 	}
-	static onCreate() {
-		this.ctrls = {
-			key: new Ctrl(KEYBOARD,Player.keyIds[this.slot]),
-			gp: new Ctrl(GAMEPAD,Player.gpIds[this.slot]),
-			tap: new Ctrl(TOUCH,Player.tapIds[this.slot]),
-			web: new Ctrl(WEBIN,Player.webIds[this.slot]),
-			mostRecent: function() {
-				var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp,this.web.timestamp];
-				var newest = Math.max(...timestamps);
-				var mostRecent = [this.key,this.gp,this.tap,this.web][timestamps.indexOf(newest)];
-				if (newest!=0&&this.tap.type!=NULLCTRL&&mostRecent.type!=TOUCH) Tap.tryDeactivate();
-				return mostRecent;
-			},
-			selfDestructAll: function() {
-				this.key.selfDestruct();
-				this.gp.selfDestruct();
-				this.tap.selfDestruct();
-				this.web.selfDestruct();
-			}
-		};
+	registerCtrls() {
+		if (multiplayer) {
+			let assigned = Player.ctrlPorts[this.slot];
+			if (assigned) this.ctrl = new Ctrl(assigned.type, assigned.id);
+		}
+		else this.ctrlPack = new CtrlPack();
+	}
+	removeCtrls() {
+		if (this.ctrl) this.ctrl.selfDestruct();
+		if (this.ctrlPack) this.ctrlPack.selfDestructAll();
 	}
 
 	handleControls(pad) {
@@ -1855,17 +1846,14 @@ class Player extends Entity {
 	}
 
 	update() {
-		//get this player's most recently updated controller to use for input
-		var controller = this.ctrls.mostRecent();
-		if (!controller) {
-			controller = NullCtrl.ctrls[0]; //defaults to no input pressed
-			console.log("missing controller");
-		}
+		// get this player's most recently updated controller to use for input
+		let controller = this.ctrl || (this.ctrlPack? this.ctrlPack.mostRecent() : NullCtrl.get(0));
+		// defaults to NullCtrl if no ctrl or ctrlPack is found
 
 		if (this.justSpawned&&!this.currentAction) this.runAction("drawing");
 		if (this.isGrounded) this.canUpAirAttack = true;
 
-		//if not stunned, run controls
+		// if not stunned, run controls
 		if (this.stun==0&&!this.usingEntrance()) this.handleControls(controller);
 
 		this.chooseAnimation(controller);
@@ -1889,7 +1877,7 @@ class Player extends Entity {
 		}
 	}
 	remove() {
-		this.ctrls.selfDestructAll();
+		this.removeCtrls();
 		Player.clearFromSlot(this);
 		super.remove();
 	}
@@ -1954,26 +1942,27 @@ class Player extends Entity {
 		}
 		return result;
 	}
+	static assignCtrl(slot,type,id) {
+		this.ctrlPorts[slot] = {type: type, id:id};
+	}
 	static relinkCtrls() {
-		var all = this.getAll();
+		for (var i in this.ctrlPorts) {
+			let ctrlPort = this.ctrlPorts[i];
+			if (ctrlPort) {
+				let manager = [NullCtrl,Key,GamePad,Tap,WebInput][ctrlPort.type];
+				let ctrlMap = manager.ctrlMaps[ctrlPort.id];
+				if (!ctrlMap) this.ctrlPorts[i] = null;
+			}
+		}
+		let all = this.getAll();
 		for (var i in all) {
-			var p = all[i], slot = p.slot;
-			p.ctrls.selfDestructAll();
-			p.ctrls.key = new Ctrl(KEYBOARD,Player.keyIds[slot]);
-			p.ctrls.gp = new Ctrl(GAMEPAD,Player.gpIds[slot]);
-			p.ctrls.tap = new Ctrl(TOUCH,Player.tapIds[slot]);
-			p.ctrls.web = new Ctrl(WEBIN,Player.webIds[slot]);
+			let p = all[i];
+			p.removeCtrls();
+			p.registerCtrls();
 		}
 	}
-	static changeControlSlots(slot,type,index) {
-		if (slot==void(0)||type==void(0)||index==void(0)) return;
-		if (!type) return;
-		let ids = [null,"keyIds","gpIds","tapIds","webIds"][type];
-		this[ids][slot] = index=="None"?null:index;
-		this.relinkCtrls();
-	}
 	static ctrlInSlot(slot) {
-		return !!this.keyIds[slot] || !!this.gpIds[slot] || !!this.tapIds[slot] || !!this.webIds[slot];
+		return !!this.ctrlPorts[slot];
 	}
 	static setLives(slot,amount) {
 		this.lives[slot] = amount;
@@ -2034,10 +2023,7 @@ class Player extends Entity {
 			multiJump: false
 		});
 		this.slots = [null,null,null,null];
-		this.keyIds = [0,1,null,null];
-		this.gpIds = [null,null,null,null];
-		this.tapIds = [0,null,null,null];
-		this.webIds = [null,null,null,null];
+		this.ctrlPorts = [null,null,null,null];
 		this.lives = [0,0,0,0];
 		this.healthCache = [null,null,null,null];
 		this.maxHealthCache = [null,null,null,null];
