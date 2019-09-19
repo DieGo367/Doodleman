@@ -223,7 +223,7 @@ const Tap = {
 		else return !(this.active = false);
 	},
 	checkTouches: function() {
-		if (!G$("Hud").visible||!this.active) return;
+		if (!this.ctrlEnabled||!this.active) return;
 		for (var i in this.analogs) this.analogs[i].update();
 		for (var i in this.buttons) this.buttons[i].update();
 	},
@@ -231,7 +231,7 @@ const Tap = {
 		for (var i in this.touches) if (this.touches[i].id==id) return this.touches[i];
 	},
 	draw: function() {
-		if (!G$("Hud").visible||!this.active) return;
+		if (!this.ctrlEnabled||!this.active) return;
 		c.globalAlpha = 0.5;
 		for (var i in this.analogs) this.analogs[i].draw();
 		for (var i in this.buttons) this.buttons[i].draw();

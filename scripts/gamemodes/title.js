@@ -2,9 +2,11 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
 	start: function() {
 		this.addGui();
 		Level.loadLevel("Title.json");
+		Tap.ctrlEnabled = false;
 	},
 	quit: function() {
 		this.removeGui();
+		Tap.ctrlEnabled = true;
 	},
 	addGui: function() {
 		buildLinksMenu();
