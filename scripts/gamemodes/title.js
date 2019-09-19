@@ -73,17 +73,15 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
 		Button.create("Option_MP:Mult","Option_MP",WIDTH/2-100,HEIGHT/2+30,200,40,"2 Player").setOnClick(function() {
 			this.view.baseview.hadSelected = guiSelectedElement;
 			multiplayer = true;
-			if (GamePad.ctrls.length==0&&Tap.ctrls.length==0) {
+			if (GamePad.ctrlMaps.length==0&&Tap.ctrlMaps.length==0) {
 				// the only options are keyboard controls
+				Player.clearCtrlAssignments();
 				Player.assignCtrl(0,KEYBOARD,0);
 				Player.assignCtrl(1,KEYBOARD,1);
 				Game.mode = G$("Option_Mode").gamemode;
 			}
 			else assignCtrlGUI(function() { // success
 				Game.mode = G$("Option_Mode").gamemode;
-			},
-			function() { // cancel
-				
 			});
 		}).show();
 		Button.create("Option_MP:Cancel","Option_MP",WIDTH/2-100,HEIGHT/2+120,200,40,"Back").setOnClick(function() {

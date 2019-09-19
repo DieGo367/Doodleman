@@ -121,16 +121,22 @@ function assignCtrlGUI(success,cancel) {
 		this.subfont = Font.copy(this.subfont,{color:"white"});
 	}).show().picker = new CtrlPicker();
 	ProgressButton.create("_AssignP2_","_AssignCtrls_",WIDTH*2/3-pw/2,HEIGHT/2-pw/2,pw,pw,"P2","").setOnComplete(function() {
+		G$("_CancelAssignCtrls_").hide();
 		this.setListening(null);
-		this.view.results = [this.picker.targetCtrl];
+		let list = [this.picker.targetCtrl];
 		let temp = this;
 		while(temp.previous) {
 			temp = temp.previous;
-			this.view.results.unshift(temp.picker.targetCtrl);
+			list.unshift(temp.picker.targetCtrl);
 		}
 		this.font = Font.copy(this.font,{color:"white"});
 		this.subfont = Font.copy(this.subfont,{color:"white"});
-		if (typeof success == "function") success(this.view.results);
+		Player.clearCtrlAssignments();
+		for (var i in list) Player.assignCtrl(i,list[i].type,list[i].id);
+		Timer.wait(30,function() {
+			this.view.remove();
+			if (typeof success == "function") success(list);
+		},this);
 	}).setFillColor("red","darkGray").show();
 }
 
@@ -206,52 +212,26 @@ function buildControllerSettingsMenu() {
 		G$("CtrlSettingsView").close();
 	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
 
-	TextElement.create("CtrlP1","CtrlSettingsView",WIDTH/2-135,100,fontMenuItem,"Player 1",WIDTH,CENTER).show();
-	TextElement.create("CtrlP2","CtrlSettingsView",WIDTH/2+135,100,fontMenuItem,"Player 2",WIDTH,CENTER).show();
-
-	Button.create("CtrlP1Keyboard","CtrlSettingsView",WIDTH/2-260,130,250,40,"Keyboard").setOnViewShown(function() {
-		this.text = Ctrl.getDisplayName(KEYBOARD,Player.keyIds[0]);
-		this.playerSlot = 0;
-	}).setOnClick(function() {
-		buildControllerSelector([0,1],KEYBOARD,this);
-	}).show().setAsStart();
-	Button.create("CtrlP1GamePad","CtrlSettingsView",WIDTH/2-260,180,250,40,"GamePad").setOnViewShown(function() {
-		this.text = Ctrl.getDisplayName(GAMEPAD,Player.gpIds[0]);
-		this.playerSlot = 0;
-	}).setOnClick(function() {
-		buildControllerSelector(GamePad.slotsFilled(),GAMEPAD,this);
-	}).show();
-	Button.create("CtrlP1Touch","CtrlSettingsView",WIDTH/2-260,230,250,40,"Touch Controls").setOnViewShown(function() {
-		this.text = Ctrl.getDisplayName(TOUCH,Player.tapIds[0]);
-		this.playerSlot = 0;
-	}).setOnClick(function() {
-		buildControllerSelector([0],TOUCH,this);
-	}).show();
-
-	Button.create("CtrlP2Keyboard","CtrlSettingsView",WIDTH/2+10,130,250,40,"Keyboard").setOnViewShown(function() {
-		this.text = Ctrl.getDisplayName(KEYBOARD,Player.keyIds[1]);
-		this.playerSlot = 1;
-	}).setOnClick(function() {
-		buildControllerSelector([0,1],KEYBOARD,this);
-	}).show();
-	Button.create("CtrlP2GamePad","CtrlSettingsView",WIDTH/2+10,180,250,40,"GamePad").setOnViewShown(function() {
-		this.text = Ctrl.getDisplayName(GAMEPAD,Player.gpIds[1]);
-		this.playerSlot = 1;
-	}).setOnClick(function() {
-		buildControllerSelector(GamePad.slotsFilled(),GAMEPAD,this);
-	}).show();
-	Button.create("CtrlP2Touch","CtrlSettingsView",WIDTH/2+10,230,250,40,"Touch Controls").setOnViewShown(function() {
-		this.text = Ctrl.getDisplayName(TOUCH,Player.tapIds[1]);
-		this.playerSlot = 1;
-	}).setOnClick(function() {
-		buildControllerSelector([0],TOUCH,this);
-	}).show();
-
 	Button.create("CtrlDevMode","CtrlSettingsView",WIDTH-15,HEIGHT-15,10,10).setOnClick(function() {
 		this.on = devEnabled = !devEnabled;
 	}).show();
 
-	Button.create("CtrlMapperBttn","CtrlSettingsView",5,HEIGHT-45,200,40,"Gamepad Mapper").setOnViewShown(function() {
+	Button.create("HelpButton","CtrlSettingsView",WIDTH/2-125,HEIGHT/4,250,40,"Controls and Moves").setOnClick(function() {
+		G$("HelpView").open();
+	}).show().setAsStart();
+
+	Button.create("CtrlChangeOrder","CtrlSettingsView",WIDTH/2-125,HEIGHT/4+70,250,40,"Change Control Order").setOnClick(function() {
+		assignCtrlGUI();
+		let assignGui = G$("_AssignCtrls_");
+		assignGui.style = "tint";
+		assignGui.fill = "black";
+	}).
+	setOnViewShown(function() {
+		if (!multiplayer) this.mode = BUTTON_NO;
+		else this.mode = BUTTON_NORMAL;
+	}).show();
+
+	Button.create("CtrlMapperBttn","CtrlSettingsView",WIDTH/2-125,HEIGHT/4+140,250,40,"Gamepad Mapper").setOnViewShown(function() {
 		var ids = GamePad.slotsFilled();
 		if (ids.length==0) {
 			this.setOnClick(null);
@@ -262,17 +242,8 @@ function buildControllerSettingsMenu() {
 		});
 	}).show();
 
-	Button.create("HelpButton","CtrlSettingsView",10,10,50,50,"Help").setOnClick(function() {
-		G$("HelpView").open();
-	}).show();
-
-	Button.pathGrid([
-		["HelpButton","CtrlSettingsClose"],
-		["CtrlP1Keyboard","CtrlP2Keyboard"],
-		["CtrlP1GamePad","CtrlP2GamePad"],
-		["CtrlP1Touch","CtrlP2Touch"],
-		["CtrlMapperBttn"]
-	]);
+	Button.pathVert(["CtrlSettingsClose","HelpButton","CtrlChangeOrder","CtrlMapperBttn"]);
+	Button.funnelTo("CtrlSettingsClose","right",["CtrlChangeOrder","HelpButton","CtrlMapperBttn"]);
 }
 function buildControllerSelector(list,type,sourceButton) {
 	var finalList = [], names = [];

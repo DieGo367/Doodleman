@@ -1945,6 +1945,9 @@ class Player extends Entity {
 	static assignCtrl(slot,type,id) {
 		this.ctrlPorts[slot] = {type: type, id:id};
 	}
+	static clearCtrlAssignments() {
+		this.ctrlPorts = [null,null,null,null];
+	}
 	static relinkCtrls() {
 		for (var i in this.ctrlPorts) {
 			let ctrlPort = this.ctrlPorts[i];
