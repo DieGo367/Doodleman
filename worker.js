@@ -13,6 +13,7 @@ self.addEventListener("activate", async e => {
 
 self.addEventListener("fetch", async e => {
   let r = e.request;
+  if (r.method=="POST") return e.respondWith(fetch(r));
   let url = new URL(r.url);
   e.respondWith(networkFirst(r));
   return; // TODO: figure out how to do cacheing but still get updated files
