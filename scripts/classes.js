@@ -3275,6 +3275,9 @@ class ProgressButton extends Button {
 		if (backColor) this.backColor = backColor;
 		return this;
 	}
+	setBackColor(backColor) {
+		this.backColor = backColor;
+	}
 	update() {
 		super.update();
 		if (typeof this.listeningFunc == "function") this.setProgress(this.listeningFunc());
@@ -3287,10 +3290,12 @@ class ProgressButton extends Button {
 		c.fillRect(this.x,this.y+this.height*(1-prog),this.width,prog*this.height);
 		Images.drawBorderedImage(this.img,this.x,this.y,this.width,this.height,8,16,0,0);
 		this.font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7,this.width,CENTER);
+		this.subfont.draw(this.subText,this.x+this.width/2,this.y+this.height*2/3+5,this.width,CENTER);
 	}
 	static onInit() {
 		this.prototype.img = "GUI/ProgressButton.png";
 		this.prototype.font = new Font("Fredoka One",30,false,"gray");
+		this.prototype.subfont = new Font("Fredoka One",15,false,"gray");
 		this.prototype.fillColor = "blue";
 		this.prototype.backColor = "white";
 	}
