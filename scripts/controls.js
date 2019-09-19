@@ -407,6 +407,7 @@ const WebInput = {
 	ctrls: [],
 	ctrlMaps: [],
 	clientInputID: null,
+	channelTimeout: 30,
 	newChannel: function() {
 		let id = this.channels.length;
 		for (var i = 0; i < this.channels.length; i++) {
@@ -434,7 +435,7 @@ const WebInput = {
 		this.channels[id] = {id: id, buttons: [], analogs: []};
 	},
 	channelUpdate: function(data) {
-		let id = data.id;
+		let id = data.webInputID;
 		if (this.channels[id]) this.channels[id] = data;
 		for (var i in this.ctrls) {
 			let ctrl = this.ctrls[i];

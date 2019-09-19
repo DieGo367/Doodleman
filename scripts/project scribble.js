@@ -730,16 +730,18 @@ const Net = {
 	// used by host
 	clients: [],
 	discovery: null, discoveryCode: null,
-	clientCheckTick: 0, clientCheckInterval: 10*60, // 20 sec * 60 fps
+	clientCheckTick: 0, clientCheckInterval: 5*60, // 5 sec * 60 fps
 	// used by client
 	host: null,
 	clientCode: null,
+	clientID: null,
+	webInputID: null, ctrls: null,
 	// host methods
 	createRoom: function() {
-		$.post("/net/createroom",function(data) {
-			Net.room = data[0];
-			Net.openToNewClient();
-		},"json");
+		this.POST("/net/createroom",null,function(data) {
+			this.room = data[0];
+			this.openToNewClient();
+		})
 	},
 	openToNewClient: function() {
 		if (this.discovery) this.discovery.destroy();
@@ -749,123 +751,131 @@ const Net = {
 		});
 		this.discovery.on("signal",function(data) {
 			Net.discoveryCode = JSON.stringify(data);
-			$.ajax({
-				type: "POST", url: "/net/discovery", dataType: "json",
-				contentType: "application/json",
-				data: JSON.stringify({room:Net.room,discover:Net.discoveryCode})
-			});
+			Net.POST("/net/discovery",{room:Net.room,discover:Net.discoveryCode});
 		});
 		this.discovery.on("connect",function() { Net.receiveClient(); });
+		this.discovery.on("error",function(e) {
+			console.warn(e);
+			Net.openToNewClient();
+		});
 	},
 	checkForClients: function() {
-		$.ajax({
-			type: "POST", url: "/net/checkclients", dataType: "json",
-			contentType: "application/json",
-			data: JSON.stringify({room:Net.room}),
-			success: function(data) {
-				if (data.length>0) Net.discovery.signal(data[0]);
-			}
-		});
+		this.POST("/net/checkclients",{room:this.room},function(data) {
+			if (data.length>0) this.discovery.signal(data[0]);
+		})
 	},
 	lockRoom: function() {
 		this.discovery.destroy();
 		this.discovery = null;
+		this.POST("/net/lockroom",{room:this.room});
 	},
 	receiveClient: function() {
 		let client = this.discovery;
-		client.on("data",function(data) {
-			console.log(data.toString());
-		});
-		this.discovery = null;
+		client.on("data",function(data) { Net.onData(data,"host",this); });
+		client.clientID = this.clients.length;
 		this.clients.push(client);
-		Game.onNetConnection("host",client);
+		this.send({
+			assignClientID: client.clientID,
+			webInputID: WebInput.newChannel()
+		},client);
+		this.discovery = null;
+		Game.onNetConnection(client,"host");
 		this.openToNewClient();
 	},
 	// client methods
 	joinRoom: function(code) {
 		this.room = code;
+		if (this.host) this.host.destroy();
 		this.host = new SimplePeer({
 			initiator: false,
 			trickle: false
 		});
 		this.host.on("signal",function(data) {
 			Net.clientCode = JSON.stringify(data);
-			$.ajax({
-				type: "POST", url: "/net/signal", dataType: "json",
-				contentType: "application/json",
-				data: JSON.stringify({room:Net.room,client:Net.clientCode})
-			});
+			Net.POST("/net/signal",{room:Net.room,client:Net.clientCode});
 		});
-		this.host.on("connect",function() {
-			Game.onNetConnection("client",Net.host);
-			$.ajax({
-				type: "POST", url: "/net/confirmation", dataType: "json",
-				contentType: "application/json",
-				data: JSON.stringify({room:Net.room,client:Net.clientCode})
-			});
-		});
-		this.host.on("data",function(data) {
-			console.log(data.toString());
-		});
-		$.ajax({
-			type: "POST", url: "/net/join", dataType: "json",
-			contentType: "application/json",
-			data: JSON.stringify({room:code}),
-			success: function(data) { Net.host.signal(data[0]); }
+		this.host.on("connect",function() { Net.onAccepted(); });
+		this.host.on("data",function(data) { Net.onData(data,"client",this); });
+		this.POST("/net/join",{room:code},function(data) {
+			this.host.signal(data[0]);
 		});
 	},
+	onAccepted: function() {
+		this.POST("/net/confirmation",{room:this.room,client:this.clientCode})
+		this.ctrls = {
+			key: new Ctrl(KEYBOARD,Player.keyIds[0]),
+			gp: new Ctrl(GAMEPAD,Player.gpIds[0]),
+			tap: new Ctrl(TOUCH,Player.tapIds[0]),
+			web: new NullCtrl(),
+			mostRecent: function() {
+				var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp,this.web.timestamp];
+				var newest = Math.max(...timestamps);
+				var mostRecent = [this.key,this.gp,this.tap,this.web][timestamps.indexOf(newest)];
+				if (newest!=0&&this.tap.type!=NULLCTRL&&mostRecent.type!=TOUCH) Tap.tryDeactivate();
+				return mostRecent;
+			},
+			selfDestructAll: function() {
+				this.key.selfDestruct();
+				this.gp.selfDestruct();
+				this.tap.selfDestruct();
+				this.web.selfDestruct();
+			}
+		};
+		Game.onNetConnection(Net.host,"client");
+	},
 	// universal methods
+	POST: function(url,data,func) {
+		$.ajax({
+			type: "POST", url: url, dataType: "json",
+			contentType: "application/json",
+			data: JSON.stringify(data),
+			success: function(data) {
+				if (typeof func == "function") func.call(Net,data);
+			}
+		});
+	},
+	send: function(obj,target) {
+		try {
+			obj = JSON.stringify(obj);
+		}
+		catch(e) {
+			return console.warn("Failed to parse JSON before sending");
+		}
+		if (target) target.send(obj);
+		else {
+			if (this.host) this.host.send(obj);
+			for (var i in this.clients) this.clients[i].send(obj);
+		}
+	},
+	log: function(msg) {
+		this.send({log:msg});
+	},
+	onData: function(data,role,sender) {
+		// console.log(data.toString());
+		try {
+			data = JSON.parse(data.toString());
+		}
+		catch(e) {
+			return console.log("Received invalid data: "+data.toString());
+		}
+		if (data.log) console.log(data.log);
+		if (role=="host") {
+			sender.lastMessage = Timer.now();
+			if (data.requestClientID) this.send({assignClientID:sender.clientID},sender);
+			if (data.webInputID!=void(0)) WebInput.channelUpdate(data);
+		}
+		if (role=="client") {
+			if (data.assignClientID!=void(0)) this.clientID = data.assignClientID;
+			if (data.webInputID!=void(0)) this.webInputID = data.webInputID;
+		}
+		Game.onNetData(data,role);
+	},
 	cleanup: function() {
 		if (this.host) this.host.destroy();
 		for (var i in this.clients) this.clients[i].destroy();
 		this.room = this.host = this.discovery = null;
 		this.clients = [];
 		this.discoveryCode = this.clientCode = null;
-	},
-	connect: function(id,callback,failure) {
-		if (!this.peer) return;
-		this.host = this.peer.connect(id);
-		this.host.on("open",function() {
-			Net.host.on("data",function(data) {
-				if (data.msg) gameAlert(data.msg,60);
-				if (data.inputID!=null) WebInput.clientInputID = data.inputID;
-			});
-			console.log("Connected to host!");
-			if (typeof callback=="function") callback();
-		});
-	},
-	disconnect: function() {
-		if (this.host.open) this.host.close();
-		this.host = null;
-		WebInput.clientInputID = null;
-		console.log("Disconnected from host.");
-	},
-	addClient: function(client) {
-		this.clients.push(client);
-		client.inputID = WebInput.newChannel();
-		client.on("data",function(data) {
-			client.lastMessage = Timer.now();
-			if (data.msg) gameAlert(data.msg,60);
-			if (data.id!=null) WebInput.channelUpdate(data);
-			else client.send({inputID: client.inputID});
-		});
-		console.log("Client connected!");
-	},
-	removeClient: function(index) {
-		let conn = this.clients.splice(index,1)[0];
-		WebInput.removeChannel(conn.inputID);
-		conn.close();
-		console.log("Client disconnected.");
-	},
-	sendMsg: function(msg) {
-		if (this.host) {
-			this.host.send(msg);
-		}
-		if (this.clients.length>0) {
-			for (var i in this.clients) {
-				this.clients[i].send(msg);
-			}
-		}
 	},
 	update: function() {
 		if (this.discovery) {
@@ -877,41 +887,24 @@ const Net = {
 		else if (this.clients.length>0) this.hostUpdate();
 	},
 	clientUpdate: function() {
-		let p = Player.slots[0];
-		if (this.host.open) {
-			this.host.wasOpen = true;
-			if (WebInput.clientInputID==null) {
-				this.host.send({id:null});
-			}
-			else if (p) {
-				let data = {
-					id: WebInput.clientInputID,
-					buttons: [
-						p.ctrls.tap.pressed("jump"),
-						p.ctrls.tap.pressed("attack")
-					],
-					analogs: [
-						p.ctrls.tap.getInputValue("AnalogL_X"),
-						p.ctrls.tap.getInputValue("AnalogL_Y")
-					]
-				}
-				this.host.send(data);
-			}
+		if (this.ctrls) {
+			let ctrl = this.ctrls.mostRecent();
+			let data = {
+				clientID: this.clientID,
+				webInputID: this.webInputID,
+				buttons: [ctrl.pressed("jump"),ctrl.pressed("attack")],
+				analogs: [
+					ctrl.getActionValue("moveRight")-ctrl.getActionValue("moveLeft"),
+					ctrl.getActionValue("crouch")-ctrl.getActionValue("lookUp")
+				],
+			};
+			Net.send(data);
 		}
-		else if (this.host.wasOpen) this.disconnect();
 	},
 	hostUpdate: function() {
 		for (var i = 0; i < this.clients.length; i++) {
 			let client = this.clients[i];
-			if (client.open) {
-				client.wasOpen = true;
-				if (Timer.now()-client.lastMessage > 30) WebInput.silenceChannel(client.inputID);
-				client.send({});
-			}
-			else if (client.wasOpen) {
-				this.removeClient(i);
-				i--;
-			}
+			if (Timer.now()-client.lastMessage > WebInput.channelTimeout) WebInput.silenceChannel(client.webInputID);
 		}
 	}
 };

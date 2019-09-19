@@ -169,5 +169,13 @@ def net_client_confirmation():
     else:
         return "Room not found", 404
 
+@app.route('/net/lockroom',methods=["POST"])
+def net_lock_room():
+    data = request.get_json()
+    room = rooms[data["room"]]
+    if room:
+        rooms[data["room"]] = None
+    return "", 200
+
 if __name__ == "__main__":
     app.run()

@@ -11,11 +11,11 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		let code = G$("RoomCode");
 		if (code&&code.isVisible()) code.text = Net.room;
 	},
-	onNetConnection: function(role,connection) {
-		if (role=="host") {
-			Player.add(1);
-			
-		}
+	onPause: function() {
+		return CANCEL;
+	},
+	onNetConnection: function(conn,role) {
+		if (role=="host") Player.add(Net.clients.indexOf(conn)+1);
 	},
 	addGui: function() {
 		View.create("Online",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow").open();
@@ -32,6 +32,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		TextElement.create("RoomCode","Hosting",40,100,fontHudScore,"...").show();
 		Button.create("LockRoom","Hosting",10,10,100,40,"Lock Room").setOnClick(function() {
 			Net.lockRoom();
+			this.remove();
 		}).show();
 
 		View.create("Joining",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow");
