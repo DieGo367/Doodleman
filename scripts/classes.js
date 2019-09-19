@@ -2766,7 +2766,6 @@ class Button extends GuiElement {
 		this.height = height;
 		this.text = text||"";
 		this.mode = BUTTON_NO;
-		this.img = "GUI/Button_Blue.png";
 		this.onClickFunction = function() {};
 		this.onViewShownFunction = function() {};
 		this.requireUserAction = false;
@@ -2916,6 +2915,7 @@ class Button extends GuiElement {
 	}
 	static onInit() {
 		this.buttonFound = false;
+		this.prototype.img = "GUI/Button_Blue.png";
 	}
 	static checkAll() {
 		this.buttonFound = false;
@@ -3247,6 +3247,55 @@ class Slider extends Button {
 	}
 }
 initClass(Slider,Button);
+
+class ProgressButton extends Button {
+	constructor(name,viewName,x,y,width,height,mainText,subText) {
+		super(name,viewName,x,y,width,height,mainText);
+		this.subText = subText;
+		this.progress = 0; // out of 1
+		this.listeningFunc = null;
+		this.onCompleteFunc = null;
+		this.fillColor = "blue";
+	}
+	setProgress(amt) {
+		this.progress = Math.min(Math.max(0,amt),1);
+		if (amt>=1 && typeof this.onCompleteFunc == "function") this.onCompleteFunc();
+		return this;
+	}
+	setListening(func) {
+		this.listeningFunc = func;
+		return this;
+	}
+	setOnComplete(func) {
+		this.onCompleteFunc = func;
+		return this;
+	}
+	setFillColor(color,backColor) {
+		this.fillColor = color;
+		if (backColor) this.backColor = backColor;
+		return this;
+	}
+	update() {
+		super.update();
+		if (typeof this.listeningFunc == "function") this.setProgress(this.listeningFunc());
+	}
+	drawGUI() {
+		let prog = Math.min(Math.max(0,this.progress),1);
+		c.fillStyle = this.backColor;
+		c.fillRect(this.x,this.y,this.width,this.height);
+		c.fillStyle = this.fillColor;
+		c.fillRect(this.x,this.y+this.height*(1-prog),this.width,prog*this.height);
+		Images.drawBorderedImage(this.img,this.x,this.y,this.width,this.height,8,16,0,0);
+		this.font.draw(this.text,this.x+this.width/2,this.y+this.height/2+7,this.width,CENTER);
+	}
+	static onInit() {
+		this.prototype.img = "GUI/ProgressButton.png";
+		this.prototype.font = new Font("Fredoka One",30,false,"gray");
+		this.prototype.fillColor = "blue";
+		this.prototype.backColor = "white";
+	}
+}
+initClass(ProgressButton,Button);
 
 class TextElement extends GuiElement {
 	constructor(name,viewName,x,y,font,text,maxWidth,alignment) {
