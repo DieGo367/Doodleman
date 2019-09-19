@@ -33,6 +33,21 @@ const Key = {
 	},
 	ctrlAnalogValue: function(id,mode,sign,ctrl) {
 		return 0;
+	},
+	slotsFilled: function() {
+		let result = [];
+		for (var i in this.ctrlMaps) {
+			let num = parseInt(i);
+			if (!isNaN(num)) result.push(num);
+		}
+		return result;
+	},
+	anyPressedIn: function(id) {
+		let keys = this.ctrlMaps[id].mappings;
+		for (var i in keys) {
+			if (this.pressedKeys[keys[i]]) return true;
+		}
+		return false;
 	}
 };
 const GamePad = {
@@ -176,6 +191,13 @@ const GamePad = {
 		}
 		return slots;
 	},
+	anyPressedIn: function(id) {
+		let buttons = this.controllers[id].buttons;
+		for (var i in buttons) {
+			if (this.buttonPressed(buttons[i])) return true;
+		}
+		return false;
+	},
 	changeMap: function(id,map) {
 		if (!map) return;
 		let gp = this.controllers[id];
@@ -300,7 +322,15 @@ const Tap = {
 		var rawVal = analog[tilt];
 		if (tilt=="tiltY") rawVal /= analog.sense[id%2];
 		return rawVal;
-	}
+	},
+	slotsFilled: function() {
+		let result = [];
+		for (var i in this.ctrlMaps) {
+			let num = parseInt(i);
+			if (!isNaN(num)) result.push(num);
+		}
+		return result;
+	},
 };
 
 class TouchAnalog {
@@ -443,7 +473,15 @@ const WebInput = {
 	},
 	ctrlAnalogValue: function(analogId,ctrl) {
 		return this.channels[ctrl.index].analogs[analogId];
-	}
+	},
+	slotsFilled: function() {
+		let result = [];
+		for (var i in this.ctrlMaps) {
+			let num = parseInt(i);
+			if (!isNaN(num)) result.push(num);
+		}
+		return result;
+	},
 };
 
 class CtrlMap {
@@ -687,6 +725,53 @@ class CtrlPack {
 	selfDestructAll() {
 		for (var i in this.pack) this.pack[i].selfDestruct();
 		this.pack = [];
+	}
+}
+
+class CtrlPicker {
+	constructor(ignore) {
+		this.ignore = ignore || [];
+		this.targetCtrl = null;
+		this.buttonProg = [];
+		this.touchProg = 0;
+	}
+	getProgress(testButton) {
+		this.maxProg = 0;
+		this.testProgressIn(Key);
+		this.testProgressIn(GamePad);
+		this.touchProgress(testButton);
+		return this.maxProg;
+	}
+	testProgressIn(manager) {
+		let progress = this.buttonProg[manager.type];
+		if (!progress) progress = this.buttonProg[manager.type] = [];
+		let slots = manager.slotsFilled();
+		slotLoop:
+		for (var i in slots) {
+			for (var j in this.ignore) {
+				let ignore = this.ignore[j];
+				if (manager.type==ignore.type && slots[i]==ignore.id) continue slotLoop;
+			}
+			if (progress[i]==void(0)) progress[i] = 0;
+			if (manager.anyPressedIn(slots[i])) progress[i]++;
+			else progress[i] = 0;
+			if (progress[i]>this.maxProg) {
+				this.targetCtrl = {type: manager.type, id: slots[i]};
+				this.maxProg = progress[i];
+			}
+		}
+	}
+	touchProgress(testButton) {
+		for (var i in this.ignore) if (this.ignore[i].type==TOUCH) return;
+		if (!testButton.hovered) this.touchProg = 0;
+		if (typeof Pointer.downButton == "string") { // touch point is hovering
+			this.touchProg++;
+			if (this.touchProg>this.maxProg) {
+				this.maxProg = this.touchProg;
+				this.targetCtrl = {type: TOUCH,id:0};
+			}
+		}
+		else this.touchProg = 0;
 	}
 }
 

@@ -97,11 +97,41 @@ function gameAlert(text,duration) {
 	if (!v.layer) v.opensub();
 }
 
-function assignCtrlGUI() {
+function assignCtrlGUI(success,cancel) {
 	View.create("_AssignCtrls_",0,0,WIDTH,HEIGHT).open();
+	TextElement.create("_AssignCtrlTitle_","_AssignCtrls_",WIDTH/2,30,fontMenuTitle,"Pick Controls",WIDTH,CENTER).show();
 	Button.create("_CancelAssignCtrls_","_AssignCtrls_",WIDTH-60,10,50,50).setOnClick(function() {
 		this.view.remove();
+		if (typeof cancel == "function") cancel();
 	}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
+	let pw = WIDTH/4-20;
+	ProgressButton.create("_AssignP1_","_AssignCtrls_",WIDTH/3-pw/2,HEIGHT/2-pw/2,pw,pw,"P1","").setListening(function() {
+		let prog = this.picker.getProgress(this);
+		let ctrl = this.picker.targetCtrl;
+		if (ctrl) this.subText = Ctrl.getDisplayName(ctrl.type,ctrl.id);
+		return prog/60;
+	}).
+	setOnComplete(function() {
+		let ap2 = G$("_AssignP2_").setListening(this.listeningFunc);
+		ap2.picker = new CtrlPicker([this.picker.targetCtrl]);
+		ap2.previous = this;
+		ap2.setBackColor("white")
+		this.setListening(null);
+		this.font = Font.copy(this.font,{color:"white"});
+		this.subfont = Font.copy(this.subfont,{color:"white"});
+	}).show().picker = new CtrlPicker();
+	ProgressButton.create("_AssignP2_","_AssignCtrls_",WIDTH*2/3-pw/2,HEIGHT/2-pw/2,pw,pw,"P2","").setOnComplete(function() {
+		this.setListening(null);
+		this.view.results = [this.picker.targetCtrl];
+		let temp = this;
+		while(temp.previous) {
+			temp = temp.previous;
+			this.view.results.unshift(temp.picker.targetCtrl);
+		}
+		this.font = Font.copy(this.font,{color:"white"});
+		this.subfont = Font.copy(this.subfont,{color:"white"});
+		if (typeof success == "function") success(this.view.results);
+	}).setFillColor("red","darkGray").show();
 }
 
 //just definining menus and their functions
