@@ -519,11 +519,11 @@ class Ctrl extends CtrlMap {
 			var modifier = group[i].split("::")[1];
 			var val = this.getInputValue(input);
 			if (modifier) {
-				switch(typeof modifier) {
+				switch(modifier) {
 					case '-':
 						val *= -1;
 					case '+':
-						if (val<0) val = 0;
+						val = Math.max(0,val);
 						break;
 					case 'U':
 						if (val==-1) {
@@ -557,7 +557,7 @@ class Ctrl extends CtrlMap {
 					case '-':
 						val *= -1;
 					case '+':
-						if (val<0) val = 0;
+						val = Math.max(0,val);
 						break;
 					case 'U':
 						if (val==-1) {
