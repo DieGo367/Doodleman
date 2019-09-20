@@ -186,6 +186,7 @@ const Animation = {
 	},
 	spritesheets: {}, loadStatus: 1, appliedClasses: [],
 	loadSpritesheet: function(name,sheet) {
+		sheet.name = name;
 		sheet.getAnimation = function(action) {
 			for (var i in this.animations) {
 				if (this.animations[i].action==action) return this.animations[i];

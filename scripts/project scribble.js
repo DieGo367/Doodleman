@@ -851,6 +851,7 @@ const Net = {
 		if (role=="client") {
 			if (data.assignClientID!=void(0)) this.clientID = data.assignClientID;
 			if (data.webInputID!=void(0)) this.webInputID = data.webInputID;
+			if (data.objectState) RemoteObject.matchState(data.objectState);
 		}
 		Game.onNetData(data,role);
 	},
@@ -886,10 +887,11 @@ const Net = {
 		}
 	},
 	hostUpdate: function() {
-		for (var i = 0; i < this.clients.length; i++) {
+		for (var i in this.clients) {
 			let client = this.clients[i];
 			if (Timer.now()-client.lastMessage > WebInput.channelTimeout) WebInput.silenceChannel(client.webInputID);
 		}
+		Net.send({objectState: RemoteObject.generateState()});
 	}
 };
 

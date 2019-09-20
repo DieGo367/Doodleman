@@ -177,6 +177,57 @@ class ArrayStore extends Array {
 	}
 }
 
+class RemoteObject extends _c_ {
+	constructor(json) {
+		super();
+		let remoteClass = Constants.read(json.class);
+		if (remoteClass) {
+			this.object = Object.create(remoteClass.prototype);
+			for (var property in json) {
+				this.object[property] = json[property];
+			}
+			if (json.sheet) this.object.sheet = Animation.getSpritesheet(json.sheet.name);
+			this.drawLayer = this.object.drawLayer;
+			this.remoteClass = remoteClass;
+		}
+	}
+	draw() {
+		if (this.object) this.object.draw();
+	}
+	drawElements() {
+		if (this.object) this.object.drawElements();
+	}
+	drawHud() {
+		if (this.object) this.object.drawHud();
+	}
+	drawDebug() {
+		if (this.object) this.object.drawDebug();
+	}
+	static matchState(objectState) {
+		this.killAll();
+		for (var i in objectState) {
+			this.create(objectState[i]);
+		}
+	}
+	static generateState() {
+		let state = [...Box.getAll(),...Line.getAll()];
+		for (var i in state) {
+			let obj = state[i];
+			let refCache = [];
+			state[i] = JSON.parse(JSON.stringify(obj,function(key,value) {
+				if (typeof value == "object" && value!=null) {
+					if (refCache.indexOf(value)!=-1) return;
+					else refCache.push(value);
+				}
+				return value;
+			}));
+			state[i].class = obj.constructor.name;
+		}
+		return state;
+	}
+}
+initClass(RemoteObject,{drawable:true, listType: "array"});
+
 
 class Background extends _c_ {
 	constructor(slot,imgName,drawLayer,scale,parallax) {
