@@ -1103,7 +1103,15 @@ function setFrameByFrame(bool) {
 function doGlobalControls(controller) {
 	if (controller.ready("pause")) {
 		var slot = -1;
-		if (controller.type==GAMEPAD) slot = Player.gpIds.indexOf(controller.gamepadIndex);
+		if (controller.type==GAMEPAD) {
+			for (var i in Player.ctrlPorts) {
+				let port = Player.ctrlPorts[i];
+				if (port&&port.type==GAMEPAD&&port.id==controller.gamepadIndex) {
+					slot = i;
+					break;
+				}
+			}
+		}
 		else if (controller.type==KEYBOARD) {
 			slot = controller.ready("pause-p1")?0:1;
 			controller.use("pause-p"+(slot+1));
