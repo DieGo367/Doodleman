@@ -630,7 +630,7 @@ class Door extends Entrance {
 		if (this.animCurrent!="closed") return false;
 		// player must pass every test to be able to exit
 		if (!super.objCanExit(player)) return false; // inherited test
-		let ctrl = player.ctrls.mostRecent();
+		let ctrl = player.getCtrl();
 		if (!ctrl.pressed("lookUp",0.8)) return false; // must press lookUp
 		if (!player.isGrounded) return false; // must be on ground
 		if (player.held||player.heldBy) return false; // can't be holding anything or be held by something
@@ -1699,6 +1699,9 @@ class Player extends Entity {
 		if (this.ctrl) this.ctrl.selfDestruct();
 		if (this.ctrlPack) this.ctrlPack.selfDestructAll();
 	}
+	getCtrl() {
+		return this.ctrl || (this.ctrlPack? this.ctrlPack.mostRecent() : NullCtrl.get(0));
+	}
 
 	handleControls(pad) {
 		if (pad.pressed("moveLeft")&&!pad.pressed("moveRight")&&!this.movementLocked) {
@@ -1846,16 +1849,13 @@ class Player extends Entity {
 	}
 
 	update() {
-		// get this player's most recently updated controller to use for input
-		let controller = this.ctrl || (this.ctrlPack? this.ctrlPack.mostRecent() : NullCtrl.get(0));
-		// defaults to NullCtrl if no ctrl or ctrlPack is found
 
 		if (this.justSpawned&&!this.currentAction) this.runAction("drawing");
 		if (this.isGrounded) this.canUpAirAttack = true;
 
 		// if not stunned, run controls
+		let controller = this.getCtrl();
 		if (this.stun==0&&!this.usingEntrance()) this.handleControls(controller);
-
 		this.chooseAnimation(controller);
 
 		var tempVelX = this.velX, tempVelY = this.velY;
