@@ -1689,11 +1689,11 @@ class Player extends Entity {
 		this.registerCtrls();
 	}
 	registerCtrls() {
-		if (multiplayer) {
+		if (!multiplayer || (online&&this.slot==0)) this.ctrlPack = new CtrlPack();
+		else {
 			let assigned = Player.ctrlPorts[this.slot];
 			if (assigned) this.ctrl = new Ctrl(assigned.type, assigned.id);
 		}
-		else this.ctrlPack = new CtrlPack();
 	}
 	removeCtrls() {
 		if (this.ctrl) this.ctrl.selfDestruct();
@@ -1901,17 +1901,18 @@ class Player extends Entity {
 		else super.drawElements();
 	}
 
-	static add(number) {
-		if (!this.hasLives(number)) return;
-		let sheet = ["Blueman.json","Redman.json","Greenman.json","Yellowman.json"][number];
+	static add(slot) {
+		if (slot>=this.slots.length) this.lives[slot] = this.defaultLives;
+		if (!this.hasLives(slot)) return;
+		let sheet = ["Blueman.json","Redman.json","Greenman.json","Yellowman.json"][slot%4];
 		if (!multiplayer) sheet = "Doodleman.json";
-		let spawn = Level.level.playerSpawns[number] || Level.level.playerSpawns[0] || {x: 0, y: 0, direction: RIGHT};
-		let player = Player.create(spawn.x,spawn.y,19,44,38,4,sheet,number,spawn.direction);
+		let spawn = Level.level.playerSpawns[slot] || Level.level.playerSpawns[0] || {x: 0, y: 0, direction: RIGHT};
+		let player = Player.create(spawn.x,spawn.y,19,44,38,4,sheet,slot,spawn.direction);
 	}
 	static addAll() {
 		this.add(0);
 		if (multiplayer) {
-			for (var i = 1; i < 4; i++) {
+			for (var i = 1; i < this.slots.length; i++) {
 				if (this.ctrlInSlot(i)) this.add(i);
 			}
 		}
@@ -1971,6 +1972,7 @@ class Player extends Entity {
 		this.lives[slot] = amount;
 	}
 	static setAllLives(amount) {
+		this.defaultLives = amount;
 		for (var i in this.slots) {
 			this.lives[i] = amount;
 		}
@@ -2028,6 +2030,7 @@ class Player extends Entity {
 		this.slots = [null,null,null,null];
 		this.ctrlPorts = [null,null,null,null];
 		this.lives = [0,0,0,0];
+		this.defaultLives = 0;
 		this.healthCache = [null,null,null,null];
 		this.maxHealthCache = [null,null,null,null];
 		this.actions = {};

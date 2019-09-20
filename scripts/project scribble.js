@@ -5,7 +5,7 @@ var pixelDensity = 1, heightScale, widthScale;
 var paused = false, pausedBy, focused = true, frameByFrame = false;
 var fullScreen = false, fullScreenChanging = false, startedInFullScreen = false;
 var viewLock = false;
-var gameMode = 0, multiplayer = false, clickSpawn = false;
+var gameMode = 0, multiplayer = false, online = false, clickSpawn = false;
 var globalKeyboard;
 var guiStartElement, guiSelectedElement;
 var uid = 0, uidDeleted = 0;
@@ -774,10 +774,12 @@ const Net = {
 		client.on("data",function(data) { Net.onData(data,"host",this); });
 		client.clientID = this.clients.length;
 		this.clients.push(client);
+		let webInputID = WebInput.newChannel();
 		this.send({
 			assignClientID: client.clientID,
-			webInputID: WebInput.newChannel()
+			webInputID: webInputID
 		},client);
+		Player.assignCtrl(client.clientID+1,WEBIN,webInputID);
 		this.discovery = null;
 		Game.onNetConnection(client,"host");
 		this.openToNewClient();
@@ -802,25 +804,7 @@ const Net = {
 	},
 	onAccepted: function() {
 		this.POST("/net/confirmation",{room:this.room,client:this.clientCode})
-		this.ctrls = {
-			key: new Ctrl(KEYBOARD,Player.keyIds[0]),
-			gp: new Ctrl(GAMEPAD,Player.gpIds[0]),
-			tap: new Ctrl(TOUCH,Player.tapIds[0]),
-			web: new NullCtrl(),
-			mostRecent: function() {
-				var timestamps = [this.key.timestamp,this.gp.timestamp,this.tap.timestamp,this.web.timestamp];
-				var newest = Math.max(...timestamps);
-				var mostRecent = [this.key,this.gp,this.tap,this.web][timestamps.indexOf(newest)];
-				if (newest!=0&&this.tap.type!=NULLCTRL&&mostRecent.type!=TOUCH) Tap.tryDeactivate();
-				return mostRecent;
-			},
-			selfDestructAll: function() {
-				this.key.selfDestruct();
-				this.gp.selfDestruct();
-				this.tap.selfDestruct();
-				this.web.selfDestruct();
-			}
-		};
+		this.ctrls = new CtrlPack();
 		Game.onNetConnection(Net.host,"client");
 	},
 	// universal methods

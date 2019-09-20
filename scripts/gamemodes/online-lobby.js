@@ -3,6 +3,9 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		Level.clearLevel();
 		this.addGui();
 		Player.setAllLives(Infinity);
+		Player.clearCtrlAssignments();
+		multiplayer = true;
+		online = true;
 	},
 	quit: function() {
 		this.removeGui();
