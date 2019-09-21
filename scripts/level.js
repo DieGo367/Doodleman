@@ -116,9 +116,10 @@ const Level = {
 		this.level = clone(BlankLevel);
 		Camera.reset();
 	},
-	load: async function(file,doLog) {
+	load: async function(file,doLog,skipParse) {
 		if (doLog==void(0)) doLog = true;
-		try {
+		if (skipParse) var newLevel = file;
+		else try {
 			var newLevel = JSON.parse(file);
 		}
 		catch(err) {
@@ -138,6 +139,7 @@ const Level = {
 		}
 		for (var i in imgPromises) await imgPromises[i];
 		Camera.reset();
+		if (online) Net.onLevelLoad(this.optimize(newLevel));
 		Game.onLevelLoad();
 		if (doLog) console.log("Loaded Level "+this.level.name);
 		return true;
@@ -250,6 +252,15 @@ const Level = {
 		let x = Math.round(Math.random()*this.level.width);
 		let y = Math.round(Math.random()*this.level.height);
 		return new Point(x,y);
+	},
+	optimize: function(levelData) {
+		let copy = clone(levelData);
+		delete copy.actors;
+		if (copy.bg) for (var i in copy.bg) {
+			let bg = copy.bg[i];
+			if (bg&&bg.raw) bg.raw = "";
+		}
+		return copy;
 	}
 }
 const BlankLevel = clone(Level.level);

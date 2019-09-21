@@ -214,9 +214,12 @@ class RemoteObject extends _c_ {
 	}
 	static generateState() {
 		let state = [...Box.getAll(),...Line.getAll()];
-		for (var i in state) {
+		for (var i = 0; i < state.length; i++) {
 			let obj = state[i];
-			if (!obj.isLoaded) continue;
+			if (!obj.isLoaded||obj.isTerrain) {
+				state.splice(i--,1);
+				continue;
+			};
 			let onlineProps = obj.constructor.onlineProperties();
 			function needed(key) {
 				if (onlineProps.length==0 || key=="") return true;

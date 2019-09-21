@@ -924,6 +924,7 @@ const Net = {
 			if (data.assignClientID!=void(0)) this.clientID = data.assignClientID;
 			if (data.webInputID!=void(0)) this.webInputID = data.webInputID;
 			if (data.objectState) RemoteObject.matchState(data.objectState);
+			if (data.level) Level.load(data.level,true,true);
 		}
 		Game.onNetData(data,role);
 	},
@@ -946,6 +947,11 @@ const Net = {
 		}
 		if (this.host) this.clientUpdate();
 		else if (this.clients.length>0) this.hostUpdate();
+	},
+	onLevelLoad: function(levelCopy) {
+		if (this.clients.length>0) {
+			Net.send({level:levelCopy});
+		}
 	}
 };
 
