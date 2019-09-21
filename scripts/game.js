@@ -56,7 +56,7 @@ var Game = new GameMode();
 
 function tick() { //GAME UPDATES//
 	Net.update();
-	if (!focused) return;
+	if (!focused&&!online) return;
 	Timer.update();
 	//update button states
 	GamePad.checkButtons();
@@ -74,7 +74,7 @@ function tick() { //GAME UPDATES//
 		}
 	}
 	//update all objects
-	if (!paused) {
+	if (!paused||online) {
 		Game.tick();
 
 		Collision.checkRequests();

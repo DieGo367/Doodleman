@@ -218,7 +218,7 @@ const Animation = {
 		Animation.drawFromSheet(this.sheet,Math.floor(this.x),Math.floor(this.y),this.animCurrent,this.animFrame,this.direction,this,this.animPage);
 	},
 	protoAnimationTick: function() {
-		if (paused) return;
+		if (paused&&!online) return;
 		var animation = this.sheet.getAnimation(this.animCurrent);
 		if (animation) {
 			this.animFrame += 1;
