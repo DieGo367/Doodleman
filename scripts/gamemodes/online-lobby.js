@@ -6,9 +6,11 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		Player.clearCtrlAssignments();
 		multiplayer = true;
 		online = true;
+		Net.discoveryAlerts = true;
 	},
 	quit: function() {
 		this.removeGui();
+		Net.discoveryAlerts = false;
 	},
 	tick: function() {
 		let code = G$("RoomCode");
@@ -19,6 +21,19 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 	},
 	onNetConnection: function(conn,role) {
 		if (role=="host") Player.add(Net.clients.indexOf(conn)+1);
+	},
+	onNetFailure: function(role) {
+		if (role=="host") {
+			let allP = Player.getAll();
+			for (var i in allP) {
+				let p = allP[i];
+				if (p.slot==0) continue;
+				if (!Player.ctrlInSlot(p.slot)) {
+					Player.setLives(p.slot,0);
+					p.remove();
+				}
+			}
+		}
 	},
 	addGui: function() {
 		View.create("Online",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow").open();

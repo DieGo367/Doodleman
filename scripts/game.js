@@ -49,7 +49,7 @@ class GameMode {
 	onFocus() {}
 	onPointerMove() {}
 	onNetConnection(connection,role) {}
-	onNetFailure() {}
+	onNetFailure(role) {}
 	onNetData(data,role) {}
 }
 var Game = new GameMode();

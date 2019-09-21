@@ -225,6 +225,9 @@ class RemoteObject extends _c_ {
 		}
 		return state;
 	}
+	static clearState() {
+		this.killAll();
+	}
 }
 initClass(RemoteObject,{drawable:true, listType: "array"});
 
@@ -1749,6 +1752,7 @@ class Player extends Entity {
 	removeCtrls() {
 		if (this.ctrl) this.ctrl.selfDestruct();
 		if (this.ctrlPack) this.ctrlPack.selfDestructAll();
+		this.ctrl = this.ctrlPack = null;
 	}
 	getCtrl() {
 		return this.ctrl || (this.ctrlPack? this.ctrlPack.mostRecent() : NullCtrl.get(0));

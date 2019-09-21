@@ -729,7 +729,7 @@ const Net = {
 	room: null,
 	// used by host
 	clients: [],
-	discovery: null, discoveryCode: null,
+	discovery: null, discoveryCode: null, discoveryAlerts: false,
 	clientCheckTick: 0, clientCheckInterval: 5*60, // 5 sec * 60 fps
 	// used by client
 	host: null,
@@ -753,11 +753,15 @@ const Net = {
 			Net.discoveryCode = JSON.stringify(data);
 			Net.POST("/net/discovery",{room:Net.room,discover:Net.discoveryCode});
 		});
-		this.discovery.on("connect",function() { Net.receiveClient(); });
-		this.discovery.on("error",function(e) {
-			console.warn(e);
+		this.discovery.on("connect",function() { this.pending = false; Net.receiveClient(); });
+		this.discovery.on("error",function() {
+			if (this==Net.discovery) {
+				gameAlert("Network Error: Retrying",60);
 			Net.openToNewClient();
+			}
+			else Net.hostFailure(this); // was a client
 		});
+		this.discovery.pending = true;
 	},
 	checkForClients: function() {
 		this.POST("/net/checkclients",{room:this.room},function(data) {
@@ -772,22 +776,51 @@ const Net = {
 	receiveClient: function() {
 		let client = this.discovery;
 		client.on("data",function(data) { Net.onData(data,"host",this); });
+		let added = false;
+		for (var i in this.clients)  {
+			if (!this.clients[i]) {
+				this.clients[i] = client;
+				client.clientID = i;
+				added = true;
+				break;
+			}
+		}
+		if (!added) {
 		client.clientID = this.clients.length;
 		this.clients.push(client);
-		let webInputID = WebInput.newChannel();
+		}
+		client.webInputID = WebInput.newChannel();
 		this.send({
 			assignClientID: client.clientID,
-			webInputID: webInputID
+			webInputID: client.webInputID
 		},client);
-		Player.assignCtrl(client.clientID+1,WEBIN,webInputID);
+		Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
 		this.discovery = null;
 		Game.onNetConnection(client,"host");
 		this.openToNewClient();
 	},
+	removeClient: function(client) {
+		delete this.clients[client.clientID];
+		WebInput.removeChannel(client.webInputID);
+	},
+	hostUpdate: function() {
+		for (var i in this.clients) {
+			let client = this.clients[i];
+			if (!client) continue;
+			if (!this.usable(client)) this.hostFailure(client);
+			if (Timer.now()-client.lastMessage > WebInput.channelTimeout) WebInput.silenceChannel(client.webInputID);
+		}
+		Net.send({objectState: RemoteObject.generateState()});
+	},
+	hostFailure: function(client) {
+		gameAlert("Client "+client.clientID+" was disconnected",60);
+		this.removeClient(client);
+		Game.onNetFailure("host");
+	},
 	// client methods
 	joinRoom: function(code) {
 		this.room = code;
-		if (this.host) this.host.destroy();
+		if (this.host) this.leaveRoom();
 		this.host = new SimplePeer({
 			initiator: false,
 			trickle: false
@@ -798,14 +831,45 @@ const Net = {
 		});
 		this.host.on("connect",function() { Net.onAccepted(); });
 		this.host.on("data",function(data) { Net.onData(data,"client",this); });
+		this.host.on("error",function() { Net.clientFailure(); });
+		this.host.pending = true;
 		this.POST("/net/join",{room:code},function(data) {
 			this.host.signal(data[0]);
 		});
 	},
 	onAccepted: function() {
+		this.host.pending = false;
 		this.POST("/net/confirmation",{room:this.room,client:this.clientCode})
 		this.ctrls = new CtrlPack();
 		Game.onNetConnection(Net.host,"client");
+	},
+	leaveRoom: function() {
+		this.host.destroy();
+		if (this.ctrls) this.ctrls.selfDestructAll();
+		this.host = this.ctrls = null;
+		this.clientCode = this.clientID = this.webInputID = null;
+		RemoteObject.clearState();
+	},
+	clientUpdate: function() {
+		if (!this.usable(this.host)) return this.clientFailure();
+		if (this.ctrls) {
+			let ctrl = this.ctrls.mostRecent();
+			let data = {
+				clientID: this.clientID,
+				webInputID: this.webInputID,
+				buttons: [ctrl.pressed("jump"),ctrl.pressed("attack")],
+				analogs: [
+					ctrl.getActionValue("moveRight")-ctrl.getActionValue("moveLeft"),
+					ctrl.getActionValue("crouch")-ctrl.getActionValue("lookUp")
+				],
+			};
+			this.send(data);
+		}
+	},
+	clientFailure: function() {
+		gameAlert("Lost connection to host",60);
+		this.leaveRoom();
+		Game.onNetFailure("client");
 	},
 	// universal methods
 	POST: function(url,data,func) {
@@ -825,11 +889,19 @@ const Net = {
 		catch(e) {
 			return console.warn("Failed to parse JSON before sending");
 		}
-		if (target) target.send(obj);
+		if (this.sendable(target)) target.send(obj);
 		else {
-			if (this.host) this.host.send(obj);
-			for (var i in this.clients) this.clients[i].send(obj);
+			if (this.sendable(this.host)) this.host.send(obj);
+			let cl = this.clients;
+			for (var i in cl) if (this.sendable(cl[i])) cl[i].send(obj);
 		}
+	},
+	usable: function(conn) {
+		if (conn&&conn.pending) return true;
+		return conn && conn.readable && conn._pc.connectionState == "connected";
+	},
+	sendable: function(conn) {
+		return this.usable(conn) && conn._channel.readyState=="open";
 	},
 	log: function(msg) {
 		this.send({log:msg});
@@ -864,34 +936,16 @@ const Net = {
 	},
 	update: function() {
 		if (this.discovery) {
+			if (!this.discovery.readable) {
+				if (this.discoveryAlerts) gameAlert("Network Error: Retrying",60);
+				this.openToNewClient();
+			}
 			if (this.clientCheckTick==0) this.checkForClients();
 			this.clientCheckTick++;
 			if (this.clientCheckTick>this.clientCheckInterval) this.clientCheckTick = 0;
 		}
 		if (this.host) this.clientUpdate();
 		else if (this.clients.length>0) this.hostUpdate();
-	},
-	clientUpdate: function() {
-		if (this.ctrls) {
-			let ctrl = this.ctrls.mostRecent();
-			let data = {
-				clientID: this.clientID,
-				webInputID: this.webInputID,
-				buttons: [ctrl.pressed("jump"),ctrl.pressed("attack")],
-				analogs: [
-					ctrl.getActionValue("moveRight")-ctrl.getActionValue("moveLeft"),
-					ctrl.getActionValue("crouch")-ctrl.getActionValue("lookUp")
-				],
-			};
-			Net.send(data);
-		}
-	},
-	hostUpdate: function() {
-		for (var i in this.clients) {
-			let client = this.clients[i];
-			if (Timer.now()-client.lastMessage > WebInput.channelTimeout) WebInput.silenceChannel(client.webInputID);
-		}
-		Net.send({objectState: RemoteObject.generateState()});
 	}
 };
 
