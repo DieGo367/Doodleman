@@ -444,13 +444,13 @@ const WebInput = {
 		return id;
 	},
 	removeChannel: function(id) {
-		delete this.channels[id];
-		delete this.ctrlMaps[id];
+		this.channels[id] = null;
+		this.ctrlMaps[id] = null;
 		Player.relinkCtrls();
 		console.log("Disconnected WebInput "+id);
 	},
 	silenceChannel: function(id) {
-		this.channels[id] = {id: id, buttons: [], analogs: []};
+		if (this.channels[id]) this.channels[id] = {id: id, buttons: [], analogs: []};
 	},
 	channelUpdate: function(data) {
 		let id = data.webInputID;
@@ -477,8 +477,8 @@ const WebInput = {
 	slotsFilled: function() {
 		let result = [];
 		for (var i in this.ctrlMaps) {
-			let num = parseInt(i);
-			if (!isNaN(num)) result.push(num);
+			let id = parseInt(i);
+			if (!isNaN(id)&&this.ctrlMaps[num]) result.push(id);
 		}
 		return result;
 	},

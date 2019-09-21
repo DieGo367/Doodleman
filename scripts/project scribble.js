@@ -757,7 +757,7 @@ const Net = {
 		this.discovery.on("error",function() {
 			if (this==Net.discovery) {
 				gameAlert("Network Error: Retrying",60);
-			Net.openToNewClient();
+				Net.openToNewClient();
 			}
 			else Net.hostFailure(this); // was a client
 		});
@@ -777,7 +777,7 @@ const Net = {
 		let client = this.discovery;
 		client.on("data",function(data) { Net.onData(data,"host",this); });
 		let added = false;
-		for (var i in this.clients)  {
+		for (var i = 0; i < this.clients.length; i++)  {
 			if (!this.clients[i]) {
 				this.clients[i] = client;
 				client.clientID = i;
@@ -786,8 +786,8 @@ const Net = {
 			}
 		}
 		if (!added) {
-		client.clientID = this.clients.length;
-		this.clients.push(client);
+			client.clientID = this.clients.length;
+			this.clients.push(client);
 		}
 		client.webInputID = WebInput.newChannel();
 		this.send({
@@ -800,7 +800,7 @@ const Net = {
 		this.openToNewClient();
 	},
 	removeClient: function(client) {
-		delete this.clients[client.clientID];
+		this.clients[client.clientID] = null;
 		WebInput.removeChannel(client.webInputID);
 	},
 	hostUpdate: function() {
