@@ -255,6 +255,12 @@ const Animation = {
 	protoSetAnimationPage: function(pageIndex) {
 		this.animPage = pageIndex;
 	},
+	staticOnlineProperties: function() {
+		if (this.regularOnlineProperties) return this.regularOnlineProperties().concat([
+			"animCurrent","animPrevious","animFrame","animLock","animPage","direction","sheet","name"
+		]);
+		else return this.parent.onlineProperties();
+	},
 	applyTo: function(obj) {
 		obj.animCurrent = "none";
 		obj.animPrevious = "none";
@@ -265,9 +271,13 @@ const Animation = {
 		obj.animationTick = Animation.protoAnimationTick;
 		obj.setAnimation = Animation.protoSetAnimation;
 		obj.setAnimationPage = Animation.protoSetAnimationPage;
+		obj.animApplied = true;
 	},
 	applyToClass: function(cl) {
+		if (cl.prototype.animApplied) return;
 		this.applyTo(cl.prototype);
+		cl.regularOnlineProperties = cl.onlineProperties;
+		cl.onlineProperties = Animation.staticOnlineProperties;
 		this.appliedClasses.push(cl);
 	},
 	update: function() {

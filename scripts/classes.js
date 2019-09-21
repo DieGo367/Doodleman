@@ -47,6 +47,9 @@ class _c_ {
 			this.prototype[p] = props[p];
 		}
 	}
+	static onlineProperties() {
+		return [];
+	}
 	remove() {
 		this.constructor.removeInstance(this);
 		if (this.uid!=void(0)) {
@@ -213,8 +216,15 @@ class RemoteObject extends _c_ {
 		let state = [...Box.getAll(),...Line.getAll()];
 		for (var i in state) {
 			let obj = state[i];
+			if (!obj.isLoaded) continue;
+			let onlineProps = obj.constructor.onlineProperties();
+			function needed(key) {
+				if (onlineProps.length==0 || key=="") return true;
+				return onlineProps.indexOf(key)!=-1;
+			}
 			let refCache = [];
 			state[i] = JSON.parse(JSON.stringify(obj,function(key,value) {
+				if (!needed(key)) return;
 				if (typeof value == "object" && value!=null) {
 					if (refCache.indexOf(value)!=-1) return;
 					else refCache.push(value);
@@ -399,6 +409,10 @@ class Box extends _c_ {
 		this.prototype.hitBoxStroke = "darkGray";
 		this.prototype.drawLayer = 0;
 	}
+	static onlineProperties() {
+		super.onlineProperties();
+		return ["drawLayer","isLoaded","x","y","width","height","gfx","hitBoxStroke"];
+	}
 }
 initClass(Box,{drawable: true, listType: "uid"});
 
@@ -428,6 +442,9 @@ class Marker extends Box {
 			if (all[i].name==name) found.push(all[i]);
 		}
 		return found;
+	}
+	static onlineProperties() {
+		return super.onlineProperties().concat(["name"]);
 	}
 }
 initClass(Marker,Box);
@@ -1430,6 +1447,10 @@ class Line extends _c_ {
 			drawLayer: 0
 		});
 	}
+	static onlineProperties() {
+		super.onlineProperties();
+		return ["drawLayer","isLoaded","x","y","x2","y2","size","stroke","direction","useBoxCorners"];
+	}
 }
 initClass(Line,{drawable: true, listType: "uid"});
 
@@ -1717,6 +1738,9 @@ class Entity extends PhysicsBox {
 			}
 		}
 		this.actions = {};
+	}
+	static onlineProperties() {
+		return super.onlineProperties().concat(["iframes","health","fullHeight"]);
 	}
 }
 initClass(Entity,PhysicsBox);
@@ -2152,6 +2176,9 @@ class Player extends Entity {
 			}
 		});
 	}
+	static onlineProperties() {
+		return super.onlineProperties().concat(["slot","attackHeld","held"]);
+	}
 }
 initClass(Player,Entity);
 
@@ -2371,6 +2398,9 @@ class Enemy extends Entity {
 			this.stun = 30;
 			Sound.play("punch.ogg");
 		}).addAttackBox(0,1);
+	}
+	static onlineProperties() {
+		return super.onlineProperties().concat(["target","exclaim","post","paceTarget","justSpawned"]);
 	}
 }
 initClass(Enemy,Entity);
