@@ -20,7 +20,10 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		return CANCEL;
 	},
 	onNetConnection: function(conn,role) {
-		if (role=="host") Player.add(Net.clients.indexOf(conn)+1);
+		if (role=="host") {
+			Player.grantLives(conn.clientID+1);
+			Player.add(conn.clientID+1);
+		}
 	},
 	onNetFailure: function(role) {
 		if (role=="host") {

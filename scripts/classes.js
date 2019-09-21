@@ -2051,6 +2051,9 @@ class Player extends Entity {
 	static hasLives(slot) {
 		return this.lives[slot] > 0;
 	}
+	static grantLives(slot) {
+		this.setLives(slot,this.defaultLives);
+	}
 	static hasHealthCached(slot) {
 		return typeof this.healthCache[slot] == "number";
 	}
