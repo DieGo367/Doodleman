@@ -11,7 +11,8 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 scripts = [
-  "simplepeer.min.js",
+  "lib/simplepeer.min.js",
+  "lib/lz-string.min.js",
   "game.js",
   "project scribble.js",
   "resource.js",

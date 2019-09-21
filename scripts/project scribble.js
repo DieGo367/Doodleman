@@ -727,6 +727,8 @@ const Staller = {
 };
 const Net = {
 	room: null,
+	dataLog: false,
+	bytesSent: 0, doCompression: true, compressionThreshold: 150,
 	// used by host
 	clients: [],
 	discovery: null, discoveryCode: null, discoveryAlerts: false,
@@ -889,6 +891,10 @@ const Net = {
 		catch(e) {
 			return console.warn("Failed to parse JSON before sending");
 		}
+		if (this.doCompression&&obj.length>this.compressionThreshold) {
+			obj = LZString.compressToUint8Array(obj).buffer;
+		}
+		if (devEnabled) this.bytesSent += obj.length || obj.byteLength;
 		if (this.sendable(target)) target.send(obj);
 		else {
 			if (this.sendable(this.host)) this.host.send(obj);
@@ -907,12 +913,15 @@ const Net = {
 		this.send({log:msg});
 	},
 	onData: function(data,role,sender) {
-		// console.log(data.toString());
+		let str = data.toString();
+		let first = str.charAt(0);
+		if (first=="[" || first=="{") data = str;
+		else data = LZString.decompressFromUint8Array(data);
 		try {
-			data = JSON.parse(data.toString());
+			data = JSON.parse(data);
 		}
 		catch(e) {
-			return console.log("Received invalid data: "+data.toString());
+			return console.log("Received invalid data: "+str);
 		}
 		if (data.log) console.log(data.log);
 		if (role=="host") {
@@ -1070,7 +1079,8 @@ function drawGame() {
 		if (Game.mode!=GAME_TITLE&&Game.mode!=GAME_EDITOR) {
 			var textGroup = [], allPlayers = Player.getAll();
 			for (var i in allPlayers) textGroup.push(allPlayers[i].slot+1+"XY: "+allPlayers[i].x+", "+allPlayers[i].y);
-			textGroup.push("LastPressedKey: "+keyText,"LastPressedButton: "+buttonText,"Entities: "+Entity.getAll().length,"FPS: "+fps,"Misc: "+hudText);
+			textGroup.push("LastPressedKey: "+keyText,"LastPressedButton: "+buttonText,"Entities: "+Entity.getAll().length,"FPS: "+fps,"Bytes sent: "+Net.bytesSent,"Misc: "+hudText);
+			Net.bytesSent = 0;
 			var textY = 42+(24*(allPlayers.length-1));
 			for (var i in textGroup) c.fillText(textGroup[i],10,textY+(14*i));
 		}
