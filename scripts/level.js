@@ -19,7 +19,7 @@ const Level = {
 		bg: [
 			// {type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 1}
 		],
-		_version_: 0
+		_version_: 1
 	},
 	list: [],
 	exists: function(name) {
@@ -94,7 +94,7 @@ const Level = {
 			Background.create(slot,bg.name,bg.layer,bg.scale,bg.parallax);
 			if (!Images.getImage(bg.name)) return Images.loadImage(bg.name);
 		}
-		else if (bg.raw!="") BackgroundB64.create(slot,bg.raw,bg.layer,bg.scale,bg.parallax);
+		else if (bg.raw!="") return BackgroundLZ.create(slot,bg.raw,bg.layer,bg.scale,bg.parallax).promise;
 	},
 	setSpawn: function(x,y,playerNumber,direction) {
 		let spawn = this.level.playerSpawns[playerNumber];
@@ -126,18 +126,18 @@ const Level = {
 			if (doLog) console.warn('Failed to load Level');
 			return false;
 		}
-		if (!this.isUpToDate(newLevel)) this.convert(newLevel);
+		if (!this.isUpToDate(newLevel)) await this.convert(newLevel);
 		pauseGame(true);
 		this.clearLevel();
 		for (var p in newLevel) this.level[p] = newLevel[p];
 		for (var s in this.level.actors) ActorManager.make(...this.level.actors[s]);
 		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
-		let imgPromises = [];
+		let promises = [];
 		for (var b in this.level.bg) {
 			let promise = this.makeBackground(this.level.bg[b],b);
-			if (promise) imgPromises.push(promise);
+			if (promise) promises.push(promise);
 		}
-		for (var i in imgPromises) await imgPromises[i];
+		await Promise.all(promises);
 		Camera.reset();
 		if (online) Net.onLevelLoad(this.optimize(newLevel));
 		Game.onLevelLoad();
@@ -202,7 +202,7 @@ const Level = {
 	isUpToDate: function(level) {
 		return level._version_ == BlankLevel._version_;
 	},
-	convert: function(data) {
+	convert: async function(data) {
 		if (data._version_==void(0)) {
 			// No version was specified. File is from before versions were introduced
 			// Terrain boxes should now merge their color and sprite properties into gfx
@@ -223,6 +223,21 @@ const Level = {
 				}
 			}
 			data._version_ = 0;
+		}
+		switch(data._version_) {
+			case 0:
+				// Raw BG data is now LZ compressed, not base64 encoded
+				if (data.bg) {
+					for (var i = 0; i < data.bg.length; i++) {
+						let bg = data.bg[i];
+						if (bg && bg.raw!="") {
+							// this will decode to binary and LZ compress it
+							bg.raw = await Images.compress(bg.raw);
+						}
+					}
+				}
+			default:
+				data._version_ = BlankLevel._version_;
 		}
 	},
 	getSnappingPoints: function(cancelMidpoints) {

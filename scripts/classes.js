@@ -289,19 +289,19 @@ class Background extends _c_ {
 }
 initClass(Background,{drawable: true, listType: "array"});
 
-class BackgroundB64 extends Background {
-	constructor(slot,imgRaw,drawLayer,scale,parallax) {
-		Images.loadImageB64("BGRaw:"+slot,imgRaw);
+class BackgroundLZ extends Background {
+	constructor(slot,imgLZ,drawLayer,scale,parallax) {
 		super(slot,"BGRaw:"+slot,drawLayer,scale,parallax);
-		this.imgRaw = imgRaw;
+		this.imgLZ = imgLZ;
+		this.promise = Images.loadImageLZ("BGRaw:"+slot,imgLZ);
 	}
 	setSlot(slot) {
 		super.setSlot(slot);
-		Images.loadImageB64("BGRaw:"+slot,this.imgRaw);
+		Images.loadImageLZ("BGRaw:"+slot,this.imgLZ);
 		this.imgName = "BGRaw:"+slot;
 	}
 }
-initClass(BackgroundB64,Background);
+initClass(BackgroundLZ,Background);
 
 
 class Box extends _c_ {

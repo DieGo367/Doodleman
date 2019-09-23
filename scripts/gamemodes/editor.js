@@ -325,7 +325,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 			if (preventRefresh) return;
 			Background.clearSlot(this.numBG);
 			if (bg.type=="name") Background.create(this.numBG,bg.name,bg.layer,bg.scale,bg.parallax);
-			else if (bg.type=="raw"&&bg.raw!="") BackgroundB64.create(this.numBG,bg.raw,bg.layer,bg.scale,bg.parallax);
+			else if (bg.type=="raw"&&bg.raw!="") BackgroundLZ.create(this.numBG,bg.raw,bg.layer,bg.scale,bg.parallax);
 			this.onShow();
 		};
 		let layerButtons = [];
@@ -382,11 +382,11 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 			this.view.setBGVal("type","name");
 		};
 		Button.create("LS:BG:Raw","LS:BG:Menu",WIDTH/2-70,240,100,40,"Import BG").setOnClick(function() {
-			FileInput.ask(["png","jpg","jpeg","bmp","webp"],"readAsDataURL",function(result,file) {
-				G$("LS:BG:Desc").text = "raw base64";
+			FileInput.ask(["png","jpg","jpeg","bmp","webp"],"readAsBinaryString",function(result,file) {
+				G$("LS:BG:Desc").text = "imported";
 				G$("LS:BG:Name").store("");
 				let view = G$("LS:BG:Menu");
-				view.setBGVal("raw",result.split(",")[1],true);
+				view.setBGVal("raw",LZString.compress(result),true);
 				view.setBGVal("name","",true);
 				view.setBGVal("type","raw");
 			});

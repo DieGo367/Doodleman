@@ -2,12 +2,11 @@ const Images = {
 	imgData: {}, filter: null, loadingCount: 0,
 	subCanvas: document.createElement("canvas"),
 	sc: null,
+	worker: new Worker("scripts/bg_compression.js"),
+	workerResolves: [], workerRejects: [],
+	workerTaskID: 0,
 	areLoaded: function() {
 		return this.loadingCount == 0;
-	},
-	loadImageB64: function(name,b64) {
-		this.imgData[name] = new Image();
-		this.imgData[name].src = "data:image/png;base64, "+b64;
 	},
 	loadImage: function(name) {
 		let img = this.imgData[name] = new Image();
@@ -23,6 +22,17 @@ const Images = {
 			}
 			img.src = "res/"+name;
 		});
+	},
+	loadImageLZ: function(name,lz) {
+		let img = this.imgData[name] = new Image();
+		return new Promise((resolve) => {
+			img.onload = () => { resolve(true); };
+			img.onerror = () => { resolve(false); };
+			this.decompress(lz).then(function(b64) {
+				img.src = "data:image/*;base64, "+b64;
+			},
+			function(err) { resolve(false); });
+		})
 	},
 	getImage: function(imageName) {
 		let img = this.imgData[imageName];
@@ -123,8 +133,47 @@ const Images = {
 		imgF.src = this.subCanvas.toDataURL();
 		img.filtered[filter] = imgF;
 		return imgF;
+	},
+	compress: function(b64) {
+		let worker = this.worker;
+		let taskID = this.workerTaskID++;
+		let resolves = this.workerResolves, rejects = this.workerRejects;
+		return new Promise((resolve,reject) => {
+			resolves.push(resolve);
+			rejects.push(reject);
+			worker.postMessage({
+				taskID: taskID,
+				compress: true,
+				b64: b64
+			});
+		});
+	},
+	decompress: function(lz) {
+		let worker = this.worker;
+		let taskID = this.workerTaskID++;
+		let resolves = this.workerResolves, rejects = this.workerRejects;
+		return new Promise((resolve,reject) => {
+			resolves.push(resolve);
+			rejects.push(reject);
+			worker.postMessage({
+				taskID: taskID,
+				decompress: true,
+				lz: lz
+			});
+		});
 	}
 }
+Images.worker.addEventListener("message",function(message) {
+	let data = message.data;
+	if (data.resolved) {
+		let resolve = Images.workerResolves[data.taskID];
+		if (typeof resolve == "function") resolve(data.output);
+	}
+	else {
+		let reject = Images.workerRejects[data.taskID];
+		if (typeof reject == "function") reject(data.error);
+	}
+});
 
 
 const Animation = {
