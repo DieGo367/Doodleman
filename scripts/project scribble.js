@@ -796,6 +796,7 @@ const Net = {
 			assignClientID: client.clientID,
 			webInputID: client.webInputID
 		},client);
+		this.send({level:Level.optimize(Level.level)},client);
 		Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
 		this.discovery = null;
 		Game.onNetConnection(client,"host");
@@ -818,6 +819,11 @@ const Net = {
 		gameAlert("Client "+client.clientID+" was disconnected",60);
 		this.removeClient(client);
 		Game.onNetFailure("host");
+	},
+	onLevelLoad: function(levelCopy) {
+		if (this.clients.length>0) {
+			Net.send({level:levelCopy});
+		}
 	},
 	// client methods
 	joinRoom: function(code) {
@@ -956,11 +962,6 @@ const Net = {
 		}
 		if (this.host) this.clientUpdate();
 		else if (this.clients.length>0) this.hostUpdate();
-	},
-	onLevelLoad: function(levelCopy) {
-		if (this.clients.length>0) {
-			Net.send({level:levelCopy});
-		}
 	}
 };
 
