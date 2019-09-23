@@ -1172,6 +1172,7 @@ function setFrameByFrame(bool) {
 }
 
 function doGlobalControls(controller) {
+	if (canvas.isInLoadScreen) return;
 	if (controller.ready("pause")) {
 		var slot = -1;
 		if (controller.type==GAMEPAD) {
