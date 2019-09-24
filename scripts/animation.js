@@ -80,14 +80,18 @@ const Images = {
 	drawImagePattern: function(imageName,x,y,width,height,scale,parallax) {
 		let img = this.getImage(imageName);
 		if (!img||!img.complete||img.width==0||img.height==0) return;
-		if (!img.pattern) img.pattern = c.createPattern(img,"repeat");
-		c.fillStyle = img.pattern;
+		if (!img.patterns) img.patterns = {};
+		if (!img.patterns[scale]) {
+			let offscreen = new OffscreenCanvas(img.width*scale,img.height*scale);
+			let ctx = offscreen.getContext("2d");
+			ctx.drawImage(img,0,0,img.width*scale,img.height*scale);
+			img.patterns[scale] = c.createPattern(offscreen,"repeat");
+		}
+		c.fillStyle = img.patterns[scale];
 		if (parallax==void(0)) parallax = 1;
-		let dx = (x-x/parallax), dy = (y-y/parallax);
 		c.save();
-		c.scale(scale,scale);
-		c.translate(dx/scale,dy/scale);
-		c.fillRect((x-dx)/scale,(y-dy)/scale,width/scale,height/scale);
+		c.translate(x-x/parallax,y-y/parallax);
+		c.fillRect(x/parallax,y/parallax,width,height);
 		c.restore();
 	},
 	setFilter: function(filter) {

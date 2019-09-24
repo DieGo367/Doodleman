@@ -1109,7 +1109,8 @@ function drawGame() {
 		if (Game.mode!=GAME_TITLE&&Game.mode!=GAME_EDITOR) {
 			var textGroup = [], allPlayers = Player.getAll();
 			for (var i in allPlayers) textGroup.push(allPlayers[i].slot+1+"XY: "+allPlayers[i].x+", "+allPlayers[i].y);
-			textGroup.push("LastPressedKey: "+keyText,"LastPressedButton: "+buttonText,"Entities: "+Entity.getAll().length,"FPS: "+fps,"Bytes sent: "+Net.bytesSent,"Misc: "+hudText);
+			textGroup.push("LastPressedKey: "+keyText,"LastPressedButton: "+buttonText,"Entities: "+Entity.getAll().length,
+				"FPS: "+fps, "Resolution: "+canvas.height+"p", "Bytes sent: "+Net.bytesSent,"Misc: "+hudText);
 			Net.bytesSent = 0;
 			var textY = 42+(24*(allPlayers.length-1));
 			for (var i in textGroup) c.fillText(textGroup[i],10,textY+(14*i));
@@ -1164,8 +1165,7 @@ function screenMatch() {
 	var resolution = Math.round(Math.max(widthScale,heightScale));
 	if (resolution<1) resolution = 1;
 	screenSize(resolution);
-	if (widthScale>=heightScale) $(canvas).css({height: '100%', width:'auto'});
-	if (heightScale>=widthScale) $(canvas).css({width: '100%', height:'auto'});
+	$(canvas).css({transform:'scale('+Math.min(widthScale,heightScale)+')'})
 	drawGame();
 }
 
