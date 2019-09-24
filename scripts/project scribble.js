@@ -242,11 +242,11 @@ const Pointer = {
 	}
 };
 class Camera {
-	constructor() {
+	constructor(id) {
+		this.id = id;
 		this.x = 320, this.y = 180;
 		this.zoom = 1;
 		this.requestedZoom = 1;
-		this.centerPlayer = null;
 	}
 	setX(px) {
 		this.x = Math.floor(px);
@@ -318,36 +318,37 @@ class Camera {
 	}
 	update() {
 		if (Camera.controllable) return;
-		var allP = Player.getAll();
-		if (allP.length>0) {
-			var target = averageCoords(allP);
-			var targetX = target[0], targetY = target[1];
-			if (allP.length==1) {
-				this.approachZoom(this.requestedZoom);
+		let targets;
+		if (online) targets = Player.findAllOfSlot(this.id);
+		else targets = Player.getAll();
+		let avg = averageCoords(targets);
+		let targetX = avg[0], targetY = avg[1];
+		if (isNaN(targetX)||isNaN(targetY)) return;
+		if (targets.length==0) {
+			this.approachZoom(this.requestedZoom);
 
-				if (targetX>this.rightPx()-Level.level.horScrollBuffer/this.zoom) this.approachX(targetX+(Level.level.horScrollBuffer-WIDTH/2)/this.zoom);
-				else if (targetX<this.leftPx()+Level.level.horScrollBuffer/this.zoom) this.approachX(targetX-(Level.level.horScrollBuffer-WIDTH/2)/this.zoom);
+			if (targetX>this.rightPx()-Level.level.horScrollBuffer/this.zoom) this.approachX(targetX+(Level.level.horScrollBuffer-WIDTH/2)/this.zoom);
+			else if (targetX<this.leftPx()+Level.level.horScrollBuffer/this.zoom) this.approachX(targetX-(Level.level.horScrollBuffer-WIDTH/2)/this.zoom);
 
-				if (targetY>this.bottomPx()-Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY+(Level.level.vertScrollBuffer-HEIGHT/2)/this.zoom);
-				else if (targetY<this.topPx()+Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY-(Level.level.vertScrollBuffer-HEIGHT/2)/this.zoom);
+			if (targetY>this.bottomPx()-Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY+(Level.level.vertScrollBuffer-HEIGHT/2)/this.zoom);
+			else if (targetY<this.topPx()+Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY-(Level.level.vertScrollBuffer-HEIGHT/2)/this.zoom);
+		}
+		else if (targets.length>0) {
+			this.approachX(targetX);
+			this.approachY(targetY);
+			var maxDist = 0;
+			for (var i in targets) {
+				var p = targets[i];
+				var dist = Math.sqrt(Math.pow(targetX-p.x,2)+Math.pow(targetY-p.y,2));
+				maxDist = Math.max(dist,maxDist);
 			}
-			else {
-				this.approachX(targetX);
-				this.approachY(targetY);
-				var maxDist = 0;
-				for (var i in allP) {
-					var p = allP[i];
-					var dist = Math.sqrt(Math.pow(targetX-p.x,2)+Math.pow(targetY-p.y,2));
-					maxDist = Math.max(dist,maxDist);
-				}
-				maxDist += 60;
-				if (maxDist+5>HEIGHT/2/this.requestedZoom) this.approachZoom(HEIGHT/2/(maxDist));
-				else this.approachZoom(this.requestedZoom);
-			}
+			maxDist += 60;
+			if (maxDist+5>HEIGHT/2/this.requestedZoom) this.approachZoom(HEIGHT/2/(maxDist));
+			else this.approachZoom(this.requestedZoom);
 		}
 	}
 	static addCam(id) {
-		let cam = new this();
+		let cam = new this(id);
 		this.cameras[id] = cam;
 		return cam;
 	}
@@ -360,7 +361,7 @@ class Camera {
 	}
 	static getData(id) {
 		let cam = this.cameras[id];
-		if (cam) return [cam.x,cam.y,cam.zoom];
+		if (cam) return [cam.x,cam.y,cam.zoom,cam.requestedZoom];
 	}
 	static loadData(data) {
 		let cam = this.cameras[0];
@@ -368,6 +369,7 @@ class Camera {
 			cam.x = data[0];
 			cam.y = data[1];
 			cam.zoom = data[2];
+			cam.requestedZoom = data[3];
 		}
 	}
 	static update() {
@@ -375,6 +377,23 @@ class Camera {
 	}
 	static reset() {
 		for (var i in this.cameras) if (this.cameras[i]) this.cameras[i].reset();
+	}
+	static drawDebug() {
+		let cam = this.cameras[0];
+		if (!cam) return;
+		let targets;
+		if (online) targets = Player.findAllOfSlot(0);
+		else targets = Player.getAll();
+		let coords = averageCoords(targets);
+		c.strokeStyle = "turquoise";
+		c.lineWidth = 1;
+		if (targets.length==1) c.strokeRect(Level.level.horScrollBuffer,Level.level.vertScrollBuffer,WIDTH-2*Level.level.horScrollBuffer,HEIGHT-2*Level.level.vertScrollBuffer);
+		else if (targets.length>1) {
+			drawCircle(WIDTH/2,HEIGHT/2,5);
+			let tx = (coords[0]-cam.x)*cam.zoom+WIDTH/2, ty = (coords[1]-cam.y)*cam.zoom+HEIGHT/2;
+			drawCircle(tx,ty,5);
+			drawLine(WIDTH/2,HEIGHT/2,tx,ty);
+		}
 	}
 }
 Camera.cameras = [];
@@ -1087,19 +1106,7 @@ function drawGame() {
 	//untranslate
 	if (cam) c.restore();
 	//draw dev camera view
-	if (devEnabled) {
-		var allP = Player.getAll();
-		c.strokeStyle = "turquoise";
-		c.lineWidth = 1;
-		if (allP.length==1) c.strokeRect(Level.level.horScrollBuffer,Level.level.vertScrollBuffer,WIDTH-2*Level.level.horScrollBuffer,HEIGHT-2*Level.level.vertScrollBuffer);
-		else if (allP.length>1) {
-			drawCircle(WIDTH/2,HEIGHT/2,5);
-			var target = averageCoords(allP);
-			var tx = (target[0]-Camera.x)*Camera.zoom+WIDTH/2, ty = (target[1]-Camera.y)*Camera.zoom+HEIGHT/2;
-			drawCircle(tx,ty,5);
-			drawLine(WIDTH/2,HEIGHT/2,tx,ty);
-		}
-	}
+	if (devEnabled) Camera.drawDebug();
 	//hud
 	DrawableClasses.forAll("drawHud");
 	for (var i in View.uiStack) {
