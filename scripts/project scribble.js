@@ -827,6 +827,7 @@ const Net = {
 	},
 	removeClient: function(client) {
 		this.clients[client.clientID] = null;
+		trimListEnd(this.clients);
 		WebInput.removeChannel(client.webInputID);
 	},
 	hostUpdate: function() {

@@ -446,6 +446,8 @@ const WebInput = {
 	removeChannel: function(id) {
 		this.channels[id] = null;
 		this.ctrlMaps[id] = null;
+		trimListEnd(this.channels);
+		trimListEnd(this.ctrlMaps);
 		Player.relinkCtrls();
 		console.log("Disconnected WebInput "+id);
 	},
