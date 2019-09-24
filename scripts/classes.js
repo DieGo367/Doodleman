@@ -284,10 +284,12 @@ class Background extends _c_ {
 		this.slot = slot;
 	}
 	draw() {
-		let x = Math.max(0,Camera.leftPx());
-		let y = Math.max(0,Camera.topPx());
-		let width = Math.min(Level.level.width,Camera.rightPx()) - x;
-		let height = Math.min(Level.level.height,Camera.bottomPx()) - y;
+		let cam = Camera.getCam(0);
+		if (!cam) return;
+		let x = Math.max(0,cam.leftPx());
+		let y = Math.max(0,cam.topPx());
+		let width = Math.min(Level.level.width,cam.rightPx()) - x;
+		let height = Math.min(Level.level.height,cam.bottomPx()) - y;
 		Images.drawImagePattern(this.imgName,x,y,width,height,this.scale,this.parallax);
 	}
 	remove() {

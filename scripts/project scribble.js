@@ -241,36 +241,37 @@ const Pointer = {
 		Images.drawImage("GUI/Pointer.png",this.x-16,this.y-16,32,32,32*this.styles.indexOf(cursor),0,32,32);
 	}
 };
-const Camera = {
-	x:320, y:180,
-	zoom: 1,
-	requestedZoom: 1,
-	centerPlayer: null,
-	controllable: false,
-	setX: function(px) {
+class Camera {
+	constructor() {
+		this.x = 320, this.y = 180;
+		this.zoom = 1;
+		this.requestedZoom = 1;
+		this.centerPlayer = null;
+	}
+	setX(px) {
 		this.x = Math.floor(px);
-	},
-	setY: function(px) {
+	}
+	setY(px) {
 		this.y = Math.floor(px);
-	},
-	reset: function() {
+	}
+	reset() {
 		this.x = Level.level.camStart.x;
 		this.y = Level.level.camStart.y;
 		this.zoom = this.requestedZoom = 1/Level.level.zoomScale;
-	},
-	width: function() { return WIDTH/this.zoom; },
-	height: function() { return HEIGHT/this.zoom; },
-	leftPx: function() { return this.x-this.width()/2; },
-	rightPx: function() { return this.x+this.width()/2; },
-	topPx: function() { return this.y-this.height()/2; },
-	bottomPx: function() { return this.y+this.height()/2; },
-	halfW: function() { return this.width()/2; },
-	halfH: function() { return this.height()/2; },
-	getLeftLimit: function() { return 0+this.halfW(); },
-	getRightLimit: function() { return Level.level.width-this.halfW(); },
-	getTopLimit: function() { return 0+this.halfH(); },
-	getBottomLimit: function() { return Level.level.height-this.halfH(); },
-	approachX: function(goal) {
+	}
+	width() { return WIDTH/this.zoom; }
+	height() { return HEIGHT/this.zoom; }
+	leftPx() { return this.x-this.width()/2; }
+	rightPx() { return this.x+this.width()/2; }
+	topPx() { return this.y-this.height()/2; }
+	bottomPx() { return this.y+this.height()/2; }
+	halfW() { return this.width()/2; }
+	halfH() { return this.height()/2; }
+	getLeftLimit() { return 0+this.halfW(); }
+	getRightLimit() { return Level.level.width-this.halfW(); }
+	getTopLimit() { return 0+this.halfH(); }
+	getBottomLimit() { return Level.level.height-this.halfH(); }
+	approachX(goal) {
 		let limitL = this.getLeftLimit(), limitR = this.getRightLimit();
 		if (this.x<limitL) this.x = limitL;
 		if (this.x>limitR) this.x = limitR;
@@ -285,8 +286,8 @@ const Camera = {
 			}
 			else this.setX(this.x+step);
 		}
-	},
-	approachY: function(goal) {
+	}
+	approachY(goal) {
 		let limitT = this.getTopLimit(), limitB = this.getBottomLimit();
 		if (this.y<limitT) this.y = limitT;
 		if (this.y>limitB) this.y = limitB;
@@ -301,8 +302,8 @@ const Camera = {
 			}
 			else this.setY(this.y+step);
 		}
-	},
-	approachZoom: function(goal) {
+	}
+	approachZoom(goal) {
 		if (this.zoom<Level.level.minZoom) this.zoom = Level.level.minZoom;
 		if (this.zoom>Level.level.maxZoom) this.zoom = Level.level.maxZoom;
 		var value = Math.max(goal,Level.level.minZoom);
@@ -314,8 +315,8 @@ const Camera = {
 		//get camera back in bounds in case we zoomed out too much
 		this.approachX();
 		this.approachY();
-	},
-	update: function() {
+	}
+	update() {
 		if (Camera.controllable) return;
 		var allP = Player.getAll();
 		if (allP.length>0) {
@@ -345,7 +346,28 @@ const Camera = {
 			}
 		}
 	}
+	static addCam(id) {
+		let cam = new this();
+		this.cameras[id] = cam;
+		return cam;
+	}
+	static getCam(id) {
+		return this.cameras[id];
+	}
+	static removeCam(id) {
+		this.cameras[id] = null;
+		trimListEnd(this.cameras);
+	}
+	static update() {
+		for (var i in this.cameras) if (this.cameras[i]) this.cameras[i].update();
+	}
+	static reset() {
+		for (var i in this.cameras) if (this.cameras[i]) this.cameras[i].reset();
+	}
 }
+Camera.cameras = [];
+Camera.controllable = false;
+Camera.addCam(0);
 const User = {
 	name: "",
 	logUrl: "",
@@ -1005,11 +1027,13 @@ function drawGame() {
 	c.fillStyle = "gray";
 	c.fillRect(0,0,WIDTH,HEIGHT);
 	//camera
-	c.save();
-	c.translate(WIDTH/2,HEIGHT/2);
-	c.scale(Camera.zoom,Camera.zoom);
-	if (devEnabled) c.rotate(myAngle);
-	c.translate(-Camera.x,-Camera.y);
+	let cam = Camera.getCam(0);
+	if (cam) {
+		c.save();
+		c.translate(WIDTH/2,HEIGHT/2);
+		c.scale(cam.zoom,cam.zoom);
+		c.translate(-cam.x,-cam.y);
+	}
 	//level space
 	c.fillStyle = "lightGray";
 	c.fillRect(0,0,Level.level.width,Level.level.height);
@@ -1044,7 +1068,7 @@ function drawGame() {
 	}
 	if (EditorTools.enabled) EditorTools.draw();
 	//untranslate
-	c.restore();
+	if (cam) c.restore();
 	//draw dev camera view
 	if (devEnabled) {
 		var allP = Player.getAll();

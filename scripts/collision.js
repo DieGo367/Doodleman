@@ -232,9 +232,14 @@ class Sector {
 		this.loaded = false;
 		if (this.name=="NaN,NaN") return this.loaded = true;
 		for (var i in this.objects) if (this.objects[i].alwaysLoaded) return this.loaded = true;
-		if (this.rightX()>=Camera.leftPx()-Sector.size.width&&this.leftX()<=Camera.rightPx()+Sector.size.width) {
-			if (this.bottomY()>=Camera.topPx()-Sector.size.height&&this.topY()<=Camera.bottomPx()+Sector.size.height) {
-				this.loaded = true;
+		for (var i in Camera.cameras) {
+			let cam = Camera.getCam(i);
+			if (cam) {
+				if (this.rightX()>=cam.leftPx()-Sector.size.width&&this.leftX()<=cam.rightPx()+Sector.size.width) {
+					if (this.bottomY()>=cam.topPx()-Sector.size.height&&this.topY()<=cam.bottomPx()+Sector.size.height) {
+						this.loaded = true;
+					}
+				}
 			}
 		}
 	}
