@@ -358,6 +358,18 @@ class Camera {
 		this.cameras[id] = null;
 		trimListEnd(this.cameras);
 	}
+	static getData(id) {
+		let cam = this.cameras[id];
+		if (cam) return [cam.x,cam.y,cam.zoom];
+	}
+	static loadData(data) {
+		let cam = this.cameras[0];
+		if (cam) {
+			cam.x = data[0];
+			cam.y = data[1];
+			cam.zoom = data[2];
+		}
+	}
 	static update() {
 		for (var i in this.cameras) if (this.cameras[i]) this.cameras[i].update();
 	}
@@ -821,6 +833,7 @@ const Net = {
 		this.send({level:Level.optimize(Level.level)},client);
 		if (this.lastState) this.send({objectState:this.lastState},client);
 		Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
+		Camera.addCam(client.clientID+1);
 		this.discovery = null;
 		Game.onNetConnection(client,"host");
 		this.openToNewClient();
@@ -829,6 +842,7 @@ const Net = {
 		this.clients[client.clientID] = null;
 		trimListEnd(this.clients);
 		WebInput.removeChannel(client.webInputID);
+		Camera.removeCam(client.clientID+1);
 	},
 	hostUpdate: function() {
 		for (var i in this.clients) {
@@ -836,6 +850,7 @@ const Net = {
 			if (!client) continue;
 			if (!this.usable(client)) this.hostFailure(client);
 			if (Timer.now()-client.lastMessage > WebInput.channelTimeout) WebInput.silenceChannel(client.webInputID);
+			this.send({cam: Camera.getData(client.clientID+1)},client);
 		}
 		let objectState = RemoteObject.generateState();
 		let delta = RemoteObject.delta(this.lastState||{},objectState);
@@ -968,6 +983,7 @@ const Net = {
 			if (data.webInputID!=void(0)) this.webInputID = data.webInputID;
 			if (data.objectState) RemoteObject.matchState(data.objectState);
 			if (data.level) Level.load(data.level,true,true);
+			if (data.cam) Camera.loadData(data.cam);
 		}
 		Game.onNetData(data,role);
 	},
