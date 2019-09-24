@@ -52,7 +52,7 @@ class _c_ {
 	}
 	remove() {
 		this.constructor.removeInstance(this);
-		if (this.uid!=void(0)) {
+		if (this.constructor.listType=="uid"&&this.uid!=void(0)) {
 			if (uid==++uidDeleted) uid = uidDeleted = 0;
 		}
 		for (var property in this) delete this[property];
@@ -102,6 +102,7 @@ function initClass(cl,param) {
 			cl.classList = new ArrayStore();
 			break;
 		case "uid":
+		case "uid_clone":
 			cl.classList = new UIDStore();
 	}
 	if (typeof cl.onInit=="function") cl.onInit();
@@ -190,6 +191,7 @@ class RemoteObject extends _c_ {
 				this.object[property] = json[property];
 			}
 			if (json.sheet) this.object.sheet = Animation.getSpritesheet(json.sheet.name);
+			this.uid = this.object.uid;
 			this.drawLayer = this.object.drawLayer;
 			this.remoteClass = remoteClass;
 		}
@@ -206,27 +208,19 @@ class RemoteObject extends _c_ {
 	drawDebug() {
 		if (this.object) this.object.drawDebug();
 	}
-	static matchState(objectState) {
-		this.killAll();
-		for (var i in objectState) {
-			this.create(objectState[i]);
-		}
-	}
 	static generateState() {
-		let state = [...Box.getAll(),...Line.getAll()];
-		for (var i = 0; i < state.length; i++) {
-			let obj = state[i];
-			if (!obj.isLoaded||obj.isTerrain) {
-				state.splice(i--,1);
-				continue;
-			};
+		let objects = [...Box.getAll(),...Line.getAll()];
+		let state = {};
+		for (var i = 0; i < objects.length; i++) {
+			let obj = objects[i];
+			if (!obj.isLoaded||obj.isTerrain) continue;
 			let onlineProps = obj.constructor.onlineProperties();
 			function needed(key) {
 				if (onlineProps.length==0 || key=="") return true;
 				return onlineProps.indexOf(key)!=-1;
 			}
 			let refCache = [];
-			state[i] = JSON.parse(JSON.stringify(obj,function(key,value) {
+			let copy = JSON.parse(JSON.stringify(obj,function(key,value) {
 				if (!needed(key)) return;
 				if (typeof value == "object" && value!=null) {
 					if (refCache.indexOf(value)!=-1) return;
@@ -234,15 +228,45 @@ class RemoteObject extends _c_ {
 				}
 				return value;
 			}));
-			state[i].class = obj.constructor.name;
+			copy.class = obj.constructor.name;
+			state[copy.uid] = copy;
 		}
 		return state;
+	}
+	static delta(oldState,newState) {
+		for (var uid in newState) {
+			let current = newState[uid], old = oldState[uid];
+			if (old) {
+				for (var prop in current) {
+					if (prop=="uid") continue;
+					if (current[prop]==old[prop]) delete current[prop];
+				}
+			}
+		}
+		return newState;
+	}
+	static matchState(state) {
+		let old = this.getAll();
+		for (var uid in old) old[uid].inNewState = false;
+		for (var uid in state) {
+			let updated = state[uid];
+			let obj = this.classList[uid];
+			if (obj) {
+				obj.inNewState = true;
+				for (var prop in updated) {
+					if (prop=="sheet") continue;
+					obj.object[prop] = updated[prop];
+				}
+			}
+			else this.create(updated);
+		}
+		for (var uid in old) if (!old[uid].inNewState) old[uid].remove();
 	}
 	static clearState() {
 		this.killAll();
 	}
 }
-initClass(RemoteObject,{drawable:true, listType: "array"});
+initClass(RemoteObject,{drawable:true, listType: "uid_clone"});
 
 
 class Background extends _c_ {
@@ -414,7 +438,7 @@ class Box extends _c_ {
 	}
 	static onlineProperties() {
 		super.onlineProperties();
-		return ["drawLayer","isLoaded","x","y","width","height","gfx","hitBoxStroke"];
+		return ["uid","drawLayer","isLoaded","x","y","width","height","gfx","hitBoxStroke"];
 	}
 }
 initClass(Box,{drawable: true, listType: "uid"});
@@ -1452,7 +1476,7 @@ class Line extends _c_ {
 	}
 	static onlineProperties() {
 		super.onlineProperties();
-		return ["drawLayer","isLoaded","x","y","x2","y2","size","stroke","direction","useBoxCorners"];
+		return ["uid","drawLayer","isLoaded","x","y","x2","y2","size","stroke","direction","useBoxCorners"];
 	}
 }
 initClass(Line,{drawable: true, listType: "uid"});

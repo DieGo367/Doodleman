@@ -797,6 +797,7 @@ const Net = {
 			webInputID: client.webInputID
 		},client);
 		this.send({level:Level.optimize(Level.level)},client);
+		if (this.lastState) this.send({objectState:this.lastState},client);
 		Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
 		this.discovery = null;
 		Game.onNetConnection(client,"host");
@@ -813,7 +814,10 @@ const Net = {
 			if (!this.usable(client)) this.hostFailure(client);
 			if (Timer.now()-client.lastMessage > WebInput.channelTimeout) WebInput.silenceChannel(client.webInputID);
 		}
-		Net.send({objectState: RemoteObject.generateState()});
+		let objectState = RemoteObject.generateState();
+		let delta = RemoteObject.delta(this.lastState||{},objectState);
+		Net.send({objectState: delta});
+		this.lastState = objectState;
 	},
 	hostFailure: function(client) {
 		gameAlert("Client "+client.clientID+" was disconnected",60);
