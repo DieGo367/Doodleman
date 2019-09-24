@@ -895,10 +895,11 @@ const Net = {
 			obj = JSON.stringify(obj);
 		}
 		catch(e) {
-			return console.warn("Failed to parse JSON before sending");
+			return console.warn("Failed to stringify JSON before sending");
 		}
 		if (this.doCompression&&obj.length>this.compressionThreshold) {
-			obj = LZString.compressToUint8Array(obj).buffer;
+			let compressed = LZString.compressToUint8Array(obj).buffer;
+			if (compressed.byteLength < obj.length) obj = compressed;
 		}
 		if (devEnabled) this.bytesSent += obj.length || obj.byteLength;
 		if (this.sendable(target)) target.send(obj);
