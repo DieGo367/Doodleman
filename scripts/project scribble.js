@@ -232,8 +232,8 @@ const Pointer = {
 		this.downButton = null;
 		this.move(this.x,this.y);
 	},
-	camX: function() { return Math.floor(Camera.x+(this.x-WIDTH/2)/Camera.zoom); },
-	camY: function() { return Math.floor(Camera.y+(this.y-HEIGHT/2)/Camera.zoom); },
+	camX: function() { let cam = Camera.getCam(0); if (cam) return Math.floor(cam.x+(this.x-WIDTH/2)/cam.zoom); },
+	camY: function() { let cam = Camera.getCam(0); if (cam) return Math.floor(cam.y+(this.y-HEIGHT/2)/cam.zoom); },
 	camPoint: function() { return new Point(this.camX(), this.camY()) },
 	draw: function() {
 		if (Tap.active||!this.active) return;
