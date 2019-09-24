@@ -1276,19 +1276,19 @@ function doGlobalControls(controller) {
 	}
 	else {
 		if (!multiplayer&&controller.ready("respawn")) { PhysicsBox.callForAll("respawn"); controller.use("respawn"); }
-		if (((devEnabled&&Camera.controllable)||Game.mode==GAME_EDITOR)&&controller.type==KEYBOARD&&View.focus==0) {
-			if (controller.pressed("camLeft")) Camera.x -= 5;
-			if (controller.pressed("camRight")) Camera.x += 5;
-			if (controller.pressed("camDown")) Camera.y += 5;
-			if (controller.pressed("camUp")) Camera.y -= 5;
-			if (controller.pressed("camZoomIn")) Camera.zoom += 0.01;
-			if (controller.pressed("camZoomOut")) Camera.zoom -= 0.01;
-			if (controller.pressed("camZoomReset")) Camera.zoom = Camera.requestedZoom;
-			if (controller.pressed("camReset")) {
-				myAngle = 0;
-				Camera.reset();
+		if (((devEnabled&&Camera.controllable)||Game.mode==GAME_EDITOR)&&controller.type==KEYBOARD&&View.focus==1) {
+			let cam = Camera.getCam(0);
+			if (cam) {
+				if (controller.pressed("camLeft")) cam.x -= 5;
+				if (controller.pressed("camRight")) cam.x += 5;
+				if (controller.pressed("camDown")) cam.y += 5;
+				if (controller.pressed("camUp")) cam.y -= 5;
+				if (controller.pressed("camZoomIn")) cam.zoom += 0.01;
+				if (controller.pressed("camZoomOut")) cam.zoom -= 0.01;
+				if (controller.pressed("camZoomReset")) cam.zoom = cam.requestedZoom;
+				if (controller.pressed("camReset")) cam.reset();
+				if (cam.zoom<0) cam.zoom = 0;
 			}
-			if (Camera.zoom<0) Camera.zoom = 0;
 		}
 		if (guiStartElement) {
 			let actions = controller.type==KEYBOARD? ["camUp","camDown","camLeft","camRight"]: ["lookUp","crouch","moveLeft","moveRight"];
