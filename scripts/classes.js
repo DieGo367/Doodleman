@@ -226,6 +226,7 @@ class RemoteObject extends _c_ {
 					if (refCache.indexOf(value)!=-1) return;
 					else refCache.push(value);
 				}
+				if (typeof value=="number"&&isNaN(value)) value = "NaN";
 				return value;
 			}));
 			copy.class = obj.constructor.name;
