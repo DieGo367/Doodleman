@@ -1,37 +1,26 @@
 function canvasSetup() {
 	let canvas = $("#paper")[0];
-	let realWidth = canvas.width, realHeight = canvas.height;
-	canvas.width = realWidth/8;
-	canvas.height = canvas.width/2;
-	let h = canvas.height/2;
-	let c = canvas.getContext("2d");
-	c.fillStyle = "#187acd";
-	c.fillRect(0,0,canvas.width,canvas.height);
-	c.beginPath();
-	c.moveTo(0,h);
+	let offScreen = new OffscreenCanvas(80,40);
+	let h = offScreen.height/2;
+	let o = offScreen.getContext("2d");
+	o.fillStyle = "#187acd";
+	o.fillRect(0,0,offScreen.width,offScreen.height);
+	o.beginPath();
+	o.moveTo(0,h);
 	let movements = [[1,0],[3,0],[4,1],[4,2],[2,0],[0,2]];
-	for (var i in movements) c.lineTo(movements[i][0]*h,movements[i][1]*h);
-	c.closePath();
-	c.fillStyle = "#0004d3";
-	c.fill();
-	c.beginPath();
-	c.moveTo(2*h,h);
+	for (var i in movements) o.lineTo(movements[i][0]*h,movements[i][1]*h);
+	o.closePath();
+	o.fillStyle = "#0004d3";
+	o.fill();
+	o.beginPath();
+	o.moveTo(2*h,h);
 	movements = [[3,2],[1,2]];
-	for (var i in movements) c.lineTo(movements[i][0]*h,movements[i][1]*h);
-	c.closePath();
-	c.fill();
-	canvas.loadPattern = c.createPattern(canvas,"repeat");
-	canvas.width = realWidth;
-	canvas.height = realHeight;
-	c.fillStyle = canvas.loadPattern;
-	c.fillRect(0,0,canvas.width,canvas.height);
+	for (var i in movements) o.lineTo(movements[i][0]*h,movements[i][1]*h);
+	o.closePath();
+	o.fill();
+	canvas.loadPattern = o.createPattern(offScreen,"repeat");
 	canvas.drawLoadScreen = function() {
-		let width = canvas.width, height = canvas.height, doScale = false;
-		try {
-			width = WIDTH;
-			height = HEIGHT;
-			if (dp) doScale = true;
-		} catch(err) {}
+		let width = canvas.width, height = canvas.height, doScale = !!dp;
 		if (canvas.time==void(0)) canvas.time = 0;
 		canvas.time++;
 		let scroll = canvas.time % (width/8);
@@ -46,13 +35,12 @@ function canvasSetup() {
 			c.fillStyle = "#f0f0ff";
 			c.font = "40px Fredoka One";
 			c.globalAlpha = Math.abs(60-alpha)/60;
-				c.fillText("Loading...",10,height-20);
+				c.fillText("Loading...",10,px(height)-20);
 			c.globalAlpha = 1;
-		if (doScale) c.restore();
+		c.restore();
 	}
 	canvas.showLoadScreen = function() {
 		canvas.isInLoadScreen = true;
-		canvas.time = 0;
 		canvas.loadInterval = setInterval(canvas.drawLoadScreen,1000/60);
 	}
 	canvas.clearLoadScreen = function() {
