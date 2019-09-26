@@ -19,7 +19,7 @@ const Level = {
 		bg: [
 			// {type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 1}
 		],
-		_version_: 1
+		_version_: 0
 	},
 	list: [],
 	exists: function(name) {
@@ -224,21 +224,21 @@ const Level = {
 			}
 			data._version_ = 0;
 		}
-		switch(data._version_) {
-			case 0:
-				// Raw BG data is now LZ compressed, not base64 encoded
-				if (data.bg) {
-					for (var i = 0; i < data.bg.length; i++) {
-						let bg = data.bg[i];
-						if (bg && bg.raw!="") {
-							// this will decode to binary and LZ compress it
-							bg.raw = await Images.compress(bg.raw);
-						}
-					}
-				}
-			default:
-				data._version_ = BlankLevel._version_;
-		}
+		// switch(data._version_) {
+		// 	case 0:
+		// 		// Raw BG data is now LZ compressed, not base64 encoded
+		// 		if (data.bg) {
+		// 			for (var i = 0; i < data.bg.length; i++) {
+		// 				let bg = data.bg[i];
+		// 				if (bg && bg.raw!="") {
+		// 					// this will decode to binary and LZ compress it
+		// 					bg.raw = await Images.compress(bg.raw);
+		// 				}
+		// 			}
+		// 		}
+		// 	default:
+		// 		data._version_ = BlankLevel._version_;
+		// }
 	},
 	getSnappingPoints: function(cancelMidpoints) {
 		let points = [];

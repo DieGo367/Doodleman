@@ -382,11 +382,12 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 			this.view.setBGVal("type","name");
 		};
 		Button.create("LS:BG:Raw","LS:BG:Menu",WIDTH/2-70,240,100,40,"Import BG").setOnClick(function() {
-			FileInput.ask(["png","jpg","jpeg","bmp","webp"],"readAsBinaryString",function(result,file) {
+			FileInput.ask(["png","jpg","jpeg","bmp","webp"],"readAsDataURL",function(result,file) {
 				G$("LS:BG:Desc").text = "imported";
 				G$("LS:BG:Name").store("");
 				let view = G$("LS:BG:Menu");
-				view.setBGVal("raw",LZString.compress(result),true);
+				view.setBGVal("raw",result.split(",")[1],true);
+				// view.setBGVal("raw",LZString.compress(result),true);
 				view.setBGVal("name","",true);
 				view.setBGVal("type","raw");
 			});

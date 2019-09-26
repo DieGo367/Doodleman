@@ -320,11 +320,11 @@ class BackgroundLZ extends Background {
 	constructor(slot,imgLZ,drawLayer,scale,parallax) {
 		super(slot,"BGRaw:"+slot,drawLayer,scale,parallax);
 		this.imgLZ = imgLZ;
-		this.promise = Images.loadImageLZ("BGRaw:"+slot,imgLZ);
+		this.promise = Images.loadImageB64("BGRaw:"+slot,imgLZ);
 	}
 	setSlot(slot) {
 		super.setSlot(slot);
-		Images.loadImageLZ("BGRaw:"+slot,this.imgLZ);
+		Images.loadImageB64("BGRaw:"+slot,this.imgLZ);
 		this.imgName = "BGRaw:"+slot;
 	}
 }

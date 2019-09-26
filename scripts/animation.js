@@ -23,6 +23,14 @@ const Images = {
 			img.src = "res/"+name;
 		});
 	},
+	loadImageB64: function(name,b64) {
+		let img = this.imgData[name] = new Image();
+		return new Promise((resolve) => {
+			img.onload = () => { resolve(true); };
+			img.onload = () => { resolve(false); };
+			img.src = "data:image/*;base64, "+b64;
+		});
+	},
 	loadImageLZ: function(name,lz) {
 		let img = this.imgData[name] = new Image();
 		return new Promise((resolve) => {
