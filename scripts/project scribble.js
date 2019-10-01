@@ -785,12 +785,13 @@ const Net = {
 	// used by host
 	clients: [],
 	discovery: null, discoveryCode: null, discoveryAlerts: false,
-	clientCheckTick: 0, clientCheckInterval: 5*60, // 5 sec * 60 fps
+	discoveryStream: null,
 	// used by client
 	host: null,
 	clientCode: null,
 	clientID: null,
 	webInputID: null, ctrls: null,
+	joiningStream: null,
 	// host methods
 	createRoom: function() {
 		this.POST("/net/createroom",null,function(data) {
@@ -800,6 +801,7 @@ const Net = {
 	},
 	openToNewClient: function() {
 		if (this.discovery) this.discovery.destroy();
+		if (this.discoveryStream) this.discoveryStream.close();
 		this.discovery = new SimplePeer({
 			initiator: true,
 			trickle: false
@@ -809,7 +811,8 @@ const Net = {
 			Net.POST("/net/discovery",{room:Net.room,discover:Net.discoveryCode});
 		});
 		this.discovery.on("connect",function() { this.pending = false; Net.receiveClient(); });
-		this.discovery.on("error",function() {
+		this.discovery.on("error",function(e) {
+			console.warn(e);
 			if (this==Net.discovery) {
 				gameAlert("Network Error: Retrying",60);
 				Net.openToNewClient();
@@ -817,6 +820,10 @@ const Net = {
 			else Net.hostFailure(this); // was a client
 		});
 		this.discovery.pending = true;
+		this.discoveryStream = new EventSource("/net/checkclients/"+this.room);
+		this.discoveryStream.addEventListener("signal",(e) => {
+			this.discovery.signal(e.data);
+		});
 	},
 	checkForClients: function() {
 		this.POST("/net/checkclients",{room:this.room},function(data) {
@@ -896,19 +903,21 @@ const Net = {
 		});
 		this.host.on("signal",function(data) {
 			Net.clientCode = JSON.stringify(data);
-			Net.POST("/net/signal",{room:Net.room,client:Net.clientCode});
+			Net.POST("/net/signal",{room:Net.room,signal:Net.clientCode});
 		});
 		this.host.on("connect",function() { Net.onAccepted(); });
 		this.host.on("data",function(data) { Net.onData(data,"client",this); });
 		this.host.on("error",function() { Net.clientFailure(); });
 		this.host.pending = true;
-		this.POST("/net/join",{room:code},function(data) {
-			this.host.signal(data[0]);
+		this.joiningStream = new EventSource("/net/join/"+code);
+		this.joiningStream.addEventListener("signal",function(e) {
+			Net.host.signal(e.data);
 		});
 	},
 	onAccepted: function() {
+		this.joiningStream.close();
 		this.host.pending = false;
-		this.POST("/net/confirmation",{room:this.room,client:this.clientCode})
+		this.POST("/net/confirmation",{room:this.room,client:this.clientCode});
 		this.ctrls = new CtrlPack();
 		Game.onNetConnection(Net.host,"client");
 	},
@@ -972,7 +981,7 @@ const Net = {
 	},
 	usable: function(conn) {
 		if (conn&&conn.pending) return true;
-		return conn && conn.readable && conn._pc.connectionState == "connected";
+		return conn && conn._pc.connectionState == "connected";
 	},
 	sendable: function(conn) {
 		return this.usable(conn) && conn._channel.readyState=="open";
@@ -1019,9 +1028,6 @@ const Net = {
 				if (this.discoveryAlerts) gameAlert("Network Error: Retrying",60);
 				this.openToNewClient();
 			}
-			if (this.clientCheckTick==0) this.checkForClients();
-			this.clientCheckTick++;
-			if (this.clientCheckTick>this.clientCheckInterval) this.clientCheckTick = 0;
 		}
 		if (this.host) this.clientUpdate();
 		else if (this.clients.length>0) this.hostUpdate();

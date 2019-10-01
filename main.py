@@ -5,6 +5,7 @@ from flask import Flask
 from flask import make_response
 from flask import render_template
 from flask import request
+from flask import Response
 from flask import send_file
 from flask import send_from_directory
 app = Flask(__name__)
@@ -112,9 +113,29 @@ def build_service_worker():
 
 # NET CODE
 rooms = []
+def host_signal(room_code):
+    while True:
+        room = rooms[room_code]
+        if room["startHostEvt"]:
+            room["startHostEvt"] = False
+            yield "data:hello!\n\n"
+        signals = room["client_signals"]
+        if len(signals)>0:
+            yield f"event:signal\ndata:{signals.pop(0)}\n\n"
+
+def client_signal(room_code):
+    while True:
+        room = rooms[room_code]
+        if room["startClientEvt"]:
+            room["startClientEvt"] = False
+            yield "data:hello!\n\n"
+        signals = room["host_signals"]
+        if len(signals) > 0:
+            yield f"event:signal\ndata:{signals.pop(0)}\n\n"
+
 @app.route('/net/createroom',methods=["POST"])
 def net_create_room():
-    new_room = {"discover": None, "signaling": []}
+    new_room = {"host_signals": [], "client_signals": []}
     rooms.append(new_room)
     return json.dumps([len(rooms)-1])
 
@@ -123,7 +144,7 @@ def net_set_room_discovery():
     data = request.get_json()
     room = rooms[data["room"]]
     if room:
-        room["discover"] = data["discover"]
+        room["host_signals"].append(data["discover"])
         return "", 200
     else:
         return "Room not found", 404
@@ -133,26 +154,27 @@ def net_new_client_signal():
     data = request.get_json()
     room = rooms[data["room"]]
     if room:
-        room["signaling"].append(data["client"])
+        room["client_signals"].append(data["signal"])
         return "", 200
     else:
         return "Room not found", 404
 
-@app.route('/net/checkclients',methods=["POST"])
-def net_check_for_clients():
-    data = request.get_json()
-    room = rooms[data["room"]]
+@app.route('/net/checkclients/<int:room_code>')
+def net_check_for_clients(room_code):
+    room = rooms[room_code]
     if room:
-        return json.dumps(room["signaling"])
+        room["startHostEvt"] = True
+        return Response(host_signal(room_code),mimetype="text/event-stream")
     else:
         return "Room not found", 404
 
-@app.route('/net/join',methods=["POST"])
-def net_join_room():
-    data = request.get_json()
-    room = rooms[data["room"]]
+@app.route('/net/join/<int:room_code>')
+def net_join_room(room_code):
+    room = rooms[room_code]
     if room:
-        return json.dumps([room["discover"]])
+        room["startClientEvt"] = True
+        room["busy"] = True
+        return Response(client_signal(room_code),mimetype="text/event-stream")
     else:
         return "Room not found", 404
 
@@ -161,11 +183,7 @@ def net_client_confirmation():
     data = request.get_json()
     room = rooms[data["room"]]
     if room:
-        client = data["client"]
-        sig = room["signaling"]
-        if client in sig:
-            i = sig.index(client)
-            room["signaling"] = sig[:i] + sig[i+1:]
+        room["busy"] = False
         return "", 200
     else:
         return "Room not found", 404
@@ -177,6 +195,10 @@ def net_lock_room():
     if room:
         rooms[data["room"]] = None
     return "", 200
+
+@app.route('/net/roomlist')
+def debug_roomlist():
+    return json.dumps(rooms)
 
 if __name__ == "__main__":
     app.run()
