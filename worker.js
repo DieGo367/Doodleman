@@ -11,12 +11,15 @@ self.addEventListener("activate", async e => {
   self.clients.claim();
 });
 
-self.addEventListener("fetch", async e => {
-  let r = e.request;
-  if (r.method=="POST") return e.respondWith(fetch(r));
+self.addEventListener("fetch", e => {
+  let promise = new Promise(function(resolve)  {
+    let r = e.request;
+    if (r.method=="POST" || r.url.split('/net/').length > 1) networkOnly(r,resolve);
+    else networkFirst(r,resolve);
+  });
+  e.respondWith(promise);
+  return; // TODO: figure out when to rely on cache
   let url = new URL(r.url);
-  e.respondWith(networkFirst(r));
-  return; // TODO: figure out how to do cacheing but still get updated files
   if (url.origin==location.origin) e.respondWith(cacheFirst(r));
   else e.respondWith(networkFirst(r));
 });
@@ -26,15 +29,19 @@ async function cacheFirst(r) {
   let cached = await cache.match(r);
   return cached || fetch(r);
 }
-async function networkFirst(r) {
+async function networkFirst(r,resolve) {
   let cache = await caches.open(name);
   try {
     let fresh = await fetch(r);
     await cache.put(r,fresh.clone());
-    return fresh;
+    resolve(fresh);
   }
   catch(e) {
     let cached = await cache.match(r);
-    return cached
+    resolve(cached);
   }
+}
+
+function networkOnly(r,resolve) {
+  fetch(r).then(result => {resolve(result);});
 }
