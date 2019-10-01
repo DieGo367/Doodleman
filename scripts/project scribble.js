@@ -1036,7 +1036,9 @@ const Net = {
 
 //Game Functions
 
-let currentMonth = new Date(Date.now()).getMonth();
+let currentDate = new Date(Date.now());
+let currentMonth = currentDate.getMonth();
+let currentHour = currentDate.getHours();
 function addPM(x,y) {
 	if (currentMonth==9 && Math.random()>0.5) Skeltal.create(x,y);
 	else PaintMinion.create(x,y);

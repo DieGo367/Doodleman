@@ -2437,7 +2437,12 @@ initClass(Enemy,Entity);
 
 class PaintMinion extends Enemy {
 	constructor(x,y) {
-		super(x,y,19,44,2,"PaintMinion.json",38);
+		if (currentMonth==9 && (currentHour > 18 || currentHour < 7)) {
+			// spoopy easter egg
+			super(x,y,19,44,3,"Skeltal.json",38);
+			this.particleColor = "gray";
+		}
+		else super(x,y,19,44,2,"PaintMinion.json",38); // normal
 	}
 }
 initClass(PaintMinion,Enemy);
