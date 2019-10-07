@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import time
 from flask import Flask
 from flask import make_response
 from flask import render_template
@@ -113,29 +114,37 @@ def build_service_worker():
 
 # NET CODE
 rooms = []
-def host_signal(room_code):
-    while True:
+HEARTBEAT = 60 #seconds to expire
+def signal_stream(role,room_code):
+    active = True
+    is_target_client = False
+    while active:
         room = rooms[room_code]
-        if room["startHostEvt"]:
-            room["startHostEvt"] = False
-            yield "data:hello!\n\n"
-        signals = room["client_signals"]
-        if len(signals)>0:
-            yield f"event:signal\ndata:{signals.pop(0)}\n\n"
-
-def client_signal(room_code):
-    while True:
-        room = rooms[room_code]
-        if room["startClientEvt"]:
-            room["startClientEvt"] = False
-            yield "data:hello!\n\n"
-        signals = room["host_signals"]
-        if len(signals) > 0:
-            yield f"event:signal\ndata:{signals.pop(0)}\n\n"
+        if room:
+            if room[role+"EvtStart"]:
+                room[role+"EvtStart"] = False
+                yield "data:hello!\n\n"
+            if role == "host" or is_target_client:
+                if room[role+"Heartbeat"] > 0:
+                    room[role+"Heartbeat"] -= 1
+                    signals = room[role+"SignalQueue"]
+                    if len(signals) > 0:
+                        yield f"event:signal\ndata:{signals.pop(0)}\n\n"
+                    time.sleep(1)
+                else:
+                    active = False
+                    if is_target_client:
+                        room["busy"] = False
+            else:
+                if not room["busy"]:
+                    room["busy"] = True
+                    is_target_client = True
+        else:
+            active = False
 
 @app.route('/net/createroom',methods=["POST"])
 def net_create_room():
-    new_room = {"host_signals": [], "client_signals": []}
+    new_room = {"hostSignalQueue": [], "clientSignalQueue": [], "busy": False}
     rooms.append(new_room)
     return json.dumps([len(rooms)-1])
 
@@ -144,7 +153,7 @@ def net_set_room_discovery():
     data = request.get_json()
     room = rooms[data["room"]]
     if room:
-        room["host_signals"].append(data["discover"])
+        room["clientSignalQueue"].append(data["discover"])
         return "", 200
     else:
         return "Room not found", 404
@@ -154,7 +163,7 @@ def net_new_client_signal():
     data = request.get_json()
     room = rooms[data["room"]]
     if room:
-        room["client_signals"].append(data["signal"])
+        room["hostSignalQueue"].append(data["signal"])
         return "", 200
     else:
         return "Room not found", 404
@@ -163,8 +172,9 @@ def net_new_client_signal():
 def net_check_for_clients(room_code):
     room = rooms[room_code]
     if room:
-        room["startHostEvt"] = True
-        return Response(host_signal(room_code),mimetype="text/event-stream")
+        room["hostEvtStart"] = True
+        room["hostHeartbeat"] = HEARTBEAT
+        return Response(signal_stream("host",room_code),mimetype="text/event-stream")
     else:
         return "Room not found", 404
 
@@ -172,9 +182,9 @@ def net_check_for_clients(room_code):
 def net_join_room(room_code):
     room = rooms[room_code]
     if room:
-        room["startClientEvt"] = True
-        room["busy"] = True
-        return Response(client_signal(room_code),mimetype="text/event-stream")
+        room["clientEvtStart"] = True
+        room["clientHeartbeat"] = HEARTBEAT
+        return Response(signal_stream("client",room_code),mimetype="text/event-stream")
     else:
         return "Room not found", 404
 
@@ -183,6 +193,7 @@ def net_client_confirmation():
     data = request.get_json()
     room = rooms[data["room"]]
     if room:
+        room["clientHeartbeat"] = 0
         room["busy"] = False
         return "", 200
     else:
