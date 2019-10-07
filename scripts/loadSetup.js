@@ -63,7 +63,7 @@ $(window).on("load",function() {
 	screenMatch();
 	Sound.init();
 
-	Resources.requestJSON("res/_list_.json",function(list) {
+	Resources.requestJSON("imagelist.json",function(list) {
 		for (var i in list) {
 			Images.loadImage(list[i]);
 		}

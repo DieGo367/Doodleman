@@ -104,6 +104,19 @@ def get_static_list(folderpath):
     else:
         return "this be a 404", 404
 
+@app.route('/imagelist.json')
+def get_preload_images():
+    paths = []
+    for filename in os.listdir("res"):
+        ext = filename.split(".").pop()
+        if ext == "png":
+            paths.append(filename)
+    for filename in os.listdir("res/GUI"):
+        ext = filename.split(".").pop()
+        if ext == "png":
+            paths.append("GUI/"+filename)
+    return jsonify(paths)
+
 @app.route('/favicon.ico')
 def get_ico():
     return send_file('favicon.ico')
