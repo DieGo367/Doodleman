@@ -68,7 +68,7 @@ $(window).on("load",function() {
 			Images.loadImage(list[i]);
 		}
 	});
-	Resources.requestJSON("levels/_list_.json",function(list) {
+	Resources.requestJSON("list/levels.json",function(list) {
 		Level.list = list;
 	});
 
@@ -79,7 +79,7 @@ $(window).on("load",function() {
 		Animation.doInheritance(list);
 	});
 
-	Resources.requestJSON("res/sound/_list_.json",function(list) {
+	Resources.requestJSON("list/res/sound.json",function(list) {
 		for (var i in list) {
 			Sound.loadSound(list[i]);
 		}

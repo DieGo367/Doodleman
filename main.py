@@ -1,8 +1,8 @@
 import io
-import json
 import os
 import time
 from flask import Flask
+from flask import jsonify
 from flask import make_response
 from flask import render_template
 from flask import request
@@ -91,6 +91,19 @@ def get_static(folder,subpath):
     else:
         return "this be a 404", 404
 
+@app.route('/list/<path:folderpath>.json')
+def get_static_list(folderpath):
+    folder = folderpath.split("/").pop(0)
+    if folder in static_folders:
+        paths = []
+        for dirpath, dirnames, filenames in os.walk(folderpath):
+            for filename in filenames:
+                path = os.path.join(dirpath,filename).replace('\\','/').replace(folderpath+"/","")
+                paths.append(path)
+        return jsonify(paths)
+    else:
+        return "this be a 404", 404
+
 @app.route('/favicon.ico')
 def get_ico():
     return send_file('favicon.ico')
@@ -146,7 +159,7 @@ def signal_stream(role,room_code):
 def net_create_room():
     new_room = {"hostSignalQueue": [], "clientSignalQueue": [], "busy": False}
     rooms.append(new_room)
-    return json.dumps([len(rooms)-1])
+    return jsonify([len(rooms)-1])
 
 @app.route('/net/discovery',methods=["POST"])
 def net_set_room_discovery():
@@ -209,7 +222,7 @@ def net_lock_room():
 
 @app.route('/net/roomlist')
 def debug_roomlist():
-    return json.dumps(rooms)
+    return jsonify(rooms)
 
 if __name__ == "__main__":
     app.run()

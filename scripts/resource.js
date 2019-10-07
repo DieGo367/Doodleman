@@ -57,7 +57,7 @@ const Resources = {
 		}
 	},
 	requestGroup: function(groupName,forEach,onComplete) {
-		this.requestJSON(groupName+"/_list_.json",function(list) {
+		this.requestJSON("list/"+groupName+".json",function(list) {
 			if (!(list instanceof Array)) return console.warn(groupName + " list wasn't a proper array");
 			Resources.setStatus(groupName,list.length);
 			for (var i in list) {
