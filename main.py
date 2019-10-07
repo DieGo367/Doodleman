@@ -63,6 +63,12 @@ def get_content_type(ext):
     else:
         return "text/html"
 
+def send404(msg=""):
+    return render_template("404.html",msg=msg), 404
+@app.errorhandler(404)
+def default404(e):
+    return send404("Page not found")
+
 @app.route('/')
 def game():
     script_list = get_script_lists(0)
@@ -89,7 +95,7 @@ def get_static(folder,subpath):
     if folder in static_folders:
         return send_from_directory(folder,subpath)
     else:
-        return "this be a 404", 404
+        return send404("Directory does not exist")
 
 @app.route('/list/<path:folderpath>.json')
 def get_static_list(folderpath):
@@ -102,7 +108,7 @@ def get_static_list(folderpath):
                 paths.append(path)
         return jsonify(paths)
     else:
-        return "this be a 404", 404
+        return send404()
 
 @app.route('/imagelist.json')
 def get_preload_images():
@@ -182,7 +188,7 @@ def net_set_room_discovery():
         room["clientSignalQueue"].append(data["discover"])
         return "", 200
     else:
-        return "Room not found", 404
+        return send404("Room not found")
 
 @app.route('/net/signal',methods=["POST"])
 def net_new_client_signal():
@@ -192,7 +198,7 @@ def net_new_client_signal():
         room["hostSignalQueue"].append(data["signal"])
         return "", 200
     else:
-        return "Room not found", 404
+        return send404("Room not found")
 
 @app.route('/net/checkclients/<int:room_code>')
 def net_check_for_clients(room_code):
@@ -202,7 +208,7 @@ def net_check_for_clients(room_code):
         room["hostHeartbeat"] = HEARTBEAT
         return Response(signal_stream("host",room_code),mimetype="text/event-stream")
     else:
-        return "Room not found", 404
+        return send404("Room not found")
 
 @app.route('/net/join/<int:room_code>')
 def net_join_room(room_code):
@@ -212,7 +218,7 @@ def net_join_room(room_code):
         room["clientHeartbeat"] = HEARTBEAT
         return Response(signal_stream("client",room_code),mimetype="text/event-stream")
     else:
-        return "Room not found", 404
+        return send404("Room not found")
 
 @app.route('/net/confirmation',methods=["POST"])
 def net_client_confirmation():
@@ -223,7 +229,7 @@ def net_client_confirmation():
         room["busy"] = False
         return "", 200
     else:
-        return "Room not found", 404
+        return send404("Room not found")
 
 @app.route('/net/lockroom',methods=["POST"])
 def net_lock_room():
