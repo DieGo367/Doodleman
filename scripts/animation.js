@@ -262,17 +262,20 @@ const Animation = {
 	doInheritance: function(list) { //copy missing sheet properties from parents
 		for (var i in list) {
 			if (typeof list[i]!="string") continue;
-			var sheet = Animation.getSpritesheet(list[i]);
-			if (sheet&&sheet.extends) {
-				var parent = Animation.getSpritesheet(sheet.extends);
-				if (parent) {
-					for (var p in parent) {
-						if (sheet[p]===void(0)) sheet[p] = parent[p];
-					}
-				}
-				else console.log("Couldn't extend animation: "+sheet.extends);
-			}
+			let sheet = this.getSpritesheet(list[i]);
+			if (sheet&&sheet.extends&&!sheet.extended) this.extend(sheet.extends,sheet);
 		}
+	},
+	extend: function(sourceName,target) {
+		let source = this.getSpritesheet(sourceName);
+		if (source) {
+			if (source.extends&&!source.extended) this.extend(source.extends,source);
+			for (p in source) {
+				if (target[p]===void(0)) target[p] = source[p];
+			}
+			target.extended = true;
+		}
+		else console.log("Couldn't extend animations from: "+soureName);
 	},
 	protoDraw: function() {
 		if (!this.isLoaded) return;
