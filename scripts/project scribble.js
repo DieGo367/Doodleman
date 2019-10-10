@@ -361,7 +361,21 @@ class Camera {
 	}
 	static getData(id) {
 		let cam = this.cameras[id];
-		if (cam) return [cam.x,cam.y,cam.zoom,cam.requestedZoom];
+		if (cam) {
+			let data = [cam.x,cam.y,cam.zoom,cam.requestedZoom];
+			if (cam.lastData) {
+				let matches = true;
+				for (var i in data) {
+					if (data[i]!==cam.lastData[i]) {
+						matches = false;
+						break;
+					}
+				}
+				if (!matches) return data;
+			}
+			else return data;
+			cam.lastData = data;
+		}
 	}
 	static loadData(data) {
 		let cam = this.cameras[0];
@@ -876,7 +890,8 @@ const Net = {
 			if (!client) continue;
 			if (!this.usable(client)) this.hostFailure(client);
 			if (Timer.now()-client.lastMessage > WebInput.channelTimeout) WebInput.silenceChannel(client.webInputID);
-			this.send({cam: Camera.getData(client.clientID+1)},client);
+			let camData = Camera.getData(client.clientID+1);
+			if (camData) this.send({cam: camData},client);
 		}
 		let objectState = RemoteObject.generateState();
 		let delta = RemoteObject.delta(this.lastState||{},objectState);
