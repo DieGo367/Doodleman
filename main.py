@@ -134,9 +134,12 @@ def get_manifest():
 
 @app.route('/worker.js')
 def build_service_worker():
-	paths = ['/','/edit','/favicon.ico', '/manifest.json']
+	paths = ['/','/edit', 'imagelist.json', '/favicon.ico', '/manifest.json']
 	for dir in static_folders:
+		paths.append(f"/list/{dir}")
 		for dirpath, dirnames, filenames in os.walk(dir):
+			for subpath in dirnames:
+				paths.append(f"/list/{dirpath}/{subpath}")
 			for filename in filenames:
 				paths.append("/"+os.path.join(dirpath,filename).replace("\\","/"))
 	str = ""
