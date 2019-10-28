@@ -322,8 +322,63 @@ def try_close_room(code):
 
 @app.route('/net/createroom',methods=["POST"])
 def net_create_room():
-	room = Room.new_room()
-	return jsonify([room.code])
+	for i in range(10):
+		if fire_get(i) == None:
+			fire_put(i,{
+				"alive": True,
+				"hostSignals": 0,
+				"clientSignals": 0,
+				"clientQueue": 0
+			})
+			return jsonify({'success':True,'room':i})
+	return jsonify({"success":False})
+	# room = Room.new_room()
+	# return jsonify([room.code])
+
+def net_room_alive(room):
+	return bool(fire_get(f"{room}/alive"))
+
+def net_post_signal(room,role,signal):
+	if net_room_alive(room):
+		return jsonify(fire_append(f"{room}/{role}",signal))
+	return send404("Room not found")
+@app.route('/net/posthost',methods=["POST"])
+def net_post_host_code():
+	data = request.get_json()
+	return net_post_signal(data["room"],"hostSignals",data["signal"])
+@app.route('/net/postclient',methods=["POST"])
+def net_post_client_code():
+	data = request.get_json()
+	return net_post_signal(data["room"],"clientSignals",data["signal"])
+
+def net_take_signal(room,role):
+	if net_room_alive(room):
+		return jsonify(fire_popleft(f"{room}/{role}"))
+	return send404("Room not found")
+@app.route('/net/takehost',methods=["POST"])
+def net_take_host_code():
+	data = request.get_json()
+	return net_take_signal(data["room"],"hostSignals")
+@app.route('/net/takeclient',methods=["POST"])
+def net_take_client_code():
+	data = request.get_json()
+	return net_take_signal(data["room"],"clientSignals")
+
+@app.route('/net/enterqueue',methods=["POST"])
+def net_enter_queue():
+	data = request.get_json()
+	if net_room_alive(data["room"]):
+		stamp = str(time.time())
+		if fire_append(f"{data['room']}/clientQueue",stamp):
+			return jsonify({"stamp":stamp})
+	return send404("Room not found")
+
+@app.route('/net/leavequeue',methods=["POST"])
+def net_leave_queue():
+	data = request.get_json()
+	if net_room_alive(data["room"]):
+		return jsonify(fire_popleft(f"{data['room']}/clientQueue"))
+	return send404("Room not found")
 
 @app.route('/net/discovery',methods=["POST"])
 def net_set_room_discovery():
