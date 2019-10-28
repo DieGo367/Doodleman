@@ -1,6 +1,9 @@
+import httplib2
 import io
+import json
 import os
 import time
+from oauth2client.client import GoogleCredentials
 from threading import Thread
 from flask import Flask
 from flask import jsonify
@@ -16,6 +19,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 scripts = [
   "lib/simplepeer.min.js",
   "lib/lz-string.min.js",
+  "lib/firebase_config.js",
   "game.js",
   "project scribble.js",
   "resource.js",
@@ -147,6 +151,27 @@ def build_service_worker():
 		str = file.read()
 	str = str.replace('"""staticFiles"""',f"{paths}")
 	return send_file(io.BytesIO(str.encode()),attachment_filename="worker.js")
+
+# Firebase - Realtime Database
+database = "https://doodle-man.firebaseio.com/"
+scopes = [
+  "https://www.googleapis.com/auth/userinfo.email",
+  "https://www.googleapis.com/auth/firebase.database"
+]
+creds = GoogleCredentials.from_stream("cred.json").create_scoped(scopes)
+def fire_authed():
+	h = httplib2.Http()
+	return creds.authorize(h)
+def fire_put(path,value=None):
+	content = fire_authed().request(database+path+".json",method="PUT",body=json.dumps(value))[1]
+	return json.loads(content)
+def fire_get(path):
+	content = fire_authed().request(database+path+".json",method="GET")[1]
+	return json.loads(content)
+def fire_delete(path):
+	content = fire_authed().request(database+path+".json",method="DELETE")[1]
+	return json.loads(content)
+# currently ignoring PATCH and POST
 
 # NET CODE
 rooms = []
