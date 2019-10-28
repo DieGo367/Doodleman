@@ -163,15 +163,40 @@ def fire_authed():
 	h = httplib2.Http()
 	return creds.authorize(h)
 def fire_put(path,value=None):
-	content = fire_authed().request(database+path+".json",method="PUT",body=json.dumps(value))[1]
+	content = fire_authed().request(f"{database}{path}.json",method="PUT",body=json.dumps(value))[1]
 	return json.loads(content)
 def fire_get(path):
-	content = fire_authed().request(database+path+".json",method="GET")[1]
+	content = fire_authed().request(f"{database}{path}.json",method="GET")[1]
 	return json.loads(content)
 def fire_delete(path):
-	content = fire_authed().request(database+path+".json",method="DELETE")[1]
+	content = fire_authed().request(f"{database}{path}.json",method="DELETE")[1]
 	return json.loads(content)
-# currently ignoring PATCH and POST
+def fire_post(path,value=None):
+	content = fire_authed().request(f"{database}{path}.json",method="POST",body=json.dumps(value))[1]
+	return json.loads(content)
+def fire_patch(path,value=None):
+	content = fire_authed().request(f"{database}{path}.json",method="PATCH",body=json.dumps(value))[1]
+	return json.loads(content)
+# custom
+def fire_append(path,value=None):
+	data = fire_get(path)
+	if data == 0:
+		return fire_put(path,[value])
+	elif isinstance(data,list):
+		data.append(value)
+		print(data)
+		return fire_put(path,data)
+def fire_pop(path,value=None,index=-1):
+	data = fire_get(path)
+	if isinstance(data,list):
+		first = data.pop(index)
+		if len(data)==0:
+			fire_put(path,0)
+		else:
+			fire_put(path,data)
+		return {"data":first}
+def fire_popleft(path,value=None):
+	return fire_pop(path,value,0)
 
 # NET CODE
 rooms = []
