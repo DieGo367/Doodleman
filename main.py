@@ -207,50 +207,50 @@ def fire_popleft(path,value=None):
 def net_create_room():
 	for i in range(10):
 		if fire_get(i) == None:
-			fire_put(i,{
+			fire_put(f"rooms/{i}",{
 				"alive": True,
-				"hostSignals": 0,
-				"clientSignals": 0,
+				"hostSignal": 0,
+				"clientSignal": 0,
 				"clientQueue": 0
 			})
 			return jsonify({'success':True,'room':i})
 	return jsonify({"success":False})
 
 def net_room_alive(room):
-	return bool(fire_get(f"{room}/alive"))
+	return bool(fire_get(f"rooms/{room}/alive"))
 
 def net_post_signal(room,role,signal):
 	if net_room_alive(room):
-		return jsonify(fire_append(f"{room}/{role}",signal))
+		return jsonify(fire_put(f"rooms/{room}/{role}",signal))
 	return send404("Room not found")
 @app.route('/net/posthost',methods=["POST"])
 def net_post_host_code():
 	data = request.get_json()
-	return net_post_signal(data["room"],"hostSignals",data["signal"])
+	return net_post_signal(data["room"],"hostSignal",data["signal"])
 @app.route('/net/postclient',methods=["POST"])
 def net_post_client_code():
 	data = request.get_json()
-	return net_post_signal(data["room"],"clientSignals",data["signal"])
+	return net_post_signal(data["room"],"clientSignal",data["signal"])
 
 def net_take_signal(room,role):
 	if net_room_alive(room):
-		return jsonify(fire_popleft(f"{room}/{role}"))
+		return jsonify(fire_put(f"rooms/{room}/{role}",0))
 	return send404("Room not found")
 @app.route('/net/takehost',methods=["POST"])
 def net_take_host_code():
 	data = request.get_json()
-	return net_take_signal(data["room"],"hostSignals")
+	return net_take_signal(data["room"],"hostSignal")
 @app.route('/net/takeclient',methods=["POST"])
 def net_take_client_code():
 	data = request.get_json()
-	return net_take_signal(data["room"],"clientSignals")
+	return net_take_signal(data["room"],"clientSignal")
 
 @app.route('/net/enterqueue',methods=["POST"])
 def net_enter_queue():
 	data = request.get_json()
 	if net_room_alive(data["room"]):
 		stamp = str(time.time())
-		if fire_append(f"{data['room']}/clientQueue",stamp):
+		if fire_append(f"rooms/{data['room']}/clientQueue",stamp):
 			return jsonify({"stamp":stamp})
 	return send404("Room not found")
 
@@ -258,7 +258,7 @@ def net_enter_queue():
 def net_leave_queue():
 	data = request.get_json()
 	if net_room_alive(data["room"]):
-		return jsonify(fire_popleft(f"{data['room']}/clientQueue"))
+		return jsonify(fire_popleft(f"rooms/{data['room']}/clientQueue"))
 	return send404("Room not found")
 
 @app.route('/net/lockroom',methods=["POST"])

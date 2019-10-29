@@ -834,12 +834,10 @@ const Net = {
 			else Net.hostFailure(this); // was a client
 		});
 		this.newClient.pending = true;
-		this.roomListener("clientSignals",function(data) {
-			if (data&&data.length>0) {
-				this.POST("takeclient",{room:this.room},function() {
-					this.newClient.signal(data[0]);
-				});
-			}
+		this.roomListener("clientSignal",function(data) {
+			if (data) this.POST("takeclient",{room:this.room},function() {
+				this.newClient.signal(data);
+			});
 		});
 	},
 	lockRoom: function() {
@@ -933,12 +931,10 @@ const Net = {
 		this.host.on("data",function(data) { Net.onData(data,"client",this); });
 		this.host.on("error",function() { Net.clientFailure(); });
 		this.host.pending = true;
-		this.roomListener("hostSignals",function(data) {
-			if (data&&data.length>0) {
-				this.POST("takehost",{room:this.room},function() {
-					this.host.signal(data[0]);
-				});
-			}
+		this.roomListener("hostSignal",function(data) {
+			if (data) this.POST("takehost",{room:this.room},function() {
+				this.host.signal(data);
+			});
 		});
 	},
 	onAccepted: function() {
@@ -994,7 +990,7 @@ const Net = {
 	roomListener: function(target,callback) {
 		if (this.listener) this.listener.off();
 		if (typeof callback!="function") return;
-		this.listener = firebase.database().ref(this.room+"/"+target);
+		this.listener = firebase.database().ref("rooms/"+this.room+"/"+target);
 		this.listener.on("value",data=>{callback.call(this,data.val())});
 	},
 	send: function(obj,target) {
