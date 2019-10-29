@@ -74,35 +74,35 @@ def send404(msg=""):
 def default404(e):
 	return send404("Page not found")
 
-@app.route('/')
+@app.route("/")
 def game():
 	script_list = get_script_lists(0)
 	return render_template('main.html',scripts=script_list[0],statements=script_list[1])
 
-@app.route('/edit')
+@app.route("/edit")
 def editor():
 	script_list = get_script_lists(1)
 	return render_template('main.html',scripts=script_list[0],statements=script_list[1])
 
-@app.route('/online')
+@app.route("/online")
 def online_lobby():
 	script_list = get_script_lists(4)
 	return render_template('main.html',scripts=script_list[0],statements=script_list[1])
 
-@app.route('/join/<int:id>')
+@app.route("/join/<int:id>")
 def join(id):
 	script_list = get_script_lists(0)
 	script_list[1].append(f"netInvite = '{id}';</script>")
 	return render_template('main.html',scripts=script_list[0],statements=script_list[1])
 
-@app.route('/<folder>/<path:subpath>')
+@app.route("/<folder>/<path:subpath>")
 def get_static(folder,subpath):
 	if folder in static_folders:
 		return send_from_directory(folder,subpath)
 	else:
 		return send404("Directory does not exist")
 
-@app.route('/list/<path:folderpath>.json')
+@app.route("/list/<path:folderpath>.json")
 def get_static_list(folderpath):
 	folder = folderpath.split("/").pop(0)
 	if folder in static_folders:
@@ -115,7 +115,7 @@ def get_static_list(folderpath):
 	else:
 		return send404()
 
-@app.route('/imagelist.json')
+@app.route("/imagelist.json")
 def get_preload_images():
 	paths = []
 	for filename in os.listdir("res"):
@@ -128,15 +128,15 @@ def get_preload_images():
 			paths.append("GUI/"+filename)
 	return jsonify(paths)
 
-@app.route('/favicon.ico')
+@app.route("/favicon.ico")
 def get_ico():
 	return send_file('favicon.ico')
 
-@app.route('/manifest.json')
+@app.route("/manifest.json")
 def get_manifest():
 	return send_file("manifest.json")
 
-@app.route('/worker.js')
+@app.route("/worker.js")
 def build_service_worker():
 	paths = ['/','/edit', 'imagelist.json', '/favicon.ico', '/manifest.json']
 	for dir in static_folders:
@@ -203,7 +203,7 @@ def fire_popleft(path,value=None):
 
 # NET CODE
 
-@app.route('/net/createroom',methods=["POST"])
+@app.route("/net/createroom",methods=["POST"])
 def net_create_room():
 	for i in range(10):
 		if fire_get(i) == None:
@@ -223,11 +223,11 @@ def net_post_signal(room,role,signal):
 	if net_room_alive(room):
 		return jsonify(fire_put(f"rooms/{room}/{role}",signal))
 	return send404("Room not found")
-@app.route('/net/posthost',methods=["POST"])
+@app.route("/net/posthost",methods=["POST"])
 def net_post_host_code():
 	data = request.get_json()
 	return net_post_signal(data["room"],"hostSignal",data["signal"])
-@app.route('/net/postclient',methods=["POST"])
+@app.route("/net/postclient",methods=["POST"])
 def net_post_client_code():
 	data = request.get_json()
 	return net_post_signal(data["room"],"clientSignal",data["signal"])
@@ -236,16 +236,16 @@ def net_take_signal(room,role):
 	if net_room_alive(room):
 		return jsonify(fire_put(f"rooms/{room}/{role}",0))
 	return send404("Room not found")
-@app.route('/net/takehost',methods=["POST"])
+@app.route("/net/takehost",methods=["POST"])
 def net_take_host_code():
 	data = request.get_json()
 	return net_take_signal(data["room"],"hostSignal")
-@app.route('/net/takeclient',methods=["POST"])
+@app.route("/net/takeclient",methods=["POST"])
 def net_take_client_code():
 	data = request.get_json()
 	return net_take_signal(data["room"],"clientSignal")
 
-@app.route('/net/enterqueue',methods=["POST"])
+@app.route("/net/enterqueue",methods=["POST"])
 def net_enter_queue():
 	data = request.get_json()
 	if net_room_alive(data["room"]):
@@ -254,14 +254,14 @@ def net_enter_queue():
 			return jsonify({"stamp":stamp})
 	return send404("Room not found")
 
-@app.route('/net/leavequeue',methods=["POST"])
+@app.route("/net/leavequeue",methods=["POST"])
 def net_leave_queue():
 	data = request.get_json()
 	if net_room_alive(data["room"]):
 		return jsonify(fire_popleft(f"rooms/{data['room']}/clientQueue"))
 	return send404("Room not found")
 
-@app.route('/net/lockroom',methods=["POST"])
+@app.route("/net/lockroom",methods=["POST"])
 def net_lock_room():
 	data = request.get_json()
 	if net_room_alive(data["room"]):
