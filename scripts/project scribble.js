@@ -793,64 +793,62 @@ const Staller = {
 	}
 };
 const Net = {
-	room: null,
+	mainHost: "doodle-man.appspot.com",
+	serverURL: "https://doodle-man.appspot.com/net/",
+	room: null, listener: null,
 	dataLog: false,
 	bytesSent: 0, doCompression: true, compressionThreshold: 150,
 	// used by host
 	clients: [],
-	discovery: null, discoveryCode: null, discoveryAlerts: false,
-	discoveryStream: null,
+	newClient: null, discoveryAlerts: false,
 	// used by client
 	host: null,
-	clientCode: null,
 	clientID: null,
 	webInputID: null, ctrls: null,
-	joiningStream: null,
 	// host methods
 	createRoom: function() {
-		this.POST("/net/createroom",null,function(data) {
-			this.room = data[0];
-			this.openToNewClient();
-		})
+		this.POST("createroom",null,function(data) {
+			if (data.success) {
+				this.room = data.room;
+				this.openToNewClient();
+			}
+		});
 	},
 	openToNewClient: function() {
-		if (this.discovery) this.discovery.destroy();
-		if (this.discoveryStream) this.discoveryStream.close();
-		this.discovery = new SimplePeer({
+		if (this.newClient) this.newClient.destroy();
+		// if (this.discoveryStream) this.discoveryStream.close();
+		this.newClient = new SimplePeer({
 			initiator: true,
 			trickle: false
 		});
-		this.discovery.on("signal",function(data) {
-			Net.discoveryCode = JSON.stringify(data);
-			Net.POST("/net/discovery",{room:Net.room,discover:Net.discoveryCode});
+		this.newClient.on("signal",function(data) {
+			Net.POST("posthost",{room:Net.room,signal:JSON.stringify(data)});
 		});
-		this.discovery.on("connect",function() { this.pending = false; Net.receiveClient(); });
-		this.discovery.on("error",function(e) {
+		this.newClient.on("connect",function() { this.pending = false; Net.receiveClient(); });
+		this.newClient.on("error",function(e) {
 			console.warn(e);
-			if (this==Net.discovery) {
+			if (this==Net.newClient) {
 				gameAlert("Network Error: Retrying",60);
 				Net.openToNewClient();
 			}
 			else Net.hostFailure(this); // was a client
 		});
-		this.discovery.pending = true;
-		this.discoveryStream = new EventSource("/net/checkclients/"+this.room);
-		this.discoveryStream.addEventListener("signal",(e) => {
-			this.discovery.signal(e.data);
+		this.newClient.pending = true;
+		this.roomListener("clientSignals",function(data) {
+			if (data&&data.length>0) {
+				this.POST("takeclient",{room:this.room},function() {
+					this.newClient.signal(data[0]);
+				});
+			}
 		});
 	},
-	checkForClients: function() {
-		this.POST("/net/checkclients",{room:this.room},function(data) {
-			if (data.length>0) this.discovery.signal(data[0]);
-		})
-	},
 	lockRoom: function() {
-		this.discovery.destroy();
-		this.discovery = null;
-		this.POST("/net/lockroom",{room:this.room});
+		this.newClient.destroy();
+		this.newClient = null;
+		this.POST("lockroom",{room:this.room});
 	},
 	receiveClient: function() {
-		let client = this.discovery;
+		let client = this.newClient;
 		client.on("data",function(data) { Net.onData(data,"host",this); });
 		let added = false;
 		for (var i = 0; i < this.clients.length; i++)  {
@@ -874,7 +872,7 @@ const Net = {
 		if (this.lastState) this.send({objectState:this.lastState},client);
 		Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
 		Camera.addCam(client.clientID+1);
-		this.discovery = null;
+		this.newClient = null;
 		Game.onNetConnection(client,"host");
 		this.openToNewClient();
 	},
@@ -911,28 +909,42 @@ const Net = {
 	// client methods
 	joinRoom: function(code) {
 		this.room = code;
+		this.POST("enterqueue",{room:code},function(data) {
+			if (data.stamp) {
+				this.clientStamp = data.stamp;
+				this.roomListener("clientQueue",function(data) {
+					if (data&&data.length>0) {
+						if (data[0]==this.clientStamp) this.connectToHost();
+					}
+				});
+			}
+		});
+	},
+	connectToHost: function() {
 		if (this.host) this.leaveRoom();
 		this.host = new SimplePeer({
 			initiator: false,
 			trickle: false
 		});
 		this.host.on("signal",function(data) {
-			Net.clientCode = JSON.stringify(data);
-			Net.POST("/net/signal",{room:Net.room,signal:Net.clientCode});
+			Net.POST("postclient",{room:Net.room,signal:JSON.stringify(data)});
 		});
 		this.host.on("connect",function() { Net.onAccepted(); });
 		this.host.on("data",function(data) { Net.onData(data,"client",this); });
 		this.host.on("error",function() { Net.clientFailure(); });
 		this.host.pending = true;
-		this.joiningStream = new EventSource("/net/join/"+code);
-		this.joiningStream.addEventListener("signal",function(e) {
-			Net.host.signal(e.data);
+		this.roomListener("hostSignals",function(data) {
+			if (data&&data.length>0) {
+				this.POST("takehost",{room:this.room},function() {
+					this.host.signal(data[0]);
+				});
+			}
 		});
 	},
 	onAccepted: function() {
-		this.joiningStream.close();
+		this.listener.off();
 		this.host.pending = false;
-		this.POST("/net/confirmation",{room:this.room,client:this.clientCode});
+		this.POST("leavequeue",{room:this.room});
 		this.ctrls = new CtrlPack();
 		Game.onNetConnection(Net.host,"client");
 	},
@@ -965,15 +977,25 @@ const Net = {
 		Game.onNetFailure("client");
 	},
 	// universal methods
+	url: function(str) {
+		if (location.host==this.mainHost || location.host.split(":")[0]=="localhost") return "/net/"+str;
+		else return this.serverURL+str;
+	},
 	POST: function(url,data,func) {
 		$.ajax({
-			type: "POST", url: url, dataType: "json",
+			type: "POST", url: this.url(url), dataType: "json",
 			contentType: "application/json",
 			data: JSON.stringify(data),
 			success: function(data) {
 				if (typeof func == "function") func.call(Net,data);
 			}
 		});
+	},
+	roomListener: function(target,callback) {
+		if (this.listener) this.listener.off();
+		if (typeof callback!="function") return;
+		this.listener = firebase.database().ref(this.room+"/"+target);
+		this.listener.on("value",data=>{callback.call(this,data.val())});
 	},
 	send: function(obj,target) {
 		try {
@@ -1033,13 +1055,12 @@ const Net = {
 	cleanup: function() {
 		if (this.host) this.host.destroy();
 		for (var i in this.clients) this.clients[i].destroy();
-		this.room = this.host = this.discovery = null;
+		this.room = this.host = this.newClient = null;
 		this.clients = [];
-		this.discoveryCode = this.clientCode = null;
 	},
 	update: function() {
-		if (this.discovery) {
-			if (!this.discovery.readable) {
+		if (this.newClient) {
+			if (!this.newClient.readable) {
 				if (this.discoveryAlerts) gameAlert("Network Error: Retrying",60);
 				this.openToNewClient();
 			}
