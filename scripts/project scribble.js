@@ -795,7 +795,7 @@ const Staller = {
 const Net = {
 	mainHost: "doodle-man.appspot.com",
 	serverURL: "https://doodle-man.appspot.com/net/",
-	room: null, listener: null,
+	room: null, listener: null, roomTick: 0, roomHeartbeat: 50 * 60 * 60, // 50 minutes
 	dataLog: false,
 	bytesSent: 0, doCompression: true, compressionThreshold: 150,
 	// used by host
@@ -1051,10 +1051,17 @@ const Net = {
 	cleanup: function() {
 		if (this.host) this.host.destroy();
 		for (var i in this.clients) this.clients[i].destroy();
-		this.room = this.host = this.newClient = null;
+		if (this.roomListener) this.roomListener.off();
+		this.room = this.roomListener = this.host = this.newClient = null;
 		this.clients = [];
+		this.roomTick = 0;
 	},
 	update: function() {
+		if (this.room!=null) this.roomTick++;
+		if (this.roomTick>=this.roomHeartbeat) {
+			this.POST("keepalive",{room:this.room});
+			this.roomTick = 0;
+		}
 		if (this.newClient) {
 			if (!this.newClient.readable) {
 				if (this.discoveryAlerts) gameAlert("Network Error: Retrying",60);

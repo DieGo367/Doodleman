@@ -206,9 +206,9 @@ def fire_popleft(path,value=None):
 @app.route("/net/createroom",methods=["POST"])
 def net_create_room():
 	for i in range(10):
-		if fire_get(i) == None:
+		if not net_room_alive(i):
 			fire_put(f"rooms/{i}",{
-				"alive": True,
+				"timestamp": str(time.time()),
 				"hostSignal": 0,
 				"clientSignal": 0,
 				"clientQueue": 0
@@ -216,8 +216,23 @@ def net_create_room():
 			return jsonify({'success':True,'room':i})
 	return jsonify({"success":False})
 
+ROOM_TIMEOUT = 60 # minutes
 def net_room_alive(room):
-	return bool(fire_get(f"rooms/{room}/alive"))
+	timestamp = fire_get(f"rooms/{room}/timestamp")
+	if timestamp == None:
+		return False
+	else:
+		age = (time.time() - float(timestamp)) / 60 # seconds to minutes
+		if age > ROOM_TIMEOUT:
+			fire_delete(f"rooms/{room}")
+			return False
+		else:
+			return True
+
+@app.route("/net/keepalive",methods=["POST"])
+def net_room_keep_alive():
+	data = request.get_json()
+	return jsonify(fire_put(f"rooms/{data['room']}/timestamp",str(time.time())))
 
 def net_post_signal(room,role,signal):
 	if net_room_alive(room):
