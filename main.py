@@ -199,126 +199,6 @@ def fire_popleft(path,value=None):
 	return fire_pop(path,value,0)
 
 # NET CODE
-rooms = []
-class Room:
-	rooms = {}
-	room_count = 0
-	def __init__(self,code):
-		self.code = code
-		self.busy = False
-		self.host_evt_start = False
-		self.host_heartbeat = 0
-		self.host_signal_queue = []
-		self.client_evt_start = False
-		self.client_heartbeat = 0
-		self.client_signal_queue = []
-	def refresh(self,role):
-		if role == "host":
-			self.host_evt_start = True
-			self.host_heartbeat = HEARTBEAT
-		elif role == "client":
-			self.client_evt_start = True
-			self.client_heartbeat = HEARTBEAT
-	def client_complete(self):
-		self.client_heartbeat = 0
-		self.busy = False
-	def signal_ready(self,role):
-		if role == "host":
-			return self.host_evt_start
-		elif role == "client":
-			return self.client_evt_start
-	def claim_signals(self,role):
-		if role == "host":
-			self.host_evt_start = False
-		elif role == "client":
-			self.client_evt_start = False
-	def stream_alive(self,role):
-		if role == "host":
-			self.host_heartbeat -= 1
-			return (self.host_heartbeat > 0)
-		elif role == "client":
-			self.client_heartbeat -= 1
-			return (self.client_heartbeat > 0)
-	def pop_signal(self,role):
-		if role == "host":
-			if len(self.host_signal_queue) > 0:
-				return self.host_signal_queue.pop(0)
-			else:
-				return None
-		elif role == "client":
-			if len(self.client_signal_queue) > 0:
-				return self.client_signal_queue.pop(0)
-			else:
-				return None
-	def push_signal(self,role,signal):
-		if role == "host": # should send to client
-			self.client_signal_queue.append(signal)
-		elif role == "client": # should send to host
-			self.host_signal_queue.append(signal)
-	def mark_for_closing(self):
-		thread = Thread(target=self.check_for_closing)
-		thread.start()
-	def check_for_closing(self):
-		time.sleep(5)
-		if self.host_heartbeat <= 0:
-			self.close()
-	def close(self):
-		rooms = self.rooms
-		del rooms[self.code]
-	@classmethod
-	def new_room(cls):
-		room = cls(cls.room_count)
-		cls.room_count += 1
-		cls.rooms[room.code] = room
-		return room
-	@classmethod
-	def get_room(cls,code):
-		if code in cls.rooms.keys():
-			return cls.rooms[code]
-		else:
-			print(code)
-			print(cls.rooms)
-			return None
-	@classmethod
-	def json(cls):
-		copy = {}
-		for code, room in cls.rooms.items():
-			copy[code] = room.__dict__
-		return jsonify(copy)
-
-HEARTBEAT = 60 #seconds to expire
-def signal_stream(role,room_code):
-	active = True
-	is_target_client = False
-	while active:
-		room = Room.get_room(room_code)
-		if room:
-			if room.signal_ready(role):
-				room.claim_signals(role)
-				yield "data:hello!\n\n"
-			if role == "host" or is_target_client:
-				if room.stream_alive(role):
-					signal = room.pop_signal(role)
-					if signal:
-						yield f"event:signal\ndata:{signal}\n\n"
-					time.sleep(1)
-				else:
-					active = False
-					if is_target_client:
-						room.busy = False
-					elif role == "host":
-						room.mark_for_closing()
-			else:
-				if not room.busy:
-					room.busy = True
-					is_target_client = True
-		else:
-			active = False
-
-def try_close_room(code):
-    room = rooms[code]
-    if room and room["hostHeartbeat"] < 1:
-        rooms[code] = None
 
 @app.route('/net/createroom',methods=["POST"])
 def net_create_room():
@@ -332,8 +212,6 @@ def net_create_room():
 			})
 			return jsonify({'success':True,'room':i})
 	return jsonify({"success":False})
-	# room = Room.new_room()
-	# return jsonify([room.code])
 
 def net_room_alive(room):
 	return bool(fire_get(f"{room}/alive"))
@@ -380,65 +258,12 @@ def net_leave_queue():
 		return jsonify(fire_popleft(f"{data['room']}/clientQueue"))
 	return send404("Room not found")
 
-@app.route('/net/discovery',methods=["POST"])
-def net_set_room_discovery():
-	data = request.get_json()
-	room = Room.get_room(data["room"])
-	if room:
-		room.push_signal("host",data["discover"])
-		return "", 200
-	else:
-		return send404("Room not found")
-
-@app.route('/net/signal',methods=["POST"])
-def net_new_client_signal():
-	data = request.get_json()
-	room = Room.get_room(data["room"])
-	if room:
-		room.push_signal("client",data["signal"])
-		return "", 200
-	else:
-		return send404("Room not found")
-
-@app.route('/net/checkclients/<int:room_code>')
-def net_check_for_clients(room_code):
-	room = Room.get_room(room_code)
-	if room:
-		room.refresh("host")
-		return Response(signal_stream("host",room_code),mimetype="text/event-stream")
-	else:
-		return send404("Room not found")
-
-@app.route('/net/join/<int:room_code>')
-def net_join_room(room_code):
-	room = Room.get_room(room_code)
-	if room:
-		room.refresh("client")
-		return Response(signal_stream("client",room_code),mimetype="text/event-stream")
-	else:
-		return send404("Room not found")
-
-@app.route('/net/confirmation',methods=["POST"])
-def net_client_confirmation():
-	data = request.get_json()
-	room = Room.get_room(data["room"])
-	if room:
-		room.client_complete()
-		return "", 200
-	else:
-		return send404("Room not found")
-
 @app.route('/net/lockroom',methods=["POST"])
 def net_lock_room():
 	data = request.get_json()
-	room = Room.get_room(data["room"])
-	if room:
-		room.close()
-	return "", 200
-
-@app.route('/net/roomlist')
-def debug_roomlist():
-	return Room.json()
+	if net_room_alive(data["room"]):
+		return jsonify(fire_put(f"{data['room']}/locked",True))
+	return send404("Room not found")
 
 if __name__ == "__main__":
 	app.run()
