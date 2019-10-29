@@ -158,7 +158,10 @@ scopes = [
   "https://www.googleapis.com/auth/userinfo.email",
   "https://www.googleapis.com/auth/firebase.database"
 ]
-creds = GoogleCredentials.from_stream("cred.json").create_scoped(scopes)
+if os.getenv("GAE_ENV","").startswith("standard"):
+	creds = GoogleCredentials.get_application_default().create_scoped(scopes)
+else:
+	creds = GoogleCredentials.from_stream("cred.json").create_scoped(scopes)
 def fire_authed():
 	h = httplib2.Http()
 	return creds.authorize(h)
