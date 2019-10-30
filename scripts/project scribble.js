@@ -807,17 +807,18 @@ const Net = {
 	clientID: null,
 	webInputID: null, ctrls: null,
 	// host methods
-	createRoom: function() {
+	createRoom: function(success,failure) {
 		this.POST("createroom",null,function(data) {
 			if (data.success) {
 				this.room = data.room;
 				this.openToNewClient();
+				if (typeof success == "function") success(data.room);
 			}
-		});
+			else if (typeof failure == "function") failure("Couldn't create room");
+		}, () => { failure("Network connection error."); });
 	},
 	openToNewClient: function() {
 		if (this.newClient) this.newClient.destroy();
-		// if (this.discoveryStream) this.discoveryStream.close();
 		this.newClient = new SimplePeer({
 			initiator: true,
 			trickle: false
@@ -906,18 +907,22 @@ const Net = {
 		}
 	},
 	// client methods
-	joinRoom: function(code) {
+	joinRoom: function(code,success,failure) {
 		this.room = code;
 		this.POST("enterqueue",{room:code},function(data) {
 			if (data.stamp) {
 				this.clientStamp = data.stamp;
 				this.roomListener("clientQueue",function(data) {
 					if (data&&data.length>0) {
-						if (data[0]==this.clientStamp) this.connectToHost();
+						if (data[0]==this.clientStamp) {
+							this.connectToHost();
+							if (typeof success == "function") success();
+						}
 					}
 				});
 			}
-		});
+			else if (typeof failure == "function") failure("Couldn't enter room queue");
+		}, () => { failure("Network connection error."); });
 	},
 	connectToHost: function() {
 		if (this.host) this.leaveRoom();
@@ -978,13 +983,16 @@ const Net = {
 		if (location.host==this.mainHost || location.host.split(":")[0]=="localhost") return "/net/"+str;
 		else return this.serverURL+str;
 	},
-	POST: function(url,data,func) {
+	POST: function(url,data,func,errFunc) {
 		$.ajax({
 			type: "POST", url: this.url(url), dataType: "json",
 			contentType: "application/json",
 			data: JSON.stringify(data),
 			success: function(data) {
 				if (typeof func == "function") func.call(Net,data);
+			},
+			error: function(err) {
+				if (typeof errFunc == "function") errFunc.call(Net,data);
 			}
 		});
 	},

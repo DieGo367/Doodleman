@@ -13,10 +13,6 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		this.removeGui();
 		Net.discoveryAlerts = false;
 	},
-	tick: function() {
-		let code = G$("RoomCode");
-		if (code&&code.isVisible()) code.text = Net.room;
-	},
 	onPause: function() {
 		return CANCEL;
 	},
@@ -43,7 +39,14 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		View.create("Online",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow").open();
 		Button.create("Host","Online",10,10,100,40,"Create a Room").setOnClick(function() {
 			G$("Hosting").open();
-			Net.createRoom();
+			G$("RoomCode").text = "Creating..."
+			Net.createRoom(function(code) {
+				G$("RoomCode").text = code;
+			},
+			function(failure) {
+				G$("Hosting").close();
+				gameAlert(failure,60);
+			});
 			Player.add(0);
 		}).show();
 		Button.create("Client","Online",120,10,100,40,"Join a Room").setOnClick(function() {
@@ -51,7 +54,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		}).show();
 
 		View.create("Hosting",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow");
-		TextElement.create("RoomCode","Hosting",40,100,fontHudScore,"...").show();
+		TextElement.create("RoomCode","Hosting",WIDTH/2,50,fontHudScore,"...",WIDTH-200,CENTER).show();
 		Button.create("LockRoom","Hosting",10,10,100,40,"Lock Room").setOnClick(function() {
 			Net.lockRoom();
 			this.remove();
@@ -68,7 +71,13 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			else return '';
 		}).
 		setOnInputChange(function(val) {
-			Net.joinRoom(val);
+			Net.joinRoom(val,function() {
+				// make a new view for this
+			},
+			function(failure) {
+				G$("Joining").close();
+				gameAlert(failure,60);
+			});
 		}).show();
 	},
 	removeGui: function() {
