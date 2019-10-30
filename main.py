@@ -2,6 +2,7 @@ import httplib2
 import io
 import json
 import os
+import random
 import time
 from oauth2client.client import GoogleCredentials
 from threading import Thread
@@ -203,6 +204,13 @@ def fire_popleft(path,value=None):
 
 # NET CODE
 
+def net_gen_room_code():
+	acceptable = "0123456789ABCDEFGHJKMNPQRTUVWXY"
+	code = ""
+	for i in range(4):
+		code += acceptable[round(random.random()*len(acceptable))]
+	return code
+
 ROOM_CLEANUP_PERIOD = 24 * 60 # 1 day
 def net_check_for_cleanup():
 	last_cleanup = fire_get("lastCleanup")
@@ -223,18 +231,20 @@ def net_cleanup_rooms():
 				else:
 					fire_delete(f"rooms/{room}")
 
+ROOM_CREATE_ATTEMPTS = 50
 @app.route("/net/createroom",methods=["POST"])
 def net_create_room():
 	net_check_for_cleanup()
-	for i in range(10):
-		if not net_room_alive(i):
-			fire_put(f"rooms/{i}",{
+	for i in range(ROOM_CREATE_ATTEMPTS):
+		room = net_gen_room_code()
+		if not net_room_alive(room):
+			fire_put(f"rooms/{room}",{
 				"timestamp": str(time.time()),
 				"hostSignal": 0,
 				"clientSignal": 0,
 				"clientQueue": 0
 			})
-			return jsonify({'success':True,'room':i})
+			return jsonify({'success':True,'room':room})
 	return jsonify({"success":False})
 
 ROOM_TIMEOUT = 60 # minutes
