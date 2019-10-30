@@ -108,7 +108,7 @@ def get_static_list(folderpath):
 	folder = folderpath.split("/").pop(0)
 	if folder in static_folders:
 		paths = []
-		for dirpath, dirnames, filenames in os.walk(folderpath):
+		for dirpath, _dirnames, filenames in os.walk(folderpath):
 			for filename in filenames:
 				path = os.path.join(dirpath,filename).replace('\\','/').replace(folderpath+"/","")
 				paths.append(path)
@@ -211,7 +211,7 @@ ROOM_CREATE_ATTEMPTS = 50
 def net_gen_room_code():
 	acceptable = "0123456789ABCDEFGHJKMNPQRTUVWXY"
 	code = ""
-	for i in range(4):
+	for _ in range(4):
 		code += acceptable[round(random.random()*len(acceptable))]
 	return code
 
@@ -249,7 +249,7 @@ def net_cleanup_rooms():
 @app.route("/net/createroom",methods=["POST"])
 def net_create_room():
 	net_check_for_cleanup()
-	for i in range(ROOM_CREATE_ATTEMPTS):
+	for _ in range(ROOM_CREATE_ATTEMPTS):
 		room = net_gen_room_code()
 		if not net_room_alive(room):
 			fire_put(f"rooms/{room}",{
