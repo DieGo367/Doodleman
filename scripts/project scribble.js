@@ -1067,7 +1067,7 @@ const Net = {
 		for (var i in this.clients) this.clients[i].destroy();
 		if (this.listener) this.listener.off();
 		if (firebase.apps.length>0) firebase.app().delete();
-		this.room = this.roomListener = this.host = this.newClient = null;
+		this.room = this.listener = this.host = this.newClient = null;
 		this.clients = [];
 		this.roomTick = 0;
 		this.started = false;
