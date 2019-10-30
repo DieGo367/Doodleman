@@ -203,8 +203,29 @@ def fire_popleft(path,value=None):
 
 # NET CODE
 
+ROOM_CLEANUP_PERIOD = 24 * 60 # 1 day
+def net_check_for_cleanup():
+	last_cleanup = fire_get("lastCleanup")
+	if last_cleanup == None or (time.time() - float(last_cleanup))/60 > ROOM_CLEANUP_PERIOD:
+		thrd = Thread(target=net_cleanup_rooms)
+		thrd.start()
+
+def net_cleanup_rooms():
+	fire_put("lastCleanup",str(time.time()))
+	rooms = fire_get("rooms")
+	if rooms:
+		for room, data in rooms.items():
+			if data:
+				if "timestamp" in data:
+					stamp = float(data["timestamp"])
+					if (time.time() - stamp)/60 > ROOM_TIMEOUT:
+						fire_delete(f"rooms/{room}")
+				else:
+					fire_delete(f"rooms/{room}")
+
 @app.route("/net/createroom",methods=["POST"])
 def net_create_room():
+	net_check_for_cleanup()
 	for i in range(10):
 		if not net_room_alive(i):
 			fire_put(f"rooms/{i}",{
@@ -232,7 +253,7 @@ def net_room_alive(room):
 @app.route("/net/keepalive",methods=["POST"])
 def net_room_keep_alive():
 	data = request.get_json()
-	return jsonify(fire_put(f"rooms/{data['room']}/timestamp",str(time.time())))
+		return jsonify(fire_put(f"rooms/{data['room']}/timestamp",str(time.time())))
 
 def net_post_signal(room,role,signal):
 	if net_room_alive(room):
