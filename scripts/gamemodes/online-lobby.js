@@ -7,6 +7,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		multiplayer = true;
 		online = true;
 		Net.discoveryAlerts = true;
+		if (!Net.started) Net.startup();
 	},
 	quit: function() {
 		this.removeGui();

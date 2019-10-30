@@ -793,6 +793,7 @@ const Staller = {
 	}
 };
 const Net = {
+	started: false,
 	mainHost: "doodle-man.appspot.com",
 	serverURL: "https://doodle-man.appspot.com/net/",
 	room: null, listener: null, roomTick: 0, roomHeartbeat: 50 * 60 * 60, // 50 minutes
@@ -1048,13 +1049,28 @@ const Net = {
 		}
 		Game.onNetData(data,role);
 	},
+	startup: function() {
+		this.cleanup();
+		firebase.initializeApp({
+			apiKey: "AIzaSyDMigvG-JRi89K30qDIkeyBIAIu-fgy4_Q",
+			authDomain: "doodle-man.firebaseapp.com",
+			databaseURL: "https://doodle-man.firebaseio.com",
+			projectId: "doodle-man",
+			storageBucket: "doodle-man.appspot.com",
+			messagingSenderId: "707506375730",
+			appId: "1:707506375730:web:14a1284b32394fa08cc02b"
+		});
+		this.started = true;
+	},
 	cleanup: function() {
 		if (this.host) this.host.destroy();
 		for (var i in this.clients) this.clients[i].destroy();
-		if (this.roomListener) this.roomListener.off();
+		if (this.listener) this.listener.off();
+		if (firebase.apps.length>0) firebase.app().delete();
 		this.room = this.roomListener = this.host = this.newClient = null;
 		this.clients = [];
 		this.roomTick = 0;
+		this.started = false;
 	},
 	update: function() {
 		if (this.room!=null) this.roomTick++;
