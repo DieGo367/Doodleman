@@ -3083,6 +3083,7 @@ class TextInput extends Button {
 		this.typingText = "";
 		this.textTypeMode = 0;
 		this.onInputChangeFunc = function() { };
+		this.onNewCharFunc = function() { };
 		this.setOnClick(function() {
 			if (this.typing||G$("TextInput").visible) return;
 			if (Key.isDown("18")) this.store(void(0));
@@ -3135,6 +3136,10 @@ class TextInput extends Button {
 	}
 	setOnInputChange(func) {
 		this.onInputChangeFunc = func;
+		return this;
+	}
+	setOnNewChar(func) {
+		this.onNewCharFunc = func;
 		return this;
 	}
 	drawGUI() {
@@ -3244,6 +3249,8 @@ class TextInput extends Button {
 						if (ogKeycode==189) char = '_';
 					}
 					else if (keycode>64&&keycode<91) char = char.toLowerCase();
+
+					if (typeof this.onNewCharFunc == "function") char = this.onNewCharFunc(char);
 
 					if (this.textTypeMode==1) {
 						G$("TextInput:TE").text = this.typingText = char;

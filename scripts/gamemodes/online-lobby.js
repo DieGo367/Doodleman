@@ -57,7 +57,16 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		}).show();
 
 		View.create("Joining",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow");
-		TextInput.create("Code","Joining",10,10,100,40,"Room Code",null,"Room Code").setOnInputChange(function(val) {
+		TextInput.create("Code","Joining",10,10,100,40,"Room Code",null,"Room Code").setOnNewChar(function(char) {
+			if (RegExp("[0-9]").test(char)) return char;
+			else if (RegExp("[A-Za-z]").test(char)) {
+				char = char.toUpperCase();
+				if (RegExp("[ILOSZ]").test(char)) char = '';
+				return char;
+			}
+			else return '';
+		}).
+		setOnInputChange(function(val) {
 			Net.joinRoom(val);
 		}).show();
 	},
