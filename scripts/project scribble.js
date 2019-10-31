@@ -817,7 +817,7 @@ const Net = {
 				if (typeof success == "function") success(data.room);
 			}
 			else if (typeof failure == "function") failure("Couldn't create room");
-		}, () => { failure("Network connection error."); });
+		}, () => { failure("Network connection error"); });
 	},
 	watchClientQueue: function() {
 		if (this.listenerToQueue) this.listenerToQueue.off();
@@ -852,10 +852,19 @@ const Net = {
 			});
 		});
 	},
-	lockRoom: function() {
-		this.newClient.destroy();
-		this.newClient = null;
-		this.POST("lockroom",{room:this.room});
+	roomLock: function(bool) {
+		if (bool) {
+			this.newClient.destroy();
+			this.newClient = null;
+			this.listenerToQueue.off();
+			this.listenerToQueue = null;
+			this.POST("lockroom",{room:this.room});
+		}
+		else {
+			this.watchClientQueue();
+			this.openToNewClient();
+			this.POST("unlockroom",{room:this.room});
+		}
 	},
 	receiveClient: function() {
 		let client = this.newClient;
@@ -931,8 +940,11 @@ const Net = {
 					}
 				});
 			}
-			else if (typeof failure == "function") failure("Couldn't enter room queue");
-		}, () => { failure("Network connection error."); });
+			else if (typeof failure == "function") {
+				if (data.locked) failure("The room was locked")
+				else failure("Couldn't enter room queue");
+			}
+		}, () => { failure("Network connection error"); });
 	},
 	connectToHost: function() {
 		if (this.host) this.leaveRoom();
@@ -1083,10 +1095,12 @@ const Net = {
 		if (this.host) this.host.destroy();
 		for (var i in this.clients) this.clients[i].destroy();
 		if (this.listener) this.listener.off();
+		if (this.listenerToQueue) this.listenerToQueue.off();
 		if (firebase.apps.length>0) firebase.app().delete();
-		this.room = this.listener = this.host = this.newClient = null;
+		this.room = this.listener = this.listenerToQueue = this.host = this.newClient = null;
 		this.clients = [];
 		this.roomTick = 0;
+		this.queueTick = -1;
 		this.started = false;
 	},
 	update: function() {

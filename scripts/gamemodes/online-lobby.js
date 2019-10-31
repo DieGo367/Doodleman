@@ -55,9 +55,15 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 
 		View.create("Hosting",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow");
 		TextElement.create("RoomCode","Hosting",WIDTH/2,50,fontHudScore,"...",WIDTH-200,CENTER).show();
-		Button.create("LockRoom","Hosting",10,10,100,40,"Lock Room").setOnClick(function() {
-			Net.lockRoom();
-			this.remove();
+		Button.create("LockRoom","Hosting",10,10,100,40,"Lock Room").setToggle(function() {
+			Net.roomLock(true);
+			this.text = "Unlock Room";
+			this.toggleState = 1;
+		},
+		function() {
+			Net.roomLock(false);
+			this.text = "Lock Room";
+			this.toggleState = 0;
 		}).show();
 
 		View.create("Joining",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow");
@@ -76,6 +82,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			},
 			function(failure) {
 				G$("Joining").close();
+				G$("Code").val("");
 				gameAlert(failure,60);
 			});
 		}).show();

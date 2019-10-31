@@ -267,7 +267,8 @@ def net_create_room():
 				"timestamp": str(time.time()),
 				"hostSignal": 0,
 				"clientSignal": 0,
-				"clientQueue": 0
+				"clientQueue": 0,
+				"locked": False
 			})
 			return jsonify({'success':True,'room':room})
 	return jsonify({"success":False})
@@ -306,9 +307,12 @@ def net_take_client_code():
 def net_enter_queue():
 	data = request.get_json()
 	if data and net_room_alive(data["room"]):
-		stamp = str(time.time())
-		if fire_append(f"rooms/{data['room']}/clientQueue",stamp):
-			return jsonify({"stamp":stamp})
+		if fire_get(f"rooms/{data['room']}/locked"):
+			return jsonify({"locked": True})
+		else:
+			stamp = str(time.time())
+			if fire_append(f"rooms/{data['room']}/clientQueue",stamp):
+				return jsonify({"stamp":stamp,"locked":False})
 	return send404("Room not found")
 
 @app.route("/net/leavequeue",methods=["POST"])
@@ -322,7 +326,14 @@ def net_leave_queue():
 def net_lock_room():
 	data = request.get_json()
 	if net_room_alive(data["room"]):
-		return jsonify(fire_put(f"{data['room']}/locked",True))
+		return jsonify(fire_put(f"rooms/{data['room']}/locked",True))
+	return send404("Room not found")
+
+@app.route("/net/unlockroom",methods=["POST"])
+def net_unlock_room():
+	data = request.get_json()
+	if net_room_alive(data["room"]):
+		return jsonify(fire_put(f"rooms/{data['room']}/locked",False))
 	return send404("Room not found")
 
 if __name__ == "__main__":
