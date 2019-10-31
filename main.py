@@ -281,6 +281,14 @@ def net_room_keep_alive():
 	else:
 		return send404("Room not found")
 
+@app.route("/net/closeroom",methods=["POST"])
+def net_close_room():
+	data = request.get_json()
+	if data and data["room"]:
+		return jsonify(fire_delete(f"rooms/{data['room']}"))
+	else:
+		return send404("No room given")
+
 def net_post_signal(data,role):
 	if data and net_room_alive(data["room"]):
 		return jsonify(fire_put(f"rooms/{data['room']}/{role}Signal",data["signal"]))
