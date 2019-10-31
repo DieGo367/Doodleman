@@ -94,9 +94,12 @@ def editor():
 def online_lobby():
 	return render_main(4)
 
-@app.route("/join/<int:id>")
-def join(id):
-	return render_main(0,literals={"NET_INVITE": id})
+@app.route("/join")
+def join():
+	id = request.args.get("id")
+	if id:
+		return render_main(4,strings={"NET_INVITE": id})
+	return render_main(0)
 
 @app.route("/<folder>/<path:subpath>")
 def get_static(folder,subpath):

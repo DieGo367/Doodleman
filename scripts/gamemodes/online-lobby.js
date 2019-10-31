@@ -8,6 +8,14 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		online = true;
 		Net.discoveryAlerts = true;
 		if (!Net.started) Net.startup();
+		try {
+			Net.joinRoom(NET_INVITE,function() {},function(err) {
+				gameAlert(err,60);
+			});
+		}
+		catch {
+			// no net invite was given
+		}
 	},
 	quit: function() {
 		this.removeGui();
