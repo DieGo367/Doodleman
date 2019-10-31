@@ -852,18 +852,28 @@ const Net = {
 			});
 		});
 	},
-	roomLock: function(bool) {
+	roomLock: function(bool,success,failure) {
 		if (bool) {
 			this.newClient.destroy();
 			this.newClient = null;
 			this.listenerToQueue.off();
 			this.listenerToQueue = null;
-			this.POST("lockroom",{room:this.room});
+			this.POST("lockroom",{room:this.room},function(data) {
+				if (data.doesNotExist) {
+					if (typeof failure == "function") failure("Invalid room code");
+				}
+				else if (typeof success == "function") success(data);
+			}, () => { failure("Network connection error"); });
 		}
 		else {
 			this.watchClientQueue();
 			this.openToNewClient();
-			this.POST("unlockroom",{room:this.room});
+			this.POST("unlockroom",{room:this.room},function(data) {
+				if (data.doesNotExist) {
+					if (typeof failure == "function") failure("Invalid room code");
+				}
+				else if (typeof success == "function") success(data);
+			}, () => { failure("Network connection error"); });
 		}
 	},
 	receiveClient: function() {
@@ -941,7 +951,8 @@ const Net = {
 				});
 			}
 			else if (typeof failure == "function") {
-				if (data.locked) failure("The room was locked")
+				if (data.locked) failure("The room was locked");
+				else if (data.doesNotExist) failure("Invalid room code");
 				else failure("Couldn't enter room queue");
 			}
 		}, () => { failure("Network connection error"); });

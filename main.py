@@ -240,6 +240,8 @@ def net_room_alive(room):
 			return False
 		else:
 			return True
+def net_send_DNE():
+	return jsonify({"doesNotExist":True})
 
 def net_check_for_cleanup():
 	last_cleanup = fire_get("lastCleanup")
@@ -282,7 +284,7 @@ def net_room_keep_alive():
 	if fire_get(f"rooms/{data['room']}/timestamp"):
 		return jsonify(fire_put(f"rooms/{data['room']}/timestamp",str(time.time())))
 	else:
-		return send404("Room not found")
+		return net_send_DNE()
 
 @app.route("/net/closeroom",methods=["POST"])
 def net_close_room():
@@ -295,7 +297,7 @@ def net_close_room():
 def net_post_signal(data,role):
 	if data and net_room_alive(data["room"]):
 		return jsonify(fire_put(f"rooms/{data['room']}/{role}Signal",data["signal"]))
-	return send404("Room not found")
+	return net_send_DNE()
 @app.route("/net/posthost",methods=["POST"])
 def net_post_host_code():
 	return net_post_signal(request.get_json(),"host")
@@ -306,7 +308,7 @@ def net_post_client_code():
 def net_take_signal(data,role):
 	if data and net_room_alive(data["room"]):
 		return jsonify(fire_put(f"rooms/{data['room']}/{role}Signal",0))
-	return send404("Room not found")
+	return net_send_DNE()
 @app.route("/net/takehost",methods=["POST"])
 def net_take_host_code():
 	return net_take_signal(request.get_json(),"host")
@@ -324,28 +326,28 @@ def net_enter_queue():
 			stamp = str(time.time())
 			if fire_append(f"rooms/{data['room']}/clientQueue",stamp):
 				return jsonify({"stamp":stamp,"locked":False})
-	return send404("Room not found")
+	return net_send_DNE()
 
 @app.route("/net/leavequeue",methods=["POST"])
 def net_leave_queue():
 	data = request.get_json()
 	if data and net_room_alive(data["room"]):
 		return jsonify(fire_popleft(f"rooms/{data['room']}/clientQueue"))
-	return send404("Room not found")
+	return net_send_DNE()
 
 @app.route("/net/lockroom",methods=["POST"])
 def net_lock_room():
 	data = request.get_json()
 	if net_room_alive(data["room"]):
 		return jsonify(fire_put(f"rooms/{data['room']}/locked",True))
-	return send404("Room not found")
+	return net_send_DNE()
 
 @app.route("/net/unlockroom",methods=["POST"])
 def net_unlock_room():
 	data = request.get_json()
 	if net_room_alive(data["room"]):
 		return jsonify(fire_put(f"rooms/{data['room']}/locked",False))
-	return send404("Room not found")
+	return net_send_DNE()
 
 if __name__ == "__main__":
 	app.run()
