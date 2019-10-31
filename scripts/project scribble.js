@@ -794,8 +794,6 @@ const Staller = {
 };
 const Net = {
 	started: false,
-	mainHost: "doodle-man.appspot.com",
-	serverURL: "https://doodle-man.appspot.com/net/",
 	room: null, listener: null, roomTick: 0, roomHeartbeat: 50 * 60 * 60, // 50 minutes
 	dataLog: false,
 	bytesSent: 0, doCompression: true, compressionThreshold: 150,
@@ -979,13 +977,9 @@ const Net = {
 		Game.onNetFailure("client");
 	},
 	// universal methods
-	url: function(str) {
-		if (location.host==this.mainHost || location.host.split(":")[0]=="localhost") return "/net/"+str;
-		else return this.serverURL+str;
-	},
 	POST: function(url,data,func,errFunc) {
 		$.ajax({
-			type: "POST", url: this.url(url), dataType: "json",
+			type: "POST", url: NET_URL+url, dataType: "json",
 			contentType: "application/json",
 			data: JSON.stringify(data),
 			success: function(data) {

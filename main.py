@@ -14,8 +14,10 @@ from flask import request
 from flask import Response
 from flask import send_file
 from flask import send_from_directory
+from flask_cors import CORS
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+cors = CORS(app, resources={"/net/*":{"origins": "*"}})
 
 scripts = [
   "lib/simplepeer.min.js",
@@ -47,13 +49,19 @@ static_folders = [
   "scripts"
 ]
 
-def get_script_lists(launch_mode):
+def render_main(launch_mode,literals={},strings={}):
 	scs = []
 	for script in scripts:
 		scs.append(f"scripts/{script}")
 	for script in gamemodes:
 		scs.append(f"scripts/gamemodes/{script}")
-	return [scs, [f"const GAME_LAUNCH = {launch_mode};"]]
+	lits = {"GAME_LAUNCH": launch_mode}
+	strs = {"NET_URL": net_url}
+	for key, item in literals.items():
+		lits[key] = item
+	for key, item in strings.items():
+		strs[key] = item
+	return render_template("main.html",scripts=scs,literals=lits,strings=strs)
 
 def get_content_type(ext):
 	types = {
@@ -76,24 +84,19 @@ def default404(e):
 
 @app.route("/")
 def game():
-	script_list = get_script_lists(0)
-	return render_template('main.html',scripts=script_list[0],statements=script_list[1])
+	return render_main(0)
 
 @app.route("/edit")
 def editor():
-	script_list = get_script_lists(1)
-	return render_template('main.html',scripts=script_list[0],statements=script_list[1])
+	return render_main(1)
 
 @app.route("/online")
 def online_lobby():
-	script_list = get_script_lists(4)
-	return render_template('main.html',scripts=script_list[0],statements=script_list[1])
+	return render_main(4)
 
 @app.route("/join/<int:id>")
 def join(id):
-	script_list = get_script_lists(0)
-	script_list[1].append(f"netInvite = '{id}';</script>")
-	return render_template('main.html',scripts=script_list[0],statements=script_list[1])
+	return render_main(0,literals={"NET_INVITE": id})
 
 @app.route("/<folder>/<path:subpath>")
 def get_static(folder,subpath):
@@ -158,10 +161,19 @@ scopes = [
   "https://www.googleapis.com/auth/userinfo.email",
   "https://www.googleapis.com/auth/firebase.database"
 ]
+net_url = "/net/"
 if os.getenv("GAE_ENV","").startswith("standard"):
 	creds = GoogleCredentials.get_application_default().create_scoped(scopes)
 else:
-	creds = GoogleCredentials.from_stream("cred.json").create_scoped(scopes)
+	try:
+		creds = GoogleCredentials.from_stream("cred.json").create_scoped(scopes)
+	except:
+		# rely on app engine server if credentials not found on local server
+		net_url = "https://doodle-man.appspot.com/net/"
+@app.route("/net")
+def net():
+	return net_url
+
 def fire_authed():
 	h = httplib2.Http()
 	return creds.authorize(h)
