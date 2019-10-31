@@ -223,7 +223,7 @@ def net_gen_room_code():
 	acceptable = "0123456789ABCDEFGHJKMNPQRTUVWXY"
 	code = ""
 	for _ in range(4):
-		code += acceptable[round(random.random()*len(acceptable))]
+		code += acceptable[round(random.random()*(len(acceptable)-1))]
 	return code
 
 def net_room_alive(room):
