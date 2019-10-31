@@ -794,7 +794,10 @@ const Staller = {
 };
 const Net = {
 	started: false,
-	room: null, listener: null, roomTick: 0, roomHeartbeat: 50 * 60 * 60, // 50 minutes
+	room: null,
+	listener: null, listenerToQueue: null,
+	roomTick: 0, roomHeartbeat: 50 * 60 * 60, // 50 minutes
+	queueTick: -1, queueTimeout: 30 * 60, // 30 seconds
 	dataLog: false,
 	bytesSent: 0, doCompression: true, compressionThreshold: 150,
 	// used by host
@@ -809,11 +812,20 @@ const Net = {
 		this.POST("createroom",null,function(data) {
 			if (data.success) {
 				this.room = data.room;
+				this.watchClientQueue();
 				this.openToNewClient();
 				if (typeof success == "function") success(data.room);
 			}
 			else if (typeof failure == "function") failure("Couldn't create room");
 		}, () => { failure("Network connection error."); });
+	},
+	watchClientQueue: function() {
+		if (this.listenerToQueue) this.listenerToQueue.off();
+		this.listenerToQueue = firebase.database().ref("rooms/"+this.room+"/clientQueue");
+		this.listenerToQueue.on("value",function(data) {
+			if (data.val()!=0) Net.queueTick = 0;
+			else Net.queueTick = -1;
+		});
 	},
 	openToNewClient: function() {
 		if (this.newClient) this.newClient.destroy();
@@ -1078,19 +1090,26 @@ const Net = {
 		this.started = false;
 	},
 	update: function() {
-		if (this.room!=null) this.roomTick++;
-		if (this.roomTick>=this.roomHeartbeat) {
-			this.POST("keepalive",{room:this.room});
-			this.roomTick = 0;
-		}
-		if (this.newClient) {
-			if (!this.newClient.readable) {
-				if (this.discoveryAlerts) gameAlert("Network Error: Retrying",60);
-				this.openToNewClient();
+		if (this.room!=null) {
+			if (++this.roomTick>=this.roomHeartbeat) {
+				this.POST("keepalive",{room:this.room});
+				this.roomTick = 0;
 			}
+			if (this.queueTick>-1) {
+				if (++this.queueTick>=this.queueTimeout) {
+					this.POST("leavequeue",{room:this.room});
+					this.queueTick = 0;
+				}
+			}
+			if (this.newClient) {
+				if (!this.newClient.readable) {
+					if (this.discoveryAlerts) gameAlert("Network Error: Retrying",60);
+					this.openToNewClient();
+				}
+			}
+			if (this.host) this.clientUpdate();
+			else if (this.clients.length>0) this.hostUpdate();
 		}
-		if (this.host) this.clientUpdate();
-		else if (this.clients.length>0) this.hostUpdate();
 	}
 };
 
