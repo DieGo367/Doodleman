@@ -143,10 +143,10 @@ def get_manifest():
 def build_service_worker():
 	paths = ['/','/edit', 'imagelist.json', '/favicon.ico', '/manifest.json']
 	for dir in static_folders:
-		paths.append(f"/list/{dir}")
+		paths.append(f"/list/{dir}.json")
 		for dirpath, dirnames, filenames in os.walk(dir):
 			for subpath in dirnames:
-				paths.append(f"/list/{dirpath}/{subpath}")
+				paths.append(f"/list/{dirpath}/{subpath}.json")
 			for filename in filenames:
 				paths.append("/"+os.path.join(dirpath,filename).replace("\\","/"))
 	str = ""
