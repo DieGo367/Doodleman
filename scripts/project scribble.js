@@ -944,7 +944,10 @@ const Net = {
 	onAccepted: function() {
 		this.listener.off();
 		this.host.pending = false;
-		this.POST("leavequeue",{room:this.room});
+		let leaveQueue = function(err) {
+			if (!err || err.status!=404) this.POST("leavequeue",{room:this.room},null,leaveQueue);
+		}
+		leaveQueue();
 		this.ctrls = new CtrlPack();
 		Game.onNetConnection(Net.host,"client");
 	},
@@ -982,11 +985,11 @@ const Net = {
 			type: "POST", url: NET_URL+url, dataType: "json",
 			contentType: "application/json",
 			data: JSON.stringify(data),
-			success: function(data) {
-				if (typeof func == "function") func.call(Net,data);
+			success: function(res) {
+				if (typeof func == "function") func.call(Net,res);
 			},
 			error: function(err) {
-				if (typeof errFunc == "function") errFunc.call(Net,data);
+				if (typeof errFunc == "function") errFunc.call(Net,err);
 			}
 		});
 	},
