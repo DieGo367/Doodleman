@@ -281,7 +281,7 @@ def net_room_keep_alive():
 		return send404("Room not found")
 
 def net_post_signal(data,role):
-	if data and net_room_alive(room):
+	if data and net_room_alive(data["room"]):
 		return jsonify(fire_put(f"rooms/{data['room']}/{role}Signal",data["signal"]))
 	return send404("Room not found")
 @app.route("/net/posthost",methods=["POST"])
