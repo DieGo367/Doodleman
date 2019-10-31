@@ -945,9 +945,9 @@ const Net = {
 		this.listener.off();
 		this.host.pending = false;
 		let leaveQueue = function(err) {
-			if (!err || err.status!=404) this.POST("leavequeue",{room:this.room},null,leaveQueue);
+			if (err.status!=404) Net.POST("leavequeue",{room:Net.room},null,leaveQueue);
 		}
-		leaveQueue();
+		this.POST("leavequeue",{room:this.room},null,leaveQueue);
 		this.ctrls = new CtrlPack();
 		Game.onNetConnection(Net.host,"client");
 	},
