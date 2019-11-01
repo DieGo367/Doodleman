@@ -6,7 +6,7 @@
   "orientation": "landscape",
   "background_color": "black",
   "theme_color": "dodgerblue",
-  "serviceworker": {"src": "worker.js"},
+  "serviceworker": {"src": "sw.js"},
   "description": "A stick figure game!",
   "icons": [
     {

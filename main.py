@@ -142,7 +142,7 @@ def get_ico():
 def get_manifest():
 	return send_file("manifest.json")
 
-@app.route("/worker.js")
+@app.route("/sw.js")
 def build_service_worker():
 	paths = ['/','/edit', 'imagelist.json', '/favicon.ico', '/manifest.json']
 	for dir in static_folders:
@@ -153,10 +153,10 @@ def build_service_worker():
 			for filename in filenames:
 				paths.append("/"+os.path.join(dirpath,filename).replace("\\","/"))
 	str = ""
-	with open("worker.js") as file:
+	with open("sw.js") as file:
 		str = file.read()
-	str = str.replace('"""staticFiles"""',f"{paths}")
-	return send_file(io.BytesIO(str.encode()),attachment_filename="worker.js")
+	str = str.replace('["staticFiles"]',f"{paths}")
+	return send_file(io.BytesIO(str.encode()),attachment_filename="sw.js")
 
 # Firebase - Realtime Database
 database = "https://doodle-man.firebaseio.com/"
