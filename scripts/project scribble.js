@@ -1055,7 +1055,7 @@ const Net = {
 	},
 	usable: function(conn) {
 		if (conn&&conn.pending) return true;
-		return conn && conn._pc.connectionState == "connected";
+		return conn && conn._pc && conn._pc.connectionState == "connected";
 	},
 	sendable: function(conn) {
 		return this.usable(conn) && conn._channel.readyState=="open";
