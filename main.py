@@ -173,9 +173,6 @@ else:
 	except:
 		# rely on app engine server if credentials not found on local server
 		net_url = "https://doodle-man.appspot.com/net/"
-@app.route("/net")
-def net():
-	return net_url
 
 def fire_authed():
 	h = httplib2.Http()
