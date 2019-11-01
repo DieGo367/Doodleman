@@ -43,5 +43,12 @@ async function networkFirst(r,resolve) {
 }
 
 function networkOnly(r,resolve) {
-  fetch(r).then(result => {resolve(result);}).catch(() => {resolve(Error());});
+  fetch(r).then(result => {
+    resolve(result);
+  }).catch(() => {
+    resolve(new Response("Network error happened", {
+      "status" : 408,
+      "headers" : {"Content-Type" : "text/plain"}
+    }));
+  });
 }
