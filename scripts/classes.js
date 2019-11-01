@@ -259,7 +259,7 @@ class RemoteObject extends _c_ {
 					obj.object[prop] = updated[prop];
 				}
 			}
-			else this.create(updated);
+			else if (updated.class) this.create(updated);
 		}
 		for (var uid in old) if (!old[uid].inNewState) old[uid].remove();
 	}
