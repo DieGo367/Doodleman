@@ -55,7 +55,7 @@ def render_main(launch_mode,literals={},strings={}):
 		scs.append(f"scripts/{script}")
 	for script in gamemodes:
 		scs.append(f"scripts/gamemodes/{script}")
-	lits = {"GAME_LAUNCH": launch_mode}
+	lits = {"GAME_LAUNCH": launch_mode, "ALLOW_SW": "true"}
 	strs = {"NET_URL": net_url}
 	for key, item in literals.items():
 		lits[key] = item
@@ -85,6 +85,10 @@ def default404(e):
 @app.route("/")
 def game():
 	return render_main(0)
+
+@app.route("/index.html")
+def compiled_game():
+	return render_main(0,strings={"NET_URL":"https://doodle-man.appspot.com/net/"},literals={"ALLOW_SW":"false"})
 
 @app.route("/edit")
 def editor():
@@ -144,7 +148,7 @@ def get_manifest():
 
 @app.route("/sw.js")
 def build_service_worker():
-	paths = ['/','/edit', 'imagelist.json', '/favicon.ico', '/manifest.json']
+	paths = ["/","/index.html","/edit", "/imagelist.json", "/favicon.ico", "/manifest.json"]
 	for dir in static_folders:
 		paths.append(f"/list/{dir}.json")
 		for dirpath, dirnames, filenames in os.walk(dir):

@@ -89,7 +89,7 @@ $(window).on("load",function() {
 	});
 
 	if ("serviceWorker" in navigator) try {
-			navigator.serviceWorker.register("sw.js");
+		if (ALLOW_SW) navigator.serviceWorker.register("sw.js");
 	} catch (e) {
 		console.log("ServiceWorker registration failed. "+e);
 	}
