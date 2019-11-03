@@ -926,9 +926,9 @@ const Net = {
 		this.lastState = objectState;
 	},
 	hostFailure: function(client) {
-		gameAlert("Client "+client.clientID+" was disconnected",60);
 		this.removeClient(client);
-		Game.onNetFailure("host");
+		Game.onNetFailure("host",client.clientID);
+		console.log("Lost client "+client.clientID+" connection");
 	},
 	onLevelLoad: function(levelCopy) {
 		if (this.clients.length>0) {
@@ -1010,9 +1010,9 @@ const Net = {
 		}
 	},
 	clientFailure: function() {
-		gameAlert("Lost connection to host",60);
 		this.leaveRoom();
 		Game.onNetFailure("client");
+		console.log("Lost host connection");
 	},
 	// universal methods
 	POST: function(url,data,func,errFunc) {
