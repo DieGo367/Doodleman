@@ -413,18 +413,6 @@ class Camera {
 Camera.cameras = [];
 Camera.controllable = false;
 Camera.addCam(0);
-const User = {
-	name: "",
-	logUrl: "",
-	loggedIn: false,
-	setInfo: function(name,url) {
-		this.name = name;
-		this.logUrl = url;
-	},
-	useLink: function() {
-		window.location = this.logUrl;
-	}
-};
 const Constants = {
 	stored: {},
 	store: function(str) {
