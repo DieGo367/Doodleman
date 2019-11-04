@@ -33,7 +33,17 @@ canvas {
   width: 640px;
   height: 360px;
 }
-#clipboard, #touchkeyboard {
+#clipboard {
   position: absolute;
   left: -999999px;
+}
+
+#touchkeyboard {
+  position: absolute;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  font-size: 25vh;
+  display: none;
+  font-family: Fredoka One;
 }

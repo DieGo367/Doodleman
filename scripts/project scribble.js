@@ -1509,4 +1509,14 @@ function addEvents() {
 		$(canvas).css({cursor: 'none'});
 		if (FileInput.asking && FileInput.input.files.length==0) FileInput.onCancel();
 	});
+	$("#touchkeyboard").keydown(function(e) {
+		if (e.keyCode==13) {
+			$(canvas).show();
+			$("#touchkeyboard").hide();
+		}
+	});
+	$("#touchkeyboard").click(function() {
+		$(canvas).show();
+		$("#touchkeyboard").hide();
+	})
 }

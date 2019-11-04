@@ -3083,7 +3083,7 @@ class TextInput extends Button {
 		this.typingText = "";
 		this.textTypeMode = 0;
 		this.onInputChangeFunc = function() { };
-		this.onNewCharFunc = function() { };
+		this.onNewCharFunc = function(char) { return char };
 		this.setOnClick(function() {
 			if (this.typing||G$("TextInput").visible) return;
 			if (Key.isDown("18")) this.store(void(0));
@@ -3173,7 +3173,8 @@ class TextInput extends Button {
 			textWidth = WIDTH;
 			promptX = 0;
 			promptY = textY*2;
-			this.keyboard = $("#touchkeyboard").val("").focus().select();
+			$(canvas).hide();
+			this.keyboard = $("#touchkeyboard").val(this.typingText).attr("placeholder",this.promptMsg).show().focus().select();
 		}
 		else {
 			x = this.x-5; y = this.y-5;
@@ -3269,10 +3270,12 @@ class TextInput extends Button {
 		this.typingText = "";
 		for (var i = 0; i < str.length; i++) {
 			let char = str.charAt(i);
-			if (char.match(/[A-Z0-9a-z\-_#. ]/)) this.typingText += char;
+			if (char.match(/[A-Z0-9a-z\-_#. ]/)) {
+				if (typeof this.onNewCharFunc == "function") char = this.onNewCharFunc(char);
+				this.typingText += char;
+			}
 		}
-		this.onKeypress(32); // space
-		this.onKeypress(8); // backspace
+		G$("TextInput:TE").text = this.typingText;
 		return this.typingText;
 	}
 	update() {
