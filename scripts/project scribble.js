@@ -807,6 +807,11 @@ const Net = {
 			else if (typeof failure == "function") failure("Couldn't create room");
 		}, () => { failure("Network connection error"); });
 	},
+	closeRoom: function() {
+		if (!this.room) return;
+		this.POST("closeroom",{room:this.room});
+		this.cleanup(true); // cleanup but keep firebase open
+	},
 	watchClientQueue: function() {
 		if (this.listenerToQueue) this.listenerToQueue.off();
 		this.listenerToQueue = firebase.database().ref("rooms/"+this.room+"/clientQueue");
@@ -1090,12 +1095,12 @@ const Net = {
 		});
 		this.started = true;
 	},
-	cleanup: function() {
+	cleanup: function(keepFirebase) {
 		if (this.host) this.host.destroy();
 		for (var i in this.clients) this.clients[i].destroy();
 		if (this.listener) this.listener.off();
 		if (this.listenerToQueue) this.listenerToQueue.off();
-		if (firebase.apps.length>0) firebase.app().delete();
+		if (!keepFirebase && firebase.apps.length>0) firebase.app().delete();
 		this.room = this.listener = this.listenerToQueue = this.host = this.newClient = null;
 		this.clients = [];
 		this.roomTick = 0;

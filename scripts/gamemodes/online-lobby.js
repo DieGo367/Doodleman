@@ -59,13 +59,12 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			G$("Room").open();
 			Net.createRoom(function(code) {
 				G$("RoomCode").text = code;
-				G$("LockRoom").show();
+				G$("RoomHoster").opensub();
 				Player.add(0);
 				Tap.ctrlEnabled = true;
 			},
 			function(failure) {
 				G$("Room").close();
-				G$("LockRoom").hide();
 				gameAlert(failure,120);
 			});
 		}).show().setAsStart();
@@ -114,7 +113,9 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		
 		View.create("Room",0,0,WIDTH,HEIGHT);
 		TextElement.create("RoomCode","Room",WIDTH/2,50,fontHudScore,"...",WIDTH-200,CENTER).show();
-		Button.create("LockRoom","Room",10,10,100,40,"Lock Room").setToggle(function() {
+
+		View.create("RoomHoster",0,0,WIDTH,HEIGHT);
+		Button.create("LockRoom","RoomHoster",10,10,120,40,"Lock Room").setToggle(function() {
 			Net.roomLock(true);
 			this.text = "Unlock Room";
 			this.toggleState = 1;
@@ -123,7 +124,18 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			Net.roomLock(false);
 			this.text = "Lock Room";
 			this.toggleState = 0;
-		});
+		}).show();
+		Button.create("CloseRoom","RoomHoster",WIDTH-130,10,120,40,"Close Room").setOnClick(function() {
+			Player.preventLocalControls = true;
+			gameConfirm("Are you sure you want to close this room?",function(confirmed) {
+				Player.preventLocalControls = false;
+				if (confirmed) {
+					Net.closeRoom(); // we need a warning here
+					G$("Room").close();
+					Player.killAll();
+				}
+			});
+		}).setImage("GUI/Button_Red.png").show();
 	},
 	removeGui: function() {
 		G$("Online").remove();

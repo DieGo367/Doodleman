@@ -1809,7 +1809,9 @@ class Player extends Entity {
 		this.ctrl = this.ctrlPack = null;
 	}
 	getCtrl() {
-		return this.ctrl || (this.ctrlPack? this.ctrlPack.mostRecent() : NullCtrl.get(0));
+		let ctrl = this.ctrl || (this.ctrlPack? this.ctrlPack.mostRecent() : NullCtrl.get(0));
+		if (Player.preventLocalControls && ctrl.type!=WEBIN) return NullCtrl.get(0);
+		else return ctrl;
 	}
 
 	handleControls(pad) {
@@ -2134,6 +2136,7 @@ class Player extends Entity {
 	}
 
 	static onInit() {
+		this.preventLocalControls = false,
 		this.modifyPrototype({
 			drawLayer: 2,
 			respawnsOnDeath: true,
