@@ -795,6 +795,8 @@ const Net = {
 	host: null,
 	clientID: null,
 	webInputID: null, ctrls: null,
+	// misc used by engine
+	gamemodeChanged: null,
 	// host methods
 	createRoom: function(success,failure) {
 		this.POST("createroom",null,function(data) {
@@ -915,8 +917,12 @@ const Net = {
 		}
 		let objectState = RemoteObject.generateState();
 		let delta = RemoteObject.delta(this.lastState||{},objectState);
-		Net.send({objectState: delta});
+		this.send({objectState: delta});
 		this.lastState = objectState;
+		if (this.gamemodeChanged!=null) {
+			if (this.clients.length>0) this.send({gamemode: this.gamemodeChanged});
+			this.gamemodeChanged = null;
+		}
 	},
 	hostFailure: function(client) {
 		this.removeClient(client);
@@ -1079,6 +1085,7 @@ const Net = {
 			if (data.objectState) RemoteObject.matchState(data.objectState);
 			if (data.level) Level.load(data.level,true,true);
 			if (data.cam) Camera.loadData(data.cam);
+			if (data.gamemode!=void(0)) Game.mode = data.gamemode;
 		}
 		Game.onNetData(data,role);
 	},

@@ -11,6 +11,7 @@ const GameManager = {
 		Level.clearLevel();
 		paused = false;
 		Game = this.getMode();
+		if (online) Net.gamemodeChanged = mode;
 		Game.start();
 		return this.mode;
 	},
