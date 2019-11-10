@@ -115,7 +115,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		TextElement.create("RoomCode","Room",WIDTH/2,50,fontHudScore,"...",WIDTH-200,CENTER).show();
 
 		View.create("RoomHoster",0,0,WIDTH,HEIGHT);
-		Button.create("LockRoom","RoomHoster",10,10,120,40,"Lock Room").setToggle(function() {
+		Button.create("LockRoom","RoomHoster",WIDTH-260,10,120,40,"Lock Room").setToggle(function() {
 			Net.roomLock(true);
 			this.text = "Unlock Room";
 			this.toggleState = 1;
@@ -136,10 +136,33 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 				}
 			});
 		}).setImage("GUI/Button_Red.png").show();
+		Button.create("StartGame","RoomHoster",10,10,250,40,"Start Game").setOnClick(function() {
+			Player.preventLocalControls = true;
+			G$("GamemodeSelect").open();
+		}).show();
+
+		View.create("GamemodeSelect",0,0,WIDTH,HEIGHT);
+		TextElement.create("GamemodeTitle","GamemodeSelect",WIDTH/2,30,fontMenuTitle,"Choose a Game Mode",WIDTH,CENTER).show();
+		Button.create("GamemodeSurvival","GamemodeSelect",WIDTH/2-100,HEIGHT/2-80,200,60,"Survival").setOnClick(function() {
+			Player.preventLocalControls = false;
+			Game.mode = GAME_SURVIVAL;
+		}).show().setAsStart();
+		Button.create("GamemodeSandbox","GamemodeSelect",WIDTH/2-100,HEIGHT/2+0,200,60,"Sandbox").setOnClick(function() {
+			Player.preventLocalControls = false;
+			Game.mode = GAME_SANDBOX;
+		}).show();
+		Button.create("GamemodeCancel","GamemodeSelect",WIDTH/2-100,HEIGHT/2+120,200,40,"Back").setOnClick(function() {
+			Player.preventLocalControls = false;
+			this.view.close();
+		}).setImage("GUI/Button_Red.png").show();
+
+		Button.pathVert(["GamemodeSurvival","GamemodeSandbox","GamemodeCancel"]);
 	},
 	removeGui: function() {
 		G$("Online").remove();
-		G$("Hosting").remove();
 		G$("Joining").remove();
+		G$("Room").remove();
+		G$("RoomHoster").remove();
+		G$("GamemodeSelect").remove();
 	}
 }));
