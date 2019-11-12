@@ -199,6 +199,63 @@ function buildPauseMenu() {
 	Button.funnelTo("QuitGame","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
 }
 
+function buildOnlineMenu() {
+	View.create("OnlineMenu",0,0,WIDTH,70,"tint","orange").setOnShow(function() {
+		G$("OnlineRoomCode").text = Net.room;
+		
+	});
+	Button.create("OnlineSettings","OnlineMenu",10,10,50,50).setOnClick(function() {
+		G$("OnlineSettingsMenu").open();
+	}).setIcon("GUI/Icons.png",4,0,42,4).show();
+	Button.create("OnlineLock","OnlineMenu",70,10,50,50,"Lock").setToggle(function() {
+		Net.roomLock(true);
+		this.setIcon("GUI/Icons.png",5,0,42,4);
+		this.toggleState = 1;
+	},
+	function() {
+		Net.roomLock(false);
+		this.setIcon("GUI/Icons.png",6,0,42,4);
+		this.toggleState = 0;
+	}).setIcon("GUI/Icons.png",Net.isRoomLocked()?5:6,0,42,4).show();
+	TextElement.create("OnlineRoomCode","OnlineMenu",120 + (WIDTH/2 - 150/2 - 120)/2,45,fontHudScore,"...",WIDTH/2-(150/2)-120,CENTER).show();
+	Button.create("OnlineLobby","OnlineMenu",WIDTH/2-150/2,10,150,50,"Back to Lobby").setOnClick(function() {
+		Game.mode = GAME_ONLINELOBBY;
+	}).show();
+	Button.create("OnlineClose","OnlineMenu",WIDTH-60,10,50,50).setOnClick(function() {
+		Player.preventLocalControls = false;
+		this.view.close();
+	}).setIcon("GUI/Icons.png",1,0,42,4).show().setAsStart();
+	Button.pathHor(["OnlineSettings","OnlineLock","OnlineLobby","OnlineClose","OnlineSettings"]);
+
+	View.create("OnlineSettingsMenu",0,0,WIDTH,70,"tint","orange");
+	Button.create("OnlineSettingsClose","OnlineSettingsMenu",10,10,50,50).setOnClick(function() {
+		this.view.close();
+	}).setImage("GUI/Button_Red.png").setIcon("GUI/Icons.png",3,0,42,4).show().setAsStart();
+	Button.create("OnlineSettingsVolumeButton","OnlineSettingsMenu",70,10,50,50).setOnClick(function() {
+		let vol = G$("OnlineSettingsVolumeSlider");
+		if (vol.isVisible()) vol.hide();
+		else vol.show();
+	}).setIcon("GUI/Icons.png",0,3,42,4).show();
+	Slider.create("OnlineSettingsVolumeSlider","OnlineSettingsMenu",70,75,20,40,100).setOnViewShown(function() {
+		this.hide();
+		this.setValue(Sound.volume);
+		G$("OnlineSettingsVolumeButton").setIcon("GUI/Icons.png",(this.value==0?1:0),3,42,4);
+	})
+	.setOnSlide(function() {
+		Sound.setVolume(this.value);
+		G$("OnlineSettingsVolumeButton").setIcon("GUI/Icons.png",(this.value==0?1:0),3,42,4);
+	});
+	if (!startedInFullScreen) Button.create("OnlineSettingsFSToggle","OnlineSettingsMenu",130,10,50,50).setToggle(function() {
+		this.on = !this.on;
+		setFullScreen(this.on);
+	},true)
+	.setOnViewShown(function() {
+		this.on = fullScreen;
+	}).setIcon("GUI/Icons.png",2,0,42,4).show();
+	else Button.create("OnlineSettingsFSToggle","OnlineSettingsMenu",0,0,0,0);
+	Button.pathHor(["OnlineSettingsClose","OnlineSettingsVolumeButton","OnlineSettingsFSToggle"]);
+}
+
 function buildControllerSettingsMenu() {
 	View.create("CtrlSettingsView",0,0,WIDTH,HEIGHT,"tint","black");
 	TextElement.create("CtrlSettingsText","CtrlSettingsView",WIDTH/2,30,fontMenuTitle,"Controller Settings",WIDTH,CENTER).show();

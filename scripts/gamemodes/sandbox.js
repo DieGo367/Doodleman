@@ -8,6 +8,17 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 		this.removeGui();
 	},
 	onPause: function(paused) {
+		if (online) {
+			if (View.focus<2) {
+				Player.preventLocalControls = true;
+				G$("OnlineMenu").open();
+			}
+			else if (View.focus==2) {
+				Player.preventLocalControls = false;
+				G$("OnlineMenu").close();
+			}
+			return CANCEL;
+		}
 		if (paused) {
 			G$("PauseMenu").open();
 			G$("DevTools").hide();
@@ -21,7 +32,7 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 		}
 	},
 	onBlur: function() {
-		pauseGame(true);
+		if (!online) pauseGame(true);
 	},
 	onLevelLoad: function() {
 		Player.setAllLives(5);
@@ -61,6 +72,8 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 		}).show().setPressDelay(1).up("CtrlSettingsButton");
 		Button.funnelTo("LevelSelectButton","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
 		Button.pathVert(["LevelSelectButton","QuitGame"]);
+
+		buildOnlineMenu();
 
 		View.create("LevelSelectView",0,0,WIDTH,HEIGHT,"tint","black");
 		TextElement.create("LSText","LevelSelectView",WIDTH/2,30,fontMenuTitle,"Select a level",WIDTH,CENTER).show();
