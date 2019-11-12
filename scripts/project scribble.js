@@ -1135,6 +1135,15 @@ const Net = {
 			if (this.host) this.clientUpdate();
 			else if (this.clients.length>0) this.hostUpdate();
 		}
+	},
+	isHost: function() {
+		return this.clients.length > 0;
+	},
+	isClient: function() {
+		return !!this.host;
+	},
+	isRoomLocked: function() {
+		return !this.newClient;
 	}
 };
 
