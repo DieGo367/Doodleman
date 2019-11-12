@@ -890,7 +890,8 @@ const Net = {
 		client.webInputID = WebInput.newChannel();
 		this.send({
 			assignClientID: client.clientID,
-			webInputID: client.webInputID
+			webInputID: client.webInputID,
+			gamemode: Game.mode!=GAME_ONLINELOBBY? Game.mode: void(0)
 		},client);
 		this.send({level:Level.optimize(Level.level)},client);
 		if (this.lastState) this.send({objectState:this.lastState},client);
@@ -915,14 +916,16 @@ const Net = {
 			let camData = Camera.getData(client.clientID+1);
 			if (camData) this.send({cam: camData},client);
 		}
+		let packet = {};
 		let objectState = RemoteObject.generateState();
 		let delta = RemoteObject.delta(this.lastState||{},objectState);
-		this.send({objectState: delta});
+		packet.objectState = delta;
 		this.lastState = objectState;
 		if (this.gamemodeChanged!=null) {
-			if (this.clients.length>0) this.send({gamemode: this.gamemodeChanged});
+			packet.gamemode = this.gamemodeChanged;
 			this.gamemodeChanged = null;
 		}
+		this.send(packet);
 	},
 	hostFailure: function(client) {
 		this.removeClient(client);
