@@ -201,13 +201,28 @@ function buildPauseMenu() {
 
 function buildOnlineMenu() {
 	View.create("OnlineMenu",0,0,WIDTH,70,"tint","orange").setOnShow(function() {
-		G$("OnlineRoomCode").text = Net.room;
-		
+		let codeDisplay = G$("OnlineRoomCode");
+		codeDisplay.text = Net.room;
+		if (Net.isHost()) {
+			codeDisplay.maxWidth = WIDTH/2 - 150/2 - 120;
+			codeDisplay.x = 120 + codeDisplay.maxWidth/2;
+			let locked = Net.isRoomLocked();
+			G$("OnlineLock").setIcon("GUI/Icons.png",locked?5:6,0,42,4).show().toggleState = locked?1:0;
+			Button.pathHor(["OnlineSettings","OnlineLock","OnlineLeave"]);
+			G$("OnlineLeave").text = "Back to Lobby";
+		}
+		else if (Net.isClient()) {
+			codeDisplay.maxWidth = WIDTH/2 - 150/2 - 60;
+			codeDisplay.x = 60 + codeDisplay.maxWidth/2;
+			G$("OnlineLock").hide();
+			Button.pathHor(["OnlineSettings","OnlineLeave"]);
+			G$("OnlineLeave").text = "Disconnect";
+		}
 	});
 	Button.create("OnlineSettings","OnlineMenu",10,10,50,50).setOnClick(function() {
 		G$("OnlineSettingsMenu").open();
 	}).setIcon("GUI/Icons.png",4,0,42,4).show();
-	Button.create("OnlineLock","OnlineMenu",70,10,50,50,"Lock").setToggle(function() {
+	Button.create("OnlineLock","OnlineMenu",70,10,50,50).setToggle(function() {
 		Net.roomLock(true);
 		this.setIcon("GUI/Icons.png",5,0,42,4);
 		this.toggleState = 1;
@@ -216,16 +231,18 @@ function buildOnlineMenu() {
 		Net.roomLock(false);
 		this.setIcon("GUI/Icons.png",6,0,42,4);
 		this.toggleState = 0;
-	}).setIcon("GUI/Icons.png",Net.isRoomLocked()?5:6,0,42,4).show();
+	});
 	TextElement.create("OnlineRoomCode","OnlineMenu",120 + (WIDTH/2 - 150/2 - 120)/2,45,fontHudScore,"...",WIDTH/2-(150/2)-120,CENTER).show();
-	Button.create("OnlineLobby","OnlineMenu",WIDTH/2-150/2,10,150,50,"Back to Lobby").setOnClick(function() {
+	Button.create("OnlineLeave","OnlineMenu",WIDTH/2-150/2,10,150,50,"Back to Lobby").setOnClick(function() {
+		Player.preventLocalControls = false;
+		if (Net.isClient()) Net.leaveRoom();
 		Game.mode = GAME_ONLINELOBBY;
 	}).show();
 	Button.create("OnlineClose","OnlineMenu",WIDTH-60,10,50,50).setOnClick(function() {
 		Player.preventLocalControls = false;
 		this.view.close();
 	}).setIcon("GUI/Icons.png",1,0,42,4).show().setAsStart();
-	Button.pathHor(["OnlineSettings","OnlineLock","OnlineLobby","OnlineClose","OnlineSettings"]);
+	Button.pathHor(["OnlineSettings","OnlineLock","OnlineLeave","OnlineClose","OnlineSettings"]);
 
 	View.create("OnlineSettingsMenu",0,0,WIDTH,70,"tint","orange");
 	Button.create("OnlineSettingsClose","OnlineSettingsMenu",10,10,50,50).setOnClick(function() {
