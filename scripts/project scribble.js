@@ -1137,7 +1137,7 @@ const Net = {
 		}
 	},
 	isHost: function() {
-		return this.clients.length > 0;
+		return this.room != null && !this.host;
 	},
 	isClient: function() {
 		return !!this.host;
