@@ -994,7 +994,7 @@ const Net = {
 	},
 	clientUpdate: function() {
 		if (!this.usable(this.host)) return this.clientFailure();
-		if (this.ctrls) {
+		if (this.ctrls && !Player.preventLocalControls) {
 			let ctrl = this.ctrls.mostRecent();
 			let data = {
 				clientID: this.clientID,
