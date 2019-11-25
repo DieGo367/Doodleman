@@ -989,11 +989,8 @@ const Net = {
 		Game.onNetConnection(Net.host,"client");
 	},
 	leaveRoom: function() {
-		this.host.destroy();
-		if (this.ctrls) this.ctrls.selfDestructAll();
-		this.host = this.ctrls = null;
-		this.clientCode = this.clientID = this.webInputID = null;
-		RemoteObject.clearState();
+		if (!this.room) return;
+		this.cleanup(true);
 	},
 	clientUpdate: function() {
 		if (!this.usable(this.host)) return this.clientFailure();
@@ -1110,12 +1107,15 @@ const Net = {
 		for (var i in this.clients) this.clients[i].destroy();
 		if (this.listener) this.listener.off();
 		if (this.listenerToQueue) this.listenerToQueue.off();
+		if (this.ctrls) this.ctrls.selfDestructAll();
+		RemoteObject.clearState();
 		if (!keepFirebase && firebase.apps.length>0) firebase.app().delete();
 		this.room = this.listener = this.listenerToQueue = this.host = this.newClient = null;
 		this.clients = [];
+		this.clientCode = this.clientID = this.webInputID = this.ctrls = null;
 		this.roomTick = 0;
 		this.queueTick = -1;
-		this.started = false;
+		if (!keepFirebase) this.started = false;
 	},
 	update: function() {
 		if (this.room!=null) {

@@ -9,13 +9,39 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		online = true;
 		Net.discoveryAlerts = true;
 		if (!Net.started) Net.startup();
-		try {
-			Net.joinRoom(NET_INVITE,function() {},function(err) {
-				gameAlert(err,120);
-			});
+		if (Net.room) { // if aready in a room
+			G$("RoomCode").text = Net.room;
+			G$("Room").open();
+			Tap.ctrlEnabled = true;
+			if (Net.isHost()) {
+				G$("RoomHoster").opensub();
+				Player.add(0);
+				for (var i = 0; i < Net.clients.length; i++) {
+					let client = Net.clients[i];
+					if (client) {
+						Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
+						Player.add(client.clientID+1);
+					}
+				}
+			}
 		}
-		catch {
-			// no net invite was given
+		else try { // if not in a room, check for a net invite
+			if (!this.acceptedInvite) {
+				G$("RoomCode").text = "Joining...";
+				G$("Room").open();
+				Net.joinRoom(NET_INVITE,function() {
+					G$("RoomCode").text = NET_INVITE;
+					Tap.ctrlEnabled = true;
+				},
+				function(err) {
+					gameAlert(err,120);
+					G$("Room").close();
+				});
+				this.acceptedInvite = true;
+			}
+		}
+		catch { // no net invite was given
+			G$("Room").close();
 		}
 	},
 	quit: function() {
