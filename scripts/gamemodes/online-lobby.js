@@ -34,8 +34,8 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 					Tap.ctrlEnabled = true;
 				},
 				function(err) {
-					gameAlert(err,120);
 					G$("Room").close();
+					gameAlert(err,120);
 				});
 				this.acceptedInvite = true;
 			}
