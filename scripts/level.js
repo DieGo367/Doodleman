@@ -112,6 +112,7 @@ const Level = {
 		Line.killAll();
 		Background.killAll();
 		Particle.killAll();
+		RemoteObject.killAll();
 		Sector.update();
 		this.level = clone(BlankLevel);
 		Camera.reset();
