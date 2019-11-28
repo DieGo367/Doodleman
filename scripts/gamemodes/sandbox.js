@@ -1,4 +1,5 @@
 const GAME_SANDBOX = GameManager.addMode(new GameMode({
+	lifeCount: 5,
 	start: function() {
 		this.addGui();
 		G$("Hud").open();
@@ -35,33 +36,91 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 		if (!online) pauseGame(true);
 	},
 	onLevelLoad: function() {
-		Player.setAllLives(5);
+		if (Net.isClient()) return;
+		Player.setAllLives(this.lifeCount);
 		Player.addAll();
-		let ls = G$("LevelSelectView")
+		let ls = G$("LevelSelectView");
 		if (ls.layer) ls.close();
 		if (focused) pauseGame(false);
 	},
 	onDeath: function(ent,attacker) {
 		if (ent instanceof Player && !Player.hasLives(ent.slot)) {
 			let slot = ent.slot;
-			let buttons = [multiplayer?"AddP1Button":"RespawnP1Button","AddP2Button"];
-			G$(buttons[slot]).show();
+			if (!multiplayer||online) { // single player or online
+				if (slot==0) G$("RespawnButton").show();
+				else if (Net.isHost()) {
+					let target = Net.clients[slot-1];
+					if (target) Net.send({survivalRespawnBtn: true},target);
+				}
+			}
+			else {
+				let buttons = ["AddP1Button","AddP2Button"];
+				G$(buttons[slot]).show();
+			}
+		}
+	},
+	onNetConnection: function(conn,role) {
+		if (role=="host") {
+			Player.grantLives(conn.clientID+1);
+			Player.add(conn.clientID+1);
+		}
+	},
+	onNetFailure: function(role,clientID) {
+		if (role=="host") {
+			let allP = Player.getAll();
+			for (var i in allP) {
+				let p = allP[i];
+				if (p.slot==0) continue;
+				if (!Player.ctrlInSlot(p.slot)) {
+					Player.setLives(p.slot,0);
+					p.remove();
+				}
+			}
+			gameAlert("Guest "+(clientID+1)+" was disconnected",120);
+		}
+		else if (role=="client") {
+			Game.mode = GAME_ONLINELOBBY;
+			gameAlert("Lost connection to host",120);
+		}
+	},
+	onNetData: function(data,role) {
+		if (role=="host") {
+			if (data.survivalRespawnRequest!=void(0)) {
+				let slot = data.survivalRespawnRequest;
+				if (!Player.getSlot(slot)) {
+					Player.grantLives(slot);
+					Player.add(slot);
+				}
+				let target = Net.clients[slot-1];
+				if (target) Net.send({survivalRespawnBtn: false},target);
+			}
+		}
+		else if (role=="client") {
+			if (data.survivalRespawnBtn!=void(0)) {
+				if (data.survivalRespawnBtn) G$("RespawnButton").show();
+				else G$("RespawnButton").hide();
+			}
 		}
 	},
 	addGui: function() {
 		buildMainHud();
-		Button.create("RespawnP1Button","Hud",WIDTH/2-50,50,100,40,"Respawn").setOnClick(function() {
-			Player.setLives(0,5);
-			Player.add(0);
-			this.hide();
+		Button.create("RespawnButton","Hud",WIDTH/2-50,50,100,40,"Respawn").setOnClick(function() {
+			if (online&&Net.isClient()) {
+				Net.send({survivalRespawnRequest: Net.clientID+1});
+			}
+			else {
+				Player.grantLives(0);
+				Player.add(0);
+				this.hide();
+			}
 		});
 		Button.create("AddP1Button","Hud",WIDTH/2-110,50,100,40,"P1 Start").setOnClick(function() {
-			Player.setLives(0,5);
+			Player.grantLives(0);
 			Player.add(0);
 			this.hide();
 		});
 		Button.create("AddP2Button","Hud",WIDTH/2+10,50,100,40,"P2 Start").setOnClick(function() {
-			Player.setLives(1,5);
+			Player.grantLives(1);
 			Player.add(1);
 			this.hide();
 		});
@@ -74,6 +133,12 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 		Button.pathVert(["LevelSelectButton","QuitGame"]);
 
 		buildOnlineMenu();
+		if (Net.isHost()) {
+			Button.create("LevelSelectButtonOnline","OnlineMenu",WIDTH/2+150/2+10,10,150,50,"Level Select").setOnClick(function() {
+				G$("LevelSelectView").open();
+			}).show().setAsStart();
+			Button.pathHor(["OnlineLeave","LevelSelectButtonOnline","OnlineClose"]);
+		}
 
 		View.create("LevelSelectView",0,0,WIDTH,HEIGHT,"tint","black");
 		TextElement.create("LSText","LevelSelectView",WIDTH/2,30,fontMenuTitle,"Select a level",WIDTH,CENTER).show();
