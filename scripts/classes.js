@@ -194,6 +194,7 @@ class RemoteObject extends _c_ {
 			this.uid = this.object.uid;
 			this.drawLayer = this.object.drawLayer;
 			this.remoteClass = remoteClass;
+			this.object.remoteObject = this;
 		}
 	}
 	draw() {
@@ -1999,7 +2000,7 @@ class Player extends Entity {
 	}
 
 	drawHud() {
-		if (Player.getSlot(this.slot)==this) {
+		if (Player.getSlot(this.slot)==this || this.remoteObject) {
 			let lives = Player.getLives(this.slot);
 			if (lives>0&&lives<Infinity) {
 				Images.drawImage(this.sheet.pages[this.animPage],10,10+(24*this.slot),19,19,0,0,19,19);

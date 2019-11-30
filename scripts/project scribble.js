@@ -921,6 +921,7 @@ const Net = {
 		let delta = RemoteObject.delta(this.lastState||{},objectState);
 		packet.objectState = delta;
 		this.lastState = objectState;
+		packet.playerLives = Player.lives;
 		if (this.gamemodeChanged!=null) {
 			packet.gamemode = this.gamemodeChanged;
 			this.gamemodeChanged = null;
@@ -1086,6 +1087,7 @@ const Net = {
 			if (data.level) Level.load(data.level,true,true);
 			if (data.cam) Camera.loadData(data.cam);
 			if (data.gamemode!=void(0)) Game.mode = data.gamemode;
+			if (data.playerLives) Player.lives = data.playerLives;
 		}
 		Game.onNetData(data,role);
 	},
