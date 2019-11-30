@@ -36,12 +36,14 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 		if (!online) pauseGame(true);
 	},
 	onLevelLoad: function() {
+		if (online&&G$("OnlineMenu").visible) pauseGame(!paused);
 		if (Net.isClient()) return;
 		Player.setAllLives(this.lifeCount);
 		Player.addAll();
 		let ls = G$("LevelSelectView");
 		if (ls.layer) ls.close();
 		if (focused) pauseGame(false);
+		if (online&&G$("OnlineMenu").visible) pauseGame(!paused);
 	},
 	onDeath: function(ent,attacker) {
 		if (ent instanceof Player && !Player.hasLives(ent.slot)) {
