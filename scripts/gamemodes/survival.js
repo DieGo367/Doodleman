@@ -6,6 +6,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 		this.gameState = "none";
 		this.addGui();
 		G$("Hud").open();
+		if (online&&Net.isClient()) return;
 		if (EditorTools.levelCopy) this.setTestLevel();
 		else {
 			canvas.showLoadScreen();
@@ -32,6 +33,19 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 	},
 	onPause: function(paused) {
 		if (this.deathEvent) return CANCEL;
+		if (online) {
+			if (View.focus<2) {
+				G$("OnlineMenu").open();
+				Player.preventLocalControls = true;
+				Tap.ctrlEnabled = false;
+			}
+			else if (View.focus==2) {
+				G$("OnlineMenu").close();
+				Player.preventLocalControls = false;
+				Tap.ctrlEnabled = true;
+			}
+			return CANCEL;
+		}
 		if (paused) {
 			G$("PauseMenu").open();
 			G$("DevTools").hide();
@@ -45,14 +59,14 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 		}
 	},
 	onBlur: function() {
-		if (!this.deathEvent) pauseGame(true);
+		if (!this.deathEvent&&!online) pauseGame(true);
 	},
 	onLevelLoad: function() {
-		G$("ScoreText").show();
-		Player.addAll();
-		G$("LevelSelectView").hide();
-		G$("DeathScreen").hide();
+		G$("DeathScreen").close();
 		if (focused) pauseGame(false);
+		if (online&&G$("OnlineMenu").visible) pauseGame(!paused);
+		if (online&&Net.isClient()) return this.deathEvent = false, void(0);
+		Player.addAll();
 		this.ready = true;
 		this.spawnStep();
 	},
@@ -71,10 +85,13 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 			}
 		}
 		else if (ent instanceof Player&&!Player.hasLives(ent.slot)) {
-			this.deathEvent = true;
-			if (Player.getAll().length<=1) wait(60,function() {
-				G$("DeathScreen").open();
-			});
+			if (Player.getAll().length<=1) {
+				this.deathEvent = true;
+				Net.send({survivalDeathEvent: true});
+				wait(60,function() {
+					G$("DeathScreen").open();
+				});
+			}
 		}
 	},
 	onCollect: function(player,item) {
@@ -83,6 +100,43 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 				let bonus = item.hp*2;
 				if (item instanceof MaxHeart) bonus = player.health;
 				this.addScore(bonus);
+			}
+		}
+	},
+
+	onNetConnection: function(conn,role) {
+		if (role=="host") {
+			Player.grantLives(conn.clientID+1);
+			Player.add(conn.clientID+1);
+			Net.send({survivalScore: this.score});
+		}
+	},
+	onNetFailure: function(role,clientID) {
+		if (role=="host") {
+			let allP = Player.getAll();
+			for (var i in allP) {
+				let p = allP[i];
+				if (p.slot==0) continue;
+				if (!Player.ctrlInSlot(p.slot)) {
+					Player.setLives(p.slot,0);
+					p.remove();
+				}
+			}
+			gameAlert("Guest "+(clientID+1)+" was disconnected",120);
+		}
+		else if (role=="client") {
+			Game.mode = GAME_ONLINELOBBY;
+			gameAlert("Lost connection to host",120);
+		}
+	},
+	onNetData: function(data,role) {
+		if (role=="client") {
+			if (data.survivalScore!=void(0)) G$("ScoreText").setVar(data.survivalScore);
+			if (data.survivalDeathEvent) {
+				this.deathEvent = true;
+				wait(60,function() {
+					G$("DeathScreen").open();
+				});
 			}
 		}
 	},
@@ -121,6 +175,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 		this.score += amt;
 		this.scoreDelta += amt;
 		G$("ScoreText").setVar(this.score);
+		if (online&&Net.isHost()) Net.send({survivalScore: this.score});
 	},
 	spawnStep: function() {
 		let wave = this.getWave();
@@ -254,7 +309,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 
 	addGui: function() {
 		buildMainHud();
-		TextElement.create("ScoreText","Hud",WIDTH/2,55,fontHudScore,"Score: {{var}}",WIDTH,CENTER).setVar(0);
+		TextElement.create("ScoreText","Hud",WIDTH/2,55,fontHudScore,"Score: {{var}}",WIDTH,CENTER).setVar(0).show();
 		buildPauseMenu();
 		Button.create("RetryButton","PauseMenu",WIDTH/2-150,HEIGHT-120,300,40,"Retry").setOnClick(function() {
 			gameConfirm("Are you sure you want to restart?",function(response) {
@@ -263,6 +318,15 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 		}).show().up("CtrlSettingsButton");
 		Button.funnelTo("RetryButton","down",["CtrlSettingsButton","VolumeButton","FSToggle","PauseClose"]);
 		Button.pathVert(["RetryButton","QuitGame"]);
+		buildOnlineMenu();
+		if (Net.isHost()) {
+			Button.create("RetryButtonOnline","OnlineMenu",WIDTH/2+150/2+10,10,150,50,"Retry").setOnClick(function() {
+				gameConfirm("Are you sure you want to restart?",function(response) {
+					if (response) Game.firstStep();
+				});
+			}).show().setAsStart();
+			Button.pathHor(["OnlineLeave","RetryButtonOnline","OnlineClose"]);
+		}
 		buildControllerSettingsMenu();
 		buildMapperView();
 		buildMapperTool();
@@ -272,16 +336,22 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 			G$("DeathText").setVar(G$("ScoreText").var);
 		});
 		TextElement.create("DeathText","DeathScreen",WIDTH/2,HEIGHT/4,fontPaused,"Score: {{var}}",WIDTH,CENTER).setVar(0).show();
-		Button.create("PlayAgain","DeathScreen",WIDTH/2-150,HEIGHT-120,300,40,"Play Again").setOnClick(function() {
-			this.view.close();
-			Game.firstStep();
-		}).show().setAsStart();
-		Button.create("DeathScreenQuit","DeathScreen",WIDTH/2-150,HEIGHT-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
-		Button.pathVert(["PlayAgain","DeathScreenQuit"]);
+		if (!online||Net.isHost()) {
+			Button.create("PlayAgain","DeathScreen",WIDTH/2-150,HEIGHT-120,300,40,"Play Again").setOnClick(function() {
+				this.view.close();
+				Game.firstStep();
+			}).show().setAsStart();
+			Button.create("DeathScreenQuit","DeathScreen",WIDTH/2-150,HEIGHT-60,300,40,"Back to Title").setOnClick(G$("QuitGame").onClickFunction).show();
+			Button.pathVert(["PlayAgain","DeathScreenQuit"]);
+		}
+		else {
+			Button.create("DeathScreenDisconnect","DeathScreen",WIDTH/2-150,HEIGHT-60,300,40,"Disconnect").setOnClick(G$("OnlineLeave").onClickFunction).setImage("GUI/Button_Red.png").show().setAsStart();
+		}
 	},
 	removeGui: function() {
 		G$("Hud").remove();
 		G$("PauseMenu").remove();
+		G$("OnlineMenu").remove();
 		G$("CtrlSettingsView").remove();
 		G$("MapperView").remove();
 		G$("MapperTool").remove();
