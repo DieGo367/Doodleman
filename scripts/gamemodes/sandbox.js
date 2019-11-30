@@ -52,7 +52,7 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 				if (slot==0) G$("RespawnButton").show();
 				else if (Net.isHost()) {
 					let target = Net.clients[slot-1];
-					if (target) Net.send({survivalRespawnBtn: true},target);
+					if (target) Net.send({sandboxRespawnBtn: true},target);
 				}
 			}
 			else {
@@ -87,19 +87,19 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 	},
 	onNetData: function(data,role) {
 		if (role=="host") {
-			if (data.survivalRespawnRequest!=void(0)) {
-				let slot = data.survivalRespawnRequest;
+			if (data.sandboxRespawnRequest!=void(0)) {
+				let slot = data.sandboxRespawnRequest;
 				if (!Player.getSlot(slot)) {
 					Player.grantLives(slot);
 					Player.add(slot);
 				}
 				let target = Net.clients[slot-1];
-				if (target) Net.send({survivalRespawnBtn: false},target);
+				if (target) Net.send({sandboxRespawnBtn: false},target);
 			}
 		}
 		else if (role=="client") {
-			if (data.survivalRespawnBtn!=void(0)) {
-				if (data.survivalRespawnBtn) G$("RespawnButton").show();
+			if (data.sandboxRespawnBtn!=void(0)) {
+				if (data.sandboxRespawnBtn) G$("RespawnButton").show();
 				else G$("RespawnButton").hide();
 			}
 		}
@@ -108,7 +108,7 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 		buildMainHud();
 		Button.create("RespawnButton","Hud",WIDTH/2-50,50,100,40,"Respawn").setOnClick(function() {
 			if (online&&Net.isClient()) {
-				Net.send({survivalRespawnRequest: Net.clientID+1});
+				Net.send({sandboxRespawnRequest: Net.clientID+1});
 			}
 			else {
 				Player.grantLives(0);
