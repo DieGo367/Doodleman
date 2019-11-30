@@ -12,10 +12,12 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 		if (online) {
 			if (View.focus<2) {
 				Player.preventLocalControls = true;
+				Tap.ctrlEnabled = false;
 				G$("OnlineMenu").open();
 			}
 			else if (View.focus==2) {
 				Player.preventLocalControls = false;
+				Tap.ctrlEnabled = true;
 				G$("OnlineMenu").close();
 			}
 			return CANCEL;
@@ -181,6 +183,7 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 	removeGui: function() {
 		G$("Hud").remove();
 		G$("PauseMenu").remove();
+		G$("OnlineMenu").remove();
 		G$("LevelSelectView").remove();
 		G$("CtrlSettingsView").remove();
 		G$("MapperView").remove();
