@@ -240,6 +240,7 @@ function buildOnlineMenu() {
 	}).show();
 	Button.create("OnlineClose","OnlineMenu",WIDTH-60,10,50,50).setOnClick(function() {
 		Player.preventLocalControls = false;
+		Tap.ctrlEnabled = true;
 		this.view.close();
 	}).setIcon("GUI/Icons.png",1,0,42,4).show().setAsStart();
 	Button.pathHor(["OnlineSettings","OnlineLock","OnlineLeave","OnlineClose","OnlineSettings"]);
