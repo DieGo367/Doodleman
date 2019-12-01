@@ -106,8 +106,9 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 
 	onNetConnection: function(conn,role) {
 		if (role=="host") {
-			Player.grantLives(conn.clientID+1);
-			Player.add(conn.clientID+1);
+			let slot = conn.clientID+1;
+			if (isNaN(Player.getLives(slot))) Player.grantLives(slot);
+			Player.add(slot);
 			Net.send({survivalScore: this.score});
 		}
 	},
@@ -118,8 +119,12 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 				let p = allP[i];
 				if (p.slot==0) continue;
 				if (!Player.ctrlInSlot(p.slot)) {
+					Player.cacheHealth(p.slot,p.health,p.maxHealth);
+					let lives = Player.getLives(p.slot);
 					Player.setLives(p.slot,0);
+					let slot = p.slot;
 					p.remove();
+					Player.setLives(slot,lives);
 				}
 			}
 			gameAlert("Guest "+(clientID+1)+" was disconnected",120);
@@ -138,6 +143,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 					G$("DeathScreen").open();
 				});
 			}
+			if (data.survivalAlert) gameAlert(data.survivalAlert,120);
 		}
 	},
 
@@ -243,6 +249,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 	},
 	waveReward: function() {
 		gameAlert("Wave "+(this.wave+this.surplusWave)+" complete!",120);
+		if (online) Net.send({survivalAlert: "Wave "+(this.wave+this.surplusWave)+" complete!"})
 		let spot = this.findOpenRewardSpot();
 		spot.rewarded = PlusHeart.create(spot.x,spot.y,1);
 		Timer.wait(120,function() {
@@ -251,6 +258,7 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 	},
 	levelReward: function() {
 		gameAlert("Level complete!",120);
+		if (online) Net.send({survivalAlert: "Level Complete!"});
 		let spot = Marker.find("survival_reward_final") || this.findOpenRewardSpot();
 		if (this.scoreDelta>this.levelBonusThreshold()) GoldenHeart.create(spot.x,spot.y);
 		else MaxHeart.create(spot.x,spot.y);
