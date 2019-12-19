@@ -85,7 +85,10 @@ function tick() { //GAME UPDATES//
 		Collision.run();
 		Particle.callForAll("update");
 		if (currentMonth==11) { // xmas snow
-			Particle.generate(Camera.leftPx()-(WIDTH/2)+Math.random()*2*WIDTH,Camera.topPx()-10,2,2,10,600,true,null,90,90,1,0.5,true);
+			for (var i = 0; i < Camera.cameras.length; i++) {
+				let cam = Camera.getCam(i);
+				if (cam) Particle.generate(cam.leftPx()-(WIDTH/2)+Math.random()*2*WIDTH,cam.topPx()-10,2,2,10,600,true,null,90,90,1,0.5,true);
+			}
 		}
 
 		Camera.update();
