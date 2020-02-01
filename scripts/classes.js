@@ -1930,33 +1930,36 @@ class Player extends Entity {
 		this.held = null;
 		Collision.removeAllPairsWith(drop);
 	}
-	dragHeldObject(velX,velY) {
-		if (this.held!=null) { //reposition carried objects
-			this.held.x = this.x;
-			this.held.y = this.y;
-			var animation = this.sheet.getAnimation(this.animCurrent);
-			var frameIndex = Math.floor(this.animFrame*0.2);
-			if (animation.holp) {
-				var holp = animation.holp;
-				if (holp.x) {
-					var xShift = 0, widthFactor = this.held.width;
-					if (holp.x.placement[frameIndex]!=null) xShift = holp.x.placement[frameIndex];
-					else xShift = holp.x.placement[0] || 0;
-					if (holp.x.widthFactor[frameIndex]!=null) widthFactor *= holp.x.widthFactor[frameIndex];
-					else widthFactor *= holp.x.widthFactor[0] || 0;
-					this.held.x += xShift + widthFactor;
+	dragHeldObject(velX,velY) { // reposition carried objects
+		if (this.held!=null) {
+			if (this.held.deleted) this.held = null;
+			else {
+				this.held.x = this.x;
+				this.held.y = this.y;
+				var animation = this.sheet.getAnimation(this.animCurrent);
+				var frameIndex = Math.floor(this.animFrame*0.2);
+				if (animation.holp) {
+					var holp = animation.holp;
+					if (holp.x) {
+						var xShift = 0, widthFactor = this.held.width;
+						if (holp.x.placement[frameIndex]!=null) xShift = holp.x.placement[frameIndex];
+						else xShift = holp.x.placement[0] || 0;
+						if (holp.x.widthFactor[frameIndex]!=null) widthFactor *= holp.x.widthFactor[frameIndex];
+						else widthFactor *= holp.x.widthFactor[0] || 0;
+						this.held.x += xShift + widthFactor;
+					}
+					if (holp.y) {
+						var yShift = 0, heightFactor = this.held.height;
+						if (holp.y.placement[frameIndex]!=null) yShift = holp.y.placement[frameIndex];
+						else yShift = holp.y.placement[0] || 0;
+						if (holp.y.heightFactor[frameIndex]!=null) heightFactor *= holp.y.heightFactor[frameIndex];
+						else heightFactor *= holp.y.heightFactor[0] || 0;
+						this.held.y -= yShift + heightFactor;
+					}
 				}
-				if (holp.y) {
-					var yShift = 0, heightFactor = this.held.height;
-					if (holp.y.placement[frameIndex]!=null) yShift = holp.y.placement[frameIndex];
-					else yShift = holp.y.placement[0] || 0;
-					if (holp.y.heightFactor[frameIndex]!=null) heightFactor *= holp.y.heightFactor[frameIndex];
-					else heightFactor *= holp.y.heightFactor[0] || 0;
-					this.held.y -= yShift + heightFactor;
-				}
+				this.held.velX = velX;
+				this.held.velY = velY;
 			}
-			this.held.velX = velX;
-			this.held.velY = velY;
 		}
 	}
 
