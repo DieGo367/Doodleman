@@ -615,6 +615,7 @@ class Entrance extends Interactable {
 		this.enterStep = 0;
 		this.exitStep = 0;
 		this.obj = null;
+		this.queue = [];
 	}
 	update() {
 		super.update();
@@ -656,6 +657,14 @@ class Entrance extends Interactable {
 	doExitSteps() {
 		this.finishExit();
 	}
+	sendoff(obj,dest) {
+		// detach from exit
+		this.forget(obj);
+		// then trigger the destination
+		if (!dest.perventEnter) dest.useEntrance(obj);
+		// or fall back to obj's spawn point
+		else obj.warp(obj.spawnX,obj.spawnY);
+	}
 	finishExit() {
 		let obj = this.obj;
 		this.forget();
@@ -687,12 +696,17 @@ class Entrance extends Interactable {
 			else if (!this.preventEnter) go(obj,this);
 			else obj.warp(0,0);
 		}
+		// check queue in case something entered during the exit sequence
+		if (this.queue.length>0) this.useEntrance(this.queue.shift());
 	}
 	useEntrance(obj) {
 		// store the objects and set step counter
-		this.obj = obj;
-		obj.entrance = this;
-		this.enterStep = 1;
+		if (this.obj) this.queue.push(obj);
+		else {
+			this.obj = obj;
+			obj.entrance = this;
+			this.enterStep = 1;
+		}
 	}
 	doEnterSteps() {
 		this.finishEntrance();
@@ -788,12 +802,14 @@ class Door extends Entrance {
 	}
 	useEntrance(player) {
 		super.useEntrance(player);
+		if (this.obj==player) {
 		this.openDoor();
 		player.warp(this.x,this.y);
 		player.velX = player.velY = 0;
 		player.defyGravity = true;
 		player.collisionType = C_NONE;
 		player.forcedInvuln = true;
+	}
 	}
 	doEnterSteps() {
 		this.obj.forcedInvuln = true;
