@@ -83,7 +83,7 @@ const GamePad = {
 	scanGamepads: function() {
 		var gamepads = navigator.getGamepads?navigator.getGamepads():(navigator.webkitGetGamepads?navigator.webkitGetGamepads():[]);
 		for (var i in this.controllers) this.controllers[i].detected = false;
-		for (var i in gamepads) {
+		for (var i = 0; i < gamepads.length; i++) {
 			if (gamepads[i]&&gamepads[i].index!=null) {
 				if (gamepads[i].index in this.controllers) {
 					let gpIndex = gamepads[i].index;
