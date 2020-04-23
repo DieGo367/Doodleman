@@ -90,7 +90,7 @@ const Images = {
 		if (!img||!img.complete||img.width==0||img.height==0) return;
 		if (!img.patterns) img.patterns = {};
 		if (!img.patterns[scale]) {
-			let offscreen = new OffscreenCanvas(img.width*scale,img.height*scale);
+			let offscreen = HiddenCanvas(img.width*scale,img.height*scale);
 			let ctx = offscreen.getContext("2d");
 			ctx.drawImage(img,0,0,img.width*scale,img.height*scale);
 			img.patterns[scale] = c.createPattern(offscreen,"repeat");

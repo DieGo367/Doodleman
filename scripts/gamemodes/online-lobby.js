@@ -40,7 +40,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 				this.acceptedInvite = true;
 			}
 		}
-		catch { // no net invite was given
+		catch(_) { // no net invite was given
 			G$("Room").close();
 		}
 	},

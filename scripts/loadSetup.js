@@ -1,6 +1,17 @@
+function HiddenCanvas(w,h) {
+	if ("OffscreenCanvas" in window) {
+		return new OffscreenCanvas(w,h);
+	}
+	else {
+		let canvas = document.createElement("canvas");
+		canvas.width = w;
+		canvas.height = h;
+		return canvas;
+	}
+}
 function canvasSetup() {
 	let canvas = $("#paper")[0];
-	let offScreen = new OffscreenCanvas(80,40);
+	let offScreen = HiddenCanvas(80,40);
 	let h = offScreen.height/2;
 	let o = offScreen.getContext("2d");
 	o.fillStyle = "#187acd";
