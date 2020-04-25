@@ -17,7 +17,7 @@ const Key = {
 			}
 		}
 		let inputs = TextInput.getAll();
-		for (var i in inputs) inputs[i].onKeypress(event.keyCode);
+		for (var i in inputs) inputs[i].onKeypress(event.key);
 	},
 	onKeyup: function(event) {
 		delete this.pressedKeys[event.keyCode];

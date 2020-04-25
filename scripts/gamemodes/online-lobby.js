@@ -110,11 +110,14 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 
 		View.create("Joining",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow");
 		TextElement.create("JoinTitle","Joining",WIDTH/2,30,fontMenuTitle,"Enter a Room Code",WIDTH,CENTER).show();
-		TextInput.create("CodeInput","Joining",WIDTH*3/8,HEIGHT/2-20,WIDTH/4,40,"Room Code",null,"Room Code").setOnNewChar(function(char) {
-			if (RegExp("[0-9]").test(char)) return char;
-			else if (RegExp("[A-Za-z]").test(char)) {
+		TextInput.create("CodeInput","Joining",WIDTH*3/8,HEIGHT/2-20,WIDTH/4,40,"Room Code",null,"Room Code","[0-9A-Za-z]{1,4}").setOnNewChar(function(char) {
+			if (char.match("[0-9]")) return char;
+			else if (char.match("[A-Za-z]")) {
 				char = char.toUpperCase();
-				if (RegExp("[ILOSZ]").test(char)) char = '';
+				if (char.match(/[IL]/)) char = '1';
+				else if (char=='O') char = '0';
+				else if (char=='S') char = '5';
+				else if (char=='Z') char = '2';
 				return char;
 			}
 			else return '';

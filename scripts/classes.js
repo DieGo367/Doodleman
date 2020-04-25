@@ -3096,12 +3096,13 @@ class Button extends GuiElement {
 initClass(Button,GuiElement);
 
 class TextInput extends Button {
-	constructor(name,viewName,x,y,width,height,type,defaultValue,promptMsg) {
+	constructor(name,viewName,x,y,width,height,type,defaultValue,promptMsg,inputPattern) {
 		super(name,viewName,x,y,width,height);
 		this.setType(type); // type must be a TypeAnnotation (or a string that can be interpreted as one)
 		this.defaultValue = this.type.validate(defaultValue);
 		this.storedVal = this.defaultValue;
 		this.promptMsg = promptMsg;
+		this.inputPattern = inputPattern || /.+/; // default input
 		this.typing = false;
 		this.typingText = "";
 		this.textTypeMode = 0;
@@ -3197,7 +3198,10 @@ class TextInput extends Button {
 			promptX = 0;
 			promptY = textY*2;
 			$(canvas).hide();
-			this.keyboard = $("#touchkeyboard").val(this.typingText).attr("placeholder",this.promptMsg).show().focus().select();
+			// if (this.type.is("number")) this.keyboard = $("#touchkeypad");
+			//else
+			this.keyboard = $("#touchkeyboard").attr("type","password");
+			this.keyboard.val(this.typingText).attr("placeholder",this.promptMsg).show().focus();
 		}
 		else {
 			x = this.x-5; y = this.y-5;
@@ -3212,7 +3216,7 @@ class TextInput extends Button {
 		}
 		View.create("TextInput",x,y,w,h,"tint","black").openOnTop().selectionState = selectionState;
 		Button.create("TextInput:Cancel","TextInput",0,0,canvas.width,canvas.height).setOnClick(function() {
-			this.textinput.onKeypress(18); // press Alt key to cancel
+			this.textinput.onKeypress("Alt"); // press Alt key to cancel
 		}).setImage("").show().textinput = this;
 		TextElement.create("TextInput:TE","TextInput",textX,textY,fontInputSelect,this.typingText,textWidth,CENTER).show();
 		TextElement.create("TextInput:NE","TextInput",promptX,promptY,fontInputDesc,this.promptMsg,promptWidth,LEFT).show();
@@ -3229,21 +3233,20 @@ class TextInput extends Button {
 			this.keyboard = null;
 		}
 	}
-	onKeypress(keycode) {
+	onKeypress(key) {
 		if (!this.typing) return;
-
-		switch (keycode) {
-			case 13: // Enter key
+		switch (key) {
+			case "Enter":
 				this.typing = false;
 				this.removeTypingView();
 				let response = this.typingText;
 				this.store(response);
 				break;
-			case 18: // Alt key
+			case "Alt":
 				this.typing = false;
 				this.removeTypingView();
 				break;
-			case 8: // Backspace key
+			case "Backspace":
 				if (this.typingText.length>0) {
 					if (this.textTypeMode==1) {
 						G$("TextInput:TE").text = this.typingText = "";
@@ -3252,59 +3255,53 @@ class TextInput extends Button {
 						this.typingText = this.typingText.slice(0,this.typingText.length-1);
 						G$("TextInput:TE").text = this.typingText;
 					}
+					if (this.keyboard) this.keyboard.val(this.typingText);
 				}
 				break;
-			case 37: //left arrow key
-			case 39: //right arrow key
+			case "ArrowLeft":
+			case "ArrowRight":
 				if (this.textTypeMode==1) {
 					G$("TextInput:TE").font = fontInputType;
 					this.textTypeMode = 0;
 				}
 				break;
 			default:
-				let ogKeycode = keycode;
-				if (keycode>95&&keycode<106) keycode -= 48; //numpad numbers
-				if (keycode>188&&keycode<191) keycode -= 80;
-				if (keycode>108&&keycode<111) keycode -= 64; //numpad - and .
-				if(keycode==32 || (keycode>47&&keycode<58) || (keycode>64&&keycode<91) || (keycode>44&&keycode<47)) {
-					let char = String.fromCharCode(keycode);
-					if (Key.isDown(16)) { // shift
-						if (ogKeycode==51) char = '#';
-						if (ogKeycode==189) char = '_';
-					}
-					else if (keycode>64&&keycode<91) char = char.toLowerCase();
+				if (key.length>1) return;
+				if (typeof this.onNewCharFunc == "function") key = this.onNewCharFunc(key);
 
-					if (typeof this.onNewCharFunc == "function") char = this.onNewCharFunc(char);
-
-					if (this.textTypeMode==1) {
-						G$("TextInput:TE").text = this.typingText = char;
-						G$("TextInput:TE").font = fontInputType;
-						this.textTypeMode = 0;
-					}
-					else {
-						this.typingText += char;
-						G$("TextInput:TE").text = this.typingText;
-					}
+				if (this.textTypeMode==1) {
+					this.typingText = key;
+					G$("TextInput:TE").font = fontInputType;
+					this.textTypeMode = 0;
 				}
+				else this.typingText += key;
+
+				this.filterInput();
+				G$("TextInput:TE").text = this.typingText;
+				if (this.keyboard) this.keyboard.val(this.typingText).focus();
 		}
 	}
-	typeOut(str) {
-		if (!this.typing) return "";
-		this.typingText = "";
-		for (var i = 0; i < str.length; i++) {
-			let char = str.charAt(i);
-			if (char.match(/[A-Z0-9a-z\-_#. ]/)) {
-				if (typeof this.onNewCharFunc == "function") char = this.onNewCharFunc(char);
-				this.typingText += char;
-			}
+	filterInput() {
+		if (typeof this.typingText == "string") {
+			this.typingText = this.typingText.match(this.inputPattern);
+			if (this.typingText) return this.typingText = this.typingText[0];
 		}
-		G$("TextInput:TE").text = this.typingText;
-		return this.typingText;
+		this.typingText = "";
 	}
 	update() {
 		super.update();
-		if (this.keyboard && this.keyboard.val()!=this.typingText) {
-			this.keyboard[0].value = this.typeOut(this.keyboard.val());
+		if (this.keyboard) {
+			if (this.keyboard.attr("type")=="password") this.keyboard.attr("type","text");
+			if (this.keyboard.val()!=this.typingText) {
+				this.typingText = "";
+				this.textTypeMode = 0;
+				let val = this.keyboard.val();
+				for (var i = 0; i < val.length; i++) {
+					this.typingText += this.onNewCharFunc(val.charAt(i));
+				}
+				this.filterInput();
+				this.keyboard[0].value = this.typingText;
+			}
 		}
 	}
 	createIncrementers(size,step,min,max) {
