@@ -69,7 +69,7 @@ $(window).on("load",function() {
 	setTimeout(function() {
 		setPrefixedProperty(c,"imageSmoothingEnabled",false);
 	},0);
-	startedInFullScreen = fullScreen = getPrefixedProperty(document,"fullscreenElement") || getPrefixedProperty(document,"fullScreenElement");
+	fullScreen = startedInFullScreen = window.matchMedia("(display-mode: fullscreen)").matches;
 	addEvents();
 	screenMatch();
 	Sound.init();

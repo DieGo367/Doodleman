@@ -19,9 +19,9 @@ self.addEventListener("fetch", e => {
   });
   e.respondWith(promise);
   return; // TODO: figure out when to rely on cache
-  let url = new URL(r.url);
-  if (url.origin==location.origin) e.respondWith(cacheFirst(r));
-  else e.respondWith(networkFirst(r));
+  // let url = new URL(r.url);
+  // if (url.origin==location.origin) e.respondWith(cacheFirst(r));
+  // else e.respondWith(networkFirst(r));
 });
 
 async function cacheFirst(r) {
