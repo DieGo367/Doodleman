@@ -931,7 +931,7 @@ const Net = {
 	hostFailure: function(client) {
 		this.removeClient(client);
 		Game.onNetFailure("host",client.clientID);
-		console.log("Lost client "+client.clientID+" connection");
+		console.trace("Lost client "+client.clientID+" connection");
 	},
 	onLevelLoad: function(levelCopy) {
 		if (this.clients.length>0) {
@@ -1012,7 +1012,7 @@ const Net = {
 	clientFailure: function() {
 		this.leaveRoom();
 		Game.onNetFailure("client");
-		console.log("Lost host connection");
+		console.trace("Lost host connection");
 	},
 	// universal methods
 	POST: function(url,data,func,errFunc) {
@@ -1055,7 +1055,7 @@ const Net = {
 	},
 	usable: function(conn) {
 		if (conn&&conn.pending) return true;
-		return conn && conn._pc && conn._pc.connectionState == "connected";
+		return conn && conn._pc;
 	},
 	sendable: function(conn) {
 		return this.usable(conn) && conn._channel.readyState=="open";
