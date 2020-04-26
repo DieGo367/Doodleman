@@ -2099,6 +2099,16 @@ class Player extends Entity {
 	static ctrlInSlot(slot) {
 		return !!this.ctrlPorts[slot];
 	}
+	static removeUncontrolled(except) {
+		let list = this.getAll();
+		for (var i in list) {
+			if (except!=void(0) && list[i].slot==except) continue;
+			if (!this.ctrlInSlot(list[i].slot)) {
+				this.setLives(list[i].slot,0);
+				list[i].remove();
+			}
+		}
+	}
 	static setLives(slot,amount) {
 		this.lives[slot] = amount;
 	}

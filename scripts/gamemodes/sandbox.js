@@ -71,15 +71,7 @@ const GAME_SANDBOX = GameManager.addMode(new GameMode({
 	},
 	onNetFailure: function(role,clientID) {
 		if (role=="host") {
-			let allP = Player.getAll();
-			for (var i in allP) {
-				let p = allP[i];
-				if (p.slot==0) continue;
-				if (!Player.ctrlInSlot(p.slot)) {
-					Player.setLives(p.slot,0);
-					p.remove();
-				}
-			}
+			Player.removeUncontrolled(0);
 			gameAlert("Guest "+(clientID+1)+" was disconnected",120);
 		}
 		else if (role=="client") {
