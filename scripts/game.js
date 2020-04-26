@@ -50,6 +50,7 @@ class GameMode {
 	onFocus() {}
 	onPointerMove() {}
 	onNetConnection(connection,role) {}
+	onNetDisconnect(role,clientID) {}
 	onNetFailure(role,clientID) {}
 	onNetData(data,role) {}
 }

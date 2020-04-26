@@ -57,6 +57,18 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			Player.add(conn.clientID+1);
 		}
 	},
+	onNetDisconnect: function(role,clientID) {
+		if (role=="host") {
+			Player.removeUncontrolled(0);
+			gameAlert("Guest "+(clientID+1)+" left the game.",120);
+		}
+		else if (role=="client") {
+			let roomView = G$("Room");
+			if (roomView.visible) roomView.close();
+			Tap.ctrlEnabled = false;
+			gameAlert("The host closed the room.",120);
+		}
+	},
 	onNetFailure: function(role,clientID) {
 		if (role=="host") {
 			Player.removeUncontrolled(0);

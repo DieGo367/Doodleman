@@ -112,6 +112,16 @@ const GAME_SURVIVAL = GameManager.addMode(new GameMode({
 			Net.send({survivalScore: this.score});
 		}
 	},
+	onNetDisconnect: function(role,clientID) {
+		if (role=="host") {
+			Player.removeUncontrolled(0);
+			gameAlert("Guest "+(clientID+1)+" left the game.",120);
+		}
+		else if (role=="client") {
+			Game.mode = GAME_ONLINELOBBY;
+			gameAlert("The host closed the room.",120);
+		}
+	},
 	onNetFailure: function(role,clientID) {
 		if (role=="host") {
 			Player.removeUncontrolled(0);

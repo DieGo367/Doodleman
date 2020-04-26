@@ -821,6 +821,7 @@ const Net = {
 	closeRoom: function() {
 		if (!this.room) return;
 		this.POST("closeroom",{room:this.room});
+		Net.send({log:"Host closed room.", close:true});
 		this.cleanup(true); // cleanup but keep firebase open
 	},
 	watchClientQueue: function() {
@@ -1026,6 +1027,7 @@ const Net = {
 	},
 	leaveRoom: function() {
 		if (!this.room) return;
+		Net.send({log:"Client left.", close:true});
 		this.cleanup(true);
 	},
 	clientUpdate: function() {
@@ -1081,11 +1083,21 @@ const Net = {
 			if (compressed.byteLength < obj.length) obj = compressed;
 		}
 		if (devEnabled) this.bytesSent += obj.length || obj.byteLength;
-		if (this.sendable(target)) target.send(obj);
+		if (this.sendable(target)) try {
+			target.send(obj);
+		}
+		catch(e) {
+			console.warn(e);
+		}
 		else {
 			if (this.sendable(this.host)) this.host.send(obj);
 			let cl = this.clients;
-			for (var i in cl) if (this.sendable(cl[i])) cl[i].send(obj);
+			for (var i in cl) if (this.sendable(cl[i])) try {
+				cl[i].send(obj);
+			}
+			catch(e) {
+				console.warn(e);
+			}
 		}
 	},
 	usable: function(conn) {
@@ -1114,6 +1126,11 @@ const Net = {
 			sender.lastMessage = Timer.now();
 			if (data.requestClientID) this.send({assignClientID:sender.clientID},sender);
 			if (data.webInputID!=void(0)) WebInput.channelUpdate(data);
+			if (data.close) {
+				this.removeClient(sender);
+				Game.onNetDisconnect(role,sender.clientID);
+				sender.destroy();
+			}
 		}
 		if (role=="client") {
 			if (data.assignClientID!=void(0)) this.clientID = data.assignClientID;
@@ -1136,6 +1153,10 @@ const Net = {
 			else if (data.loading=="off") canvas.clearLoadScreen();
 			if (data.particle) Particle.generate(...data.particle);
 			if (data.sound) Sound.playAt(data.sound,data.x,data.y);
+			if (data.close) {
+				Game.onNetDisconnect(role);
+				this.cleanup(true);
+			}
 		}
 		Game.onNetData(data,role);
 	},
