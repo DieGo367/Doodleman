@@ -1126,6 +1126,7 @@ const Net = {
 			}
 			if (data.loading=="on") canvas.showLoadScreen();
 			else if (data.loading=="off") canvas.clearLoadScreen();
+			if (data.particle) Particle.generate(...data.particle);
 		}
 		Game.onNetData(data,role);
 	},

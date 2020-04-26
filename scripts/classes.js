@@ -3573,6 +3573,7 @@ class Particle extends _c_ {
 			particle.velX = Math.cos(newAngle)*newMag;
 			particle.velY = Math.sin(newAngle)*newMag;
 		}
+		if (online&&Net.isHost()) Net.send({particle: [...arguments]});
 	}
 
 	static onInit() {
