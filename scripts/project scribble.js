@@ -271,6 +271,10 @@ class Camera {
 	getRightLimit() { return Level.level.width-this.halfW(); }
 	getTopLimit() { return 0+this.halfH(); }
 	getBottomLimit() { return Level.level.height-this.halfH(); }
+	seesPoint(x,y) {
+		let p = new Point(x,y);
+		return this.leftPx() <= p.x && p.x <= this.rightPx() && this.topPx() <= p.y && p.y <= this.bottomPx();
+	};
 	approachX(goal) {
 		let limitL = this.getLeftLimit(), limitR = this.getRightLimit();
 		if (this.x<limitL) this.x = limitL;
@@ -631,6 +635,10 @@ const Sound = {
 		source.buffer = sound.buffer;
 		source.connect(this.gain);
 		source.start(0);
+	},
+	playAt: function(name,x,y) {
+		if (Camera.getCam(0).seesPoint(x,y)) this.play(name);
+		if (online && Net.isHost()) Net.send({sound:name,x:x,y:y});
 	},
 	addTrack: function(name) {
 		this.tracks[name] = new Audio("res/tracks/"+name);
@@ -1127,6 +1135,7 @@ const Net = {
 			if (data.loading=="on") canvas.showLoadScreen();
 			else if (data.loading=="off") canvas.clearLoadScreen();
 			if (data.particle) Particle.generate(...data.particle);
+			if (data.sound) Sound.playAt(data.sound,data.x,data.y);
 		}
 		Game.onNetData(data,role);
 	},

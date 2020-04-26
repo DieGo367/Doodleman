@@ -1569,7 +1569,7 @@ class Entity extends PhysicsBox {
 		if (this.isInvuln()) return;
 		if (Game.onHurt(this,attacker,damage)==CANCEL) return;
 		Particle.generate(this.x,this.midY(),0,8,4,10,true,this.particleColor||"red",0,360,5,0);
-		Sound.play("hurt.ogg");
+		Sound.playAt("hurt.ogg",this.x,this.y);
 		this.health -= damage;
 		if (this.health<=0) this.die(attacker);
 		else { //knockback
@@ -2185,26 +2185,26 @@ class Player extends Entity {
 		});
 		this.defineAction("lift",15,15,true,false,true);
 		this.defineAction("attack",20,30,false,false,false,function() {
-			Sound.play("sword-swipe.ogg");
+			Sound.playAt("sword-swipe.ogg",this.x,this.y);
 		}).addAttackBox(0,1);
 		this.defineAction("attack-charge",20,30,true,true,true,function() {
 			this.move(10);
 			this.velY = 0;
-			Sound.play("sword-swipe.ogg");
+			Sound.playAt("sword-swipe.ogg",this.x,this.y);
 		}).addAttackBox(0,2);
 		this.defineAction("attack-charge-air",20,30,true,true,true,function() {
 			this.move(10);
 			this.velY = 0;
-			Sound.play("sword-swipe.ogg");
+			Sound.playAt("sword-swipe.ogg",this.x,this.y);
 		}).addAttackBox(0,2);
 		this.defineAction("attack-upward",20,30,true,null,null,function() {
-			Sound.play("sword-swipe.ogg");
+			Sound.playAt("sword-swipe.ogg",this.x,this.y);
 		}).addAttackBox(0,1);
 		this.defineAction("attack-upward-air",20,30,false,true,true,function() {
 			this.velY = -6;
 			this.move(5);
 			this.canUpAirAttack = false;
-			Sound.play("sword-swipe.ogg");
+			Sound.playAt("sword-swipe.ogg",this.x,this.y);
 		}).
 		addAttackBox(0,1,function() { // if hurt something, can up-attack again
 			this.canUpAirAttack = true;
@@ -2216,7 +2216,7 @@ class Player extends Entity {
 		onFrame(5,function() {
 			this.velY = 5;
 			this.stun = 40;
-			Sound.play("sword-swipe.ogg");
+			Sound.playAt("sword-swipe.ogg",this.x,this.y);
 		}).
 		onFrame(12,function() {
 			if (!this.ground&&!this.lineGround&&this.y!=Level.level.height) {
@@ -2449,7 +2449,7 @@ class Enemy extends Entity {
 		this.actions = {};
 		this.defineAction("attack",18,30,false,false,false,function() {
 			this.stun = 30;
-			Sound.play("punch.ogg");
+			Sound.playAt("punch.ogg",this.x,this.y);
 		}).addAttackBox(0,1);
 	}
 	static onlineProperties() {
