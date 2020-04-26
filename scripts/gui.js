@@ -234,9 +234,14 @@ function buildOnlineMenu() {
 	});
 	TextElement.create("OnlineRoomCode","OnlineMenu",120 + (WIDTH/2 - 150/2 - 120)/2,45,fontHudScore,"...",WIDTH/2-(150/2)-120,CENTER).show();
 	Button.create("OnlineLeave","OnlineMenu",WIDTH/2-150/2,10,150,50,"Back to Lobby").setOnClick(function() {
-		Player.preventLocalControls = false;
-		if (Net.isClient()) Net.leaveRoom();
-		Game.mode = GAME_ONLINELOBBY;
+		let leaveMsg = Net.isHost()? "End the game and return to the lobby?" : "Are you sure you want to disconnect?";
+		gameConfirm(leaveMsg,function(response) {
+			if (response) {
+				Player.preventLocalControls = false;
+				if (Net.isClient()) Net.leaveRoom();
+				Game.mode = GAME_ONLINELOBBY;
+			}
+		});
 	}).show();
 	Button.create("OnlineClose","OnlineMenu",WIDTH-60,10,50,50).setOnClick(function() {
 		Player.preventLocalControls = false;
