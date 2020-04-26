@@ -140,7 +140,7 @@ const Level = {
 		}
 		await Promise.all(promises);
 		Camera.reset();
-		if (online) Net.onLevelLoad(this.optimize(newLevel));
+		if (online) Net.sendLevel(newLevel);
 		Game.onLevelLoad();
 		if (doLog) console.log("Loaded Level "+this.level.name);
 		return true;
@@ -268,15 +268,6 @@ const Level = {
 		let x = Math.round(Math.random()*this.level.width);
 		let y = Math.round(Math.random()*this.level.height);
 		return new Point(x,y);
-	},
-	optimize: function(levelData) {
-		let copy = clone(levelData);
-		delete copy.actors;
-		if (copy.bg) for (var i in copy.bg) {
-			let bg = copy.bg[i];
-			if (bg&&bg.raw) bg.raw = "";
-		}
-		return copy;
 	}
 }
 const BlankLevel = clone(Level.level);

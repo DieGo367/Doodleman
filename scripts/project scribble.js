@@ -797,6 +797,7 @@ const Net = {
 	webInputID: null, ctrls: null,
 	// misc used by engine
 	gamemodeChanged: null,
+	bgChunkSize: 16 * 1024,
 	// host methods
 	createRoom: function(success,failure) {
 		this.POST("createroom",null,function(data) {
@@ -893,7 +894,7 @@ const Net = {
 			webInputID: client.webInputID,
 			gamemode: Game.mode!=GAME_ONLINELOBBY? Game.mode: void(0)
 		},client);
-		this.send({level:Level.optimize(Level.level)},client);
+		this.sendLevel(Level.level,client);
 		if (this.lastState) this.send({objectState:this.lastState},client);
 		Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
 		Camera.addCam(client.clientID+1);
@@ -933,10 +934,36 @@ const Net = {
 		Game.onNetFailure("host",client.clientID);
 		console.trace("Lost client "+client.clientID+" connection");
 	},
-	onLevelLoad: function(levelCopy) {
-		if (this.clients.length>0) {
-			Net.send({level:levelCopy});
+	sendLevel: function(levelSrc,target) {
+		Net.send({loading:"on"},target);
+		let level = clone(levelSrc);
+		delete level.actors;
+		let bgFiles = [];
+		if (level.bg) {
+			for (var i = 0; i < level.bg.length; i++) {
+				let bg = level.bg[i];
+				if (bg && bg.type=="raw") {
+					bg.type = "net";
+					bgFiles[i] = bg.raw;
+					bg.raw = "";
+				}
+			}
 		}
+		Net.send({level:level},target);
+		for (var i = 0; i < bgFiles.length; i++) {
+			let file = bgFiles[i];
+			if (file) {
+				while (file.length > 0) {
+					Net.send({
+						bg: i,
+						raw: file.substring(0,this.bgChunkSize)
+					},target);
+					file = file.substring(this.bgChunkSize);
+				}
+				Net.send({bg: i, raw: "", end:true},target);
+			}
+		}
+		Net.send({loading:"off"},target);
 	},
 	// client methods
 	joinRoom: function(code,success,failure) {
@@ -1088,6 +1115,17 @@ const Net = {
 			if (data.cam) Camera.loadData(data.cam);
 			if (data.gamemode!=void(0)) Game.mode = data.gamemode;
 			if (data.playerLives) Player.lives = data.playerLives;
+			if (data.bg!=void(0)) {
+				if (Level.level.bg) {
+					let bg = Level.level.bg[data.bg];
+					if (bg && bg.type=="net") {
+						bg.raw += data.raw;
+						if (data.end) Level.makeBackground(bg,data.bg);
+					}
+				}
+			}
+			if (data.loading=="on") canvas.showLoadScreen();
+			else if (data.loading=="off") canvas.clearLoadScreen();
 		}
 		Game.onNetData(data,role);
 	},
