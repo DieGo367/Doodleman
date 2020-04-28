@@ -328,7 +328,7 @@ class Camera {
 		let avg = averageCoords(targets);
 		let targetX = avg[0], targetY = avg[1];
 		if (isNaN(targetX)||isNaN(targetY)) return;
-		if (targets.length==0) {
+		if (targets.length==1) {
 			this.approachZoom(this.requestedZoom);
 
 			if (targetX>this.rightPx()-Level.level.horScrollBuffer/this.zoom) this.approachX(targetX+(Level.level.horScrollBuffer-WIDTH/2)/this.zoom);
@@ -337,7 +337,7 @@ class Camera {
 			if (targetY>this.bottomPx()-Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY+(Level.level.vertScrollBuffer-HEIGHT/2)/this.zoom);
 			else if (targetY<this.topPx()+Level.level.vertScrollBuffer/this.zoom) this.approachY(targetY-(Level.level.vertScrollBuffer-HEIGHT/2)/this.zoom);
 		}
-		else if (targets.length>0) {
+		else if (targets.length>1) {
 			this.approachX(targetX);
 			this.approachY(targetY);
 			var maxDist = 0;
