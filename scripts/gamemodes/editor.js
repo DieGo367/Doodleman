@@ -368,7 +368,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 		TextInput.create("LS:BG:Parallax:num","LS:BG:Menu",WIDTH/2+190,295,100,40,"#parallax",null,"Enter the amount of parallax",numPattern).setOnInputChange(function(val) {
 			this.view.setBGVal("parallax",val);
 		}).show();
-		TextInput.create("LS:BG:Name","LS:BG:Menu",WIDTH/2-70,185,100,40,"img name",null,"Enter the name of the image",numPattern).setOnInputChange(function(val) {
+		TextInput.create("LS:BG:Name","LS:BG:Menu",WIDTH/2-70,185,100,40,"img name",null,"Enter the name of the image").setOnInputChange(function(val) {
 			let bg = Level.level.bg[this.view.numBG];
 			this.upcomingVal = val;
 			if (bg&&bg.raw!="") {

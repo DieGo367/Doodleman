@@ -272,7 +272,7 @@ initClass(RemoteObject,{drawable:true, listType: "uid_clone"});
 
 
 class Background extends _c_ {
-	constructor(slot,imgName,drawLayer,scale,parallax) {
+	constructor(slot,imgName,drawLayer,scale,parallax,doLoad) {
 		super();
 		this.slot = slot;
 		this.imgName = imgName;
@@ -281,6 +281,8 @@ class Background extends _c_ {
 		this.parallax = parallax;
 		if (!Background.slots[slot]) Background.slots[slot] = this;
 		else this.slot = null;
+		if (doLoad==void(0)) doLoad = true;
+		if (doLoad && !Images.isLoaded(imgName)) Images.loadImage(imgName);
 	}
 	setSlot(slot) {
 		this.slot = slot;
@@ -319,7 +321,7 @@ initClass(Background,{drawable: true, listType: "array"});
 
 class BackgroundLZ extends Background {
 	constructor(slot,imgLZ,drawLayer,scale,parallax) {
-		super(slot,"BGRaw:"+slot,drawLayer,scale,parallax);
+		super(slot,"BGRaw:"+slot,drawLayer,scale,parallax,false);
 		this.imgLZ = imgLZ;
 		this.promise = Images.loadImageB64("BGRaw:"+slot,imgLZ);
 	}

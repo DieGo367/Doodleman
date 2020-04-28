@@ -8,6 +8,9 @@ const Images = {
 	areLoaded: function() {
 		return this.loadingCount == 0;
 	},
+	isLoaded: function(name) {
+		return !!this.imgData[name];
+	},
 	loadImage: function(name) {
 		let img = this.imgData[name] = new Image();
 		this.loadingCount++;
