@@ -1,0 +1,19 @@
+{
+	"name": "Online Menu",
+	"width": 640,
+	"height": 360,
+	"edge": {"top": 0, "bottom": 3, "left": 2, "right": 2},
+	"camStart": {"x": 320, "y": 180},
+	"horScrollBuffer": 240,
+	"vertScrollBuffer": 125,
+	"zoomScale": 1,
+	"minZoom": 1,
+	"maxZoom": 1,
+	"playerSpawns": [],
+	"actors": [],
+	"terrain": [],
+	"bg": [
+		{"type": "name", "name": "BG/checker.png", "raw": "", "layer": -2, "scale": 0.25, "parallax": 1}
+	],
+	"_version_": 0
+}

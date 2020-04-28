@@ -1,0 +1,35 @@
+{
+	"name": "Online Lobby",
+	"width": 640,
+	"height": 360,
+	"edge": {"top": 0, "bottom": 3, "left": 2, "right": 2},
+	"camStart": {"x": 320, "y": 180},
+	"horScrollBuffer": 240,
+	"vertScrollBuffer": 125,
+	"zoomScale": 1,
+	"minZoom": 1,
+	"maxZoom": 1,
+	"playerSpawns": [
+		{"x": 163, "y": 311, "direction": 1},
+		{"x": 477, "y": 311, "direction": -1},
+		{"x": 214, "y": 311, "direction": 1},
+		{"x": 427, "y": 311, "direction": -1},
+		{"x": 270, "y": 311, "direction": 1},
+		{"x": 373, "y": 311, "direction": -1}
+	],
+	"actors": [],
+	"terrain": [
+		{
+			"type": 0,
+			"pieces": [
+				[139, 360, 363, 49]
+			],
+			"properties": [null, true, 5]
+		}
+	],
+	"bg": [
+		{"type": "name", "name": "BG/checker.png", "raw": "", "layer": -2, "scale": 0.25, "parallax": 1},
+		{"type": "name", "name": "FG/lobby_platform.png", "raw": "", "layer": -2, "scale": 1, "parallax": 1}
+	],
+	"_version_": 0
+}
