@@ -1,6 +1,8 @@
 const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 	start: function() {
-		Level.loadLevel("Online-Menu.json");
+		Level.loadLevel("Online-Lobby.json",function() {
+			Game.hidePlatform();
+		});
 		this.addGui();
 		Tap.ctrlEnabled = false;
 		Player.setAllLives(Infinity);
@@ -10,22 +12,21 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		Net.discoveryAlerts = true;
 		if (!Net.started) Net.startup();
 		if (Net.room) { // if aready in a room
+			this.showPlatform();
 			G$("RoomCode").text = Net.room;
 			G$("Room").open();
 			Tap.ctrlEnabled = true;
 			if (Net.isHost()) {
-				Level.loadLevel("Online-Lobby.json",function() {
-					G$("RoomHoster").opensub();
-					Player.grantLives(0);
-					Player.add(0);
-					for (var i = 0; i < Net.clients.length; i++) {
-						let client = Net.clients[i];
-						if (client) {
-							Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
-							Player.add(client.clientID+1);
-						}
+				G$("RoomHoster").opensub();
+				Player.grantLives(0);
+				Player.add(0);
+				for (var i = 0; i < Net.clients.length; i++) {
+					let client = Net.clients[i];
+					if (client) {
+						Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
+						Player.add(client.clientID+1);
 					}
-				});
+				}
 			}
 		}
 		else try { // if not in a room, check for a net invite
@@ -66,12 +67,11 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			gameAlert("Guest "+(clientID+1)+" left the game.",120);
 		}
 		else if (role=="client") {
-			Level.loadLevel("Online-Menu.json",function() {
-				let roomView = G$("Room");
-				if (roomView.visible) roomView.close();
-				Tap.ctrlEnabled = false;
-				gameAlert("The host closed the room.",120);
-			});
+			let roomView = G$("Room");
+			if (roomView.visible) roomView.close();
+			Tap.ctrlEnabled = false;
+			this.hidePlatform();
+			gameAlert("The host closed the room.",120);
 		}
 	},
 	onNetFailure: function(role,clientID) {
@@ -80,12 +80,11 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			gameAlert("Guest "+(clientID+1)+" was disconnected",120);
 		}
 		else if (role=="client") {
-			Level.loadLevel("Online-Menu.json",function() {
-				let roomView = G$("Room");
-				if (roomView.visible) roomView.close();
-				Tap.ctrlEnabled = false;
-				gameAlert("Lost connection to host",120);
-			});
+			let roomView = G$("Room");
+			if (roomView.visible) roomView.close();
+			Tap.ctrlEnabled = false;
+			this.hidePlatform();
+			gameAlert("Lost connection to host",120);
 		}
 	},
 	addGui: function() {
@@ -95,13 +94,12 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			G$("RoomCode").text = "Creating..."
 			G$("Room").open();
 			Net.createRoom(function(code) {
-				Level.loadLevel("Online-Lobby.json",function() {
-					G$("RoomCode").text = code;
-					G$("RoomHoster").opensub();
-					Player.grantLives(0);
-					Player.add(0);
-					Tap.ctrlEnabled = true;
-				});
+				Game.showPlatform();
+				G$("RoomCode").text = code;
+				G$("RoomHoster").opensub();
+				Player.grantLives(0);
+				Player.add(0);
+				Tap.ctrlEnabled = true;
 			},
 			function(failure) {
 				G$("Room").close();
@@ -176,7 +174,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 					Net.closeRoom();
 					G$("Room").close();
 					Player.killAll();
-					Level.loadLevel("Online-Menu.json");
+					Game.hidePlatform();
 				}
 			});
 		}).setImage("GUI/Button_Red.png").show();
@@ -208,5 +206,11 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		G$("Room").remove();
 		G$("RoomHoster").remove();
 		G$("GamemodeSelect").remove();
+	},
+	hidePlatform: function() {
+		Background.classList[1].drawLayer = null;
+	},
+	showPlatform: function() {
+		Background.classList[1].drawLayer = -1;
 	}
 }));
