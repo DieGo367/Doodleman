@@ -323,7 +323,16 @@ class Camera {
 	update() {
 		if (Camera.controllable) return;
 		let targets;
-		if (online) targets = Player.findAllOfSlot(this.id);
+		if (online) {
+			if (Net.isHost()) targets = Player.findAllOfSlot(this.id);
+			else { // find all remote players of matching id
+				targets = [];
+				let remotePlayers = RemoteObject.getAllOf("Player");
+				for (var i in remotePlayers) {
+					if (remotePlayers[i].slot == Net.clientID+1) targets.push(remotePlayers[i]);
+				}
+			}
+		}
 		else targets = Player.getAll();
 		let avg = averageCoords(targets);
 		let targetX = avg[0], targetY = avg[1];
@@ -923,8 +932,8 @@ const Net = {
 			if (!client) continue;
 			if (!this.usable(client)) this.hostFailure(client);
 			if (Timer.now()-client.lastMessage > WebInput.channelTimeout) WebInput.silenceChannel(client.webInputID);
-			let camData = Camera.getData(client.clientID+1);
-			if (camData) this.send({cam: camData},client);
+			// let camData = Camera.getData(client.clientID+1);
+			// if (camData) this.send({cam: camData},client);
 		}
 		let packet = {};
 		let objectState = RemoteObject.generateState();

@@ -267,6 +267,21 @@ class RemoteObject extends _c_ {
 	static clearState() {
 		this.killAll();
 	}
+	static getAllOf(className) {
+		let all = this.getAll();
+		let results = [];
+		let targetClass = Constants.read(className);
+		for (var i in all) {
+			let r = all[i];
+			if (r) {
+				// if remote object is the same class or inherits from that class
+				if (r.remoteClass.name == className || r.remoteClass.prototype instanceof targetClass) {
+					results.push(r.object);
+				}
+			}
+		}
+		return results;
+	}
 }
 initClass(RemoteObject,{drawable:true, listType: "uid_clone"});
 
