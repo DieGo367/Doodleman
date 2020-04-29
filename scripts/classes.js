@@ -2392,18 +2392,21 @@ class Enemy extends Entity {
 		else this.paceTarget = null;
 	}
 	findPlayers() {
-		var allPlayers = Player.getAll();
+		let allPlayers = Player.getAll();
+		let closestDist = Infinity;
 		for (var i in allPlayers) {
-			var p = allPlayers[i];
-			var distX = this.distanceTo(p);
-			var dir = this.getDirTo(p);
+			let p = allPlayers[i];
+			let distX = this.distanceTo(p);
+			let dir = this.getDirTo(p);
 
-			//if player is within x-range and enemy is facing them
+			// if player is within x-range and enemy is facing them
 			if (distX<=200&&dir==this.direction) {
-				if (p.y>this.y-100&&p.y<this.y+100) { //if player is within y-range
-					this.target = p; //player is new target
-					this.exclaim = 30; //enemy is in alerted mode
-					break;
+				if (p.y>this.y-100&&p.y<this.y+100) { // if player is within y-range
+					let trueDist = Math.sqrt(Math.pow(distX,2) + Math.pow(p.y-this.y,2));
+					if (trueDist < closestDist) { // if player is closest found yet
+						this.target = p; // player is new target
+						this.exclaim = 30; // enemy is in alerted mode
+					}
 				}
 			}
 		}
