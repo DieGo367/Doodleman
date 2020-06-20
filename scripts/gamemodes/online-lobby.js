@@ -1,14 +1,12 @@
 const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 	start: function() {
-		Level.loadLevel("Online-Lobby.json",function() {
-			Game.hidePlatform();
-		});
 		this.addGui();
 		Tap.ctrlEnabled = false;
 		Player.setAllLives(Infinity);
 		Player.clearCtrlAssignments();
 		multiplayer = true;
 		online = true;
+		this.hidePlatform();
 		Net.discoveryAlerts = true;
 		if (!Net.started) Net.startup();
 		if (Net.room) { // if aready in a room
@@ -17,19 +15,22 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			G$("Room").open();
 			Tap.ctrlEnabled = true;
 			if (Net.isHost()) {
-				G$("RoomHoster").opensub();
-				Player.grantLives(0);
-				Player.add(0);
-				for (var i = 0; i < Net.clients.length; i++) {
-					let client = Net.clients[i];
-					if (client) {
-						Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
-						Player.add(client.clientID+1);
+				Level.loadLevel("Online-Lobby.json",function() {
+					G$("RoomHoster").opensub();
+					Player.grantLives(0);
+					Player.add(0);
+					for (var i = 0; i < Net.clients.length; i++) {
+						let client = Net.clients[i];
+						if (client) {
+							Player.assignCtrl(client.clientID+1,WEBIN,client.webInputID);
+							Player.add(client.clientID+1);
+						}
 					}
-				}
+				});
 			}
 		}
 		else try { // if not in a room, check for a net invite
+			Level.loadLevel("Online-Lobby.json");
 			if (!this.acceptedInvite) {
 				G$("RoomCode").text = "Joining...";
 				G$("Room").open();
@@ -48,6 +49,9 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			G$("Room").close();
 		}
 	},
+	onLevelLoad: function() {
+		this.updatePlatform();
+	},
 	quit: function() {
 		this.removeGui();
 		Net.discoveryAlerts = false;
@@ -59,6 +63,9 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		if (role=="host") {
 			Player.grantLives(conn.clientID+1);
 			Player.add(conn.clientID+1);
+		}
+		else if (role=="client") {
+			this.showPlatform();
 		}
 	},
 	onNetDisconnect: function(role,clientID) {
@@ -208,9 +215,15 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		G$("GamemodeSelect").remove();
 	},
 	hidePlatform: function() {
-		Background.classList[1].drawLayer = null;
+		this.platformState = null;
+		this.updatePlatform();
 	},
 	showPlatform: function() {
-		Background.classList[1].drawLayer = -1;
+		this.platformState = -1;
+		this.updatePlatform();
+	},
+	updatePlatform: function() {
+		let bg = Background.classList[1];
+		if (bg) bg.drawLayer = this.platformState;
 	}
 }));
