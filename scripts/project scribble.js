@@ -953,7 +953,9 @@ const Net = {
 		console.trace("Lost client "+client.clientID+" connection");
 	},
 	sendLevel: function(levelSrc,target) {
-		Net.send({loading:"on"},target);
+		this.send({loading:true},target);
+		canvas.showLoadScreen();
+		paused = true;
 		let level = clone(levelSrc);
 		delete level.actors;
 		let bgFiles = [];
@@ -967,21 +969,30 @@ const Net = {
 				}
 			}
 		}
-		Net.send({level:level},target);
-		for (var i = 0; i < bgFiles.length; i++) {
-			let file = bgFiles[i];
-			if (file) {
-				while (file.length > 0) {
-					Net.send({
-						bg: i,
-						raw: file.substring(0,this.bgChunkSize)
-					},target);
-					file = file.substring(this.bgChunkSize);
+		Timer.wait(1,function() {
+			try {
+				this.send({level:level},target);
+				for (var i = 0; i < bgFiles.length; i++) {
+					let file = bgFiles[i];
+					if (file) {
+						while (file.length > 0) {
+							this.send({
+								bg: i,
+								raw: file.substring(0,this.bgChunkSize)
+							},target);
+							file = file.substring(this.bgChunkSize);
+						}
+						this.send({bg: i, raw: "", end:true},target);
+					}
 				}
-				Net.send({bg: i, raw: "", end:true},target);
 			}
-		}
-		Net.send({loading:"off"},target);
+			catch(e) {
+				console.error(e);
+			}
+			this.send({loading:false},target);
+			canvas.clearLoadScreen();
+			paused = false;
+		},this);
 	},
 	// client methods
 	joinRoom: function(code,success,failure) {
@@ -1158,8 +1169,8 @@ const Net = {
 					}
 				}
 			}
-			if (data.loading=="on") canvas.showLoadScreen();
-			else if (data.loading=="off") canvas.clearLoadScreen();
+			if (data.loading===true) canvas.showLoadScreen();
+			else if (data.loading===false) canvas.clearLoadScreen();
 			if (data.particle) Particle.generate(...data.particle);
 			if (data.sound) Sound.playAt(data.sound,data.x,data.y);
 			if (data.close) {

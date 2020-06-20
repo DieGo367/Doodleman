@@ -50,13 +50,20 @@ function canvasSetup() {
 			c.globalAlpha = 1;
 		c.restore();
 	}
+	canvas.loadScreenLevel = 0;
 	canvas.showLoadScreen = function() {
-		canvas.isInLoadScreen = true;
-		canvas.loadInterval = setInterval(canvas.drawLoadScreen,1000/60);
+		canvas.loadScreenLevel++;
+		if (!canvas.isInLoadScreen) {
+			canvas.isInLoadScreen = true;
+			canvas.loadInterval = setInterval(canvas.drawLoadScreen,1000/60);
+		}
 	}
 	canvas.clearLoadScreen = function() {
-		canvas.isInLoadScreen = false;
-		clearInterval(canvas.loadInterval);
+		canvas.loadScreenLevel--;
+		if (canvas.loadScreenLevel <= 0) {
+			canvas.isInLoadScreen = false;
+			clearInterval(canvas.loadInterval);
+		}
 	}
 	canvas.showLoadScreen();
 }
