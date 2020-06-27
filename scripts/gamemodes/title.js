@@ -16,14 +16,7 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
 		Button.create("LinksButton","Title",0,HEIGHT-25,125,25).setOnClick(function() {
 			G$("Links").open();
 		}).shouldDraw(false).show();
-		if (!startedInFullScreen) Button.create("FSToggle","Title",WIDTH-60,HEIGHT-60,50,50).setToggle(function() {
-			this.on = !this.on;
-			setFullScreen(this.on);
-		},true)
-		.setOnViewShown(function() {
-			this.on = fullScreen;
-		}).setIcon("GUI/Icons.png",2,0,42,4).show();
-		else Button.create("FSToggle","Title",0,0,0,0);
+		makeFSButton("FSToggle","Title",WIDTH-60,HEIGHT-60).show();
 		Button.create("VolumeButton","Title",WIDTH-(startedInFullScreen?60:120),HEIGHT-60,50,50).setOnClick(function() {
 			let vol = G$("VolumeSlider");
 			if (vol.isVisible()) vol.hide();

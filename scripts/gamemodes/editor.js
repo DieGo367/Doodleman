@@ -185,13 +185,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 		}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
 		TextElement.create("LS:Title","LevelSettingsView",WIDTH/2,30,fontMenuTitle,"Level Properties",WIDTH,CENTER).show();
 
-		Button.create("FSToggle","LevelSettingsView",WIDTH-130,10,50,50).setToggle(function() {
-			this.on = !this.on;
-			setFullScreen(this.on);
-		},true)
-		.setOnViewShown(function() {
-			this.on = fullScreen;
-		}).setIcon("GUI/Icons.png",2,0,42,4).show();
+		makeFSButton("FSToggle","LevelSettingsView",WIDTH-130,10).show();
 		Button.pathHor(["FSToggle","LevelSettingsClose"]);
 
 		Button.create("LS:File","LevelSettingsView",WIDTH*1/5-50,75,100,40,"File").down("LS:File:Name:input").setAsStart().show().on = true;

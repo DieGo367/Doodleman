@@ -17,6 +17,27 @@ G$.on = function(q) {
 };
 
 //useful game functions
+function conditionalUI(condition,uiElemType,elemArgs,...functionCalls) {
+	if (condition) {
+		let uiClass = Constants.read(uiElemType);
+		let resultElem = uiClass.create(...elemArgs);
+		for (let i = 0; i < functionCalls.length; i++) {
+			let call = functionCalls[i];
+			if (call && call.length > 0) {
+				let fName = call[0];
+				let args = call.slice(1);
+				let func = resultElem[fName];
+				if (typeof func == "function") resultElem[fName](...args);
+				else console.error("Conditional element does not have function named: "+fName);
+			}
+		}
+		return resultElem;
+	}
+	else {
+		return PathNode.create(...elemArgs);
+	}
+}
+
 function buildSelector(list,onSelect,onCancel) {
 	let selectionState = {start: guiStartElement, selected: guiSelectedElement};
 	View.create("_Selector_",0,0,WIDTH,HEIGHT,"tint","darkBlue").openOnTop();
@@ -140,6 +161,20 @@ function assignCtrlGUI(success,cancel) {
 	}).setFillColor("red","darkGray").show();
 }
 
+function makeFSButton(elemName,viewName,x,y) {
+	return conditionalUI(!startedInFullScreen,
+		"Button", [elemName,viewName,x,y,50,50],
+		["setToggle", function() {
+			this.on = !this.on;
+			setFullScreen(this.on);
+		}],
+		["setOnViewShown", function() {
+			this.on = fullScreen;
+		}],
+		["setIcon", "GUI/Icons.png",2,0,42,4]
+	);
+}
+
 //just definining menus and their functions
 
 function buildMainHud() {
@@ -167,14 +202,7 @@ function buildPauseMenu() {
 		})
 	}).show();
 
-	if (!startedInFullScreen) Button.create("FSToggle","PauseMenu",WIDTH-120,10,50,50).setToggle(function() {
-		this.on = !this.on;
-		setFullScreen(this.on);
-	},true)
-	.setOnViewShown(function() {
-		this.on = fullScreen;
-	}).setIcon("GUI/Icons.png",2,0,42,4).show();
-	else Button.create("FSToggle","PauseMenu",0,0,0,0);
+	makeFSButton("FSToggle","PauseMenu",WIDTH-120,10).show();
 
 	Button.create("CtrlSettingsButton","PauseMenu",10,10,50,50,"Controller Settings").setOnClick(function() {
 		G$("CtrlSettingsView").open();
@@ -268,14 +296,7 @@ function buildOnlineMenu() {
 		Sound.setVolume(this.value);
 		G$("OnlineSettingsVolumeButton").setIcon("GUI/Icons.png",(this.value==0?1:0),3,42,4);
 	});
-	if (!startedInFullScreen) Button.create("OnlineSettingsFSToggle","OnlineSettingsMenu",130,10,50,50).setToggle(function() {
-		this.on = !this.on;
-		setFullScreen(this.on);
-	},true)
-	.setOnViewShown(function() {
-		this.on = fullScreen;
-	}).setIcon("GUI/Icons.png",2,0,42,4).show();
-	else Button.create("OnlineSettingsFSToggle","OnlineSettingsMenu",0,0,0,0);
+	makeFSButton("OnlineSettingsFSToggle","OnlineSettingsMenu",130,10).show();
 	Button.pathHor(["OnlineSettingsClose","OnlineSettingsVolumeButton","OnlineSettingsFSToggle"]);
 }
 

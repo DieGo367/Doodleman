@@ -116,14 +116,8 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		Button.create("Client","Online",WIDTH*5/8,HEIGHT/2-20,WIDTH/4,40,"Join a Room").setOnClick(function() {
 			G$("Joining").open();
 		}).show();
-		if (!startedInFullScreen) Button.create("FSToggle","Online",WIDTH-60,10,50,50).setToggle(function() {
-			this.on = !this.on;
-			setFullScreen(this.on);
-		},true)
-		.setOnViewShown(function() {
-			this.on = fullScreen;
-		}).setIcon("GUI/Icons.png",2,0,42,4).show();
-		else Button.create("FSToggle","Online",0,0,0,0);
+		makeFSButton("FSToggle","Online",WIDTH-60,10).show();
+
 		Button.pathHor(["Host","Client"]);
 		Button.funnelTo("FSToggle","up",["Host","Client"]);
 
