@@ -17,9 +17,9 @@ const Level = {
 		actors: [],
 		terrain: [],
 		bg: [
-			// {type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 1}
+			// {type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 1, velX: 0, velY: 0}
 		],
-		_version_: 0
+		_version_: 1
 	},
 	list: [],
 	exists: function(name) {
@@ -91,10 +91,10 @@ const Level = {
 	makeBackground: function(bg,slot) {
 		if (!bg) return;
 		if (bg.type=="name") {
-			Background.create(slot,bg.name,bg.layer,bg.scale,bg.parallax);
+			Background.create(slot,bg.name,bg.layer,bg.scale,bg.parallax,bg.velX,bg.velY);
 			if (!Images.getImage(bg.name)) return Images.loadImage(bg.name);
 		}
-		else if (bg.raw!="") return BackgroundLZ.create(slot,bg.raw,bg.layer,bg.scale,bg.parallax).promise;
+		else if (bg.raw!="") return BackgroundB64.create(slot,bg.raw,bg.layer,bg.scale,bg.parallax,bg.velX,bg.velY).promise;
 	},
 	setSpawn: function(x,y,playerNumber,direction) {
 		let spawn = this.level.playerSpawns[playerNumber];
@@ -204,42 +204,37 @@ const Level = {
 		return level._version_ == BlankLevel._version_;
 	},
 	convert: async function(data) {
-		if (data._version_==void(0)) {
-			// No version was specified. File is from before versions were introduced
-			// Terrain boxes should now merge their color and sprite properties into gfx
-			if (data.terrain) for (var i in data.terrain) {
-				let terr = data.terrain[i];
-				if (terr.type==0) {
-					let color = terr.properties[0];
-					let sprite = terr.properties[1];
-					terr.properties.splice(0,1);
-					terr.properties[0] = sprite || color || null;
+		switch(data._version_) {
+			case void(0):
+				// No version was specified. File is from before versions were introduced
+				// Terrain boxes should now merge their color and sprite properties into gfx
+				if (data.terrain) for (let i = 0; i < data.terrain.length; i++) {
+					let terr = data.terrain[i];
+					if (terr.type==0) {
+						let color = terr.properties[0];
+						let sprite = terr.properties[1];
+						terr.properties.splice(0,1);
+						terr.properties[0] = sprite || color || null;
+					}
 				}
-			}
-			// Actor id 20 properties changed
-			if (data.actors) for (var i in data.actors) {
-				let props = data.actors[i];
-				if (props[0]==20) {
-					props.splice(5,1); // remove hasColorFill
+				// Actor id 20 properties changed
+				if (data.actors) for (let i = 0; i < data.actors.length; i++) {
+					let props = data.actors[i];
+					if (props[0]==20) {
+						props.splice(5,1); // remove hasColorFill
+					}
 				}
-			}
-			data._version_ = 0;
+				data._version_ = 0;
+			case 0:
+				// Level backgrounds have new properties: velX and velY
+				if (data.bg) for (let i = 0; i < data.bg.length; i++) {
+					let bg = data.bg[i];
+					if (bg) {
+						bg.velX = bg.velY = 0;
+					}
+				}
+				data._version_++;
 		}
-		// switch(data._version_) {
-		// 	case 0:
-		// 		// Raw BG data is now LZ compressed, not base64 encoded
-		// 		if (data.bg) {
-		// 			for (var i = 0; i < data.bg.length; i++) {
-		// 				let bg = data.bg[i];
-		// 				if (bg && bg.raw!="") {
-		// 					// this will decode to binary and LZ compress it
-		// 					bg.raw = await Images.compress(bg.raw);
-		// 				}
-		// 			}
-		// 		}
-		// 	default:
-		// 		data._version_ = BlankLevel._version_;
-		// }
 	},
 	getSnappingPoints: function(cancelMidpoints) {
 		let points = [];

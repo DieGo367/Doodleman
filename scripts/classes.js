@@ -287,17 +287,22 @@ initClass(RemoteObject,{drawable:true, listType: "uid_clone"});
 
 
 class Background extends _c_ {
-	constructor(slot,imgName,drawLayer,scale,parallax,doLoad) {
+	constructor(slot,imgName,drawLayer,scale,parallax,velX,velY) {
 		super();
 		this.slot = slot;
 		this.imgName = imgName;
 		this.drawLayer = drawLayer;
 		this.scale = scale;
 		this.parallax = parallax;
+		this.velX = velX;
+		this.velY = velY;
+		this.tick = 0;
 		if (!Background.slots[slot]) Background.slots[slot] = this;
 		else this.slot = null;
-		if (doLoad==void(0)) doLoad = true;
-		if (doLoad && !Images.isLoaded(imgName)) Images.loadImage(imgName);
+		this.load();
+	}
+	load() {
+		if (!Images.isLoaded(this.imgName)) Images.loadImage(this.imgName);
 	}
 	setSlot(slot) {
 		this.slot = slot;
@@ -309,7 +314,10 @@ class Background extends _c_ {
 		let y = Math.max(0,cam.topPx());
 		let width = Math.min(Level.level.width,cam.rightPx()) - x;
 		let height = Math.min(Level.level.height,cam.bottomPx()) - y;
-		Images.drawImagePattern(this.imgName,x,y,width,height,this.scale,this.parallax);
+		let offsetX = this.tick*this.velX;
+		let offsetY = this.tick*this.velY;
+		Images.drawImagePattern(this.imgName,x,y,width,height,this.scale,this.parallax,offsetX,offsetY);
+		if (!paused) this.tick++;
 	}
 	remove() {
 		if (this.slot) Background.clearSlot(this.slot);
@@ -334,19 +342,23 @@ class Background extends _c_ {
 }
 initClass(Background,{drawable: true, listType: "array"});
 
-class BackgroundLZ extends Background {
-	constructor(slot,imgLZ,drawLayer,scale,parallax) {
-		super(slot,"BGRaw:"+slot,drawLayer,scale,parallax,false);
-		this.imgLZ = imgLZ;
-		this.promise = Images.loadImageB64("BGRaw:"+slot,imgLZ);
+class BackgroundB64 extends Background {
+	constructor(slot,imgB64,drawLayer,scale,parallax,velX,velY) {
+		super(slot,"BGRaw:"+slot,drawLayer,scale,parallax,velX,velY);
+		this.imgB64 = imgB64;
+		this.load();
+	}
+	load() {
+		if (!this.imgB64) return;
+		this.promise = Images.loadImageB64(this.imgName,this.imgB64);
 	}
 	setSlot(slot) {
 		super.setSlot(slot);
-		Images.loadImageB64("BGRaw:"+slot,this.imgLZ);
 		this.imgName = "BGRaw:"+slot;
+		this.load();
 	}
 }
-initClass(BackgroundLZ,Background);
+initClass(BackgroundB64,Background);
 
 
 class Box extends _c_ {

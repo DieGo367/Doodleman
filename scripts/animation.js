@@ -88,7 +88,7 @@ const Images = {
 
 		this.drawImage(imageName,x+bp,y+bp,width-(2*bp),height-(2*bp),ox+bp,oy+bp,center,center);
 	},
-	drawImagePattern: function(imageName,x,y,width,height,scale,parallax) {
+	drawImagePattern: function(imageName,x,y,width,height,scale,parallax,offsetX,offsetY) {
 		let img = this.getImage(imageName);
 		if (!img||!img.complete||img.width==0||img.height==0) return;
 		if (!img.patterns) img.patterns = {};
@@ -100,9 +100,11 @@ const Images = {
 		}
 		c.fillStyle = img.patterns[scale];
 		if (parallax==void(0)) parallax = 1;
+		if (offsetX==void(0)) offsetX = 0;
+		if (offsetY==void(0)) offsetY = 0;
 		c.save();
-		c.translate(x-x/parallax,y-y/parallax);
-		c.fillRect(x/parallax,y/parallax,width,height);
+		c.translate(x-x/parallax-offsetX,y-y/parallax-offsetY);
+		c.fillRect(x/parallax+offsetX,y/parallax+offsetY,width,height);
 		c.restore();
 	},
 	setFilter: function(filter) {

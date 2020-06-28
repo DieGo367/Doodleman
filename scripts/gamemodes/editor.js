@@ -318,12 +318,12 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 		})
 		.setBGVal = function(key,val,preventRefresh) {
 			let bg = Level.level.bg[this.numBG];
-			if (!bg) bg = Level.level.bg[this.numBG] = {type:"none", name:"", raw:"", layer:-2, scale:1, parallax:1};
+			if (!bg) bg = Level.level.bg[this.numBG] = {type:"none", name:"", raw:"", layer:-2, scale:1, parallax:1, velX: 0, velY: 0};
 			bg[key] = val;
 			if (preventRefresh) return;
 			Background.clearSlot(this.numBG);
-			if (bg.type=="name") Background.create(this.numBG,bg.name,bg.layer,bg.scale,bg.parallax);
-			else if (bg.type=="raw"&&bg.raw!="") BackgroundLZ.create(this.numBG,bg.raw,bg.layer,bg.scale,bg.parallax);
+			if (bg.type=="name") Background.create(this.numBG,bg.name,bg.layer,bg.scale,bg.parallax,bg.velX,bg.velY);
+			else if (bg.type=="raw"&&bg.raw!="") BackgroundB64.create(this.numBG,bg.raw,bg.layer,bg.scale,bg.parallax,bg.velX,bg.velY);
 			this.onShow();
 		};
 		let layerButtons = [];
