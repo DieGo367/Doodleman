@@ -103,8 +103,9 @@ const Images = {
 		if (offsetX==void(0)) offsetX = 0;
 		if (offsetY==void(0)) offsetY = 0;
 		c.save();
-		c.translate(x-x/parallax-offsetX,y-y/parallax-offsetY);
-		c.fillRect(x/parallax+offsetX,y/parallax+offsetY,width,height);
+		c.translate(x-x/parallax,y-y/parallax);
+		c.translate(-offsetX/parallax,-offsetY/parallax);
+		c.fillRect((x+offsetX)/parallax,(y+offsetY)/parallax,width,height);
 		c.restore();
 	},
 	setFilter: function(filter) {

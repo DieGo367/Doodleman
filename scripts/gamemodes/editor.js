@@ -42,6 +42,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 		else {
 			if (View.focus<3) G$("LevelSettingsClose").onClick(null,true);
 		}
+		return CANCEL;
 	},
 	onPointerMove: function(x,y) {
 		if (G$(EditorTools.getToolName()+"Tool").on && !globalKeyboard.pressed("Ctrl")) {
