@@ -2674,6 +2674,7 @@ class View extends _c_ {
 			if (this.subviews[i].wasVisibleInBaseView) {
 				delete this.subviews[i].wasVisibleInBaseView;
 				this.subviews[i].visible = true;
+				this.subviews[i].onShow();
 			}
 		}
 		return this;
@@ -2849,6 +2850,14 @@ class GuiElement extends _c_ {
 	right(name) {
 		this.neighbors.right = name;
 		return this;
+	}
+	untie() {
+		let opposite = {up: "down", down: "up", left:"right", right:"left"};
+		for (let dir in this.neighbors) {
+			let neighbor = this.neighbors[dir];
+			if (neighbor && neighbor[opposite[dir]]==this.name) neighbor[opposite[dir]] = null;
+			this.neighbors[dir] = null;
+		}
 	}
 	setAsStart() {
 		this.view.startElement = this;
