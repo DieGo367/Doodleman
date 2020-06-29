@@ -28,8 +28,8 @@
 		}
 	],
 	"bg": [
-		{"type": "name", "name": "BG/checker.png", "raw": "", "layer": -2, "scale": 0.25, "parallax": 1},
-		{"type": "name", "name": "FG/lobby_platform.png", "raw": "", "layer": -2, "scale": 1, "parallax": 1}
+		{"type": "name", "name": "BG/checker.png", "raw": "", "layer": -3, "scale": 0.25, "parallax": 1, "velY": 0, "velX": 0.25},
+		{"type": "name", "name": "FG/lobby_platform.png", "raw": "", "layer": -2, "scale": 1, "parallax": 1, "velY": 0, "velX": 0}
 	],
-	"_version_": 0
+	"_version_": 1
 }
