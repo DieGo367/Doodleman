@@ -96,6 +96,14 @@ const Level = {
 		}
 		else if (bg.raw!="") return BackgroundB64.create(slot,bg.raw,bg.layer,bg.scale,bg.parallax,bg.velX,bg.velY).promise;
 	},
+	loadBackgrounds: async function() {
+		let promises = [];
+		for (var b in this.level.bg) {
+			let promise = this.makeBackground(this.level.bg[b],b);
+			if (promise) promises.push(promise);
+		}
+		await Promise.all(promises);
+	},
 	setSpawn: function(x,y,playerNumber,direction) {
 		let spawn = this.level.playerSpawns[playerNumber];
 		if (!spawn) spawn = this.level.playerSpawns[playerNumber] = {x: 0, y:0, direction: RIGHT};
@@ -133,12 +141,7 @@ const Level = {
 		for (var p in newLevel) this.level[p] = newLevel[p];
 		for (var s in this.level.actors) ActorManager.make(...this.level.actors[s]);
 		for (var h in this.level.terrain) TerrainManager.make(this.level.terrain[h]);
-		let promises = [];
-		for (var b in this.level.bg) {
-			let promise = this.makeBackground(this.level.bg[b],b);
-			if (promise) promises.push(promise);
-		}
-		await Promise.all(promises);
+		await this.loadBackgrounds();
 		Camera.reset();
 		if (online) Net.sendLevel(newLevel);
 		Game.onLevelLoad();
@@ -232,6 +235,9 @@ const Level = {
 					if (bg) {
 						bg.velX = bg.velY = 0;
 					}
+					// Previously the editor allowed null layers to occur
+					// While technically supported, there shouldn't be any
+					else data.bg.splice(i--,1);
 				}
 				data._version_++;
 		}

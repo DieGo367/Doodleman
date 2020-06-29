@@ -191,7 +191,7 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 		Button.create("LS:File","LevelSettingsView",WIDTH*1/5-50,75,100,40,"File").down("LS:File:Name:input").setAsStart().show().on = true;
 		Button.create("LS:Edit","LevelSettingsView",WIDTH*2/5-50,75,100,40,"Edit").down("LS:Dimensions:width").show();
 		Button.create("LS:Cam","LevelSettingsView",WIDTH*3/5-50,75,100,40,"Camera").down("LS:CamStart:x").show();
-		Button.create("LS:BG","LevelSettingsView",WIDTH*4/5-50,75,100,40,"BG").down("LS:BG:0").show();
+		Button.create("LS:BG","LevelSettingsView",WIDTH*4/5-50,75,100,40,"BG").down("LS:BG:NewLayer").show();
 		Button.setRadioGroup(["LS:File","LS:Edit","LS:Cam","LS:BG"],function() {
 			G$(this.view.activeMenu).closesub();
 			this.view.activeMenu = this.name+":Menu";
@@ -289,81 +289,122 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 			["LS:ZoomLimit:min","LS:ZoomLimit:max"]
 		]);
 
-		View.create("LS:BG:Menu",0,0,WIDTH,HEIGHT).setOnShow(function() {
-			if (this.numBG==void(0)) {
-				this.numBG = 0;
-				G$("LS:BG:0").on = true;
+
+		let loadBGLayerPage = function(page) {
+			let names = [[],[]];
+			for (let i = page*10; i < (page+1)*10; i++) {
+				let inPage = i%10;
+				let inRow = Math.floor(inPage/5);
+				let inCol = inPage%5;
+				
+				let button = G$("LS:BG:Layer:"+inPage);
+				
+				let bg = Level.level.bg[i];
+				if (bg) {
+					if (!(button instanceof Button)) {
+						button = Button.create("LS:BG:Layer:"+inPage,"LS:BG:Menu",(WIDTH-10)*inCol/5+10,180+inRow*90,(WIDTH-60)/5,80).setOnClick(openBGLayer);
+					}
+					button.bgLayer = i;
+					let bgImgName = bg.type=="name"? bg.name : bg.type=="raw"? "BGRaw:"+i : null;
+					if (bgImgName) {
+						let bgImg = Images.imgData[bgImgName];
+						button.setIcon(bgImgName,0,0,Math.max(bgImg.width,bgImg.height),5).text = "";
+					}
+					else button.setIcon(null).text = "Empty";
+					button.show();
+					names[inRow].push(button.name);
+				}
+				else {
+					button.hide();
+					if (button instanceof Button) button.untie();
+				}
 			}
-			let bg = Level.level.bg[this.numBG];
+			if (names[0].length>0) {
+				Button.funnelTo(names[0][0],"down",["LS:BG:PageLeft","LS:BG:PageRight","LS:BG:NewLayer"]);
+				Button.funnelTo("LS:BG:PageLeft","up",names[0]);
+				Button.pathHor(names[0]);
+				Button.pathHor(names[1]);
+				for (let i = 0; i < 5; i++) {
+					if (names[0][i] && names[1][i]) Button.pathVert([names[0][i],names[1][i]]);
+				}
+			}
+		}
+		let openBGLayer = function() {
+			let view = G$("LS:BG:EditLayer");
+			view.bgLayer = this.bgLayer;
+			view.open();
+		}
+		View.create("LS:BG:Menu",0,0,WIDTH,HEIGHT).setOnShow(function() {
+			loadBGLayerPage(this.page);
+		}).page = 0;
+		TextElement.create("LS:BG:Select","LS:BG:Menu",WIDTH/4-150,155,fontMenuItem,"Select Layer Below",WIDTH,LEFT).show();
+		Button.create("LS:BG:PageLeft","LS:BG:Menu",WIDTH/2-60,130,40,40,"<").setOnClick(function() {
+			if (--this.view.page < 0) this.view.page = 0;
+			loadBGLayerPage(this.view.page);
+		}).show();
+		Button.create("LS:BG:PageRight","LS:BG:Menu",WIDTH/2-10,130,40,40,">").setOnClick(function() {
+			let totalPageCount = Math.floor((Level.level.bg.length-1)/10)+1;
+			if (totalPageCount==0) return this.view.page = 0;
+			if (++this.view.page >= totalPageCount) this.view.page = totalPageCount-1;
+			loadBGLayerPage(this.view.page);
+		}).show();
+		Button.create("LS:BG:NewLayer","LS:BG:Menu",WIDTH*3/5+18,130,160,40,"Add New Layer",WIDTH,LEFT).setOnClick(function() {
+			Level.level.bg.push({type:"none", name:"", raw:"", layer:-2, scale:1, parallax:1, velX:0, velY:0});
+			loadBGLayerPage(this.view.page);
+		}).show();
+		Button.pathHor(["LS:BG:PageLeft","LS:BG:PageRight","LS:BG:NewLayer"]);
+		Button.funnelTo("LS:BG","up",["LS:BG:PageLeft","LS:BG:PageRight","LS:BG:NewLayer"]);
+
+		View.create("LS:BG:EditLayer",0,0,WIDTH,HEIGHT,"tint","green").setOnShow(function() {
+			let bg = Level.level.bg[this.bgLayer];
 			if (bg) {
-				G$("LS:BG:Empty").hide();
-				G$("LS:BG:Desc").show().text = bg.name || ((bg.raw&&bg.raw!="")?"imported":"none");
+				let hasRaw = bg.raw&&bg.raw!="";
+				G$("LS:BG:Desc").show().text = bg.name || (hasRaw? "imported" : "none");
 				G$("LS:BG:PreviewWrap").show();
-				G$("LS:BG:Preview").show().img = (bg.name || "BGRaw:"+this.numBG);
+				G$("LS:BG:Preview").show().img = bg.name || (hasRaw? "BGRaw:"+this.bgLayer : null);
 				G$("LS:BG:Name").val(bg.name);
 				G$("LS:BG:Layer:num").val(bg.layer);
 				G$("LS:BG:Scale:num").val(bg.scale);
 				G$("LS:BG:Parallax:num").val(bg.parallax);
+				G$("LS:BG:VelX").val(bg.velX);
+				G$("LS:BG:VelY").val(bg.velY);
 			}
-			else {
-				G$("LS:BG:Empty").show();
-				G$("LS:BG:Desc").hide();
-				G$("LS:BG:PreviewWrap").hide();
-				G$("LS:BG:Preview").hide();
-				G$("LS:BG:Name").val("");
-				G$("LS:BG:Layer:num").val("");
-				G$("LS:BG:Scale:num").val("");
-				G$("LS:BG:Parallax:num").val("");
+			else this.close();
+		}).setBGVal = function(changes) {
+			let bg = Level.level.bg[this.bgLayer];
+			if (!bg) this.view.close();
+			for (let key in changes) {
+				bg[key] = changes[key];
 			}
-		})
-		.setBGVal = function(key,val,preventRefresh) {
-			let bg = Level.level.bg[this.numBG];
-			if (!bg) bg = Level.level.bg[this.numBG] = {type:"none", name:"", raw:"", layer:-2, scale:1, parallax:1, velX: 0, velY: 0};
-			bg[key] = val;
-			if (preventRefresh) return;
-			Background.clearSlot(this.numBG);
-			if (bg.type=="name") Background.create(this.numBG,bg.name,bg.layer,bg.scale,bg.parallax,bg.velX,bg.velY);
-			else if (bg.type=="raw"&&bg.raw!="") BackgroundB64.create(this.numBG,bg.raw,bg.layer,bg.scale,bg.parallax,bg.velX,bg.velY);
+			Background.clearSlot(this.bgLayer);
+			if (bg.type=="name") Background.create(this.bgLayer,bg.name,bg.layer,bg.scale,bg.parallax,bg.velX,bg.velY);
+			else if (bg.type=="raw"&&bg.raw!="") BackgroundB64.create(this.bgLayer,bg.raw,bg.layer,bg.scale,bg.parallax,bg.velX,bg.velY);
 			this.onShow();
 		};
-		let layerButtons = [];
-		for (var i = 0; i < 8; i++) layerButtons.push(Button.create("LS:BG:"+i,"LS:BG:Menu",WIDTH/2-240+63*i,130,40,40,i+1).show().name);
-		Button.setRadioGroup(layerButtons,function() {
-			this.view.numBG = parseInt(this.text)-1;
-			this.view.onShow();
-		},true);
-		Button.create("LS:BG:Swap:left","LS:BG:Menu",-10,130,60,40,"	 <").setOnClick(function() {
-			let slot = this.view.numBG;
-			let left = (slot>0? slot-1: layerButtons.length-1);
-			Background.swapSlots(slot,left);
-			swapListItems(Level.level.bg,slot,left);
-			trimListEnd(Level.level.bg);
-			G$(layerButtons[left]).onClick(this.clickSource,true);
-			gameAlert("Swapped BG Layers "+(slot+1)+" and "+(left+1)+".",60);
+		Button.create("LS:BG:EditLayer:Close","LS:BG:EditLayer",WIDTH-60,10,50,50).setOnClick(function() {
+			G$("LS:BG:EditLayer").close();
+		}).setIcon("GUI/Icons.png",3,0,42,4).setImage("GUI/Button_Red.png").show();
+		TextElement.create("LS:BG:Layer","LS:BG:EditLayer",WIDTH/2-190,210,fontMenuItem,"Draw Layer",WIDTH,LEFT).show();
+		TextInput.create("LS:BG:Layer:num","LS:BG:EditLayer",WIDTH/2-60,185,100,40,"#layer",null,"Enter the draw layer",numPattern).setOnInputChange(function(val) {
+			this.view.setBGVal({"layer":val});
+		}).createIncrementers(20,1).show().setAsStart();
+		TextElement.create("LS:BG:Scale","LS:BG:EditLayer",WIDTH*2/3-50,210,fontMenuItem,"Image Scale",WIDTH,LEFT).show();
+		TextInput.create("LS:BG:Scale:num","LS:BG:EditLayer",WIDTH/2+190,185,100,40,"#bg scale",null,"Enter the background scale",numPattern).setOnInputChange(function(val) {
+			this.view.setBGVal({"scale":val});
 		}).show();
-		Button.create("LS:BG:Swap:right","LS:BG:Menu",WIDTH-50,130,60,40,">	 ").setOnClick(function() {
-			let slot = this.view.numBG;
-			let right = (slot<layerButtons.length-1? slot+1: 0);
-			Background.swapSlots(slot,right);
-			swapListItems(Level.level.bg,slot,right);
-			trimListEnd(Level.level.bg);
-			G$(layerButtons[right]).onClick(this.clickSource,true);
-			gameAlert("Swapped BG Layers "+(slot+1)+" and "+(right+1)+".",60);
+		TextElement.create("LS:BG:Parallax","LS:BG:EditLayer",WIDTH*2/3-18,265,fontMenuItem,"Parallax",WIDTH,LEFT).show();
+		TextInput.create("LS:BG:Parallax:num","LS:BG:EditLayer",WIDTH/2+190,240,100,40,"#parallax",null,"Enter the amount of parallax",numPattern).setOnInputChange(function(val) {
+			this.view.setBGVal({"parallax":val});
 		}).show();
-		TextElement.create("LS:BG:Layer","LS:BG:Menu",WIDTH*2/3-50,210,fontMenuItem,"Draw Layer",WIDTH,LEFT).show();
-		TextInput.create("LS:BG:Layer:num","LS:BG:Menu",WIDTH/2+190,185,100,40,"#layer",null,"Enter the draw layer",numPattern).setOnInputChange(function(val) {
-			this.view.setBGVal("layer",val);
-		}).createIncrementers(20,1).show();
-		TextElement.create("LS:BG:Scale","LS:BG:Menu",WIDTH*2/3-50,265,fontMenuItem,"Image Scale",WIDTH,LEFT).show();
-		TextInput.create("LS:BG:Scale:num","LS:BG:Menu",WIDTH/2+190,240,100,40,"#bg scale",null,"Enter the background scale",numPattern).setOnInputChange(function(val) {
-			this.view.setBGVal("scale",val);
+		TextElement.create("LS:BG:AutoScroll","LS:BG:EditLayer",WIDTH/2-190,265,fontMenuItem,"Auto-Scroll",WIDTH,LEFT).show();
+		TextInput.create("LS:BG:VelX","LS:BG:EditLayer",WIDTH/2-60,240,60,40,"#horizontal",null,"Enter the horizontal velocity",numPattern).setOnInputChange(function(val) {
+			this.view.setBGVal({"velX":val});
 		}).show();
-		TextElement.create("LS:BG:Parallax","LS:BG:Menu",WIDTH*2/3-50,320,fontMenuItem,"Parallax",WIDTH,LEFT).show();
-		TextInput.create("LS:BG:Parallax:num","LS:BG:Menu",WIDTH/2+190,295,100,40,"#parallax",null,"Enter the amount of parallax",numPattern).setOnInputChange(function(val) {
-			this.view.setBGVal("parallax",val);
+		TextInput.create("LS:BG:VelY","LS:BG:EditLayer",WIDTH/2+5,240,60,40,"#vertical",null,"Enter the vertical velocity",numPattern).setOnInputChange(function(val) {
+			this.view.setBGVal({"velY":val});
 		}).show();
-		TextInput.create("LS:BG:Name","LS:BG:Menu",WIDTH/2-70,185,100,40,"img name",null,"Enter the name of the image").setOnInputChange(function(val) {
-			let bg = Level.level.bg[this.view.numBG];
+		TextInput.create("LS:BG:Name","LS:BG:EditLayer",10,185,100,40,"img name",null,"Enter the name of the image").setOnInputChange(function(val) {
+			let bg = Level.level.bg[this.view.bgLayer];
 			this.upcomingVal = val;
 			if (bg&&bg.raw!="") {
 				gameConfirm("This will delete the imported BG. Continue?",function(response) {
@@ -372,50 +413,39 @@ const GAME_EDITOR = GameManager.addMode(new GameMode({
 				return CANCEL;
 			}
 			else this.set();
-		}).show()
-		.set = function() {
+		}).show().set = function() {
 			G$("LS:BG:Desc").text = this.upcomingVal;
-			this.view.setBGVal("name",this.upcomingVal,true);
-			this.view.setBGVal("raw","",true);
-			this.view.setBGVal("type","name");
+			this.view.setBGVal({"type":"name", "name":this.upcomingVal, "raw":""});
 		};
-		Button.create("LS:BG:Raw","LS:BG:Menu",WIDTH/2-70,240,100,40,"Import BG").setOnClick(function() {
+		Button.create("LS:BG:Raw","LS:BG:EditLayer",10,240,100,40,"Import BG").setOnClick(function() {
+			let view = this.view;
 			FileInput.ask(["png","jpg","jpeg","bmp","webp"],"readAsDataURL",function(result,file) {
 				G$("LS:BG:Desc").text = "imported";
-				G$("LS:BG:Name").store("");
-				let view = G$("LS:BG:Menu");
-				view.setBGVal("raw",result.split(",")[1],true);
-				// view.setBGVal("raw",LZString.compress(result),true);
-				view.setBGVal("name","",true);
-				view.setBGVal("type","raw");
+				view.setBGVal({"type":"raw", "raw":result.split(",")[1], "name":""})
 			});
 		}).show();
-		Button.create("LS:BG:Delete","LS:BG:Menu",WIDTH/2-70,295,100,40,"Delete").setOnClick(function() {
-			if (!Level.level.bg[this.view.numBG]) return;
-			gameConfirm("Delete background layer #"+(this.view.numBG+1)+"?",function(result) {
+		Button.create("LS:BG:Delete","LS:BG:EditLayer",10,295,100,40,"Delete").setOnClick(function() {
+			if (!Level.level.bg[this.view.bgLayer]) return;
+			let view = this.view;
+			gameConfirm("Delete background layer #"+(this.view.bgLayer+1)+"?",function(result) {
 				if (result) {
-					let bgArr = Level.level.bg;
-					let view = G$("LS:BG:Menu");
-					let slot = view.numBG;
-					if (bgArr[slot]) Background.clearSlot(slot);
-					delete bgArr[slot];
-					trimListEnd(bgArr);
-					view.onShow();
+					Level.level.bg.splice(view.bgLayer,1);
+					Background.killAll();
+					Level.loadBackgrounds();
+					view.close();
 				}
 			})
 		}).setImage("GUI/Button_Red.png").show();
-		ImgElement.create("LS:BG:PreviewWrap","LS:BG:Menu",WIDTH/5,261,"GUI/BG_Preview.png",202,160,IMAGE_STRETCH);
-		TextElement.create("LS:BG:Desc","LS:BG:Menu",WIDTH/5,320,fontMenuData,null,WIDTH,CENTER);
-		ImgElement.create("LS:BG:Preview","LS:BG:Menu",WIDTH/5,240,"",192,108,IMAGE_ZOOM);
-		TextElement.create("LS:BG:Empty","LS:BG:Menu",WIDTH/5,270,fontFocus,"EMPTY",WIDTH,CENTER);
-		Button.funnelTo("LS:BG","up",layerButtons);
-		Button.pathHor(["LS:BG:Swap:left",...layerButtons,"LS:BG:Swap:right"]);
-		PathNode.tieVert("LS:BG:Menu",layerButtons,["LS:BG:Name","LS:BG:Layer:num"])
-		Button.pathGrid([
-			["LS:BG:Name","LS:BG:Layer:num"],
-			["LS:BG:Raw","LS:BG:Scale:num"],
-			["LS:BG:Delete","LS:BG:Parallax:num"]
-		]);
+		ImgElement.create("LS:BG:PreviewWrap","LS:BG:EditLayer",WIDTH/2,91,"GUI/BG_Preview.png",202,160,IMAGE_STRETCH);
+		TextElement.create("LS:BG:Desc","LS:BG:EditLayer",WIDTH/2,150,fontMenuData,null,WIDTH,CENTER);
+		ImgElement.create("LS:BG:Preview","LS:BG:EditLayer",WIDTH/2,70,"",192,108,IMAGE_ZOOM);
+		Button.pathHor(["LS:BG:Name","LS:BG:Layer:num","LS:BG:Scale:num"]);
+		Button.pathHor(["LS:BG:Raw","LS:BG:VelX","LS:BG:VelY","LS:BG:Parallax:num"]);
+		Button.pathVert(["LS:BG:Name","LS:BG:Raw","LS:BG:Delete"]);
+		Button.pathVert(["LS:BG:Layer:num","LS:BG:VelX"]);
+		Button.funnelTo("LS:BG:Layer:num","up",["LS:BG:VelX","LS:BG:VelY"]);
+		Button.pathVert(["LS:BG:Scale:num","LS:BG:Parallax:num"]);
+		Button.funnelTo("LS:BG:EditLayer:Close","up",["LS:BG:Name","LS:BG:Layer:num","LS:BG:Scale:num"]);
 	},
 	removeGui: function() {
 		G$("EditorToolbar").remove();
