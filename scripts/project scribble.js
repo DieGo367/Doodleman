@@ -1518,7 +1518,11 @@ function doGlobalControls(controller) {
 			}
 			if (guiSelectedElement) {
 				if (controller.ready(controller.type==KEYBOARD?"accept":"jump")) {
-					guiSelectedElement.onClick(controller,true);
+					let ele = guiSelectedElement;
+					let oldHovered = ele.hovered || false;
+					ele.hovered = true;
+					ele.onClick(controller);
+					ele.hovered = oldHovered;
 					controller.use(controller.type==KEYBOARD?"accept":"jump");
 				}
 			}

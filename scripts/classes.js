@@ -3283,6 +3283,7 @@ class TextInput extends Button {
 			this.keyboard.val("").blur();
 			this.keyboard = null;
 		}
+		this.preventClick++;
 	}
 	onKeypress(key) {
 		if (!this.typing) return;
