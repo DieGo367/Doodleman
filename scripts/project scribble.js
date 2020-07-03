@@ -691,27 +691,26 @@ const Timer = {
 	},
 	wait: function(ticks,func,caller) {
 		if (!isNaN(parseInt(ticks)) && typeof func != "function") return;
-		this.timers.push(ticks);
-		this.funcs.push(func);
-		if (typeof caller == "object") this.callers[this.timers.length-1] = caller;
+		this.timers.push({
+			ticks: ticks,
+			func: func,
+			caller: caller
+		});
 	},
 	update: function() {
 		this.tick++;
 		let completed = [];
-		for (var i in this.timers) {
-			if (--this.timers[i] == 0) {
-				let func = this.funcs[i];
-				let caller = this.callers[i];
-				if (caller) func.call(caller);
-				else func();
+		for (let i = 0; i < this.timers.length; i++) {
+			let timer = this.timers[i];
+			if (--timer.ticks <= 0) {
+				if (timer.caller) timer.func.call(timer.caller);
+				else timer.func();
 				completed.push(i);
 			}
 		}
-		for (var i in completed) {
+		for (let i in completed) {
 			let index = completed[i];
 			this.timers.splice(index,1);
-			this.funcs.splice(index,1);
-			delete this.callers[index];
 		}
 	}
 }

@@ -2028,7 +2028,7 @@ class Player extends Entity {
 			this.warpLimbo();
 			this.hadDied = true;
 			this.wait(60,function() {
-				this.superMethod("die");
+				if (!this.deleted) this.superMethod("die");
 			});
 		}
 		else {
