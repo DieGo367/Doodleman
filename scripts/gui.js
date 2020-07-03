@@ -251,14 +251,34 @@ function buildOnlineMenu() {
 		G$("OnlineSettingsMenu").open();
 	}).setIcon("GUI/Icons.png",4,0,42,4).show();
 	Button.create("OnlineLock","OnlineMenu",70,10,50,50).setToggle(function() {
-		Net.roomLock(true);
-		this.setIcon("GUI/Icons.png",5,0,42,4);
-		this.toggleState = 1;
+		this.toggleState = 2;
+		Net.roomLock(true,()=>{
+			this.setIcon("GUI/Icons.png",5,0,42,4);
+			this.toggleState = 1;
+		}, failMsg => {
+			this.toggleState = 0;
+			gameAlert(failMsg,60);
+		});
 	},
 	function() {
-		Net.roomLock(false);
-		this.setIcon("GUI/Icons.png",6,0,42,4);
-		this.toggleState = 0;
+		this.toggleState = 2;
+		Net.roomLock(false,()=>{
+			this.setIcon("GUI/Icons.png",6,0,42,4);
+			this.toggleState = 0;
+		}, failMsg => {
+			this.toggleState = 1;
+			gameAlert(failMsg,60);
+		});
+	},
+	function() {}).setOnViewShown(function() {
+		if (Net.locked) {
+			this.setIcon("GUI/Icons.png",5,0,42,4);
+			this.toggleState = 1;
+		}
+		else {
+			this.setIcon("GUI/Icons.png",6,0,42,4);
+			this.toggleState = 0;
+		}
 	});
 	TextElement.create("OnlineRoomCode","OnlineMenu",120 + (WIDTH/2 - 150/2 - 120)/2,45,fontHudScore,"...",WIDTH/2-(150/2)-120,CENTER).show();
 	Button.create("OnlineLeave","OnlineMenu",WIDTH/2-150/2,10,150,50,"Back to Lobby").setOnClick(function() {

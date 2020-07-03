@@ -805,6 +805,7 @@ const Net = {
 	dataLog: false,
 	bytesSent: 0, doCompression: true, compressionThreshold: 150,
 	// used by host
+	locked: false,
 	clients: [],
 	newClient: null, discoveryAlerts: false,
 	// used by client
@@ -819,6 +820,7 @@ const Net = {
 		this.POST("createroom",null,function(data) {
 			if (data.success) {
 				this.room = data.room;
+				this.locked = false;
 				this.watchClientQueue();
 				this.openToNewClient();
 				if (typeof success == "function") success(data.room);
@@ -875,7 +877,10 @@ const Net = {
 				if (data.doesNotExist) {
 					if (typeof failure == "function") failure("Invalid room code");
 				}
-				else if (typeof success == "function") success(data);
+				else {
+					Net.locked = true;
+					if (typeof success == "function") success(data);
+				}
 			}, () => { failure("Network connection error"); });
 		}
 		else {
@@ -885,7 +890,10 @@ const Net = {
 				if (data.doesNotExist) {
 					if (typeof failure == "function") failure("Invalid room code");
 				}
-				else if (typeof success == "function") success(data);
+				else {
+					Net.locked = false;
+					if (typeof success == "function") success(data);
+				}
 			}, () => { failure("Network connection error"); });
 		}
 	},

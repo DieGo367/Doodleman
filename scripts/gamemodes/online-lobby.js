@@ -158,14 +158,34 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 
 		View.create("RoomHoster",0,0,WIDTH,HEIGHT);
 		Button.create("LockRoom","RoomHoster",WIDTH-260,10,120,40,"Lock Room").setToggle(function() {
-			Net.roomLock(true);
-			this.text = "Unlock Room";
-			this.toggleState = 1;
+			this.toggleState = 2;
+			Net.roomLock(true,()=>{
+				this.text = "Unlock Room";
+				this.toggleState = 1;
+			}, failMsg => {
+				this.toggleState = 0;
+				gameAlert(failMsg,60);
+			});
 		},
 		function() {
-			Net.roomLock(false);
-			this.text = "Lock Room";
-			this.toggleState = 0;
+			this.toggleState = 2;
+			Net.roomLock(false,()=>{
+				this.text = "Lock Room";
+				this.toggleState = 0;
+			}, failMsg => {
+				this.toggleState = 1;
+				gameAlert(failMsg,60);
+			});
+		},
+		function() {}).setOnViewShown(function() {
+			if (Net.locked) {
+				this.text = "Unlock Room";
+				this.toggleState = 1;
+			}
+			else {
+				this.text = "Lock Room";
+				this.toggleState = 0;
+			}
 		}).show();
 		Button.create("CloseRoom","RoomHoster",WIDTH-130,10,120,40,"Close Room").setOnClick(function() {
 			Player.preventLocalControls = true;
