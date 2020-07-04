@@ -28,6 +28,9 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 					}
 				});
 			}
+			else {
+				G$("RoomJoiner").opensub();
+			}
 		}
 		else try { // if not in a room, check for a net invite
 			Level.loadLevel("Online-Lobby.json");
@@ -57,6 +60,19 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		Net.discoveryAlerts = false;
 	},
 	onPause: function() {
+		if (Net.room && G$("Room").visible) {
+			if (Player.preventLocalControls) {
+				Player.preventLocalControls = false;
+				Tap.ctrlEnabled = true;
+				guiSelectedElement = guiStartElement = null;
+			}
+			else {
+				Player.preventLocalControls = true;
+				Tap.ctrlEnabled = false;
+				if (Net.isHost()) guiSelectedElement = guiStartElement = G$("GeneralSettingsH");
+				else guiSelectedElement = guiStartElement = G$("GeneralSettingsJ");
+			}
+		}
 		return CANCEL;
 	},
 	onNetConnection: function(conn,role) {
@@ -66,6 +82,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		}
 		else if (role=="client") {
 			this.showPlatform();
+			Game.onPause();
 		}
 	},
 	onNetDisconnect: function(role,clientID) {
@@ -95,6 +112,13 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		}
 	},
 	addGui: function() {
+		buildOnlineMenu();
+		G$("OnlineSettingsMenu").style = "none";
+		buildControllerSettingsMenu();
+		buildHelpPage();
+		buildMapperView();
+		buildMapperTool();
+
 		View.create("Online",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow").open();
 		TextElement.create("OnlineTitle","Online",WIDTH/2,30,fontMenuTitle,"Online Play",WIDTH,CENTER).show();
 		Button.create("Host","Online",WIDTH/8,HEIGHT/2-20,WIDTH/4,40,"Create a Room").setOnClick(function() {
@@ -141,6 +165,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 			G$("Room").open();
 			Net.joinRoom(val,function() {
 				G$("RoomCode").text = val;
+				G$("RoomJoiner").opensub();
 				Tap.ctrlEnabled = true;
 			},
 			function(failure) {
@@ -153,11 +178,15 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		}).setImage("GUI/Button_Red.png").show();
 		Button.pathVert(["CodeInput","CloseJoining"]);
 		
-		View.create("Room",0,0,WIDTH,HEIGHT);
+		View.create("Room",0,0,WIDTH,HEIGHT).setOnShow(function() {
+			Player.preventLocalControls = false;
+			Tap.ctrlEnabled = true;
+			guiSelectedElement = guiStartElement = null;
+		});
 		TextElement.create("RoomCode","Room",WIDTH/2,50,fontHudScore,"...",WIDTH-200,CENTER).show();
 
 		View.create("RoomHoster",0,0,WIDTH,HEIGHT);
-		Button.create("LockRoom","RoomHoster",WIDTH-260,10,120,40,"Lock Room").setToggle(function() {
+		Button.create("LockRoom","RoomHoster",WIDTH-260,10,120,50,"Lock Room").setToggle(function() {
 			this.toggleState = 2;
 			Net.roomLock(true,()=>{
 				this.text = "Unlock Room";
@@ -187,8 +216,9 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 				this.toggleState = 0;
 			}
 		}).show();
-		Button.create("CloseRoom","RoomHoster",WIDTH-130,10,120,40,"Close Room").setOnClick(function() {
+		Button.create("CloseRoom","RoomHoster",WIDTH-130,10,120,50,"Close Room").setOnClick(function() {
 			Player.preventLocalControls = true;
+			Tap.ctrlEnabled = false;
 			gameConfirm("Are you sure you want to close this room?",function(confirmed) {
 				Player.preventLocalControls = false;
 				if (confirmed) {
@@ -199,10 +229,36 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 				}
 			});
 		}).setImage("GUI/Button_Red.png").show();
-		Button.create("StartGame","RoomHoster",10,10,250,40,"Start Game").setOnClick(function() {
+		Button.create("StartGame","RoomHoster",70,10,190,50,"Start Game").setOnClick(function() {
 			Player.preventLocalControls = true;
+			Tap.ctrlEnabled = false;
 			G$("GamemodeSelect").open();
 		}).show();
+		Button.create("GeneralSettingsH","RoomHoster",10,10,50,50).setOnClick(function() {
+			Player.preventLocalControls = true;
+			Tap.ctrlEnabled = false;
+			G$("OnlineSettingsMenu").open();
+		}).setIcon("GUI/Icons.png",4,0,42,4).show();
+		Button.pathHor(["GeneralSettingsH","StartGame","LockRoom","CloseRoom"]);
+
+		View.create("RoomJoiner",0,0,WIDTH,HEIGHT);
+		Button.create("GeneralSettingsJ","RoomJoiner",10,10,50,50).setOnClick(function() {
+			Player.preventLocalControls = true;
+			Tap.ctrlEnabled = false;
+			G$("OnlineSettingsMenu").open();
+		}).setIcon("GUI/Icons.png",4,0,42,4).show();
+		Button.create("Disconnect","RoomJoiner",WIDTH-140,10,130,50,"Leave Room").setOnClick(function() {
+			Player.preventLocalControls = true;
+			Tap.ctrlEnabled = false;
+			gameConfirm("Are you sure you want to disconnect?", function(response) {
+				if (response) {
+					Net.leaveRoom();
+					G$("Room").close();
+					Game.start();
+				}
+			});
+		}).setImage("GUI/Button_Red.png").show();
+		Button.pathHor(["GeneralSettingsJ","Disconnect"]);
 
 		View.create("GamemodeSelect",0,0,WIDTH,HEIGHT);
 		TextElement.create("GamemodeTitle","GamemodeSelect",WIDTH/2,30,fontMenuTitle,"Choose a Game Mode",WIDTH,CENTER).show();
@@ -222,11 +278,7 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		Button.pathVert(["GamemodeSurvival","GamemodeSandbox","GamemodeCancel"]);
 	},
 	removeGui: function() {
-		G$("Online").remove();
-		G$("Joining").remove();
-		G$("Room").remove();
-		G$("RoomHoster").remove();
-		G$("GamemodeSelect").remove();
+		View.killAll();
 	},
 	hidePlatform: function() {
 		this.platformState = null;

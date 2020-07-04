@@ -316,8 +316,11 @@ function buildOnlineMenu() {
 		Sound.setVolume(this.value);
 		G$("OnlineSettingsVolumeButton").setIcon("GUI/Icons.png",(this.value==0?1:0),3,42,4);
 	});
-	makeFSButton("OnlineSettingsFSToggle","OnlineSettingsMenu",130,10).show();
-	Button.pathHor(["OnlineSettingsClose","OnlineSettingsVolumeButton","OnlineSettingsFSToggle"]);
+	Button.create("OnlineSettingsControls","OnlineSettingsMenu",130,10,50,50).setOnClick(function() {
+		G$("CtrlSettingsView").open();
+	}).setIcon("GUI/Icons.png",3,1,42,4).show();
+	makeFSButton("OnlineSettingsFSToggle","OnlineSettingsMenu",190,10).show();
+	Button.pathHor(["OnlineSettingsClose","OnlineSettingsVolumeButton","OnlineSettingsControls","OnlineSettingsFSToggle"]);
 }
 
 function buildControllerSettingsMenu() {
@@ -343,7 +346,7 @@ function buildControllerSettingsMenu() {
 		assignGui.fill = "black";
 	}).
 	setOnViewShown(function() {
-		if (!multiplayer) this.mode = BUTTON_NO;
+		if (!multiplayer || online) this.mode = BUTTON_NO;
 		else this.mode = BUTTON_NORMAL;
 	}).show();
 
