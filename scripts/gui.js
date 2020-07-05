@@ -193,11 +193,11 @@ function buildPauseMenu() {
 		pauseGame(false);
 	}).setIcon("GUI/Icons.png",1,0,42,4).show().setAsStart();
 
-	Button.create("QuitGame","PauseMenu",WIDTH/2-150,HEIGHT-60,300,40,"Quit to Title").setOnClick(function(ctrl) {
+	Button.create("QuitGame","PauseMenu",WIDTH/2-150,HEIGHT-60,300,40,"Quit").setOnClick(function(ctrl) {
 		gameConfirm("Are you sure you want to quit?",function(response) {
 			if (response) {
 				pauseGame(false);
-				Game.mode = GAME_LAUNCH;
+				Game.mode = GAME_Previous;
 			}
 		})
 	}).show();

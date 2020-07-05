@@ -140,10 +140,16 @@ const GAME_ONLINELOBBY = GameManager.addMode(new GameMode({
 		Button.create("Client","Online",WIDTH*5/8,HEIGHT/2-20,WIDTH/4,40,"Join a Room").setOnClick(function() {
 			G$("Joining").open();
 		}).show();
+		Button.create("BackTitle","Online",WIDTH/2-100,HEIGHT-50,200,40,"Back to Title").setOnClick(function() {
+			online = false;
+			multiplayer = false;
+			Game.mode = GAME_TITLE;
+		}).setImage("GUI/Button_Red.png").show();
 		makeFSButton("FSToggle","Online",WIDTH-60,10).show();
 
 		Button.pathHor(["Host","Client"]);
 		Button.funnelTo("FSToggle","up",["Host","Client"]);
+		Button.funnelTo("BackTitle","down",["Host","Client"]);
 
 		View.create("Joining",0,0,WIDTH,HEIGHT,GUI_TINT,"yellow");
 		TextElement.create("JoinTitle","Joining",WIDTH/2,30,fontMenuTitle,"Enter a Room Code",WIDTH,CENTER).show();

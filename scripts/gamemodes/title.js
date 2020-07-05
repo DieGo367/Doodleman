@@ -44,14 +44,17 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
 			this.view.gamemode = GAME_SURVIVAL;
 			G$("Option_MP").opensub();
 		}).show().setAsStart();
-		Button.create("Option_Mode:Sandbox","Option_Mode",WIDTH/2-100,HEIGHT/2+50,200,60,"Sandbox").setOnClick(function() {
+		Button.create("Option_Mode:Sandbox","Option_Mode",WIDTH/2-100,HEIGHT/2+45,200,60,"Sandbox").setOnClick(function() {
 			this.view.baseview.hadSelected = guiSelectedElement;
 			this.view.closesub();
 			this.view.gamemode = GAME_SANDBOX;
 			G$("Option_MP").opensub();
 		}).show();
-		Button.pathVert(["Option_Mode:Survival","Option_Mode:Sandbox"]);
-		Button.funnelTo("VolumeButton","right",["Option_Mode:Survival","Option_Mode:Sandbox"]);
+		Button.create("Option_Mode:Online","Option_Mode",WIDTH/2-100,HEIGHT/2+120,200,50,"Online").setOnClick(function() {
+			Game.mode = GAME_ONLINELOBBY;
+		}).setImage("GUI/Button_Red.png").show().on = true;
+		Button.pathVert(["Option_Mode:Survival","Option_Mode:Sandbox","Option_Mode:Online"]);
+		Button.funnelTo("VolumeButton","right",["Option_Mode:Survival","Option_Mode:Sandbox","Option_Mode:Online"]);
 
 		View.create("Option_MP",0,0,WIDTH,HEIGHT).setOnShow(function() {
 			G$("Option_MP:Single").setAsStart();
@@ -85,8 +88,6 @@ const GAME_TITLE = GameManager.addMode(new GameMode({
 		Button.funnelTo("VolumeButton","right",["Option_MP:Single","Option_MP:Mult","Option_MP:Cancel"]);
 	},
 	removeGui: function() {
-		G$("Title").remove();
-		G$("Option_Mode").remove();
-		G$("Option_MP").remove();
+		View.killAll();
 	}
 }));

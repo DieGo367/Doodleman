@@ -1,3 +1,4 @@
+let GAME_Previous = null;
 const GameManager = {
 	mode: null,
 	modes: [],
@@ -6,8 +7,13 @@ const GameManager = {
 		let newMode = Math.min(Math.max(0,mode),this.modes.length-1);
 		if (this.mode==newMode) return;
 		let oldMode = this.getMode();
-		if (oldMode) oldMode.quit();
+		if (oldMode) {
+			GAME_Previous = this.mode;
+			oldMode.quit();
+		}
+		else GAME_Previous = mode;
 		this.mode = newMode;
+
 		Level.clearLevel();
 		paused = false;
 		Game = this.getMode();
