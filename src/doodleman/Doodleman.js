@@ -32,6 +32,9 @@ class DoodlemanGame extends Scribble.Game {
 		if (this.engine.input.keyEventDown("Enter")) {
 			this.engine.debug.frameCanStep = true;
 		}
+		if (this.engine.input.keyEventDown("Backquote")) {
+			this.engine.level.set(this.engine.level.data);
+		}
 
 		// logic performed when unpaused
 		if (this.engine.canUpdate()) {
