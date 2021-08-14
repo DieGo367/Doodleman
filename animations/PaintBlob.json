@@ -1,5 +1,5 @@
 {
-  "pages": ["PaintBlob.png"],
+  "pages": ["res/PaintBlob.png"],
   "spriteWidth": 46,
   "spriteHeight": 44,
   "errorColor": "purple",

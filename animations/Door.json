@@ -1,5 +1,5 @@
 {
-  "pages": ["Doors.png"],
+  "pages": ["res/Doors.png"],
   "spriteWidth": 72,
   "spriteHeight": 59,
   "errorColor": "green",
@@ -20,7 +20,7 @@
   },
   "drawOffset": {
     "x": -54,
-    "y": 2
+    "y": -2
   },
   "animations": [
     {

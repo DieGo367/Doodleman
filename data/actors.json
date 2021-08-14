@@ -1,80 +1,82 @@
 [
-  {
-    "id": 0,
-    "class": "Player",
-    "properties": [
-      "val0","val1",19,44,38,4,["val2","Doodleman.json","Redman.json","Greenman.json","Yellowman.json"],"val2","val3"
-    ],
-    "valueNames": ["x","y","#playerSlot","@direction:LEFT,RIGHT"]
-  },
-  {
-    "id": 1,
-    "class": "Marker",
-    "properties": ["val0","val1","val2"],
-    "valueNames": ["x","y","name"]
-  },
-  {
-    "id": 10,
-    "class": "PaintMinion",
-    "properties": ["val0","val1"],
-    "valueNames": ["x","y"]
-  },
-  {
-    "id": 11,
-    "class": "PaintBlob",
-    "properties": ["val0","val1"],
-    "valueNames": ["x", "y"]
-  },
-  {
-    "id": 20,
-    "class": "MovingPlatform",
-    "properties": [
-      "val0","val1","val2","val3",["val4","black","helloworld.png"],5,"val5","val6"
-    ],
-    "valueNames": ["x","y","#width","#height","?isHello","#xVel","#yVel"]
-  },
-  {
-    "id": 21,
-    "class": "Door",
-    "properties": ["val0","val1","val2","val3","val4","val5","val6"],
-    "valueNames": ["x","y","#id","#destination","?preventEnter","?preventExit","toLevel"]
-  },
-  {
-    "id": 22,
-    "class": "PhysicsBox",
-    "properties": ["val0","val1",50,40,"Box201.png",false,3,true,2],
-    "valueNames": ["x","y"]
-  },
-  {
-    "id":23,
-    "class": "MovingPlatform",
-    "properties": [
-      "val0","val1",282,34,"helloworld.png",5,"val2","val3"
-    ],
-    "valueNames": ["x","y","#velX","#velY"]
-  },
-  {
-    "id": 24,
-    "class": "SpawnZone",
-    "properties": ["val0","val1","val2","val3","val4"],
-    "valueNames": ["x","y","#width","#height","?forceSpawns"]
-  },
-  {
-    "id": 25,
-    "class": "PlusHeart",
-    "properties": ["val0","val1","val2"],
-    "valueNames": ["x","y","#heal"]
-  },
-  {
-    "id": 26,
-    "class": "MaxHeart",
-    "properties": ["val0","val1"],
-    "valueNames": ["x","y"]
-  },
-  {
-    "id": 27,
-    "class": "GoldenHeart",
-    "properties": ["val0","val1"],
-    "valueNames": ["x","y"]
-  }
+	{
+		"id": 0,
+		"class": "SpawnPoint",
+		"arguments": [
+			{"name": "Player Slot", "type": "number", "input": 0},
+			{
+				"name": "Direction",
+				"type": "option",
+				"options": {
+					"LEFT": -1,
+					"RIGHT": 1
+				},
+				"input": 1
+			}
+		]
+	},
+	{
+		"id": 1,
+		"class": "Marker",
+		"arguments": [
+			{"name": "Name", "input": 0}
+		]
+	},
+	{"id": 10, "class": "PaintMan"},
+	{"id": 11, "class": "PaintBlob"},
+	{
+		"id": 20,
+		"class": "HelloPlatform",
+		"arguments": [
+			{"name": "Width", "type": "number", "input": 0},
+			{"name": "Height", "type": "number", "input": 1},
+			{
+				"name": "Is Hello",
+				"type": "boolean",
+				"input": 2,
+				"remap": ["black", "res/helloworld.png"]
+			},
+			{"name": "X Velocity", "type": "number", "input": 3},
+			{"name": "Y Velocity", "type": "number", "input": 4}
+		]
+	},
+	{
+		"id": 21,
+		"class": "Door",
+		"arguments": [
+			{"name": "Entrance ID", "type": "number", "input": 0},
+			{"name": "Destination ID", "type": "number", "input": 1},
+			{"name": "Prevent Enter", "type": "boolean", "input": 2},
+			{"name": "Prevent Exit", "type": "boolean", "input": 3},
+			{"name": "To Level", "input": 4}
+		]
+	},
+	{"id": 22, "class": "Box201"},
+	{
+		"id":23,
+		"class": "HelloPlatform",
+		"arguments": [
+			282, 34, "res/helloworld.png",
+			{"name": "X Velocity", "type": "number", "input": 0},
+			{"name": "Y Velocity", "type": "number", "input": 1}
+		]
+	},
+	{
+		"id": 24,
+		"class": "SpawnZone",
+		"arguments": [
+			{"name": "Width", "type": "number", "input": 0},
+			{"name": "Height", "type": "number", "input": 1},
+			{"name": "Force Spawns", "type": "boolean", "input": 2}
+		]
+	},
+	{
+		"id": 25,
+		"class": "PlusHeart",
+		"arguments": [
+			{"name": "Heal Points", "type": "number", "input": 0}
+		]
+	},
+	{"id": 26, "class": "MaxHeart"},
+	{"id": 27, "class": "GoldenHeart"}
 ]

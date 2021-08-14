@@ -1,5 +1,5 @@
 {
-  "extends": "Doodleman.json",
-  "pages": ["Blueman.png"],
+  "extends": "animations/Doodleman.json",
+  "pages": ["res/Blueman.png"],
   "errorColor": "blue"
 }

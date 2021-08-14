@@ -1,5 +1,5 @@
 {
-  "pages": ["Doodleman.png", "Blueman.png", "Redman.png", "Greenman.png", "Yellowman.png"],
+  "pages": ["res/Doodleman.png", "res/Blueman.png", "res/Redman.png", "res/Greenman.png", "res/Yellowman.png"],
   "spriteWidth": 93,
   "spriteHeight": 48,
   "errorColor": "blue",
@@ -20,7 +20,7 @@
   },
   "drawOffset": {
     "x": -46,
-    "y": 2
+    "y": -2
   },
   "animations": [
     {

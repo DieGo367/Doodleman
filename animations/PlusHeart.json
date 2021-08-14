@@ -1,5 +1,5 @@
 {
-  "pages": ["PlusHeart.png"],
+  "pages": ["res/PlusHeart.png"],
   "spriteWidth": 18,
   "spriteHeight": 18,
   "errorColor": "red",

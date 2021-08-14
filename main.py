@@ -8,10 +8,8 @@ from oauth2client.client import GoogleCredentials
 from threading import Thread
 from flask import Flask
 from flask import jsonify
-from flask import make_response
 from flask import render_template
 from flask import request
-from flask import Response
 from flask import send_file
 from flask import send_from_directory
 from flask_cors import CORS
@@ -19,21 +17,6 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 cors = CORS(app, resources={"/net/*":{"origins": "*"}})
 
-scripts = [
-  "lib/simplepeer.min.js",
-  "lib/lz-string.min.js",
-  "game.js",
-  "project scribble.js",
-  "resource.js",
-  "level.js",
-  "animation.js",
-  "controls.js",
-  "collision.js",
-  "classes.js",
-  "gui.js",
-  "devTools.js",
-  "editorTools.js"
-]
 gamemodes = [
   "title.js",
   "editor.js",
@@ -45,36 +28,8 @@ static_folders = [
   "animations",
   "data",
   "levels",
-  "res",
-  "scripts"
+  "res"
 ]
-
-def render_main(launch_mode,literals={},strings={}):
-	scs = []
-	for script in scripts:
-		scs.append(f"scripts/{script}")
-	for script in gamemodes:
-		scs.append(f"scripts/gamemodes/{script}")
-	lits = {"GAME_LAUNCH": launch_mode, "ALLOW_SW": "true"}
-	strs = {"NET_URL": net_url}
-	for key, item in literals.items():
-		lits[key] = item
-	for key, item in strings.items():
-		strs[key] = item
-	return render_template("main.html",scripts=scs,literals=lits,strings=strs)
-
-def get_content_type(ext):
-	types = {
-		"css": "text/css",
-		"js": "text/javascript",
-		"json": "application/json",
-		"ogg": "audio/ogg",
-		"png": "image/png"
-	}
-	if ext in types.keys():
-		return types[ext]
-	else:
-		return "text/html"
 
 def send404(msg=""):
 	return render_template("404.html",msg=msg), 404
@@ -84,26 +39,25 @@ def default404(e):
 
 @app.route("/")
 def game():
-	return render_main(0)
+	return send_file("index.html")
 
-@app.route("/index.html")
-def compiled_game():
-	return render_main(0,strings={"NET_URL":"https://doodle-man.appspot.com/net/"},literals={"ALLOW_SW":"false"})
-
-@app.route("/edit")
-def editor():
-	return render_main(1)
-
-@app.route("/online")
-def online_lobby():
-	return render_main(4)
-
-@app.route("/join")
-def join():
-	id = request.args.get("id")
-	if id:
-		return render_main(4,strings={"NET_INVITE": id})
-	return render_main(0)
+@app.route("/src/<path:subpath>.js")
+def collect_scripts(subpath):
+	path = f"src/{subpath}"
+	final_name = subpath.split("/")[-1] + ".js"
+	if subpath in os.listdir("src"):
+		if "order.txt" in os.listdir(path):
+			with open(f"{path}/order.txt") as order_file:
+				script_order = [script_name.strip() for script_name in order_file.readlines()]
+			script = ""
+			for filename in script_order:
+				with open(f"{path}/{filename}") as script_file:
+					script += script_file.read() + '\n'
+			return send_file(io.BytesIO(script.encode()),attachment_filename=final_name)
+		else:
+			return send404("File was missing configuration.")
+	else:
+		return send404("File was not found.")
 
 @app.route("/<folder>/<path:subpath>")
 def get_static(folder,subpath):
@@ -112,18 +66,34 @@ def get_static(folder,subpath):
 	else:
 		return send404("Directory does not exist")
 
-@app.route("/list/<path:folderpath>.json")
-def get_static_list(folderpath):
-	folder = folderpath.split("/").pop(0)
-	if folder in static_folders:
-		paths = []
-		for dirpath, _dirnames, filenames in os.walk(folderpath):
+@app.route("/list/<folder>.json")
+def get_static_list_new(folder):
+	paths = []
+	if folder == "images":
+		for filename in os.listdir("res"):
+			ext = filename.split(".").pop()
+			if ext == "png":
+				paths.append("res/"+filename)
+		for filename in os.listdir("res/GUI"):
+			ext = filename.split(".").pop()
+			if ext == "png":
+				paths.append("res/GUI/"+filename)
+	if folder == "sounds":
+		for dirpath, _dirnames, filenames in os.walk("res/sounds"):
 			for filename in filenames:
-				path = os.path.join(dirpath,filename).replace('\\','/').replace(folderpath+"/","")
+				path = os.path.join(dirpath,filename).replace('\\','/')
 				paths.append(path)
-		return jsonify(paths)
-	else:
-		return send404()
+	if folder == "animations":
+		for dirpath, _dirnames, filenames in os.walk("animations"):
+			for filename in filenames:
+				path = os.path.join(dirpath,filename).replace('\\','/')
+				paths.append(path)
+	if folder == "levels":
+		for dirpath, _dirnames, filenames in os.walk("levels"):
+			for filename in filenames:
+				path = os.path.join(dirpath,filename).replace('\\','/')
+				paths.append(path)
+	return jsonify(paths)
 
 @app.route("/imagelist.json")
 def get_preload_images():
@@ -148,7 +118,7 @@ def get_manifest():
 
 @app.route("/sw.js")
 def build_service_worker():
-	paths = ["/","/index.html","/edit", "/imagelist.json", "/favicon.ico", "/manifest.json"]
+	paths = ["/", "/scripts/scribble.js", "/scripts/doodleman.js", "/imagelist.json", "/favicon.ico", "/manifest.json"]
 	for dir in static_folders:
 		paths.append(f"/list/{dir}.json")
 		for dirpath, dirnames, filenames in os.walk(dir):

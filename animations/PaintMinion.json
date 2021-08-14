@@ -1,5 +1,5 @@
 {
-  "pages": ["PaintMinion.png"],
+  "pages": ["res/PaintMinion.png"],
   "spriteWidth": 57,
   "spriteHeight": 44,
   "errorColor": "purple",

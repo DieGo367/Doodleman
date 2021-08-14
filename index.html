@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title id="title">Doodleman</title>
+		<link rel="stylesheet" href="res/style.css"/>
+		<link href="https://fonts.googleapis.com/css?family=Fredoka+One|Gochi+Hand" rel="stylesheet">
+		<link rel="manifest" href="manifest.json">
+		<meta name="viewport" content="user-scalable=no">
+		<script src="src/scribble.js"></script>
+		<script src="src/doodleman.js"></script>
+	</head>
+	<body>
+		<div id="doodleman"></div>
+		<script>
+			window.onload = () => {
+				let engine = new Scribble.Engine("doodleman", 640, 360, {
+					images: "list/images.json",
+					sounds: "list/sounds.json",
+					animations: "list/animations.json"
+				});
+				engine.ready(() => {
+					engine.loadGame(DoodlemanGame);
+				});
+				if (window.location.hostname == "localhost") {
+					console.log(engine);
+					console.log(engine.objects.map)
+					window.engine = engine;
+					window.map = engine.objects.map;
+				}
+			};
+		</script>
+	</body>
+</html>
