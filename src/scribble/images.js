@@ -100,7 +100,21 @@ Scribble.Images = class Images {
 		}
 		else console.warn("Unknown drawing shape");
 	}
-	drawPattern(name, x, y, width, height, scale, parallax, offsetX, offsetY) {
+	/**
+	 * Fills a rectangle using an image as a canvas pattern.
+	 * @param {string} name Name of the image to draw
+	 * @param {number} x Starting coordinate x (left)
+	 * @param {number} y Starting coordinate y (top)
+	 * @param {number} width 
+	 * @param {number} height 
+	 * @param {number} scale Image size. Bigger = zoomed in
+	 * @param {number} parallax Level of parallax effect. 1 = standard, higher values = slower scroll
+	 * @param {number} offsetX Amount to additionally scroll x value with parallax effects
+	 * @param {number} offsetY Amount to additionally scroll y value with parallax effects
+	 * @param {number} shiftX Amount to translate the image horizontally before anything else is applied
+	 * @param {number} shiftY Amount to translate the image vertically before anything else is applied
+	 */
+	drawPattern(name, x, y, width, height, scale, parallax, offsetX, offsetY, shiftX, shiftY) {
 		let img = this.getImage(name);
 		if (!img || img.width === 0 || img.height === 0) return;
 		if (!img.patterns) img.patterns = {};
@@ -114,7 +128,12 @@ Scribble.Images = class Images {
 		if (parallax == void(0)) parallax = 1;
 		if (offsetX == void(0)) offsetX = 0;
 		if (offsetY == void(0)) offsetY = 0;
+		if (shiftX == void(0)) shiftX = 0;
+		if (shiftY == void(0)) shiftY = 0;
 		this.ctx.save();
+		this.ctx.translate(shiftX, shiftY);
+		x -= shiftX;
+		y -= shiftY;
 		this.ctx.translate(x-x/parallax, y-y/parallax);
 		this.ctx.translate(-offsetX/parallax, -offsetY/parallax);
 		this.ctx.fillRect((x+offsetX)/parallax, (y+offsetY)/parallax, width, height);

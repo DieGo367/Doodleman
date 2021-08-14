@@ -39,14 +39,19 @@ Scribble.Backgrounds = class Backgrounds {
 		let level = this.engine.level.data;
 		let cam = this.engine.camera;
 		this.forAll(bg => {
-			if (bg.layer == layer) {
+			let img = this.engine.images.getImage(bg.name);
+			if (img && bg.layer == layer) {
 				let x = Math.max(0, cam.left());
 				let y = Math.max(0, cam.bottom());
 				let width = Math.min(level.width, cam.right()) - x;
 				let height = Math.min(level.height, cam.top()) - y;
 				let offsetX = bg.tick * bg.velX;
 				let offsetY = bg.tick * bg.velY;
-				this.engine.images.drawPattern(bg.name, x, y, width, height, bg.scale, bg.parallax, offsetX, offsetY);
+				let shiftX = 0;
+				let shiftY = 0;
+				if (bg.anchorFlip.x) shiftX = (level.width - width - img.width*bg.scale)*bg.parallax + width;
+				if (bg.anchorFlip.y) shiftY = (level.height - height - img.height*bg.scale)*bg.parallax + height;
+				this.engine.images.drawPattern(bg.name, x, y, width, height, bg.scale, bg.parallax, offsetX, offsetY, shiftX, shiftY);
 				if (!this.engine.paused) bg.tick++;
 			}
 		});

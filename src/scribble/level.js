@@ -222,13 +222,14 @@ Scribble.Level = class Level {
 						}
 					}
 				}
-				// bgs now need to specify image directory
+				// bgs now need to specify image directory and image anchor
 				if (data.bg) for (let i = 0; i < data.bg.length; i++) {
 					let bg = data.bg[i];
 					if (bg) {
 						if (typeof bg.name === "string" && bg.name != "") {
 							bg.name = "res/" + bg.name;
 						}
+						bg.anchorFlip = {x: false, y: true};
 					}
 				}
 				// spawn points are now actors, not a separate field
