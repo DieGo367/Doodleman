@@ -170,7 +170,7 @@ DMOs.Entity = class extends Scribble.Object {
 			let ground = engine.objects.map[id];
 			if (ground && ground.collision.type === Scribble.SHAPE.LINE) {
 				let angle = Math.atan(ground.collision.dy / ground.collision.dx);
-				engine.debug.print(angle);
+				// engine.debug.print(angle);
 				// if moving down the slope
 				if (angle * this.moveDir < 0) {
 					this.y -= Math.abs(angle) * (this.moveSpeed + this.velX) * 1.1;
@@ -255,21 +255,29 @@ DMOs.SpawnPoint = class extends Scribble.Object {
 		super(x, y);
 		this.slot = slot;
 		this.direction = direction;
-		let sheet = "animations/Doodleman.json";
-		if (slot > 0) {
-			let color = ["Blue", "Red", "Green", "Yellow"][slot % 4];
-			sheet = "animations/" + color + "man.json";
-		}
+		let color = ["Blue", "Red", "Green", "Yellow"][slot % 4];
+		let sheet = "animations/" + color + "man.json";
 		this.animation = {
 			x: 0, y: 0,
 			name: sheet,
 			direction: direction
 		};
 	}
-	draw(ctx, images, animation) {
+	draw() {}
+	drawDebug(ctx, images, animation) {
 		ctx.globalAlpha = 0.25;
 		super.draw(ctx, images, animation);
 		ctx.globalAlpha = 1;
+		super.drawDebug(ctx, images, animation);
+		ctx.fillStyle = ["blue", "red", "green", "yellow"][this.slot % 4];
+		ctx.font = "10px Consolas";
+		ctx.textAlign = "center";
+		ctx.save();
+		ctx.translate(this.x, this.y);
+		ctx.scale(1, -1);
+		ctx.translate(-this.x, -this.y);
+		ctx.fillText(this.slot, this.x, this.y);
+		ctx.restore();
 	}
 };
 
