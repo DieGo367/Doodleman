@@ -159,13 +159,13 @@ Scribble.Engine = class Engine {
 		this.images.flip();
 	}
 	_renderLevelLayers() {
-		let min = Math.min(this.backgrounds.minLayer);
-		let max = Math.min(this.backgrounds.maxLayer);
+		let min = Math.min(this.backgrounds.minLayer, this.objects.minLayer);
+		let max = Math.max(this.backgrounds.maxLayer, this.objects.maxLayer);
 		for (let i = min; i <= max; i++) {
 			this.backgrounds.renderLayer(i);
+			this.objects.renderLayer(i);
 		}
-		// render objects
-		this.objects.render();
+		if (this.debug.enabled) this.objects.renderDebug();
 	}
 	_renderUI() {
 		this.game.onRenderUI(this.ctx);

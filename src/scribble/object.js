@@ -6,6 +6,7 @@ Scribble.ObjectManager = class ObjectManager {
 		this.actorData = {};
 		this.registeredClasses = {};
 		this.registerClasses(Scribble.Objects);
+		this.minLayer = this.maxLayer = 0;
 	}
 	async loadActorData(url) {
 		let data = await (await fetch(url)).json();
@@ -19,6 +20,8 @@ Scribble.ObjectManager = class ObjectManager {
 			object.id = this.nextID++;
 			object.objectManager = this;
 			this.map[object.id] = object;
+			this.minLayer = Math.min(this.minLayer, object.drawLayer);
+			this.maxLayer = Math.max(this.maxLayer, object.drawLayer);
 		}
 		else console.error("Not a Scribble.Object!");
 	}
@@ -35,6 +38,7 @@ Scribble.ObjectManager = class ObjectManager {
 		for (let id in this.map) {
 			this.map[id].remove();
 		}
+		this.minLayer = this.maxLayer = 0;
 	}
 	update() {
 		for (let id in this.map) {
@@ -46,12 +50,13 @@ Scribble.ObjectManager = class ObjectManager {
 			this.map[id].finish(this.engine);
 		}
 	}
-	render() {
+	renderLayer(layer) {
 		this.forAll(object => {
-			object.draw(this.engine.ctx, this.engine.images, this.engine.animations);
+			if (object.drawLayer === layer) object.draw(this.engine.ctx, this.engine.images, this.engine.animations);
 		});
-		
-		if (this.engine.debug.enabled) this.forAll(object => {
+	}
+	renderDebug() {
+		this.forAll(object => {
 			object.drawDebug(this.engine.ctx, this.engine.images, this.engine.animations);
 		});
 	}
@@ -89,7 +94,9 @@ Scribble.Object = class {
 		this.velX = 0;
 		this.velY = 0;
 	}
-	static proto() {}
+	static proto() {
+		this.drawLayer = 0;
+	}
 	remove() {
 		this.objectManager.remove(this.id);
 	}
@@ -182,9 +189,6 @@ Scribble.Objects.Box = class Box extends Scribble.Object {
 			x: 0, y: 0,
 			width: width, height: height
 		};
-	}
-	static proto() {
-		this.drawLayer = 0;
 	}
 };
 

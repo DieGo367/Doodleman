@@ -186,6 +186,8 @@ DMOs.Entity = class extends Scribble.Object {
 		this.moveDir = 0;
 	}
 	static proto() {
+		super.proto();
+		this.drawLayer = 1;
 		this.targetMoveSpeed = 5;
 		this.moveAccel = 1;
 	}
@@ -210,6 +212,8 @@ DMOs.Doodleman = class extends DMOs.Entity {
 		this.tagged = true;
 	}
 	static proto() {
+		super.proto();
+		this.drawLayer = 2;
 		this.feelsGravity = true;
 		this.targetMoveSpeed = 6;
 		this.moveAccel = 0.5;
@@ -289,7 +293,7 @@ DMOs.Marker = class extends Scribble.Object {
 	}
 };
 
-DMOs.PaintMan = class extends Scribble.Object {
+DMOs.PaintMan = class extends DMOs.Entity {
 	constructor(x, y) {
 		super(x, y);
 		this.collision = {
@@ -304,6 +308,7 @@ DMOs.PaintMan = class extends Scribble.Object {
 		};
 	}
 	static proto() {
+		super.proto();
 		this.feelsGravity = true;
 	}
 };
@@ -343,6 +348,9 @@ DMOs.Door = class extends Scribble.Object {
 			name: "animations/Door.json"
 		};
 	}
+	static proto() {
+		this.drawLayer = -1;
+	}
 };
 
 DMOs.Box201 = class extends Scribble.Object {
@@ -362,6 +370,7 @@ DMOs.Box201 = class extends Scribble.Object {
 		};
 	}
 	static proto() {
+		super.proto();
 		this.feelsGravity = true;
 	}
 };
