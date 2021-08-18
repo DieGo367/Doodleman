@@ -122,6 +122,9 @@ Scribble.Animations = class Animations {
 		// this.engine.debug.print("tick " + component.name)
 		let sheet = this.map[component.name];
 		if (sheet) {
+			if (component.animation == void(0)) {
+				component.animation = sheet.defaultAnimation;
+			}
 			let anim = sheet.get(component.animation);
 			if (anim) {
 				component.tick++;
