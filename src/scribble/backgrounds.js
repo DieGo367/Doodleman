@@ -49,8 +49,16 @@ Scribble.Backgrounds = class Backgrounds {
 				let offsetY = bg.tick * bg.velY;
 				let shiftX = 0;
 				let shiftY = 0;
-				if (bg.anchorFlip.x) shiftX = (level.width - width - img.width*bg.scale)*bg.parallax + width;
-				if (bg.anchorFlip.y) shiftY = (level.height - height - img.height*bg.scale)*bg.parallax + height;
+				if (bg.anchorFlip.x) {
+					let diffX = level.width - img.width*bg.scale;
+					shiftX = diffX;
+					offsetX += (diffX - diffX / bg.parallax) * bg.parallax;
+				}
+				if (bg.anchorFlip.y) {
+					let diffY = level.height - img.height*bg.scale;
+					shiftY = diffY;
+					offsetY += (diffY - diffY / bg.parallax) * bg.parallax;
+				}
 				this.engine.images.drawPattern(bg.name, x, y, width, height, bg.scale, bg.parallax, offsetX, offsetY, shiftX, shiftY);
 				if (!this.engine.paused) bg.tick++;
 			}
