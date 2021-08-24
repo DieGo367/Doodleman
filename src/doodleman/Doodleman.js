@@ -158,14 +158,11 @@ DMOs.Entity = class extends Scribble.Object {
 			this.moved = true;
 		}
 	}
+	jump() {
+		this.velY += this.jumpAccel;
+	}
 	update(engine) {
-		if (this.feelsGravity) {
-			if (!this.moved) {
-				if (this.isGrounded) this.moveSpeed *= engine.friction;
-				else this.moveSpeed *= engine.airResistance;
-				if (this.moveSpeed < engine.frictionSnap) this.moveSpeed = 0;
-			}
-		}
+		// use movement speed
 		if (!this.moved) this.moveDir = this.lastMoveDir;
 		this.x += this.moveSpeed * this.moveDir;
 		for (let id in this.grounds) {
@@ -183,16 +180,24 @@ DMOs.Entity = class extends Scribble.Object {
 		this.direction = this.moveDir;
 
 		super.update(engine);
-		
+	}
+	finish(engine) {
+		if (this.feelsGravity && !this.moved) {
+			if (this.isGrounded) this.moveSpeed *= engine.friction;
+			else this.moveSpeed *= engine.airResistance;
+			if (this.moveSpeed < engine.frictionSnap) this.moveSpeed = 0;
+		}
 		this.moved = false;
 		this.lastMoveDir = this.moveDir;
 		this.moveDir = 0;
+		super.finish(engine);
 	}
 	static proto() {
 		super.proto();
 		this.drawLayer = 1;
 		this.targetMoveSpeed = 5;
 		this.moveAccel = 1;
+		this.jumpAccel = 10;
 	}
 };
 
@@ -212,7 +217,6 @@ DMOs.Doodleman = class extends DMOs.Entity {
 			x: 0, y: 0,
 			name: sheet
 		};
-		this.tagged = true;
 	}
 	static proto() {
 		super.proto();
@@ -220,9 +224,15 @@ DMOs.Doodleman = class extends DMOs.Entity {
 		this.feelsGravity = true;
 		this.targetMoveSpeed = 6;
 		this.moveAccel = 0.5;
-		this.jumpSpeed = 14;
+		this.jumpAccel = 14;
+		this.jumpCancelTime = 10;
+		this.jumpCancelAccel = 3;
 	}
 	update(engine) {
+		if (this.jumpFrame > 0) {
+			this.jumpFrame++;
+		}
+		if (this.isGrounded) this.jumpFrame = 0;
 		this.controls(engine);
 		this.animations(engine);
 		super.update(engine);
@@ -231,11 +241,15 @@ DMOs.Doodleman = class extends DMOs.Entity {
 	controls(engine) {
 		if (engine.input.key("KeyD")) this.move(1);
 		if (engine.input.key("KeyA")) this.move(-1);
-		if (engine.input.keyPress("KeyW")) {
-			if (this.isGrounded||engine.input.key("ShiftLeft")) {
-				this.velY = this.jumpSpeed;
+		if (this.jumpFrame > 0 && this.jumpFrame <= this.jumpCancelTime) {
+			if (!engine.input.key("KeyW")) {
+				let currentJumpVel = this.jumpAccel + engine.gravity.y * (this.jumpFrame);
+				// cancel the remaining velocity of the current jump and add some final compensation
+				this.velY += -currentJumpVel + this.jumpCancelAccel;
+				this.jumpFrame = 0;
 			}
 		}
+		if (engine.input.keyPress("KeyW") && this.canJump()) this.jump();
 		if (engine.input.key("KeyS")) {
 			this.moveSpeed = 0;
 			this.crouching = true;
@@ -247,6 +261,13 @@ DMOs.Doodleman = class extends DMOs.Entity {
 		else if (this.velX != 0 || this.moveSpeed != 0) this.animate(e, "run", this.direction);
 		else if (this.crouching) this.animate(e, "crouch", this.direction);
 		else this.animate(e, "stand", this.direction);
+	}
+	jump() {
+		super.jump();
+		this.jumpFrame = 1;
+	}
+	canJump() {
+		return this.isGrounded;
 	}
 	static fromSpawnPoint(spawn) {
 		return new this(spawn.x, spawn.y, spawn.slot, spawn.direction);
