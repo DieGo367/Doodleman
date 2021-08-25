@@ -40,6 +40,11 @@ Scribble.ObjectManager = class ObjectManager {
 		}
 		this.minLayer = this.maxLayer = 0;
 	}
+	start() {
+		for (let id in this.map) {
+			this.map[id].start(this.engine);
+		}
+	}
 	update() {
 		for (let id in this.map) {
 			this.map[id].update(this.engine);
@@ -102,6 +107,17 @@ Scribble.Object = class {
 	}
 	static onlineProperties = ["x", "y", "id", "drawLayer"];
 	
+	/**
+	 * First update step. Runs before the main update. Animations tick here.
+	 * @param {Scribble.Engine} engine 
+	 */
+	start(engine) {
+		if (this.animation) engine.animations.tick(this.animation);
+	}
+	/**
+	 * Handles intended object behavior this tick. Runs before collision.
+	 * @param {Scribble.Engine} engine 
+	 */
 	update(engine) {
 		if (this.feelsGravity && !this.isGrounded) {
 			this.velX += engine.gravity.x;
@@ -111,6 +127,10 @@ Scribble.Object = class {
 		this.x += this.velX;
 		this.y += this.velY;
 	}
+	/**
+	 * Final update step. Runs after collision. Track necessary values for next tick.
+	 * @param {Scribble.Engine} engine 
+	 */
 	finish(engine) {
 		if (this.feelsGravity && this.isGrounded) {
 			this.velX *= engine.friction;
@@ -122,7 +142,6 @@ Scribble.Object = class {
 		this.lastY = this.y;
 		this.lastVelX = this.velX;
 		this.lastVelY = this.velY;
-		if (this.animation) engine.animations.tick(this.animation);
 	}
 
 	drawTint() {}
@@ -159,6 +178,13 @@ Scribble.Object = class {
 	}
 	drawHighlight() {}
 
+	/**
+	 * Updates the current animation of the object
+	 * @param {Scribble.Engine} engine 
+	 * @param {string} action Name of the animation to use
+	 * @param {number} direction Direction to face the animation in
+	 * @param {number} lockTime Time the animation should hold for without being overwritten
+	 */
 	animate(engine, action, direction, lockTime) {
 		if (this.animation) {
 			engine.animations.set(this.animation, action, direction, lockTime);

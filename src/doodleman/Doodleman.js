@@ -145,6 +145,14 @@ DMOs.Entity = class extends Scribble.Object {
 		this.moveDir = 1;
 		this.lastMoveDir = 1;
 		this.moved = false;
+		this.actions = this.constructor.actions;
+	}
+	static proto() {
+		super.proto();
+		this.drawLayer = 1;
+		this.targetMoveSpeed = 5;
+		this.moveAccel = 1;
+		this.jumpAccel = 10;
 	}
 	move(sign) {
 		if (this.moved && this.moveDir != sign) {
@@ -158,10 +166,7 @@ DMOs.Entity = class extends Scribble.Object {
 			this.moved = true;
 		}
 	}
-	jump() {
-		this.velY += this.jumpAccel;
-	}
-	update(engine) {
+	movementUpdate(engine) {
 		// use movement speed
 		if (!this.moved) this.moveDir = this.lastMoveDir;
 		this.x += this.moveSpeed * this.moveDir;
@@ -178,7 +183,13 @@ DMOs.Entity = class extends Scribble.Object {
 			}
 		}
 		this.direction = this.moveDir;
-
+	}
+	jump() {
+		this.velY += this.jumpAccel;
+	}
+	update(engine) {
+		this.movementUpdate(engine);
+		this.actionsUpdate(engine);
 		super.update(engine);
 	}
 	finish(engine) {
@@ -192,12 +203,60 @@ DMOs.Entity = class extends Scribble.Object {
 		this.moveDir = 0;
 		super.finish(engine);
 	}
-	static proto() {
-		super.proto();
-		this.drawLayer = 1;
-		this.targetMoveSpeed = 5;
-		this.moveAccel = 1;
-		this.jumpAccel = 10;
+	
+	static actions = {}
+	/**
+	 * Defines a new routine or ability for a class.
+	 * @param {string} name Name of the new action
+	 * @param {number} duration Amount of ticks the action should take.
+	 * @param {number} cooldown Additional time after action duration that new actions should still be prevented
+	 * @param {function} tick Runs every game tick while the action is running. If returns false, cancel the action early.
+	 * @param {function} finish Runs when the action is completed or canceled.
+	 * @param {string} animationName Name of the animation to trigger at the start of the action.
+	 * @param {number} animationLock How long to lock the animation for. Defaults to action duration.
+	 */
+	static defineAction(name, duration, cooldown, tick, finish, animationName, animationLock) {
+		this.actions[name] = {
+			tick: tick,
+			finish: finish,
+			duration: duration,
+			lock: duration + cooldown,
+			animation: animationName,
+			animationLock: animationLock != null? animationLock : duration
+		};
+	}
+	act(e, name) {
+		if (this.actionLock > 0) return false;
+		let action = this.constructor.actions[name];
+		if (action) {
+			this.currentAction = name;
+			this.animate(e, action.animation, null, action.animationLock);
+			this.actionFrame = 0;
+			this.actionLock = action.duration;
+			return true;
+		}
+		else {
+			console.error(`Unknown action: ${name}.`);
+			return false;
+		}
+	}
+	cancelAction(e) {
+		if (this.currentAction != null) {
+			let action = this.constructor.actions[this.currentAction];
+			action.finish(e);
+			this.actionLock = 0;
+		}
+	}
+	actionsUpdate(e) {
+		if (this.currentAction != null) {
+			let action = this.constructor.actions[this.currentAction];
+			action.tick(e, this.actionFrame);
+			if (++this.actionFrame >= action.duration) {
+				this.currentAction = null;
+				action.finish(e);
+			}
+		}
+		if (this.actionLock > 0) this.actionLock--;
 	}
 };
 
@@ -218,6 +277,7 @@ DMOs.Doodleman = class extends DMOs.Entity {
 			name: sheet
 		};
 	}
+	static actions = Object.assign({}, super.actions)
 	static proto() {
 		super.proto();
 		this.drawLayer = 2;
@@ -242,12 +302,7 @@ DMOs.Doodleman = class extends DMOs.Entity {
 		if (engine.input.key("KeyD")) this.move(1);
 		if (engine.input.key("KeyA")) this.move(-1);
 		if (this.jumpFrame > 0 && this.jumpFrame <= this.jumpCancelTime) {
-			if (!engine.input.key("KeyW")) {
-				let currentJumpVel = this.jumpAccel + engine.gravity.y * (this.jumpFrame);
-				// cancel the remaining velocity of the current jump and add some final compensation
-				this.velY += -currentJumpVel + this.jumpCancelAccel;
-				this.jumpFrame = 0;
-			}
+			if (!engine.input.key("KeyW")) this.cancelJump();
 		}
 		if (engine.input.keyPress("KeyW") && this.canJump()) this.jump();
 		if (engine.input.key("KeyS")) {
@@ -255,6 +310,8 @@ DMOs.Doodleman = class extends DMOs.Entity {
 			this.crouching = true;
 		}
 		else this.crouching = false;
+
+		if (engine.input.key("KeyG")) this.act(engine, "attack");
 	}
 	animations(e) {
 		if (!this.isGrounded) this.animate(e, "jump", this.direction);
@@ -269,10 +326,24 @@ DMOs.Doodleman = class extends DMOs.Entity {
 	canJump() {
 		return this.isGrounded;
 	}
+	cancelJump() {
+		let currentJumpVel = this.jumpAccel + engine.gravity.y * (this.jumpFrame);
+		// cancel the remaining velocity of the current jump and add some final compensation
+		this.velY += -currentJumpVel + this.jumpCancelAccel;
+		this.jumpFrame = 0;
+	}
 	static fromSpawnPoint(spawn) {
 		return new this(spawn.x, spawn.y, spawn.slot, spawn.direction);
 	}
 };
+DMOs.Doodleman.defineAction("attack", 20, 10,
+	(e, frame) => {
+		console.log(frame)
+	},
+	e => {
+		console.log("finished")
+	},
+"attack");
 
 DMOs.SpawnPoint = class extends Scribble.Object {
 	constructor(x, y, slot, direction) {
