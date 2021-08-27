@@ -343,7 +343,7 @@ DMOs.Doodleman.defineAction("attack", 20, 10,
 	e => {
 		console.log("finished")
 	},
-"attack");
+"exit-through-door", 30);
 
 DMOs.SpawnPoint = class extends Scribble.Object {
 	constructor(x, y, slot, direction) {

@@ -68,14 +68,11 @@ Scribble.Animations = class Animations {
 
 					// move corresponding amount of frames forward in the animation
 					let frameIndex = Math.floor((component.tick||0) * anim.framerate);
-					let frame = this.getFrameData(frameIndex, anim, "frame");
+					let frame = this.getFrameData(frameIndex, anim, "frame") || 0;
 					frameX += frame * sheet.spriteWidth;
 					
 					// determine alpha value for frame
-					let frameAlpha = 1;
-					if (anim.alphas) {
-						frameAlpha = this.getFrameData(frameIndex, anim, "alpha");
-					}
+					let frameAlpha = this.getFrameData(frameIndex, anim, "alpha");
 
 					// draw image
 					let alpha = ctx.globalAlpha;
@@ -135,7 +132,7 @@ Scribble.Animations = class Animations {
 			component.previous = component.animation;
 		}
 	}
-	getFrameData(frameIndex, action, key, resolveChildren) {
+	getFrameData(frameIndex, action, key) {
 		let chain = key.split(".");
 		if (!action.data) return console.error("Frame data not provided!", action);
 		let value = action.data;
@@ -143,25 +140,48 @@ Scribble.Animations = class Animations {
 		if (value instanceof Array) {
 			return value[frameIndex];
 		}
-		else if (typeof value === "object") {
-			if (resolveChildren) return this.resolveObjectChildren(frameIndex, value);
+		else if (typeof value === "object" && value.response !== void(0)) {
+			let type = value.response;
+			if (type === "expression") {
+				let validExpr = /^([0-9x\.+\-*/%() ]|floor\(|ceil\(|round\()+$/;
+				if (validExpr.test(value.expression)) {
+					let expr = value.expression.replace(/x/g, frameIndex);
+					expr = expr.replace(/floor\(/g, "Math.floor(");
+					expr = expr.replace(/ceil\(/g, "Math.ceil(");
+					expr = expr.replace(/round\(/g, "Math.round(");
+					return eval(expr);
+				}
+				else console.error(`Invalid expression ${value.expression}`);
+			}
+			else if (type === "keyframes") {
+				while (frameIndex > 0) {
+					let item = value[frameIndex];
+					if (item !== void(0)) return item;
+					frameIndex--;
+				}
+			}
+			else if (type === "collapse") {
+				return this.resolveObject(frameIndex, value);
+			}
+			else throw new Error(`Unknown data response type ${type}`);
 		}
-		return value;
+		else return value;
 	}
-	resolveObjectChildren(frameIndex, obj) {
+	resolveObject(frameIndex, obj) {
 		for (let property in obj) if (obj.hasOwnProperty(property)) {
 			if (obj[property] instanceof Array) {
 				obj[property] = obj[property][frameIndex];
 			}
 			else if (typeof obj[property] === "object") {
-				obj[property] = this.resolveObjectChildren(frameIndex, obj[property]);
+				obj[property] = this.resolveObject(frameIndex, obj[property]);
 			}
 		}
 		return obj;
 	}
-	getFrameDataFromComponent(component, key, resolveChildren) {
+	getFrameDataFromComponent(component, key) {
+		let action = this.getAction(component);
 		let frameIndex = Math.floor((component.tick||0) * action.framerate);
-		return this.getFrameData(frameIndex, this.getAction(component), key, resolveChildren);
+		return this.getFrameData(frameIndex, action, key);
 	}
 };
 
