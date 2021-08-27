@@ -190,6 +190,18 @@ Scribble.Object = class {
 			engine.animations.set(this.animation, action, direction, lockTime);
 		}
 	}
+	/**
+	 * Get data from the current animation action based on the current animation tick
+	 * @param {Scribble.Engine} engine 
+	 * @param {string} key Property name to access. Can be a property chain.
+	 * Examples: "frame", "alpha", "position.x", "items.0.value" 
+	 * @param {boolean} resolveChildren If the result is an object, a value of true will resolve all lists in the object into single values
+	 * @returns {*} The appropriate value from the animation file if it is found, else null.
+	 */
+	getFrameData(engine, key, resolveChildren) {
+		if (this.animation) return engine.animations.getFrameDataFromComponent(this.animation, key, resolveChildren);
+		else console.error("No animation object found. Can't get frame data.")
+	}
 };
 
 Scribble.Objects = {};

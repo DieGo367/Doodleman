@@ -27,18 +27,24 @@
       "action": "name",
       "row": 0,
       "col": 0,
+      "frameCount": 4,
       "framerate": 0.2,
-      "frames": [ 0, 1, 2, 3 ],
-      "alphas": [ 1, 1, 1, 1 ]
+      "data": {
+        "frame": [ 0, 1, 2, 3 ],
+        "alpha": 1
+      }
     }
   ],
   "actions": {
     "name": {
       "row": 0,
       "col": 0,
+      "frameCount": 4,
       "framerate": 0.2,
-      "frames": [ 0, 1, 2, 3 ],
-      "alphas": [ 1, 1, 1, 1 ]
+      "data": {
+        "frame": [ 0, 1, 2, 3 ],
+        "alpha": 1
+      }
     }
   },
   "defaultAnimation": "name"

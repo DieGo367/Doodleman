@@ -232,7 +232,7 @@ DMOs.Entity = class extends Scribble.Object {
 			this.currentAction = name;
 			this.animate(e, action.animation, null, action.animationLock);
 			this.actionFrame = 0;
-			this.actionLock = action.duration;
+			this.actionLock = action.lock;
 			return true;
 		}
 		else {
@@ -250,8 +250,8 @@ DMOs.Entity = class extends Scribble.Object {
 	actionsUpdate(e) {
 		if (this.currentAction != null) {
 			let action = this.constructor.actions[this.currentAction];
-			action.tick(e, this.actionFrame);
-			if (++this.actionFrame >= action.duration) {
+			let result = action.tick(e, this.actionFrame);
+			if (++this.actionFrame >= action.duration || result === false) {
 				this.currentAction = null;
 				action.finish(e);
 			}

@@ -27,65 +27,87 @@
       "action": "stand",
       "row": 0,
       "col": 0,
+      "frameCount": 1,
       "framerate": 0.2,
-      "frames": [ 0 ],
-      "alphas": [ 1 ]
+      "data": {
+        "frame": 0,
+        "alpha": 1
+      }
     },
     {
       "action": "crouch",
       "row": 0,
       "col": 1,
+      "frameCount": 1,
       "framerate": 0.2,
-      "frames": [ 0 ],
-      "alphas": [ 1 ]
+      "data": {
+        "frame": 0,
+        "alpha": 1
+      }
     },
     {
       "action": "jump",
       "row": 0,
       "col": 2,
+      "frameCount": 1,
       "framerate": 0.2,
-      "frames": [ 0 ],
-      "alphas": [ 1 ]
+      "data": {
+        "frame": 0,
+        "alpha": 1
+      }
     },
     {
       "action": "run",
       "row": 1,
       "col": 0,
+      "frameCount": 4,
       "framerate": 0.2,
-      "frames": [ 0, 1, 2, 3 ],
-      "alphas": [ 1 ]
+      "data": {
+        "frame": [ 0, 1, 2, 3 ],
+        "alpha": 1
+      }
     },
     {
       "action": "attack",
       "row": 2,
       "col": 0,
+      "frameCount": 4,
       "framerate": 0.2,
-      "frames": [ 0, 1, 2, 3 ],
-      "alphas": [ 1 ],
-      "attacks": [
-        {
-          "x": [ 26 ],
-          "y": [ -12 ],
-          "width": [ 33 ],
-          "height": [ 10 ]
+      "data": {
+        "frame": [ 0, 1, 2, 3 ],
+        "alpha": 1,
+        "attack": {
+          "shape": {
+            "type": "box",
+            "x": 26,
+            "y": -12,
+            "width": 33,
+            "height": 10
+          }
         }
-      ]
+      }
     },
     {
       "action": "invisible",
       "row": 0,
       "col": 0,
+      "frameCount": 1,
       "framerate": 0.2,
-      "frames": [ 0 ],
-      "alphas": [ 0 ]
+      "data": {
+        "frame": 0,
+        "alpha": 0
+      }
     },
     {
       "action": "emerge",
       "row": 3,
       "col": 0,
+      "frameCount": 5,
       "framerate": 0.2,
-      "frames": [ 0, 1, 2, 3, 4 ],
-      "alphas": [ 1 ]
+      "data": {
+        "frame": [ 0, 1, 2, 3, 4 ],
+        "alpha": 1
+      }
     }
   ],
   "defaultAnimation": "stand"

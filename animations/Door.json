@@ -27,33 +27,45 @@
       "action": "closed",
       "row": 0,
       "col": 0,
+      "frameCount": 1,
       "framerate": 0,
-      "frames": [ 0 ],
-      "alphas": [ 1 ]
+      "data": {
+        "frame": 0,
+        "alpha": 1
+      }
     },
     {
       "action": "open",
       "row": 0,
       "col": 0,
+      "frameCount": 1,
       "framerate": 0,
-      "frames": [ 6 ],
-      "alphas": [ 1 ]
+      "data": {
+        "frame": 6,
+        "alpha": 1
+      }
     },
     {
       "action": "opening",
       "row": 0,
       "col": 0,
+      "frameCount": 7,
       "framerate": 0.2,
-      "frames": [ 0, 1, 2, 3, 4, 5, 6 ],
-      "alphas": [ 1 ]
+      "data": {
+        "frame": [ 0, 1, 2, 3, 4, 5, 6 ],
+        "alpha": 1
+      }
     },
     {
       "action": "closing",
       "row": 0,
       "col": 0,
+      "frameCount": 7,
       "framerate": 0.2,
-      "frames": [ 6, 5, 4, 3, 2, 1, 0 ],
-      "alphas": [ 1 ]
+      "data": {
+        "frame": [ 6, 5, 4, 3, 2, 1, 0 ],
+        "alpha": 1
+      }
     }
   ],
   "defaultAnimation": "closed"
