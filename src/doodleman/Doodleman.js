@@ -294,9 +294,12 @@ DMOs.Doodleman = class extends DMOs.Entity {
 		}
 		if (this.isGrounded) this.jumpFrame = 0;
 		this.controls(engine);
-		this.animations(engine);
 		super.update(engine);
 		engine.debug.print("X: " + Math.round(this.x) + ", Y: " + Math.round(this.y));
+	}
+	finish(engine) {
+		this.animations(engine);
+		super.finish(engine);
 	}
 	controls(engine) {
 		if (engine.input.key("KeyD")) this.move(1);
