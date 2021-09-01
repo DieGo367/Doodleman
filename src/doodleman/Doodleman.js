@@ -138,129 +138,7 @@ class DoodlemanGame extends Scribble.Game {
 
 const DMOs = {};
 
-DMOs.Entity = class extends Scribble.Object {
-	constructor(x, y) {
-		super(x, y);
-		this.moveSpeed = 0;
-		this.moveDir = 1;
-		this.lastMoveDir = 1;
-		this.moved = false;
-		this.actions = this.constructor.actions;
-	}
-	static proto() {
-		super.proto();
-		this.drawLayer = 1;
-		this.targetMoveSpeed = 5;
-		this.moveAccel = 1;
-		this.jumpAccel = 10;
-	}
-	move(sign) {
-		if (this.moved && this.moveDir != sign) {
-			this.moveDir = this.lastMoveDir;
-			this.moveSpeed -= this.moveAccel;
-		}
-		else {
-			this.moveSpeed += this.moveAccel;
-			if (this.moveSpeed > this.targetMoveSpeed) this.moveSpeed = this.targetMoveSpeed;
-			this.moveDir += sign;
-			this.moved = true;
-		}
-	}
-	movementUpdate(engine) {
-		// use movement speed
-		if (!this.moved) this.moveDir = this.lastMoveDir;
-		this.x += this.moveSpeed * this.moveDir;
-		for (let id in this.grounds) {
-			if (!this.grounds[id]) continue;
-			let ground = engine.objects.map[id];
-			if (ground && ground.collision.type === Scribble.SHAPE.LINE) {
-				let angle = Math.atan(ground.collision.dy / ground.collision.dx);
-				// engine.debug.print(angle);
-				// if moving down the slope
-				if (angle * this.moveDir < 0) {
-					this.y -= Math.abs(angle) * (this.moveSpeed + this.velX) * 1.1;
-				}
-			}
-		}
-		this.direction = this.moveDir;
-	}
-	jump() {
-		this.velY += this.jumpAccel;
-	}
-	update(engine) {
-		this.movementUpdate(engine);
-		this.actionsUpdate(engine);
-		super.update(engine);
-	}
-	finish(engine) {
-		if (this.feelsGravity && !this.moved) {
-			if (this.isGrounded) this.moveSpeed *= engine.friction;
-			else this.moveSpeed *= engine.airResistance;
-			if (this.moveSpeed < engine.frictionSnap) this.moveSpeed = 0;
-		}
-		this.moved = false;
-		this.lastMoveDir = this.moveDir;
-		this.moveDir = 0;
-		super.finish(engine);
-	}
-	
-	static actions = {}
-	/**
-	 * Defines a new routine or ability for a class.
-	 * @param {string} name Name of the new action
-	 * @param {number} duration Amount of ticks the action should take.
-	 * @param {number} cooldown Additional time after action duration that new actions should still be prevented
-	 * @param {function} tick Runs every game tick while the action is running. If returns false, cancel the action early.
-	 * @param {function} finish Runs when the action is completed or canceled.
-	 * @param {string} animationName Name of the animation to trigger at the start of the action.
-	 * @param {number} animationLock How long to lock the animation for. Defaults to action duration.
-	 */
-	static defineAction(name, duration, cooldown, tick, finish, animationName, animationLock) {
-		this.actions[name] = {
-			tick: tick,
-			finish: finish,
-			duration: duration,
-			lock: duration + cooldown,
-			animation: animationName,
-			animationLock: animationLock != null? animationLock : duration
-		};
-	}
-	act(e, name) {
-		if (this.actionLock > 0) return false;
-		let action = this.constructor.actions[name];
-		if (action) {
-			this.currentAction = name;
-			this.animate(e, action.animation, null, action.animationLock);
-			this.actionFrame = 0;
-			this.actionLock = action.lock;
-			return true;
-		}
-		else {
-			console.error(`Unknown action: ${name}.`);
-			return false;
-		}
-	}
-	cancelAction(e) {
-		if (this.currentAction != null) {
-			let action = this.constructor.actions[this.currentAction];
-			action.finish(e);
-			this.actionLock = 0;
-		}
-	}
-	actionsUpdate(e) {
-		if (this.currentAction != null) {
-			let action = this.constructor.actions[this.currentAction];
-			let result = action.tick(e, this.actionFrame);
-			if (++this.actionFrame >= action.duration || result === false) {
-				this.currentAction = null;
-				action.finish(e);
-			}
-		}
-		if (this.actionLock > 0) this.actionLock--;
-	}
-};
-
-DMOs.Doodleman = class extends DMOs.Entity {
+DMOs.Doodleman = class extends Scribble.Entity {
 	constructor(x, y, slot, direction) {
 		super(x, y);
 		this.slot = slot;
@@ -399,7 +277,7 @@ DMOs.Marker = class extends Scribble.Object {
 	}
 };
 
-DMOs.PaintMan = class extends DMOs.Entity {
+DMOs.PaintMan = class extends Scribble.Entity {
 	constructor(x, y) {
 		super(x, y);
 		this.collision = {
