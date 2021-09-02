@@ -326,6 +326,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		this.moved = false;
 		this.actions = this.constructor.actions;
 		this.activeAttacks = [];
+		this.health = this.maxHealth;
 	}
 	static proto() {
 		super.proto();
@@ -333,6 +334,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		this.targetMoveSpeed = 5;
 		this.moveAccel = 1;
 		this.jumpAccel = 10;
+		this.maxHealth = 10;
 	}
 	move(sign) {
 		if (this.moved && this.moveDir != sign) {
@@ -501,7 +503,14 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 	}
 
 	hurt(damage, attacker) {
-		console.log(attacker, `dealt ${damage} damage to `, this);
+		// probably make a hook for game here
+		this.health -= damage;
+		if (this.health <= 0) this.die(attacker);
+	}
+
+	die(attacker) {
+		// probably make a hook for game here
+		this.remove();
 	}
 
 	drawDebug(ctx) {

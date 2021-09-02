@@ -165,6 +165,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		this.jumpAccel = 14;
 		this.jumpCancelTime = 10;
 		this.jumpCancelAccel = 3;
+		this.maxHealth = 4;
 	}
 	update(engine) {
 		if (this.jumpFrame > 0) {
@@ -295,6 +296,7 @@ DMOs.PaintMan = class extends Scribble.Entity {
 	static proto() {
 		super.proto();
 		this.feelsGravity = true;
+		this.maxHealth = 2;
 	}
 };
 
