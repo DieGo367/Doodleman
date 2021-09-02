@@ -218,13 +218,13 @@ DMOs.Doodleman = class extends Scribble.Entity {
 	}
 };
 DMOs.Doodleman.defineAction("attack", 20, 10,
-	(e, frame) => {
-		console.log(frame)
+	(e, doodleman, frame) => {
+		if (frame === 0) {
+			doodleman.setAttack("attack", 20);
+		}
 	},
-	e => {
-		console.log("finished")
-	},
-"exit-through-door", 30);
+	(e, doodleman) => {},
+"attack", 30);
 
 DMOs.SpawnPoint = class extends Scribble.Object {
 	constructor(x, y, slot, direction) {

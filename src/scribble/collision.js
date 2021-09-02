@@ -4,6 +4,12 @@ Scribble.Collision = {
 	EPS: 0.1,
 	NORMAL_FORCE_THRESH: 0.5,
 	SLOPE_THRESH: 0.8,
+	/**
+	 * Runs the entire collision detection and resolution process on a set of objects in a level.
+	 * @param {Object} objectMap Map of all the objects that collision should be checked for.
+	 * @param {Object} gravity Vector describing the x and y force of gravity.
+	 * @param {Object} level The data for the currently loaded level, used for its collision bounds.
+	 */
 	run(objectMap, gravity, level) {
 		// create a map of buckets for objects of different collision weight levels
 		let bucketMap = {};
@@ -77,6 +83,11 @@ Scribble.Collision = {
 			}
 		}
 	},
+	/**
+	 * Get the collider of a Scribble Object, for testing collisions with other colliders.
+	 * @param {Scribble.Object} obj 
+	 * @returns {Collider} A collider object that is ready for collision tests.
+	 */
 	getCollider(obj) {
 		// make a copy of the collider shape, with helper structures for the collision process
 		let shape = {
@@ -93,6 +104,16 @@ Scribble.Collision = {
 		shape.x += obj.x;
 		shape.y += obj.y;
 		return shape;
+	},
+	/**
+	 * Tests whether two objects intersect. Must have coordinates and a "collision" object.
+	 */
+	intersect(a, b) {
+		let shapeA = this.getCollider(a);
+		let shapeB = this.getCollider(b);
+		let func = this.intersectFuncMap[shapeA.type][shapeB.type];
+		if (typeof func === "function") return func(shapeA, shapeB);
+		else console.error(`Missing intersect function for collision of ${shapeA.type} with ${shapeB.type}`);
 	},
 	// the entire collision check process, including detection, push vector creation, and ground detection
 	collisionCheck(a, b, gravity) {
@@ -1465,6 +1486,40 @@ Scribble.Collision = {
 			ctx.strokeRect(x + aabb.x, y + aabb.y, aabb.width, aabb.height);
 			ctx.restore();
 		}
-		else console.warn("Unknown shape type");
+		else console.warn(`Unknown shape type: ${shape.type}`);
+	},
+	flipShapeX(shape) {
+		shape.x *= -1;
+		if (shape.type === Scribble.SHAPE.BOX) {
+			shape.x -= shape.width;
+		}
+		else if (shape.type === Scribble.SHAPE.LINE) {
+			shape.dx *= -1;
+		}
+		else if (shape.type === Scribble.SHAPE.POLYGON) {
+			let points = [];
+			for (let i = 0; i < shape.points.length; i++) {
+				let point = shape.points[i];
+				points.push({x: point.x, y: point.y * -1});
+			}
+			shape.points = points;
+		}
+	},
+	flipShapeY(shape) {
+		shape.y *= -1;
+		if (shape.type === Scribble.SHAPE.BOX) {
+			shape.y -= shape.height;
+		}
+		else if (shape.type === Scribble.SHAPE.LINE) {
+			shape.dy *= -1;
+		}
+		else if (shape.type === Scribble.SHAPE.POLYGON) {
+			let points = [];
+			for (let i = 0; i < shape.points.length; i++) {
+				let point = shape.points[i];
+				points.push({x: point.x, y: point.y * -1});
+			}
+			shape.points = points;
+		}
 	}
 };

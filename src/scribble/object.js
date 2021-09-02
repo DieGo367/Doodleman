@@ -312,6 +312,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		this.lastMoveDir = 1;
 		this.moved = false;
 		this.actions = this.constructor.actions;
+		this.activeAttacks = [];
 	}
 	static proto() {
 		super.proto();
@@ -356,6 +357,8 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 	update(engine) {
 		this.movementUpdate(engine);
 		this.actionsUpdate(engine);
+		// TODO: should attack hits happen on a different step?
+		this.attackUpdate(engine);
 		super.update(engine);
 	}
 	finish(engine) {
@@ -416,12 +419,88 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 	actionsUpdate(e) {
 		if (this.currentAction != null) {
 			let action = this.constructor.actions[this.currentAction];
-			let result = action.tick(e, this.actionFrame);
+			let result = action.tick(e, this, this.actionFrame);
 			if (++this.actionFrame >= action.duration || result === false) {
 				this.currentAction = null;
-				action.finish(e);
+				action.finish(e, this);
 			}
 		}
 		if (this.actionLock > 0) this.actionLock--;
+	}
+
+	/**
+	 * Activate the hitbox of an attack
+	 * @param {Scribble.Engine} engine
+	 * @param {string} name Name of the attack's hitbox in the animation file.
+	 * @param {Array} exclude List of ID's to ignore hit detection with.
+	 * @param {function} callback Optional. Function to call when an entity is hit. If false is returned, damage is not applied.
+	 */
+	setAttack(name, duration, exclude, callback) {
+		if (exclude && typeof exclude !== "Array") return console.error("Expected an array of IDs to exclude.");
+		if (!exclude) exclude = [];
+		exclude.push(this.id);
+		this.activeAttacks.push({
+			name: name,
+			duration: duration,
+			excludes: exclude,
+			onHit: callback,
+			tick: 0,
+			hits: []
+		});
+	}
+	attackUpdate(e) {
+		for (let i = 0; i < this.activeAttacks.length; i++) {
+			let attack = this.activeAttacks[i];
+			if (attack) {
+				// update the attack based on framedata
+				let data = this.getFrameData(e, attack.name);
+				if (!data) console.warn(`Missing attack data: ${attack.name}`);
+				else if (data.shape) {
+					attack.collision = attack.shape = Object.assign({}, data.shape);
+					attack.damage = data.damage;
+					if (this.animation.direction === Scribble.LEFT) Scribble.Collision.flipShapeX(attack.shape);
+					attack.x = this.x;
+					attack.y = this.y;
+					// if the attack shape exists, check for all objects...
+					engine.objects.forAllOfClass(Scribble.Entity, (obj, id) => {
+						// check this object isn't excluded
+						if (attack.excludes.indexOf(id) === -1) {
+							// check the attack intersects the object
+							if (Scribble.Collision.intersect(attack, obj)) {
+								let doDamage = true;
+								if (typeof attack.onHit === "function") doDamage = attack.onHit(obj, damage) !== false;
+								if (doDamage) obj.hurt(attack.damage, this);
+								attack.hits.push(obj.id);
+								attack.excludes.push(obj.id);
+							}
+						}
+					});
+				}
+				else attack.shape = null;
+				if (++attack.tick >= attack.duration) this.activeAttacks.splice(i--, 1);
+			}
+			else this.activeAttacks.splice(i--, 1);
+		}
+	}
+	cancelAttack(name) {
+		for (let i = 0; i < this.activeAttacks.length; i++) {
+			let attack = this.activeAttacks[i];
+			if (attack && attack.name === name) this.activeAttacks.splice(i--, 1);
+		}
+	}
+
+	hurt(damage, attacker) {
+		console.log(attacker, `dealt ${damage} damage to `, this);
+	}
+
+	drawDebug(ctx) {
+		super.drawDebug(ctx);
+		for (let i = 0; i < this.activeAttacks.length; i++) {
+			let attack = this.activeAttacks[i];
+			if (attack && attack.shape) {
+				ctx.strokeStyle = Scribble.COLOR.DEBUG.HITBOX;
+				Scribble.Collision.drawBounds(ctx, this.x, this.y, attack.shape);
+			}
+		}
 	}
 };

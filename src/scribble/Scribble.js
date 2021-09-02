@@ -18,7 +18,8 @@ const Scribble = {
 		BACKDROP: "gray",
 		LEVEL: "lightGray",
 		DEBUG: {
-			COLLISION: "limegreen"
+			COLLISION: "limegreen",
+			HITBOX: "red"
 		}
 	},
 	SHAPE: {

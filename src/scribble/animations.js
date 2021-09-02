@@ -154,7 +154,7 @@ Scribble.Animations = class Animations {
 				else console.error(`Invalid expression ${value.expression}`);
 			}
 			else if (type === "keyframes") {
-				while (frameIndex > 0) {
+				while (frameIndex >= 0) {
 					let item = value[frameIndex];
 					if (item !== void(0)) return item;
 					frameIndex--;
