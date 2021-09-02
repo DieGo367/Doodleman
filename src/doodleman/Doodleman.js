@@ -166,6 +166,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		this.jumpCancelTime = 10;
 		this.jumpCancelAccel = 3;
 		this.maxHealth = 4;
+		this.knockBack = {x: 7, y: 5};
 	}
 	update(engine) {
 		if (this.jumpFrame > 0) {
@@ -222,7 +223,12 @@ DMOs.Doodleman = class extends Scribble.Entity {
 DMOs.Doodleman.defineAction("attack", 20, 10,
 	(e, doodleman, frame) => {
 		if (frame === 0) {
-			doodleman.setAttack("attack", 20);
+			doodleman.setAttack("attack", 20, null, (victim, damage) => {
+				victim.x += doodleman.knockBack.x * doodleman.animation.direction;
+				victim.y += doodleman.knockBack.y;
+				victim.velX += doodleman.knockBack.x * doodleman.animation.direction;
+				victim.velY += doodleman.knockBack.y;
+			});
 		}
 	},
 	(e, doodleman) => {},

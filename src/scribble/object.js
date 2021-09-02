@@ -481,7 +481,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 							// check the attack intersects the object
 							if (Scribble.Collision.intersect(attack, obj)) {
 								let doDamage = true;
-								if (typeof attack.onHit === "function") doDamage = attack.onHit(obj, damage) !== false;
+								if (typeof attack.onHit === "function") doDamage = attack.onHit(obj, attack.damage) !== false;
 								if (doDamage) obj.hurt(attack.damage, this);
 								attack.hits.push(obj.id);
 								attack.excludes.push(obj.id);
