@@ -92,21 +92,13 @@ Scribble.Animations = class Animations {
 		else console.warn("Unknown animation file " + component.name);
 	}
 	set(component, animation, direction, lockTime) {
-		// this.engine.debug.print("set anim " + component.name)
-		if (component.lock > 0) {
-			component.lock--;
-			return false;
-		}
+		if (component.lock > 0 || component.lock === "full") return false;
 		if (direction != void(0)) component.direction = direction;
 		if (component.animation === animation) return true;
 		component.previous = component.animation;
 		component.animation = animation;
 		component.tick = 0;
-		if (lockTime === "full") {
-			let action = this.getAction(component);
-			this.lock = action.frameCount / action.framerate;
-		}
-		else if (typeof lockTime === "number") {
+		if (lockTime === "full" || typeof lockTime === "number") {
 			component.lock = lockTime;
 		}
 		return true;
@@ -126,9 +118,10 @@ Scribble.Animations = class Animations {
 	tick(component) {
 		let action = this.getAction(component);
 		component.tick++;
+		if (component.lock === "full") component.lock = action.frameCount / action.framerate;
+		if (component.lock > 0) component.lock--;
 		if (Math.floor(component.tick * action.framerate) >= action.frameCount) {
 			component.tick = 0;
-			component.lock = 0;
 			component.previous = component.animation;
 		}
 	}

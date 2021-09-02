@@ -192,13 +192,14 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		}
 		else this.crouching = false;
 
-		if (engine.input.key("KeyG")) this.act(engine, "attack");
+		if (engine.input.key("KeyG")) this.act("attack");
 	}
-	animations(e) {
-		if (!this.isGrounded) this.animate(e, "jump", this.direction);
-		else if (this.velX != 0 || this.moveSpeed != 0) this.animate(e, "run", this.direction);
-		else if (this.crouching) this.animate(e, "crouch", this.direction);
-		else this.animate(e, "stand", this.direction);
+	animations() {
+		if (this.animation.lock > 0 || this.animation.lock === "full") return;
+		if (!this.isGrounded) this.animate("jump", this.direction);
+		else if (this.velX != 0 || this.moveSpeed != 0) this.animate("run", this.direction);
+		else if (this.crouching) this.animate("crouch", this.direction);
+		else this.animate("stand", this.direction);
 	}
 	jump() {
 		super.jump();
@@ -224,7 +225,7 @@ DMOs.Doodleman.defineAction("attack", 20, 10,
 		}
 	},
 	(e, doodleman) => {},
-"attack", 30);
+"attack", "full");
 
 DMOs.SpawnPoint = class extends Scribble.Object {
 	constructor(x, y, slot, direction) {

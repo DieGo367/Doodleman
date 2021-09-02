@@ -180,15 +180,22 @@ Scribble.Object = class {
 
 	/**
 	 * Updates the current animation of the object
-	 * @param {Scribble.Engine} engine 
 	 * @param {string} action Name of the animation to use
 	 * @param {number} direction Direction to face the animation in
 	 * @param {number} lockTime Time the animation should hold for without being overwritten
 	 */
-	animate(engine, action, direction, lockTime) {
-		if (this.animation) {
-			engine.animations.set(this.animation, action, direction, lockTime);
+	animate(action, direction, lockTime) {
+		let component = this.animation;
+		if (component.lock > 0 || component.lock === "full") return false;
+		if (direction != void(0)) component.direction = direction;
+		if (component.animation === action) return true;
+		component.previous = component.animation;
+		component.animation = action;
+		component.tick = 0;
+		if (lockTime === "full" || typeof lockTime === "number") {
+			component.lock = lockTime;
 		}
+		return true;
 	}
 	/**
 	 * Get data from the current animation action based on the current animation tick
@@ -394,12 +401,12 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 			animationLock: animationLock != null? animationLock : duration
 		};
 	}
-	act(e, name) {
+	act(name) {
 		if (this.actionLock > 0) return false;
 		let action = this.constructor.actions[name];
 		if (action) {
 			this.currentAction = name;
-			this.animate(e, action.animation, null, action.animationLock);
+			this.animate(action.animation, null, action.animationLock);
 			this.actionFrame = 0;
 			this.actionLock = action.lock;
 			return true;
