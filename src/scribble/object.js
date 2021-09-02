@@ -68,10 +68,9 @@ Scribble.ObjectManager = class ObjectManager {
 		});
 	}
 	forAll(func) {
-		let i = 0;
 		for (let id in this.map) {
 			if (this.map[id]) {
-				let response = func(this.map[id], i++);
+				let response = func(this.map[id], parseInt(id));
 				if (response === false) break;
 			}
 		}
