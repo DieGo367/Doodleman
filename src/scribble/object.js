@@ -34,26 +34,28 @@ Scribble.ObjectManager = class ObjectManager {
 		}
 		else console.error("Not an id or Scribble.Object!")
 	}
-	removeAll() {
+	triggerAll(method) {
 		for (let id in this.map) {
-			this.map[id].remove();
+			if (this.map.hasOwnProperty(id)) {
+				if (this.map[id]) this.map[id][method](this.engine);
+			}
 		}
+	}
+	removeAll() {
+		this.triggerAll("remove");
 		this.minLayer = this.maxLayer = 0;
 	}
 	start() {
-		for (let id in this.map) {
-			this.map[id].start(this.engine);
-		}
+		this.triggerAll("start");
 	}
 	update() {
-		for (let id in this.map) {
-			this.map[id].update(this.engine);
-		}
+		this.triggerAll("update");
+	}
+	attack() {
+		this.triggerAll("attack");
 	}
 	finish() {
-		for (let id in this.map) {
-			this.map[id].finish(this.engine);
-		}
+		this.triggerAll("finish");
 	}
 	renderLayer(layer) {
 		this.forAll(object => {
@@ -115,7 +117,7 @@ Scribble.Object = class {
 		if (this.animation) engine.animations.tick(this.animation);
 	}
 	/**
-	 * Handles intended object behavior this tick. Runs before collision.
+	 * Handles intended object behavior this tick. Runs before attacks and collision.
 	 * @param {Scribble.Engine} engine 
 	 */
 	update(engine) {
@@ -127,6 +129,11 @@ Scribble.Object = class {
 		this.x += this.velX;
 		this.y += this.velY;
 	}
+	/**
+	 * Update step dedicated to attacks hit detection. Runs after movement and before collision.
+	 * @param {Scribble.Engine} engine 
+	 */
+	attack(engine) {}
 	/**
 	 * Final update step. Runs after collision. Track necessary values for next tick.
 	 * @param {Scribble.Engine} engine 
@@ -364,8 +371,6 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 	update(engine) {
 		this.movementUpdate(engine);
 		this.actionsUpdate(engine);
-		// TODO: should attack hits happen on a different step?
-		this.attackUpdate(engine);
 		super.update(engine);
 	}
 	finish(engine) {
@@ -455,7 +460,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 			hits: []
 		});
 	}
-	attackUpdate(e) {
+	attack(e) {
 		for (let i = 0; i < this.activeAttacks.length; i++) {
 			let attack = this.activeAttacks[i];
 			if (attack) {

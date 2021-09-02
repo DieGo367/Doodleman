@@ -109,6 +109,7 @@ Scribble.Engine = class Engine {
 		if (this.canUpdate()) {
 			this.objects.start();
 			this.objects.update();
+			this.objects.attack();
 			Scribble.Collision.run(this.objects.map, this.gravity, this.level.data);
 			this.objects.finish();
 			this.input.gameUpdate();
