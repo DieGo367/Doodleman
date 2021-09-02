@@ -187,7 +187,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		}
 		if (engine.input.keyPress("KeyW") && this.canJump()) this.jump();
 		if (engine.input.key("KeyS")) {
-			this.moveSpeed = 0;
+			if (this.isGrounded) this.moveSpeed = 0;
 			this.crouching = true;
 		}
 		else this.crouching = false;
