@@ -412,7 +412,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		let action = this.constructor.actions[name];
 		if (action) {
 			this.currentAction = name;
-			this.animate(action.animation, null, action.animationLock);
+			if (action.animation) this.animate(action.animation, null, action.animationLock);
 			this.actionFrame = 0;
 			this.actionLock = action.lock;
 			return true;
