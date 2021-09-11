@@ -160,7 +160,9 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		super.proto();
 		this.drawLayer = 2;
 		this.feelsGravity = true;
-		this.targetMoveSpeed = 6;
+		this.normalMoveSpeed = 6;
+		this.slowMoveSpeed = 3;
+		this.targetMoveSpeed = this.normalMoveSpeed;
 		this.moveAccel = 0.5;
 		this.jumpAccel = 14;
 		this.jumpCancelTime = 10;
@@ -172,7 +174,13 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		if (this.jumpFrame > 0) {
 			this.jumpFrame++;
 		}
-		if (this.isGrounded) this.jumpFrame = 0;
+		if (this.isGrounded) {
+			// TODO: move these to on grounded when it exists
+			this.jumpFrame = 0;
+			this.canAirAttack = true;
+			this.gravityScale = 1;
+			this.targetMoveSpeed = this.normalMoveSpeed;
+		}
 		this.controls(engine);
 		super.update(engine);
 		engine.debug.print("X: " + Math.round(this.x) + ", Y: " + Math.round(this.y));
@@ -182,19 +190,28 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		super.finish(engine);
 	}
 	controls(engine) {
+		// left/right movement
 		if (engine.input.key("KeyD")) this.move(1);
 		if (engine.input.key("KeyA")) this.move(-1);
+
+		// jumping and jump canceling
 		if (this.jumpFrame > 0 && this.jumpFrame <= this.jumpCancelTime) {
-			if (!engine.input.key("KeyW")) this.cancelJump();
+			if (!engine.input.key("Space")) this.cancelJump();
 		}
-		if (engine.input.keyPress("KeyW") && this.canJump()) this.jump();
-		if (engine.input.key("KeyS")) {
-			if (this.isGrounded) this.moveSpeed = 0;
+		if (engine.input.keyPress("Space") && this.canJump()) this.jump();
+
+		// crouching
+		if (this.isGrounded && engine.input.key("KeyS")) {
+			this.moveSpeed = 0;
 			this.crouching = true;
 		}
 		else this.crouching = false;
 
-		if (engine.input.key("KeyG")) this.act("attack");
+		// attacks
+		if (engine.input.mousePress(1)) {
+			if (this.isGrounded) this.act("attack");
+			else if (this.canAirAttack) this.act("air-attack");
+		}
 	}
 	animations() {
 		if (this.animation.lock > 0 || this.animation.lock === "full") return;
@@ -233,6 +250,77 @@ DMOs.Doodleman.defineAction("attack", 20, 10,
 	},
 	(e, doodleman) => {},
 "attack", "full");
+DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
+	if (frame === 0) {
+		let duration = 15;
+		doodleman.canAirAttack = false;
+		let force = 6;
+		let diagonal = force * Math.cos(Math.PI/4);
+		let keys = {
+			left: !!e.input.key("KeyA"),
+			right: !!e.input.key("KeyD"),
+			up: !!e.input.key("KeyW"),
+			down: !!e.input.key("KeyS")
+		};
+		// vertical axis only
+		if (keys.left === keys.right) {
+			// neutral
+			if (keys.up === keys.down) {
+				doodleman.gravityScale = 0.5;
+				doodleman.animate("attack", doodleman.direction, duration);
+			}
+			// up
+			else if (keys.up) {
+				doodleman.feelsGravity = false;
+				doodleman.gravityScale = 0.5;
+				doodleman.lockMovement = true;
+				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
+				doodleman.velY = force;
+				doodleman.velX = doodleman.moveSpeed = 0;
+				doodleman.animate("attack-upward", doodleman.direction, duration);
+			}
+			// down
+			else {
+				doodleman.velY = -force;
+				doodleman.velX = doodleman.moveSpeed = 0;
+				doodleman.animate("attack", doodleman.direction, duration);
+			}
+		}
+		// horizontal pressed
+		else {
+			doodleman.moveSpeed = 0;
+			// horizontal axis only
+			if (keys.up === keys.down) {
+				doodleman.feelsGravity = false;
+				doodleman.gravityScale = 0.5;
+				doodleman.lockMovement = true;
+				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
+				doodleman.velX = keys.right? force : -force;
+				doodleman.velY = 0;
+				doodleman.animate("attack-charge-air", doodleman.direction, duration);
+			}
+			// up diagonals
+			else if (keys.up) {
+				doodleman.feelsGravity = false;
+				doodleman.gravityScale = 0.5;
+				doodleman.lockMovement = true;
+				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
+				doodleman.velX = keys.right? diagonal : -diagonal;
+				doodleman.velY = diagonal;
+				doodleman.animate(keys.up? "attack-upward-air" : "attack", doodleman.direction, duration);
+			}
+			// down diagonals
+			else {
+				doodleman.velX = keys.right? diagonal : -diagonal;
+				doodleman.velY = -diagonal;
+	  			doodleman.animate(keys.up? "attack-upward-air" : "attack", doodleman.direction, duration);
+			}
+		}
+	}
+}, (e, doodleman) => {
+	doodleman.feelsGravity = true;
+	doodleman.lockMovement = false;
+});
 
 DMOs.SpawnPoint = class extends Scribble.Object {
 	constructor(x, y, slot, direction) {

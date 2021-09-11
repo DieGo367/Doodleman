@@ -225,8 +225,8 @@
       "frameCount": 4,
       "framerate": 0.2,
       "data": {
-        "frameCount": [ 0, 1, 2, 3 ],
-        "alphas": 1,
+        "frame": [ 0, 1, 2, 3 ],
+        "alpha": 1,
         "attack": {
           "shape": {
             "type": "box",

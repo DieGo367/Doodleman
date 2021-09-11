@@ -102,6 +102,7 @@ Scribble.Object = class {
 	}
 	static proto() {
 		this.drawLayer = 0;
+		this.gravityScale = 1;
 	}
 	remove() {
 		this.objectManager.remove(this.id);
@@ -121,8 +122,8 @@ Scribble.Object = class {
 	 */
 	update(engine) {
 		if (this.feelsGravity && !this.isGrounded) {
-			this.velX += engine.gravity.x;
-			this.velY += engine.gravity.y;
+			this.velX += engine.gravity.x * this.gravityScale;
+			this.velY += engine.gravity.y * this.gravityScale;
 			// TODO: do not apply additional gravity if any collision is in effect?
 		}
 		this.x += this.velX;
@@ -337,6 +338,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		this.maxHealth = 10;
 	}
 	move(sign) {
+		if (this.lockMovement) return;
 		if (this.moved && this.moveDir != sign) {
 			this.moveDir = this.lastMoveDir;
 			this.moveSpeed -= this.moveAccel;
@@ -349,6 +351,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		}
 	}
 	movementUpdate(engine) {
+		if (this.lockMovement) return;
 		// use movement speed
 		if (!this.moved) this.moveDir = this.lastMoveDir;
 		this.x += this.moveSpeed * this.moveDir;
