@@ -299,6 +299,17 @@
       }
     },
     {
+      "action": "attack-air-kick",
+      "row": 12,
+      "col": 0,
+      "frameCount": 3,
+      "framerate": 0.2,
+      "data": {
+        "frame": [ 0, 1, 2 ],
+        "alpha": 1
+      }
+    },
+    {
       "action": "exit-through-door",
       "row": 1,
       "col": 0,

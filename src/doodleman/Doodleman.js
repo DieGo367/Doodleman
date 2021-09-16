@@ -307,13 +307,13 @@ DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
 				doodleman.velX = keys.right? diagonal : -diagonal;
 				doodleman.velY = diagonal;
-				doodleman.animate(keys.up? "attack-upward-air" : "attack", doodleman.direction, duration);
+				doodleman.animate("attack-upward-air", doodleman.direction, duration);
 			}
 			// down diagonals
 			else {
 				doodleman.velX = keys.right? diagonal : -diagonal;
 				doodleman.velY = -diagonal;
-	  			doodleman.animate(keys.up? "attack-upward-air" : "attack", doodleman.direction, duration);
+	  			doodleman.animate("attack-air-kick", doodleman.direction, duration);
 			}
 		}
 	}
