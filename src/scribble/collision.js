@@ -1220,21 +1220,22 @@ Scribble.Collision = {
 				let overlap = {x: 0, y: 0};
 				let oDist = 0;
 
-				// first, check box diagonals
-				let hit = false;
+				// first, check box corners
 				let corners = [
 					{x: box.x, y: box.y},
 					{x: box.x + box.width, y: box.y},
-					{x: box.x, y: box.y + box.height},
-					{x: box.x + box.width, y: box.y + box.height}
+					{x: box.x + box.width, y: box.y + box.height},
+					{x: box.x, y: box.y + box.height}
 				];
-				let mid = {x: box.x + box.width/2, y: box.y + box.height/2};
+				let hit = false;
+				let normal = {x: -line.dy, y: line.dx};
 				for (let i = 0; i < corners.length; i++) {
 					let corner = corners[i];
-					let diag = Col.makeLine(mid, corner);
 					corner.radius = Col.EPS;
-					if (Col.Intersect.lineLine(diag, line) || Col.Intersect.circleLine(corner, line)) {
-						let target = Col.project(corner, line);
+					let target = Col.project(corner, line);
+					let aligned = Col.Intersect.ptLine(target, line);
+					let pastLine = Col.dot(Col.diff(corner, line), normal) <= 0;
+					if (aligned && pastLine || Col.Intersect.circleLine(corner, line)) {
 						let dist = Col.dist(corner, target);
 						if (dist >= oDist) {
 							overlap = Col.diff(target, corner);
@@ -1243,9 +1244,11 @@ Scribble.Collision = {
 						}
 					}
 				}
+				// TODO: ignore endpoint if gravity exists, and the endpoint is the furthest in the direction of gravity (or both if tied)
 				if (!hit) {
 					// otherwise, project the segment end that is closest to the center
 					// outward to the closest side
+					let mid = {x: box.x + box.width/2, y: box.y + box.height/2};
 					let sides = [
 						{x: box.x, y: box.y, dx: box.width, dy: 0},
 						{x: box.x, y: box.y, dx: 0, dy: box.height},
