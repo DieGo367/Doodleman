@@ -160,6 +160,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		super.proto();
 		this.drawLayer = 2;
 		this.feelsGravity = true;
+		this.terminalVel = 15;
 		this.normalMoveSpeed = 6;
 		this.slowMoveSpeed = 3;
 		this.targetMoveSpeed = this.normalMoveSpeed;
@@ -390,6 +391,7 @@ DMOs.PaintMan = class extends Scribble.Entity {
 	static proto() {
 		super.proto();
 		this.feelsGravity = true;
+		this.terminalVel = 15;
 		this.maxHealth = 2;
 	}
 };

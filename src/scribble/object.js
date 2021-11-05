@@ -103,6 +103,7 @@ Scribble.Object = class {
 	static proto() {
 		this.drawLayer = 0;
 		this.gravityScale = 1;
+		this.terminalVel = null;
 	}
 	remove() {
 		this.objectManager.remove(this.id);
@@ -124,6 +125,12 @@ Scribble.Object = class {
 		if (this.feelsGravity && !this.isGrounded) {
 			this.velX += engine.gravity.x * this.gravityScale;
 			this.velY += engine.gravity.y * this.gravityScale;
+			if (this.terminalVel != null) {
+				if (this.velX > this.terminalVel) this.velX = this.terminalVel;
+				if (this.velX < -this.terminalVel) this.velX = -this.terminalVel;
+				if (this.velY > this.terminalVel) this.velY = this.terminalVel;
+				if (this.velY < -this.terminalVel) this.velY = -this.terminalVel;
+			}
 			// TODO: do not apply additional gravity if any collision is in effect?
 		}
 		this.x += this.velX;
