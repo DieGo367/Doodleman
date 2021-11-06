@@ -6,7 +6,7 @@ class DoodlemanGame extends Scribble.Game {
 	init() {
 		// called when first loaded
 		this.engine.setSpeed(1000/60);
-		this.engine.setGravity(0, -1.1);
+		this.engine.setGravity(0, -0.6);
 		this.engine.setFriction(0.7, 0.1);
 		this.engine.setAirResistance(0.92);
 		this.engine.loadActorData("data/actors.json").then(() => {
@@ -160,12 +160,12 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		super.proto();
 		this.drawLayer = 2;
 		this.feelsGravity = true;
-		this.terminalVel = 15;
+		this.terminalVel = 10;
 		this.normalMoveSpeed = 6;
 		this.slowMoveSpeed = 3;
 		this.targetMoveSpeed = this.normalMoveSpeed;
 		this.moveAccel = 0.5;
-		this.jumpAccel = 14;
+		this.jumpAccel = 11;
 		this.jumpCancelTime = 10;
 		this.jumpCancelAccel = 3;
 		this.maxHealth = 4;
@@ -255,7 +255,9 @@ DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 	if (frame === 0) {
 		let duration = 15;
 		doodleman.canAirAttack = false;
-		let force = 6;
+		doodleman.jumpFrame = 0;
+		let gravScale = 0.6;
+		let force = 5;
 		let diagonal = force * Math.cos(Math.PI/4);
 		let keys = {
 			left: !!e.input.key("KeyA"),
@@ -267,13 +269,13 @@ DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 		if (keys.left === keys.right) {
 			// neutral
 			if (keys.up === keys.down) {
-				doodleman.gravityScale = 0.5;
+				doodleman.gravityScale = gravScale;
 				doodleman.animate("attack", doodleman.direction, duration);
 			}
 			// up
 			else if (keys.up) {
 				doodleman.feelsGravity = false;
-				doodleman.gravityScale = 0.5;
+				doodleman.gravityScale = gravScale;
 				doodleman.lockMovement = true;
 				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
 				doodleman.velY = force;
@@ -293,7 +295,7 @@ DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 			// horizontal axis only
 			if (keys.up === keys.down) {
 				doodleman.feelsGravity = false;
-				doodleman.gravityScale = 0.5;
+				doodleman.gravityScale = gravScale;
 				doodleman.lockMovement = true;
 				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
 				doodleman.velX = keys.right? force : -force;
@@ -303,7 +305,7 @@ DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 			// up diagonals
 			else if (keys.up) {
 				doodleman.feelsGravity = false;
-				doodleman.gravityScale = 0.5;
+				doodleman.gravityScale = gravScale;
 				doodleman.lockMovement = true;
 				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
 				doodleman.velX = keys.right? diagonal : -diagonal;
@@ -391,7 +393,7 @@ DMOs.PaintMan = class extends Scribble.Entity {
 	static proto() {
 		super.proto();
 		this.feelsGravity = true;
-		this.terminalVel = 15;
+		this.terminalVel = 10;
 		this.maxHealth = 2;
 	}
 };
