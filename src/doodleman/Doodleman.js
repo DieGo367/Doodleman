@@ -178,7 +178,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		if (this.isGrounded) {
 			// TODO: move these to on grounded when it exists
 			this.jumpFrame = 0;
-			this.canAirAttack = true;
+			this.airAttacks = 2;
 			this.gravityScale = 1;
 			this.targetMoveSpeed = this.normalMoveSpeed;
 		}
@@ -211,7 +211,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		// attacks
 		if (engine.input.mousePress(1)) {
 			if (this.isGrounded) this.act("attack");
-			else if (this.canAirAttack) this.act("air-attack");
+			else if (this.airAttacks > 0) this.act("air-attack");
 		}
 	}
 	animations() {
@@ -254,7 +254,7 @@ DMOs.Doodleman.defineAction("attack", 20, 10,
 DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 	if (frame === 0) {
 		let duration = 15;
-		doodleman.canAirAttack = false;
+		doodleman.airAttacks--;
 		doodleman.jumpFrame = 0;
 		let gravScale = 0.6;
 		let force = 5;
