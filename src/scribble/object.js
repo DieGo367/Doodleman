@@ -345,16 +345,19 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		this.maxHealth = 10;
 	}
 	move(sign) {
-		if (this.lockMovement) return;
-		if (this.moveDir * sign >= 0) { // same sign or 0 involved
-			this.moveSpeed += this.moveAccel;
-			if (this.moveSpeed > this.targetMoveSpeed) this.moveSpeed = this.targetMoveSpeed;
+		if (!this.lockMovement) {
+			if (this.moveDir * sign >= 0) { // same sign or 0 involved
+				this.moveSpeed += this.moveAccel;
+				if (this.moveSpeed > this.targetMoveSpeed) this.moveSpeed = this.targetMoveSpeed;
+			}
+			else {
+				this.moveSpeed -= this.moveAccel;
+			}
 		}
-		else {
-			this.moveSpeed -= this.moveAccel;
+		if (!this.lockDirection) {
+			this.moveDir += sign;
+			this.moved = this.moveDir !== 0;
 		}
-		this.moveDir += sign;
-		this.moved = this.moveDir !== 0;
 	}
 	movementUpdate(engine) {
 		if (this.lockMovement) {
@@ -376,7 +379,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 				}
 			}
 		}
-		this.direction = this.moveDir;
+		if (!this.lockDirection) this.direction = this.moveDir;
 	}
 	jump() {
 		this.velY += this.jumpAccel;

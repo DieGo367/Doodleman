@@ -178,6 +178,8 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		if (this.isGrounded) {
 			// TODO: move these to on grounded when it exists
 			this.jumpFrame = 0;
+			this.kickDiving = false;
+			this.lockDirection = false;
 			this.airAttacks = 2;
 			this.gravityScale = 1;
 			this.targetMoveSpeed = this.normalMoveSpeed;
@@ -216,7 +218,8 @@ DMOs.Doodleman = class extends Scribble.Entity {
 	}
 	animations() {
 		if (this.animation.lock > 0 || this.animation.lock === "full") return;
-		if (!this.isGrounded) this.animate("jump", this.direction);
+		if (this.kickDiving) this.animate("kick-dive-fall", this.direction);
+		else if (!this.isGrounded) this.animate("jump", this.direction);
 		else if (this.velX != 0 || this.moveSpeed != 0) this.animate("run", this.direction);
 		else if (this.crouching) this.animate("crouch", this.direction);
 		else this.animate("stand", this.direction);
@@ -256,6 +259,8 @@ DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 		let duration = 15;
 		doodleman.airAttacks--;
 		doodleman.jumpFrame = 0;
+		doodleman.kickDiving = false;
+		doodleman.lockDirection = false;
 		let gravScale = 0.6;
 		let force = 5;
 		let diagonal = force * Math.cos(Math.PI/4);
@@ -292,6 +297,7 @@ DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 		// horizontal pressed
 		else {
 			doodleman.moveSpeed = 0;
+			let dir = keys.right? Scribble.RIGHT : Scribble.LEFT;
 			// horizontal axis only
 			if (keys.up === keys.down) {
 				doodleman.feelsGravity = false;
@@ -300,7 +306,7 @@ DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
 				doodleman.velX = keys.right? force : -force;
 				doodleman.velY = 0;
-				doodleman.animate("attack-charge-air", doodleman.direction, duration);
+				doodleman.animate("attack-charge-air", dir, duration);
 			}
 			// up diagonals
 			else if (keys.up) {
@@ -310,13 +316,15 @@ DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
 				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
 				doodleman.velX = keys.right? diagonal : -diagonal;
 				doodleman.velY = diagonal;
-				doodleman.animate("attack-upward-air", doodleman.direction, duration);
+				doodleman.animate("attack-upward-air", dir, duration);
 			}
 			// down diagonals
 			else {
 				doodleman.velX = keys.right? diagonal : -diagonal;
 				doodleman.velY = -diagonal;
-	  			doodleman.animate("attack-air-kick", doodleman.direction, duration);
+				doodleman.kickDiving = true;
+				doodleman.lockDirection = true;
+				doodleman.animate("attack-kick-dive", dir, duration);
 			}
 		}
 	}

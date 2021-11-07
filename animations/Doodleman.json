@@ -299,13 +299,24 @@
       }
     },
     {
-      "action": "attack-air-kick",
+      "action": "attack-kick-dive",
       "row": 12,
       "col": 0,
       "frameCount": 3,
       "framerate": 0.2,
       "data": {
-        "frame": [ 0, 1, 2 ],
+        "frame": [ 0, 1, 1 ],
+        "alpha": 1
+      }
+    },
+    {
+      "action": "kick-dive-fall",
+      "row": 12,
+      "col": 2,
+      "frameCount": 1,
+      "framerate": 0.2,
+      "data": {
+        "frame": 0,
         "alpha": 1
       }
     },
