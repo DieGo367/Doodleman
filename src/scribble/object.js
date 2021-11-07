@@ -357,7 +357,10 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		this.moved = this.moveDir !== 0;
 	}
 	movementUpdate(engine) {
-		if (this.lockMovement) return;
+		if (this.lockMovement) {
+			this.moveDir = this.lastMoveDir;
+			return;
+		}
 		// use movement speed
 		if (!this.moved) this.moveDir = this.lastMoveDir;
 		this.x += this.moveSpeed * this.moveDir;
