@@ -346,16 +346,15 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 	}
 	move(sign) {
 		if (this.lockMovement) return;
-		if (this.moved && this.moveDir != sign) {
-			this.moveDir = this.lastMoveDir;
-			this.moveSpeed -= this.moveAccel;
-		}
-		else {
+		if (this.moveDir * sign >= 0) { // same sign or 0 involved
 			this.moveSpeed += this.moveAccel;
 			if (this.moveSpeed > this.targetMoveSpeed) this.moveSpeed = this.targetMoveSpeed;
-			this.moveDir += sign;
-			this.moved = true;
 		}
+		else {
+			this.moveSpeed -= this.moveAccel;
+		}
+		this.moveDir += sign;
+		this.moved = this.moveDir !== 0;
 	}
 	movementUpdate(engine) {
 		if (this.lockMovement) return;
