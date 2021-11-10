@@ -149,7 +149,7 @@ Scribble.AnimationManager = class AnimationManager {
 			else if (type === "keyframes") {
 				while (frameIndex >= 0) {
 					let item = value[frameIndex];
-					if (item !== void(0)) return item;
+					if (item !== void(0)) return JSON.parse(JSON.stringify(item));
 					frameIndex--;
 				}
 			}
@@ -160,7 +160,8 @@ Scribble.AnimationManager = class AnimationManager {
 		}
 		else return value;
 	}
-	resolveObject(frameIndex, obj) {
+	resolveObject(frameIndex, object) {
+		let obj = JSON.parse(JSON.stringify(object));
 		for (let property in obj) if (obj.hasOwnProperty(property)) {
 			if (obj[property] instanceof Array) {
 				obj[property] = obj[property][frameIndex];
