@@ -10,79 +10,72 @@
     "right": { "x": 0, "y": 0 }
   },
   "drawOffset": { "x": -23, "y": 0 },
-  "animations": [
-    {
-      "action": "stand",
+  "animations": {
+    "stand": {
       "row": 0,
       "col": 0,
       "frameCount": 15,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0 ],
         "alpha": 1
       }
     },
-    {
-      "action": "invisible",
+    "invisible": {
       "row": 0,
       "col": 0,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": 0,
         "alpha": 0
       }
     },
-    {
-      "action": "hop",
+    "hop": {
       "row": 1,
       "col": 0,
       "frameCount": 4,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2, 3 ],
         "alpha": 1
       }
     },
-    {
-      "action": "fall",
+    "fall": {
       "row": 1,
       "col": 3,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": 0,
         "alpha": 1
       }
     },
-    {
-      "action": "land",
+    "land": {
       "row": 0,
       "col": 2,
       "frameCount": 2,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 1, 0 ],
         "alpha": 1
       }
     },
-    {
-      "action": "emerge",
+    "emerge": {
       "row": 0,
       "col": 0,
       "frameCount": 6,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 3, 3, 3, 2, 1, 0 ],
         "alpha": [ 0.25, 0.5, 1, 1, 1, 1 ]
       }
     },
-    {
-      "action": "attack",
+    "attack": {
       "row": 2,
       "col": 0,
       "frameCount": 16,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frames": [ 0, 1, 2, 3, 4, 5, 4, 4, 4, 4, 4, 4, 4, 1, 2, 0 ],
         "attack": {
@@ -105,6 +98,6 @@
       }
       }
     }
-  ],
+  },
   "defaultAnimation": "stand"
 }

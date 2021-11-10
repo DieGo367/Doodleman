@@ -3,7 +3,7 @@ Scribble.Engine = class Engine {
 		// sub parts
 		this.images = new Scribble.Images(this);
 		this.sounds = new Scribble.Sounds();
-		this.animations = new Scribble.Animations(this);
+		this.animations = new Scribble.AnimationManager(this);
 		this.level = new Scribble.Level(this);
 		this.objects = new Scribble.ObjectManager(this);
 		this.camera = new Scribble.Camera(this, canvasWidth/2, canvasHeight/2, canvasWidth, canvasHeight);

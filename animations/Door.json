@@ -22,51 +22,47 @@
     "x": -54,
     "y": -2
   },
-  "animations": [
-    {
-      "action": "closed",
+  "animations": {
+    "closed": {
       "row": 0,
       "col": 0,
       "frameCount": 1,
-      "framerate": 0,
+      "frameRate": 0,
       "data": {
         "frame": 0,
         "alpha": 1
       }
     },
-    {
-      "action": "open",
+    "open": {
       "row": 0,
       "col": 0,
       "frameCount": 1,
-      "framerate": 0,
+      "frameRate": 0,
       "data": {
         "frame": 6,
         "alpha": 1
       }
     },
-    {
-      "action": "opening",
+    "opening": {
       "row": 0,
       "col": 0,
       "frameCount": 7,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2, 3, 4, 5, 6 ],
         "alpha": 1
       }
     },
-    {
-      "action": "closing",
+    "closing": {
       "row": 0,
       "col": 0,
       "frameCount": 7,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 6, 5, 4, 3, 2, 1, 0 ],
         "alpha": 1
       }
     }
-  ],
+  },
   "defaultAnimation": "closed"
 }

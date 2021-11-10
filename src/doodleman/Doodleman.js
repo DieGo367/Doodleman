@@ -150,7 +150,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 			width: 19, height: 44
 		};
 		let sheet = "animations/Doodleman.json";
-		this.animation = {
+		this.animator = {
 			x: 0, y: 0,
 			name: sheet
 		};
@@ -188,7 +188,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		engine.debug.print("X: " + Math.round(this.x) + ", Y: " + Math.round(this.y));
 	}
 	finish(engine) {
-		this.animations(engine);
+		this.chooseAnimation(engine);
 		super.finish(engine);
 	}
 	controls(engine) {
@@ -221,8 +221,8 @@ DMOs.Doodleman = class extends Scribble.Entity {
 			else if (this.airAttacks > 0) this.act("airAttack");
 		}
 	}
-	animations() {
-		if (this.animation.lock > 0 || this.animation.lock === "full") return;
+	chooseAnimation() {
+		if (this.animator.lock > 0 || this.animator.lock === "full") return;
 		if (this.kickDiving) this.animate("kick-dive-fall", this.direction);
 		else if (!this.isGrounded) this.animate("jump", this.direction);
 		else if (this.velX != 0 || this.moveSpeed != 0) this.animate("run", this.direction);
@@ -252,9 +252,9 @@ DMOs.Doodleman = class extends Scribble.Entity {
 	attackInit = () => {
 		this.animate("attack", null, "full");
 		this.setAttack("attack", 20, null, (victim, damage) => {
-			victim.x += this.knockBack.x * this.animation.direction;
+			victim.x += this.knockBack.x * this.animator.direction;
 			victim.y += this.knockBack.y;
-			victim.velX += this.knockBack.x * this.animation.direction;
+			victim.velX += this.knockBack.x * this.animator.direction;
 			victim.velY += this.knockBack.y;
 		});
 	}
@@ -347,18 +347,18 @@ DMOs.SpawnPoint = class extends Scribble.Object {
 		this.direction = direction;
 		let color = ["Blue", "Red", "Green", "Yellow"][slot % 4];
 		let sheet = "animations/" + color + "man.json";
-		this.animation = {
+		this.animator = {
 			x: 0, y: 0,
 			name: sheet,
 			direction: direction
 		};
 	}
 	draw() {}
-	drawDebug(ctx, images, animation) {
+	drawDebug(ctx, images, animations) {
 		ctx.globalAlpha = 0.25;
-		super.draw(ctx, images, animation);
+		super.draw(ctx, images, animations);
 		ctx.globalAlpha = 1;
-		super.drawDebug(ctx, images, animation);
+		super.drawDebug(ctx, images, animations);
 		ctx.fillStyle = ["blue", "red", "green", "yellow"][this.slot % 4];
 		ctx.font = "10px Consolas";
 		ctx.textAlign = "center";
@@ -400,7 +400,7 @@ DMOs.PaintMan = class extends Scribble.Entity {
 			x: -19/2, y: 0,
 			width: 19, height: 44
 		};
-		this.animation = {
+		this.animator = {
 			x: 0, y: 0,
 			name: "animations/PaintMinion.json"
 		};
@@ -443,7 +443,7 @@ DMOs.HelloPlatform = class extends Scribble.Object {
 DMOs.Door = class extends Scribble.Object {
 	constructor(x, y, entranceID, destID, preventEnter, preventExit, destLevel) {
 		super(x, y);
-		this.animation = {
+		this.animator = {
 			x: 0, y: 0,
 			name: "animations/Door.json"
 		};

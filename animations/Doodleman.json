@@ -22,57 +22,52 @@
     "x": -46,
     "y": -2
   },
-  "animations": [
-    {
-      "action": "stand",
+  "animations": {
+    "stand": {
       "row": 0,
       "col": 0,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": 0,
         "alpha": 1
       }
     },
-    {
-      "action": "crouch",
+    "crouch": {
       "row": 0,
       "col": 1,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": 0,
         "alpha": 1
       }
     },
-    {
-      "action": "jump",
+    "jump": {
       "row": 0,
       "col": 2,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": 0,
         "alpha": 1
       }
     },
-    {
-      "action": "run",
+    "run": {
       "row": 1,
       "col": 0,
       "frameCount": 4,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2, 3 ],
         "alpha": 1
       }
     },
-    {
-      "action": "attack",
+    "attack": {
       "row": 2,
       "col": 0,
       "frameCount": 4,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2, 3 ],
         "alpha": 1,
@@ -93,12 +88,11 @@
         }
       }
     },
-    {
-      "action": "lift",
+    "lift": {
       "row": 3,
       "col": 0,
       "frameCount": 3,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2 ],
         "alpha": 1,
@@ -114,12 +108,11 @@
         }
       }
     },
-    {
-      "action": "carry-stand",
+    "carry-stand": {
       "row": 4,
       "col": 0,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": 0,
         "alpha": 1,
@@ -135,12 +128,11 @@
         }
       }
     },
-    {
-      "action": "carry-crouch",
+    "carry-crouch": {
       "row": 4,
       "col": 1,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": 0,
         "alpha": 1,
@@ -156,12 +148,11 @@
         }
       }
     },
-    {
-      "action": "carry-jump",
+    "carry-jump": {
       "row": 4,
       "col": 2,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frameCount": 0,
         "alphas": 1,
@@ -177,12 +168,11 @@
         }
       }
     },
-    {
-      "action": "carry-run",
+    "carry-run": {
       "row": 5,
       "col": 0,
       "frameCount": 4,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2, 3 ],
         "alpha": 1,
@@ -198,12 +188,11 @@
         }
       }
     },
-    {
-      "action": "attack-charge",
+    "attack-charge": {
       "row": 6,
       "col": 0,
       "frameCount": 4,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2, 3 ],
         "alpha": 1,
@@ -218,12 +207,11 @@
         }
       }
     },
-    {
-      "action": "attack-charge-air",
+    "attack-charge-air": {
       "row": 7,
       "col": 0,
       "frameCount": 4,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2, 3 ],
         "alpha": 1,
@@ -238,12 +226,11 @@
         }
       }
     },
-    {
-      "action": "attack-upward",
+    "attack-upward": {
       "row": 8,
       "col": 0,
       "frameCount": 4,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2, 3 ],
         "alpha": 1,
@@ -258,12 +245,11 @@
         }
       }
     },
-    {
-      "action": "attack-upward-air",
+    "attack-upward-air": {
       "row": 9,
       "col": 0,
       "frameCount": 4,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 3, 2, 1 ],
         "alpha": 1,
@@ -278,12 +264,11 @@
         }
       }
     },
-    {
-      "action": "attack-down-stab",
+    "attack-down-stab": {
       "row": 10,
       "col": 0,
       "frameCount": 6,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 0, 1, 1, 2, 3 ],
         "alpha": 1,
@@ -298,72 +283,66 @@
         }
       }
     },
-    {
-      "action": "attack-kick-dive",
+    "attack-kick-dive": {
       "row": 12,
       "col": 0,
       "frameCount": 3,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 1 ],
         "alpha": 1
       }
     },
-    {
-      "action": "kick-dive-fall",
+    "kick-dive-fall": {
       "row": 12,
       "col": 2,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": 0,
         "alpha": 1
       }
     },
-    {
-      "action": "exit-through-door",
+    "exit-through-door": {
       "row": 1,
       "col": 0,
       "frameCount": 30,
-      "framerate": 1,
+      "frameRate": 1,
       "data": {
         "frame": {"response": "expression", "expression": "floor(x/5) % 4"},
         "alpha": {"response": "expression", "expression": "1 - x/30"}
       }
     },
-    {
-      "action": "enter-from-door",
+    "enter-from-door": {
       "row": 1,
       "col": 0,
       "frameCount": 30,
-      "framerate": 1,
+      "frameRate": 1,
       "data": {
         "frame": {"response": "expression", "expression": "floor(x/5) % 4"},
         "alpha": {"response": "expression", "expression": "x/30"}
       }
     },
-    {
-      "action": "invisible",
+    "invisible": {
       "row": 0,
       "col": 0,
       "frameCount": 1,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": 0,
         "alpha": 0
       }
     },
-    {
-      "action": "drawing",
+    "drawing": {
       "row": 11,
       "col": 0,
       "frameCount": 7,
-      "framerate": 0.2,
+      "frameRate": 0.2,
       "data": {
         "frame": [ 0, 1, 2, 3, 4, 5, 6 ],
         "alpha": 1
       }
     }
-  ],
+  },
   "defaultAnimation": "stand"
 }

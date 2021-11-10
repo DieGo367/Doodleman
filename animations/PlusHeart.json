@@ -5,21 +5,19 @@
   "errorColor": "red",
   "hasDirection": false,
   "drawOffset": {"x": -9, "y": 0},
-  "animations": [
-    {
-      "action": "static",
+  "animations": {
+    "static": {
       "row": 0,
       "col": 0,
       "framerate": 1,
       "frames": [ 0 ]
     },
-    {
-      "action": "heartbeat",
+    "heartbeat": {
       "row": 0,
       "col": 0,
       "framerate": 0.2,
       "frames": [ 1, 2, 3, 2, 1 ]
     }
-  ],
+  },
   "defaultAnimation": "static"
 }

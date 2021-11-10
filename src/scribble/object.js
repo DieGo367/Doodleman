@@ -115,7 +115,7 @@ Scribble.Object = class {
 	 * @param {Scribble.Engine} engine 
 	 */
 	start(engine) {
-		if (this.animation) engine.animations.tick(this.animation);
+		if (this.animator) engine.animations.tick(this.animator);
 	}
 	/**
 	 * Handles intended object behavior this tick. Runs before attacks and collision.
@@ -172,8 +172,8 @@ Scribble.Object = class {
 				}
 			}
 		}
-		if (this.animation) {
-			animations.render(ctx, this.x, this.y, this.animation);
+		if (this.animator) {
+			animations.render(ctx, this.x, this.y, this.animator);
 		}
 	}
 	drawElements() {}
@@ -194,17 +194,17 @@ Scribble.Object = class {
 
 	/**
 	 * Updates the current animation of the object
-	 * @param {string} action Name of the animation to use
+	 * @param {string} animName Name of the animation to use
 	 * @param {number} direction Direction to face the animation in
 	 * @param {number} lockTime Time the animation should hold for without being overwritten
 	 */
-	animate(action, direction, lockTime) {
-		let component = this.animation;
+	animate(animName, direction, lockTime) {
+		let component = this.animator;
 		if (component.lock > 0 || component.lock === "full") return false;
 		if (direction != void(0)) component.direction = direction;
-		if (component.animation === action) return true;
-		component.previous = component.animation;
-		component.animation = action;
+		if (component.current === animName) return true;
+		component.previous = component.current;
+		component.current = animName;
 		component.tick = 0;
 		if (lockTime === "full" || typeof lockTime === "number") {
 			component.lock = lockTime;
@@ -219,7 +219,7 @@ Scribble.Object = class {
 	 * @returns {*} The appropriate value from the animation file if it is found, else null.
 	 */
 	getFrameData(engine, key) {
-		if (this.animation) return engine.animations.getFrameDataFromComponent(this.animation, key);
+		if (this.animator) return engine.animations.getFrameDataFromComponent(this.animator, key);
 		else console.error("No animation object found. Can't get frame data.")
 	}
 };
@@ -229,7 +229,7 @@ Scribble.Objects.Box = class Box extends Scribble.Object {
 	constructor(x, y, width, height, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animation = {
+			this.animator = {
 				x: width/2, y: 0,
 				name: gfx
 			};
@@ -256,7 +256,7 @@ Scribble.Objects.Line = class Line extends Scribble.Object {
 		let dx = x2 - x;
 		let dy = y2 - y;
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animation = {
+			this.animator = {
 				x: dx/2, y: dy/2,
 				name: gfx
 			};
@@ -280,7 +280,7 @@ Scribble.Objects.Circle = class Circle extends Scribble.Object {
 	constructor(x, y, radius, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animation = {
+			this.animator = {
 				x: x, y: y - radius,
 				name: gfx
 			};
@@ -305,7 +305,7 @@ Scribble.Objects.Polygon = class Polygon extends Scribble.Object {
 		let pts = points.map(pt => new Scribble.Pt(pt));
 		let aabb = Scribble.Collision.polyAABB({x: 0, y: 0, points: pts});
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animation = {
+			this.animator = {
 				x: aabb.x + aabb.width/2, y: aabb.y,
 				name: gfx
 			};
@@ -465,7 +465,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 				else if (data.shape) {
 					attack.collision = attack.shape = Object.assign({}, data.shape);
 					attack.damage = data.damage;
-					if (this.animation.direction === Scribble.LEFT) Scribble.Collision.flipShapeX(attack.shape);
+					if (this.animator.direction === Scribble.LEFT) Scribble.Collision.flipShapeX(attack.shape);
 					attack.x = this.x;
 					attack.y = this.y;
 					// if the attack shape exists, check for all objects...

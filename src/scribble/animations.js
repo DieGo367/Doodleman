@@ -1,4 +1,4 @@
-Scribble.Animations = class Animations {
+Scribble.AnimationManager = class AnimationManager {
 	constructor(engine) {
 		this.engine = engine;
 		this.map = {};
@@ -7,7 +7,7 @@ Scribble.Animations = class Animations {
 	load(filename) {
 		this.loadingCount++;
 		fetch(filename).then(res => res.json()).then(data => {
-			this.map[filename] = new Scribble.Animation(filename, data);
+			this.map[filename] = new Scribble.AnimationSheet(filename, data);
 			this.loadingCount--;
 			if (this.loadingCount == 0) this.onLoadedAll();
 		});
@@ -43,11 +43,11 @@ Scribble.Animations = class Animations {
 			let imgName = sheet.pages[component.page||0];
 			let img = this.engine.images.getImage(imgName);
 			if (img) {
-				// find animation action
-				if (component.animation == null) {
-					component.animation = sheet.defaultAnimation;
+				// find the current animation
+				if (component.current == null) {
+					component.current = sheet.defaultAnimation;
 				}
-				let anim = sheet.get(component.animation);
+				let anim = sheet.get(component.current);
 				if (anim) {
 					let frameX = 0, frameY = 0;
 
@@ -67,68 +67,68 @@ Scribble.Animations = class Animations {
 					frameY += sheet.spriteHeight * anim.row;
 
 					// move corresponding amount of frames forward in the animation
-					let frameIndex = Math.floor((component.tick||0) * anim.framerate);
+					let frameIndex = Math.floor((component.tick||0) * anim.frameRate);
 					let frame = this.getFrameData(frameIndex, anim, "frame") || 0;
 					frameX += frame * sheet.spriteWidth;
 					
 					// determine alpha value for frame
-					let frameAlpha = this.getFrameData(frameIndex, anim, "alpha");
+					let alpha = this.getFrameData(frameIndex, anim, "alpha");
 
 					// draw image
-					let alpha = ctx.globalAlpha;
-					ctx.globalAlpha *= frameAlpha;
+					let globalAlpha = ctx.globalAlpha;
+					ctx.globalAlpha *= alpha;
 					ctx.drawImage(img,
 						frameX, img.height - frameY,
 						sheet.spriteWidth, -sheet.spriteHeight,
 						Math.floor(x + component.x) + sheet.drawOffset.x,
 						Math.floor(y + component.y) + sheet.drawOffset.y,
 						sheet.spriteWidth, sheet.spriteHeight);
-					ctx.globalAlpha = alpha;
+					ctx.globalAlpha = globalAlpha;
 				}
-				else console.warn("Missing animation: " + component.animation);
+				else console.warn("Missing animation: " + component.current);
 			}
 			else console.warn("Image "+imgName+" not found!");
 		}
 		else console.warn("Unknown animation file " + component.name);
 	}
-	set(component, animation, direction, lockTime) {
+	set(component, animationName, direction, lockTime) {
 		if (component.lock > 0 || component.lock === "full") return false;
 		if (direction != void(0)) component.direction = direction;
-		if (component.animation === animation) return true;
-		component.previous = component.animation;
-		component.animation = animation;
+		if (component.current === animationName) return true;
+		component.previous = component.current;
+		component.current = animationName;
 		component.tick = 0;
 		if (lockTime === "full" || typeof lockTime === "number") {
 			component.lock = lockTime;
 		}
 		return true;
 	}
-	getAction(component) {
+	getAnimation(component) {
 		let sheet = this.map[component.name];
 		if (sheet) {
-			if (component.animation == void(0)) {
-				component.animation = sheet.defaultAnimation;
+			if (component.current == void(0)) {
+				component.current = sheet.defaultAnimation;
 			}
-			let action = sheet.get(component.animation);
-			if (action) return action;
-			else console.error("Missing animation: " + component.animation);
+			let anim = sheet.get(component.current);
+			if (anim) return anim;
+			else console.error("Missing animation: " + component.current);
 		}
 		else console.error("Unknown animation file " + component.name);
 	}
 	tick(component) {
-		let action = this.getAction(component);
+		let anim = this.getAnimation(component);
 		component.tick++;
-		if (component.lock === "full") component.lock = action.frameCount / action.framerate;
+		if (component.lock === "full") component.lock = anim.frameCount / anim.frameRate;
 		if (component.lock > 0) component.lock--;
-		if (Math.floor(component.tick * action.framerate) >= action.frameCount) {
+		if (Math.floor(component.tick * anim.frameRate) >= anim.frameCount) {
 			component.tick = 0;
-			component.previous = component.animation;
+			component.previous = component.current;
 		}
 	}
-	getFrameData(frameIndex, action, key) {
+	getFrameData(frameIndex, anim, key) {
 		let chain = key.split(".");
-		if (!action.data) return console.error("Frame data not provided!", action);
-		let value = action.data;
+		if (!anim.data) return console.error("Frame data not provided!", anim);
+		let value = anim.data;
 		while (chain.length > 0) value = value[chain.shift()];
 		if (value instanceof Array) {
 			return value[frameIndex];
@@ -172,13 +172,13 @@ Scribble.Animations = class Animations {
 		return obj;
 	}
 	getFrameDataFromComponent(component, key) {
-		let action = this.getAction(component);
-		let frameIndex = Math.floor((component.tick||0) * action.framerate);
-		return this.getFrameData(frameIndex, action, key);
+		let anim = this.getAnimation(component);
+		let frameIndex = Math.floor((component.tick||0) * anim.frameRate);
+		return this.getFrameData(frameIndex, anim, key);
 	}
 };
 
-Scribble.Animation = class Animation {
+Scribble.AnimationSheet = class AnimationSheet {
 	constructor(filename, data) {
 		Object.assign(this, data);
 		this.name = filename;
@@ -195,10 +195,8 @@ Scribble.Animation = class Animation {
 		}
 		else console.log("Couldn't extend animations from: "+this.extends);
 	}
-	get(action) {
-		for (let i = 0; i < this.animations.length; i++) {
-			if (this.animations[i].action === action) return this.animations[i];
-		}
+	get(animationName) {
+		if (this.animations[animationName]) return this.animations[animationName];
 		return null;
 	}
 };
