@@ -200,3 +200,11 @@ Scribble.AnimationSheet = class AnimationSheet {
 		return null;
 	}
 };
+
+Scribble.AnimationComponent = class AnimationComponent {
+	constructor(x, y, sheetName) {
+		this.x = x;
+		this.y = y;
+		this.name = sheetName;
+	}
+};

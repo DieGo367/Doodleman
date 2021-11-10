@@ -220,7 +220,7 @@ Scribble.Object = class {
 	 */
 	getFrameData(engine, key) {
 		if (this.animator) return engine.animations.getFrameDataFromComponent(this.animator, key);
-		else console.error("No animation object found. Can't get frame data.")
+		else console.error("No AnimationComponent found. Can't get frame data.")
 	}
 };
 
@@ -229,10 +229,7 @@ Scribble.Objects.Box = class Box extends Scribble.Object {
 	constructor(x, y, width, height, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = {
-				x: width/2, y: 0,
-				name: gfx
-			};
+			this.animator = new Scribble.AnimationComponent(width/2, 0, gfx);
 		}
 		else this.graphic = {
 			shape: Scribble.SHAPE.BOX,
@@ -256,10 +253,7 @@ Scribble.Objects.Line = class Line extends Scribble.Object {
 		let dx = x2 - x;
 		let dy = y2 - y;
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = {
-				x: dx/2, y: dy/2,
-				name: gfx
-			};
+			this.animator = new Scribble.AnimationComponent(dx/2, dy/2, gfx);
 		}
 		else this.graphic = {
 			shape: Scribble.SHAPE.LINE,
@@ -280,10 +274,7 @@ Scribble.Objects.Circle = class Circle extends Scribble.Object {
 	constructor(x, y, radius, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = {
-				x: x, y: y - radius,
-				name: gfx
-			};
+			this.animator = new Scribble.AnimationComponent(x, y - radius, gfx);
 		}
 		else this.graphic = {
 			shape: Scribble.SHAPE.CIRCLE,
@@ -305,10 +296,7 @@ Scribble.Objects.Polygon = class Polygon extends Scribble.Object {
 		let pts = points.map(pt => new Scribble.Pt(pt));
 		let aabb = Scribble.Collision.polyAABB({x: 0, y: 0, points: pts});
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = {
-				x: aabb.x + aabb.width/2, y: aabb.y,
-				name: gfx
-			};
+			this.animator = new Scribble.AnimationComponent(aabb.x + aabb.width/2, aabb.y, gfx);
 		}
 		else this.graphic = {
 			shape: Scribble.SHAPE.POLYGON,

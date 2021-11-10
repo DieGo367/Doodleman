@@ -149,11 +149,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 			x: -19/2, y: 0,
 			width: 19, height: 44
 		};
-		let sheet = "animations/Doodleman.json";
-		this.animator = {
-			x: 0, y: 0,
-			name: sheet
-		};
+		this.animator = new Scribble.AnimationComponent(0, 0, "animations/Doodleman.json");
 	}
 	static proto() {
 		super.proto();
@@ -347,11 +343,8 @@ DMOs.SpawnPoint = class extends Scribble.Object {
 		this.direction = direction;
 		let color = ["Blue", "Red", "Green", "Yellow"][slot % 4];
 		let sheet = "animations/" + color + "man.json";
-		this.animator = {
-			x: 0, y: 0,
-			name: sheet,
-			direction: direction
-		};
+		this.animator = new Scribble.AnimationComponent(0, 0, sheet);
+		this.animator.direction = direction;
 	}
 	draw() {}
 	drawDebug(ctx, images, animations) {
@@ -400,10 +393,7 @@ DMOs.PaintMan = class extends Scribble.Entity {
 			x: -19/2, y: 0,
 			width: 19, height: 44
 		};
-		this.animator = {
-			x: 0, y: 0,
-			name: "animations/PaintMinion.json"
-		};
+		this.animator = new Scribble.AnimationComponent(0, 0, "animations/PaintMinion.json");
 	}
 	static proto() {
 		super.proto();
@@ -443,10 +433,7 @@ DMOs.HelloPlatform = class extends Scribble.Object {
 DMOs.Door = class extends Scribble.Object {
 	constructor(x, y, entranceID, destID, preventEnter, preventExit, destLevel) {
 		super(x, y);
-		this.animator = {
-			x: 0, y: 0,
-			name: "animations/Door.json"
-		};
+		this.animator = new Scribble.AnimationComponent(0, 0, "animations/Door.json");
 	}
 	static proto() {
 		this.drawLayer = -1;
