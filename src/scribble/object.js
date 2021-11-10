@@ -332,7 +332,6 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		this.moveDir = 1;
 		this.lastMoveDir = 1;
 		this.moved = false;
-		this.actions = this.constructor.actions;
 		this.activeAttacks = [];
 		this.health = this.maxHealth;
 	}
@@ -401,56 +400,36 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		super.finish(engine);
 	}
 	
-	static actions = {}
-	/**
-	 * Defines a new routine or ability for a class.
-	 * @param {string} name Name of the new action
-	 * @param {number} duration Amount of ticks the action should take.
-	 * @param {number} cooldown Additional time after action duration that new actions should still be prevented
-	 * @param {function} tick Runs every game tick while the action is running. If returns false, cancel the action early.
-	 * @param {function} finish Runs when the action is completed or canceled.
-	 * @param {string} animationName Name of the animation to trigger at the start of the action.
-	 * @param {number} animationLock How long to lock the animation for. Defaults to action duration.
-	 */
-	static defineAction(name, duration, cooldown, tick, finish, animationName, animationLock) {
-		this.actions[name] = {
-			tick: tick,
-			finish: finish,
-			duration: duration,
-			lock: duration + cooldown,
-			animation: animationName,
-			animationLock: animationLock != null? animationLock : duration
-		};
-	}
 	act(name) {
 		if (this.actionLock > 0) return false;
-		let action = this.constructor.actions[name];
-		if (action) {
-			this.currentAction = name;
-			if (action.animation) this.animate(action.animation, null, action.animationLock);
-			this.actionFrame = 0;
-			this.actionLock = action.lock;
-			return true;
-		}
-		else {
-			console.error(`Unknown action: ${name}.`);
-			return false;
-		}
+		this.currentAction = name;
+		this.actionFrame = 0;
+		this.actionLock = this.getActionProperty("Cooldown");
+		let init = this.getActionProperty("Init");
+		init();
+	}
+	getActionProperty(property) {
+		let fullName = `${this.currentAction}${property}`;
+		let prop = this[fullName];
+		if (prop !== void(0)) return prop;
+		else throw new Error(`${fullName} is undefined.`);
 	}
 	cancelAction(e) {
 		if (this.currentAction != null) {
-			let action = this.constructor.actions[this.currentAction];
-			action.finish(e);
+			let finish = this.getActionProperty("Finish");
+			finish(e);
 			this.actionLock = 0;
 		}
 	}
 	actionsUpdate(e) {
 		if (this.currentAction != null) {
-			let action = this.constructor.actions[this.currentAction];
-			let result = action.tick(e, this, this.actionFrame);
-			if (++this.actionFrame >= action.duration || result === false) {
+			let tick = this.getActionProperty("Tick");
+			let finish = this.getActionProperty("Finish");
+			let result = tick(e, this.actionFrame);
+			let duration = this.getActionProperty("Duration");
+			if (++this.actionFrame >= duration || result === false) {
 				this.currentAction = null;
-				action.finish(e, this);
+				finish(e);
 			}
 		}
 		if (this.actionLock > 0) this.actionLock--;

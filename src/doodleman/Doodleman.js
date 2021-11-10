@@ -155,7 +155,6 @@ DMOs.Doodleman = class extends Scribble.Entity {
 			name: sheet
 		};
 	}
-	static actions = Object.assign({}, super.actions)
 	static proto() {
 		super.proto();
 		this.drawLayer = 2;
@@ -211,9 +210,15 @@ DMOs.Doodleman = class extends Scribble.Entity {
 		else this.crouching = false;
 
 		// attacks
+		this.keys = {
+			left: !!engine.input.key("KeyA"),
+			right: !!engine.input.key("KeyD"),
+			up: !!engine.input.key("KeyW"),
+			down: !!engine.input.key("KeyS")
+		};
 		if (engine.input.mousePress(1)) {
 			if (this.isGrounded) this.act("attack");
-			else if (this.airAttacks > 0) this.act("air-attack");
+			else if (this.airAttacks > 0) this.act("airAttack");
 		}
 	}
 	animations() {
@@ -240,98 +245,100 @@ DMOs.Doodleman = class extends Scribble.Entity {
 	static fromSpawnPoint(spawn) {
 		return new this(spawn.x, spawn.y, spawn.slot, spawn.direction);
 	}
-};
-DMOs.Doodleman.defineAction("attack", 20, 10,
-	(e, doodleman, frame) => {
-		if (frame === 0) {
-			doodleman.setAttack("attack", 20, null, (victim, damage) => {
-				victim.x += doodleman.knockBack.x * doodleman.animation.direction;
-				victim.y += doodleman.knockBack.y;
-				victim.velX += doodleman.knockBack.x * doodleman.animation.direction;
-				victim.velY += doodleman.knockBack.y;
-			});
-		}
-	},
-	(e, doodleman) => {},
-"attack", "full");
-DMOs.Doodleman.defineAction("air-attack", 10, 10, (e, doodleman, frame) => {
-	if (frame === 0) {
+
+	// Standard attack
+	attackDuration = 20
+	attackCooldown = 30
+	attackInit = () => {
+		this.animate("attack", null, "full");
+		this.setAttack("attack", 20, null, (victim, damage) => {
+			victim.x += this.knockBack.x * this.animation.direction;
+			victim.y += this.knockBack.y;
+			victim.velX += this.knockBack.x * this.animation.direction;
+			victim.velY += this.knockBack.y;
+		});
+	}
+	attackTick = () => {}
+	attackFinish = () => {}
+
+	// Air attacks
+	airAttackDuration = 10
+	airAttackCooldown = 20
+	airAttackInit = () => {
 		let duration = 15;
-		doodleman.airAttacks--;
-		doodleman.jumpFrame = 0;
-		doodleman.kickDiving = false;
-		doodleman.lockDirection = false;
+		this.airAttacks--;
+		this.jumpFrame = 0;
+		this.kickDiving = false;
+		this.lockDirection = false;
 		let gravScale = 0.6;
 		let force = 5;
 		let diagonal = force * Math.cos(Math.PI/4);
-		let keys = {
-			left: !!e.input.key("KeyA"),
-			right: !!e.input.key("KeyD"),
-			up: !!e.input.key("KeyW"),
-			down: !!e.input.key("KeyS")
-		};
+		let keys = this.keys;
 		// vertical axis only
 		if (keys.left === keys.right) {
 			// neutral
 			if (keys.up === keys.down) {
-				doodleman.gravityScale = gravScale;
-				doodleman.animate("attack", doodleman.direction, duration);
+				this.gravityScale = gravScale;
+				this.animate("attack", this.direction, duration);
 			}
 			// up
 			else if (keys.up) {
-				doodleman.feelsGravity = false;
-				doodleman.gravityScale = gravScale;
-				doodleman.lockMovement = true;
-				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
-				doodleman.velY = force;
-				doodleman.velX = doodleman.moveSpeed = 0;
-				doodleman.animate("attack-upward", doodleman.direction, duration);
+				this.feelsGravity = false;
+				this.gravityScale = gravScale;
+				this.lockMovement = true;
+				this.targetMoveSpeed = this.slowMoveSpeed;
+				this.velY = force;
+				this.velX = this.moveSpeed = 0;
+				this.animate("attack-upward", this.direction, duration);
 			}
 			// down
 			else {
-				doodleman.velY = -force;
-				doodleman.velX = doodleman.moveSpeed = 0;
-				doodleman.animate("attack", doodleman.direction, duration);
+				this.velY = -force;
+				this.velX = this.moveSpeed = 0;
+				this.animate("attack", this.direction, duration);
 			}
 		}
 		// horizontal pressed
 		else {
-			doodleman.moveSpeed = 0;
+			this.moveSpeed = 0;
 			let dir = keys.right? Scribble.RIGHT : Scribble.LEFT;
 			// horizontal axis only
 			if (keys.up === keys.down) {
-				doodleman.feelsGravity = false;
-				doodleman.gravityScale = gravScale;
-				doodleman.lockMovement = true;
-				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
-				doodleman.velX = keys.right? force : -force;
-				doodleman.velY = 0;
-				doodleman.animate("attack-charge-air", dir, duration);
+				this.feelsGravity = false;
+				this.gravityScale = gravScale;
+				this.lockMovement = true;
+				this.targetMoveSpeed = this.slowMoveSpeed;
+				this.velX = keys.right? force : -force;
+				this.velY = 0;
+				this.animate("attack-charge-air", dir, duration);
 			}
 			// up diagonals
 			else if (keys.up) {
-				doodleman.feelsGravity = false;
-				doodleman.gravityScale = gravScale;
-				doodleman.lockMovement = true;
-				doodleman.targetMoveSpeed = doodleman.slowMoveSpeed;
-				doodleman.velX = keys.right? diagonal : -diagonal;
-				doodleman.velY = diagonal;
-				doodleman.animate("attack-upward-air", dir, duration);
+				this.feelsGravity = false;
+				this.gravityScale = gravScale;
+				this.lockMovement = true;
+				this.targetMoveSpeed = this.slowMoveSpeed;
+				this.velX = keys.right? diagonal : -diagonal;
+				this.velY = diagonal;
+				this.animate("attack-upward-air", dir, duration);
 			}
 			// down diagonals
 			else {
-				doodleman.velX = keys.right? diagonal : -diagonal;
-				doodleman.velY = -diagonal;
-				doodleman.kickDiving = true;
-				doodleman.lockDirection = true;
-				doodleman.animate("attack-kick-dive", dir, duration);
+				this.velX = keys.right? diagonal : -diagonal;
+				this.velY = -diagonal;
+				this.kickDiving = true;
+				this.lockDirection = true;
+				this.animate("attack-kick-dive", dir, duration);
 			}
 		}
+		
 	}
-}, (e, doodleman) => {
-	doodleman.feelsGravity = true;
-	doodleman.lockMovement = false;
-});
+	airAttackTick = () => {}
+	airAttackFinish = () => {
+		this.feelsGravity = true;
+		this.lockMovement = false;
+	}
+};
 
 DMOs.SpawnPoint = class extends Scribble.Object {
 	constructor(x, y, slot, direction) {
