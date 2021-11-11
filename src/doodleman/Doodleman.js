@@ -245,15 +245,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 	// Standard attack
 	attackDuration = 20
 	attackCooldown = 30
-	attackInit = () => {
-		this.animate("attack", null, "full");
-		this.setAttack("attack", 20, null, (victim, damage) => {
-			victim.x += this.knockBack.x * this.animator.direction;
-			victim.y += this.knockBack.y;
-			victim.velX += this.knockBack.x * this.animator.direction;
-			victim.velY += this.knockBack.y;
-		});
-	}
+	attackInit = () => this.animate("attack", null, "full");
 	attackTick = () => {}
 	attackFinish = () => {}
 

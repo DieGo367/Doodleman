@@ -51,8 +51,9 @@ Scribble.ObjectManager = class ObjectManager {
 	update() {
 		this.triggerAll("update");
 	}
-	attack() {
-		this.triggerAll("attack");
+	attackUpdate() {
+		this.triggerAll("updateHitboxes");
+		this.triggerAll("updateHitDetection");
 	}
 	finish() {
 		this.triggerAll("finish");
@@ -137,10 +138,15 @@ Scribble.Object = class {
 		this.y += this.velY;
 	}
 	/**
-	 * Update step dedicated to attacks hit detection. Runs after movement and before collision.
+	 * Update step dedicated to setting hitbox data. Runs after movement but before hit detection and collision.
 	 * @param {Scribble.Engine} engine 
 	 */
-	attack(engine) {}
+	updateHitboxes(engine) {}
+	/**
+	 * Update step dedicated to attack hit detection. Runs after movement and hitbox updates, but before collision.
+	 * @param {Scribble.Engine} engine 
+	 */
+	updateHitDetection(engine) {}
 	/**
 	 * Final update step. Runs after collision. Track necessary values for next tick.
 	 * @param {Scribble.Engine} engine 
@@ -320,8 +326,8 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		this.moveDir = 1;
 		this.lastMoveDir = 1;
 		this.moved = false;
-		this.activeAttacks = [];
 		this.health = this.maxHealth;
+		this.hitboxes = {};
 	}
 	static proto() {
 		super.proto();
@@ -423,71 +429,60 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		if (this.actionLock > 0) this.actionLock--;
 	}
 
-	/**
-	 * Activate the hitbox of an attack
-	 * @param {Scribble.Engine} engine
-	 * @param {string} name Name of the attack's hitbox in the animation file.
-	 * @param {Array} exclude List of ID's to ignore hit detection with.
-	 * @param {function} callback Optional. Function to call when an entity is hit. If false is returned, damage is not applied.
-	 */
-	setAttack(name, duration, exclude, callback) {
-		if (exclude && typeof exclude !== "Array") return console.error("Expected an array of IDs to exclude.");
-		if (!exclude) exclude = [];
-		exclude.push(this.id);
-		this.activeAttacks.push({
-			name: name,
-			duration: duration,
-			excludes: exclude,
-			onHit: callback,
-			tick: 0,
-			hits: []
-		});
-	}
-	attack(e) {
-		for (let i = 0; i < this.activeAttacks.length; i++) {
-			let attack = this.activeAttacks[i];
-			if (attack) {
-				// update the attack based on framedata
-				let data = this.getFrameData(e, attack.name);
-				if (!data) console.warn(`Missing attack data: ${attack.name}`);
-				else if (data.shape) {
-					attack.collision = attack.shape = Object.assign({}, data.shape);
-					attack.damage = data.damage;
-					if (this.animator.direction === Scribble.LEFT) Scribble.Collision.flipShapeX(attack.shape);
-					attack.x = this.x;
-					attack.y = this.y;
-					// if the attack shape exists, check for all objects...
-					engine.objects.forAllOfClass(Scribble.Entity, (obj, id) => {
-						// check this object isn't excluded
-						if (attack.excludes.indexOf(id) === -1) {
-							// check the attack intersects the object
-							if (Scribble.Collision.intersect(attack, obj)) {
-								let doDamage = true;
-								if (typeof attack.onHit === "function") doDamage = attack.onHit(obj, attack.damage) !== false;
-								if (doDamage) obj.hurt(attack.damage, this);
-								attack.hits.push(obj.id);
-								attack.excludes.push(obj.id);
-							}
-						}
-					});
-				}
-				else attack.shape = null;
-				if (++attack.tick >= attack.duration) this.activeAttacks.splice(i--, 1);
+	updateHitboxes(e) {
+		let hitboxesData = this.getFrameData(e, "hitboxes");
+		if (hitboxesData) for (let hitboxName in hitboxesData) {
+			let hitbox = this.hitboxes[hitboxName];
+			let hitboxData = this.getFrameData(e, `hitboxes.${hitboxName}`);
+			if (!hitboxData.shape) continue;
+			if (!hitbox) {
+				hitbox = this.hitboxes[hitboxName] = {};
+				hitbox.hits = [];
 			}
-			else this.activeAttacks.splice(i--, 1);
+			
+			Object.assign(hitbox, hitboxData);
+			hitbox.updated = true;
+			hitbox.x = this.x;
+			hitbox.y = this.y;
+			if (this.animator.direction !== Scribble.RIGHT) {
+				Scribble.Collision.flipShapeX(hitbox.shape);
+				if (hitbox.knockback) hitbox.knockback.x *= -1;
+			}
 		}
 	}
-	cancelAttack(name) {
-		for (let i = 0; i < this.activeAttacks.length; i++) {
-			let attack = this.activeAttacks[i];
-			if (attack && attack.name === name) this.activeAttacks.splice(i--, 1);
+	updateHitDetection(engine) {
+		for (let hitboxName in this.hitboxes) {
+			let hitbox = this.hitboxes[hitboxName];
+			if (!hitbox.updated) delete this.hitboxes[hitboxName];
+			else {
+				engine.objects.forAllOfClass(Scribble.Entity, (obj, id) => {
+					if (id === this.id && !hitbox.selfDamaging) return;
+					// check this object isn't excluded
+					if (hitbox.hits.indexOf(id) === -1) {
+						// check the hitbox intersects the object
+						hitbox.collision = hitbox.shape;
+						if (Scribble.Collision.intersect(hitbox, obj)) {
+							obj.hurt(hitbox.damage, hitbox.knockback, this);
+							if (hitbox.onHit) this[hitbox.onHit](obj, hitbox.damage, hitbox.knockback);
+							hitbox.hits.push(id);
+						}
+					}
+				});
+				delete hitbox.updated;
+			}
 		}
 	}
 
-	hurt(damage, attacker) {
+	hurt(damage, knockback, attacker) {
 		// probably make a hook for game here
 		this.health -= damage;
-		if (this.health <= 0) this.die(attacker);
+		if (this.health <= 0) return this.die(attacker);
+		if (knockback) {
+			this.x += knockback.x;
+			this.y += knockback.y;
+			this.velX += knockback.x;
+			this.velY += knockback.y;
+		}
 	}
 
 	die(attacker) {
@@ -497,11 +492,11 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 
 	drawDebug(ctx) {
 		super.drawDebug(ctx);
-		for (let i = 0; i < this.activeAttacks.length; i++) {
-			let attack = this.activeAttacks[i];
-			if (attack && attack.shape) {
+		for (let hitboxName in this.hitboxes) {
+			let hitbox = this.hitboxes[hitboxName];
+			if (hitbox && hitbox.shape) {
 				ctx.strokeStyle = Scribble.COLOR.DEBUG.HITBOX;
-				Scribble.Collision.drawBounds(ctx, this.x, this.y, attack.shape);
+				Scribble.Collision.drawBounds(ctx, this.x, this.y, hitbox.shape);
 			}
 		}
 	}

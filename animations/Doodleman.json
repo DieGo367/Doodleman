@@ -71,20 +71,23 @@
       "data": {
         "frame": [ 0, 1, 2, 3 ],
         "alpha": 1,
-        "attack": {
-          "response": "keyframes",
-          "0": {},
-          "1": {
-            "damage": 1,
-            "shape": {
-              "type": "box",
-              "x": 9.5,
-              "y": 0,
-              "width": 18,
-              "height": 33
-            }
-          },
-          "2": {}
+        "hitboxes": {
+          "attack": {
+            "response": "keyframes",
+            "0": {},
+            "1": {
+              "damage": 1,
+              "knockback": {"x": 7, "y": 5},
+              "shape": {
+                "type": "box",
+                "x": 9.5,
+                "y": 0,
+                "width": 18,
+                "height": 33
+              }
+            },
+            "2": {}
+          }
         }
       }
     },
