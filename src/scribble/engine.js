@@ -31,15 +31,17 @@ Scribble.Engine = class Engine {
 	ready(func) {
 		if (typeof func == "function") {
 			this.readyFunc = func;
+			if (this.loadingCompleted) func();
 		}
-		else console.error("Expected a function argument");
+		else throw new TypeError("Expected a function");
 	}
 	request(url) {
 		// TODO: add more cases to this then just JSON data
 		return fetch(url).then(response => response.json());
 	}
 	_collectResources(resources) {
-		for (let listType in resources) {
+		if (!resources) this._checkLoadComplete();
+		else for (let listType in resources) {
 			let listName = resources[listType]; 
 			if (["images","sounds","animations","levels"].indexOf(listType) != -1) {
 				let callback = () => this._checkLoadComplete();
@@ -61,6 +63,7 @@ Scribble.Engine = class Engine {
 		count += this.animations.loadingCount;
 		count += this.level.loadingCount;
 		if (count == 0) {
+			this.loadingCompleted = true;
 			if (this.readyFunc) this.readyFunc();
 		}
 	}
@@ -69,7 +72,7 @@ Scribble.Engine = class Engine {
 			this.game = new Game(this);
 			this.game.init();
 		}
-		else console.error("Given game is not a Scribble.Game.");
+		else throw new TypeError("Given game is not a Scribble.Game");
 	}
 	setSpeed(tickSpeed) {
 		this.tickSpeed = tickSpeed;
