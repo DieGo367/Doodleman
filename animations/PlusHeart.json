@@ -9,14 +9,20 @@
     "static": {
       "row": 0,
       "col": 0,
-      "framerate": 1,
-      "frames": [ 0 ]
+      "frameCount": 1,
+      "frameRate": 1,
+      "data": {
+        "frame": [ 0 ]
+      }
     },
     "heartbeat": {
       "row": 0,
       "col": 0,
-      "framerate": 0.2,
-      "frames": [ 1, 2, 3, 2, 1 ]
+      "frameCount": 5,
+      "frameRate": 0.2,
+      "data": {
+        "frame": [ 1, 2, 3, 2, 1]
+      }
     }
   },
   "defaultAnimation": "static"

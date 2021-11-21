@@ -127,50 +127,48 @@ Scribble.AnimationManager = class AnimationManager {
 	}
 	getFrameData(frameIndex, anim, key) {
 		let chain = key.split(".");
-		if (!anim.data) return console.error("Frame data not provided!", anim);
+		if (!anim.data) throw new Error("Frame data not provided!");
 		let value = anim.data;
 		while (chain.length > 0) value = value[chain.shift()];
-		if (value instanceof Array) {
-			return value[frameIndex];
-		}
-		else if (typeof value === "object" && value.response !== void(0)) {
-			let type = value.response;
-			if (type === "expression") {
+		return this.resolveDataValue(frameIndex, value);
+	}
+	resolveDataValue(frameIndex, value) {
+		if (value instanceof Array) return value[frameIndex];
+		else if (typeof value === "object" && value.response) return this.resolveDataResponse(frameIndex, value);
+		else return value;
+	}
+	resolveDataResponse(frameIndex, response) {
+		switch(response.response) {
+			case "expression":
 				let validExpr = /^([0-9x\.+\-*/%() ]|floor\(|ceil\(|round\()+$/;
-				if (validExpr.test(value.expression)) {
-					let expr = value.expression.replace(/x/g, frameIndex);
+				if (validExpr.test(response.expression)) {
+					let expr = response.expression.replace(/x/g, frameIndex);
 					expr = expr.replace(/floor\(/g, "Math.floor(");
 					expr = expr.replace(/ceil\(/g, "Math.ceil(");
 					expr = expr.replace(/round\(/g, "Math.round(");
 					return eval(expr);
 				}
-				else console.error(`Invalid expression ${value.expression}`);
-			}
-			else if (type === "keyframes") {
+				else throw new Error(`Invalid expression: ${response.expression}`);
+
+			case "keyframes":
 				while (frameIndex >= 0) {
-					let item = value[frameIndex];
+					let item = response[frameIndex];
 					if (item !== void(0)) return JSON.parse(JSON.stringify(item));
 					frameIndex--;
 				}
-			}
-			else if (type === "collapse") {
-				return this.resolveObject(frameIndex, value);
-			}
-			else throw new Error(`Unknown data response type ${type}`);
+				return;
+			
+			case "data":
+				let resolved = {};
+				for (let key in response) {
+					if (key === "response") continue;
+					resolved[key] = this.resolveDataValue(frameIndex, response[key]);
+				}
+				return resolved;
+			
+			default:
+				throw new Error(`Unknown data response type "${response.response}"`);
 		}
-		else return value;
-	}
-	resolveObject(frameIndex, object) {
-		let obj = JSON.parse(JSON.stringify(object));
-		for (let property in obj) if (obj.hasOwnProperty(property)) {
-			if (obj[property] instanceof Array) {
-				obj[property] = obj[property][frameIndex];
-			}
-			else if (typeof obj[property] === "object") {
-				obj[property] = this.resolveObject(frameIndex, obj[property]);
-			}
-		}
-		return obj;
 	}
 	getFrameDataFromComponent(component, key) {
 		let anim = this.getAnimation(component);
