@@ -11,7 +11,7 @@ Scribble.Backgrounds = class Backgrounds {
 		this.minLayer = Math.min(this.minLayer, bg.layer);
 		this.maxLayer = Math.max(this.maxLayer, bg.layer);
 		if (bg.type === "name") {
-			if (!this.engine.images.hasImage(bg.name)) {
+			if (!this.engine.images.has(bg.name)) {
 				this.engine.images.load(bg.name);
 			}
 		}
@@ -36,10 +36,10 @@ Scribble.Backgrounds = class Backgrounds {
 		}
 	}
 	renderLayer(layer) {
-		let level = this.engine.level.data;
+		let level = this.engine.level;
 		let cam = this.engine.camera;
 		this.forAll(bg => {
-			let img = this.engine.images.getImage(bg.name);
+			let img = this.engine.images.get(bg.name);
 			if (img && bg.layer == layer) {
 				let x = Math.max(0, cam.left());
 				let y = Math.max(0, cam.bottom());

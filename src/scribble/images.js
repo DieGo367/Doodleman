@@ -1,46 +1,28 @@
-Scribble.Images = class Images {
+Scribble.ImageManager = class ImageManager extends Scribble.ResourceManager {
 	constructor(engine) {
-		this.engine = engine;
-		this.map = {};
-		this.loadingCount = 0;
+		super(engine, "Images");
 		this.useFlipped = false;
 	}
-	load(filename) {
+	get(name) {
+		let img = super.get(name);
+		if (this.useFlipped) return img.flipped;
+		else return img;
+	}
+	loadAs(name, src) {
 		this.loadingCount++;
-		let img = new Image();
-		img.onload = () => {
-			this.makeFlipped(img);
-			this.loadingCount--;
-			if (this.loadingCount == 0 && this.onLoadFunc) {
-				this.onLoadFunc();
-				this.onLoadFunc = null;
-			}
-		};
-		img.src = filename;
-		this.map[filename] = img;
+		return new Promise((resolve, reject) => {
+			let img = new Image();
+			img.addEventListener("load", () => {
+				this.map[name] = img;
+				this.loadingCount--;
+				this.makeFlipped(img);
+				resolve(img);
+			});
+			img.addEventListener("error", err => reject(err.type));
+			img.src = src;
+		});
 	}
-	loadB64(name, b64) {
-		this.loadingCount++;
-		let img = new Image();
-		img.onload = () => {
-			this.makeFlipped(img);
-			this.loadingCount--;
-			if (this.loadingCount == 0 && this.onLoadFunc) {
-				this.onLoadFunc();
-				this.onLoadFunc = null;
-			}
-		};
-		img.src = "data:image/*;base64, "+b64;
-		this.map[name] = img;
-	}
-	loadAll(list, callback) {
-		if (callback) {
-			if (typeof callback == "function") this.onLoadFunc = callback;
-		}
-		for (let i = 0; i < list.length; i++) {
-			this.load(list[i]);
-		}
-	}
+	loadB64 = (name, b64) => this.loadAs(name, `data:image/*;base64, ${b64}`)
 	makeFlipped(img) {
 		img.flipped = document.createElement("canvas");
 		img.flipped.width = img.width;
@@ -58,32 +40,17 @@ Scribble.Images = class Images {
 		if (img.pattern) return img.pattern;
 		else return img.pattern = this.ctx.createPattern(img, "repeat");
 	}
-	hasImage(name) {
-		return !!this.map[name];
-	}
-	getImage(name) {
-		let img = this.map[name];
-		if (!img) {
-			console.warn("Unknown image "+name);
-			return null;
-		}
-		else {
-			// if (this.filter) return this.getFilteredImage(name);
-			if (this.useFlipped) return img.flipped;
-			else return img;
-		}
-	}
 	draw(name, x, y, width, height, clipX, clipY, clipWidth, clipHeight) {
 		if (clipX==null) clipX = 0;
 		if (clipY==null) clipY = 0;
-		var img = this.getImage(name);
+		var img = this.get(name);
 		if (img==null) return;
 		if (clipWidth==null) clipWidth = img.width;
 		if (clipHeight==null) clipHeight = img.height;
 		this.ctx.drawImage(img, clipX,clipY,clipWidth,clipHeight, x,y,width,height);
 	}
 	drawOverShape(name, x, y, shape) {
-		let img = this.getImage(name);
+		let img = this.get(name);
 
 		if (shape.shape === Scribble.SHAPE.BOX) {
 			this.ctx.drawImage(img, x + shape.x, y + shape.y, shape.width, shape.height);
@@ -115,7 +82,7 @@ Scribble.Images = class Images {
 	 * @param {number} shiftY Amount to translate the image vertically before anything else is applied
 	 */
 	drawPattern(name, x, y, width, height, scale, parallax, offsetX, offsetY, shiftX, shiftY) {
-		let img = this.getImage(name);
+		let img = this.get(name);
 		if (!img || img.width === 0 || img.height === 0) return;
 		if (!img.patterns) img.patterns = {};
 		if (!img.patterns[scale]) {

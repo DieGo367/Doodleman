@@ -1,5 +1,6 @@
 Scribble.js
 engine.js
+resource.js
 collision.js
 object.js
 game.js

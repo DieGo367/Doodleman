@@ -1,10 +1,12 @@
 Scribble.Engine = class Engine {
 	constructor(divID, canvasWidth, canvasHeight, resources) {
-		// sub parts
-		this.images = new Scribble.Images(this);
-		this.sounds = new Scribble.Sounds();
+		// resource managers
+		this.images = new Scribble.ImageManager(this);
+		this.sounds = new Scribble.SoundManager(this);
 		this.animations = new Scribble.AnimationManager(this);
-		this.level = new Scribble.Level(this);
+		this.levels = new Scribble.LevelManager(this);
+		// sub parts
+		this.level = Object.assign({}, Scribble.BlankLevel);
 		this.objects = new Scribble.ObjectManager(this);
 		this.camera = new Scribble.Camera(this, canvasWidth/2, canvasHeight/2, canvasWidth, canvasHeight);
 		this.input = new Scribble.InputManager(this);
@@ -20,13 +22,14 @@ Scribble.Engine = class Engine {
 		this.canvas.style.height = canvasHeight + "px";
 		this.div.appendChild(this.canvas);
 		this.ctx = this.images.ctx = this.backgrounds.ctx = this.canvas.getContext("2d");
-		this._collectResources(resources);
 		// state
 		this.paused = false;
 		this.gravity = {x: 0, y: 0};
 		this.friction = 0.9;
 		this.frictionSnap = 0.1;
 		this.airResistance = 0.9;
+		// final load
+		this._collectResources(resources);
 	}
 	ready(func) {
 		if (typeof func == "function") {
@@ -35,37 +38,27 @@ Scribble.Engine = class Engine {
 		}
 		else throw new TypeError("Expected a function");
 	}
-	request(url) {
-		// TODO: add more cases to this then just JSON data
-		return fetch(url).then(response => response.json());
-	}
-	_collectResources(resources) {
-		if (!resources) this._checkLoadComplete();
-		else for (let listType in resources) {
-			let listName = resources[listType]; 
-			if (["images","sounds","animations","levels"].indexOf(listType) != -1) {
-				let callback = () => this._checkLoadComplete();
-				this.request(listName).then(data => {
-					if (listType == "images") this.images.loadAll(data, callback);
-					else if (listType == "sounds") this.sounds.loadAll(data, callback);
-					else if (listType == "animations") this.animations.loadAll(data, callback);
-					else if (listType == "levels") this.level.loadAll(data, callback);
-					else console.error("Unknown resource type after initial check: "+listType);
-				});
-				this._checkLoadComplete();
+	request = url => fetch(url);
+	requestData = url => this.request(url).then(response => response.json());
+	async _collectResources(resources) {
+		if (resources) {
+			let lists = [];
+			let batches = [];
+			for (let listType in resources) {
+				let listName = resources[listType]; 
+				lists.push(this.requestData(listName).then(list => {
+					if (listType === "images") batches.push(this.images.loadList(list));
+					else if (listType === "sounds") batches.push(this.sounds.loadList(list));
+					else if (listType === "animations") batches.push(this.animations.loadList(list));
+					else if (listType === "levels") batches.push(this.levels.loadList(list));
+					else throw new Error("Unknown resource type: "+listType);
+				}));
 			}
-			else console.warn("Unknown resource type: "+listType);
+			await Promise.all(lists);
+			await Promise.all(batches);
 		}
-	}
-	_checkLoadComplete() {
-		let count = this.images.loadingCount;
-		count += this.sounds.loadingCount;
-		count += this.animations.loadingCount;
-		count += this.level.loadingCount;
-		if (count == 0) {
-			this.loadingCompleted = true;
-			if (this.readyFunc) this.readyFunc();
-		}
+		this.loadingCompleted = true;
+		if (this.readyFunc) this.readyFunc();
 	}
 	loadGame(Game) {
 		if (Game.prototype instanceof Scribble.Game) {
@@ -113,7 +106,7 @@ Scribble.Engine = class Engine {
 			this.objects.start();
 			this.objects.update();
 			this.objects.attackUpdate();
-			Scribble.Collision.run(this.objects.map, this.gravity, this.level.data);
+			Scribble.Collision.run(this.objects.map, this.gravity, this.level);
 			this.objects.finish();
 			this.input.gameUpdate();
 		}
@@ -156,7 +149,7 @@ Scribble.Engine = class Engine {
 		this.ctx.translate(-this.camera.x, -this.camera.y);
 		// level space
 		this.ctx.fillStyle = Scribble.COLOR.LEVEL;
-		this.ctx.fillRect(0, 0, this.level.data.width, this.level.data.height);
+		this.ctx.fillRect(0, 0, this.level.width, this.level.height);
 		// render layers
 		this._renderLevelLayers();
 		// restore original state

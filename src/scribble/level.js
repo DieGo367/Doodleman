@@ -1,29 +1,8 @@
-Scribble.Level = class Level {
+Scribble.LevelManager = class LevelManager extends Scribble.ResourceManager {
 	constructor(engine) {
-		this.engine = engine;
-		this.map = {};
-		this.loadingCount = 0;
-		this.data = Object.assign({}, Scribble.BlankLevel);
+		super(engine, "Levels");
 	}
-	load(filename) {
-		this.loadingCount++;
-		fetch(filename).then(res => res.json()).then(data => {
-			this.map[filename] = data;
-			this.loadingCount--;
-			if (this.loadingCount == 0 && this.onLoadFunc) {
-				this.onLoadFunc();
-				this.onLoadFunc = null;
-			}
-		});
-	}
-	loadAll(list, callback) {
-		if (callback) {
-			if (typeof callback == "function") this.onLoadFunc = callback;
-		}
-		for (let i = 0; i < list.length; i++) {
-			this.load(list[i]);
-		}
-	}
+	_request = src => this.engine.requestData(src)
 	loadFromFile() {
 		this.engine.file.ask(["json"], (data, file) => {
 			let json;
@@ -48,20 +27,20 @@ Scribble.Level = class Level {
 		await this.updateLevel(data);
 		this.clear();
 		// send over network
-		Object.assign(this.data, data);
+		Object.assign(this.engine.level, data);
 		this._loadTerrain(data.terrain);
 		this._loadActors(data.actors);
 		this._loadBackgrounds(data.bg);
 		// reset camera
 		this.engine.game.onLevelLoad();
-		console.log("Loaded Level "+this.data.name);
+		console.log("Loaded Level "+data.name);
 	}
 	clear() {
 		// TODO: comments
 		this.engine.objects.removeAll();
 		this.engine.backgrounds.clearAll();
 		// update sectors
-		this.data = Object.assign({}, Scribble.BlankLevel);
+		this.engine.level = Object.assign({}, Scribble.BlankLevel);
 		this.engine.camera.reset();
 	}
 	_loadTerrain(list) {

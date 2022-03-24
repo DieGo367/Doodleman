@@ -1,31 +1,15 @@
-Scribble.AnimationManager = class AnimationManager {
+Scribble.AnimationManager = class AnimationManager extends Scribble.ResourceManager {
 	constructor(engine) {
-		this.engine = engine;
-		this.map = {};
-		this.loadingCount = 0;
+		super(engine, "Animations");
 	}
-	load(filename) {
-		this.loadingCount++;
-		fetch(filename).then(res => res.json()).then(data => {
-			this.map[filename] = new Scribble.AnimationSheet(filename, data);
-			this.loadingCount--;
-			if (this.loadingCount == 0) this.onLoadedAll();
+	_request = src => this.engine.requestData(src)
+	loadAs(name, src) {
+		return super.loadAs(name, src).then(data => {
+			return this.map[name] = new Scribble.AnimationSheet(name, data);
 		});
 	}
-	loadAll(list, callback) {
-		if (callback) {
-			if (typeof callback == "function") this.onLoadFunc = callback;
-		}
-		for (let i = 0; i < list.length; i++) {
-			this.load(list[i]);
-		}
-	}
-	onLoadedAll() {
-		this.inheritance();
-		if (this.onLoadFunc) {
-			this.onLoadFunc();
-			this.onLoadFunc = null;
-		}
+	loadList(list) {
+		return super.loadList(list).then(() => this.inheritance());
 	}
 	inheritance() {
 		for (let name in this.map) {
@@ -41,7 +25,7 @@ Scribble.AnimationManager = class AnimationManager {
 		if (sheet) {
 			// get relevant image
 			let imgName = sheet.pages[component.page||0];
-			let img = this.engine.images.getImage(imgName);
+			let img = this.engine.images.get(imgName);
 			if (img) {
 				// find the current animation
 				if (component.current == null) {

@@ -14,9 +14,9 @@ Scribble.Camera = class Camera {
 	top = () => this.y + this.height/2;
 	bottom = () => this.y - this.height/2;
 	
-	getRightLimit = () => this.engine.level.data.width - this.width/2;
+	getRightLimit = () => this.engine.level.width - this.width/2;
 	getLeftLimit = () => 0 + this.width/2;
-	getTopLimit = () => this.engine.level.data.height - this.height/2;
+	getTopLimit = () => this.engine.level.height - this.height/2;
 	getBottomLimit = () => 0 + this.height/2;
 	
 	approachValue(prop, goal, smoothing, lowerBound, upperBound) {
@@ -42,7 +42,7 @@ Scribble.Camera = class Camera {
 	}
 	
 	reset() {
-		let level = this.engine.level.data;
+		let level = this.engine.level;
 		this.x = level.camStart.x;
 		this.y = level.camStart.y;
 		this.zoom = 1/level.zoomScale;
