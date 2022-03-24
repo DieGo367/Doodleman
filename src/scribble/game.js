@@ -1,4 +1,4 @@
-Scribble.Game = class ScribbleGame {
+export class Game {
 	constructor(engine) {
 		this.engine = engine;
 	}

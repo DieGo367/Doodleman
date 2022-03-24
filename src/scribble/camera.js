@@ -1,4 +1,4 @@
-Scribble.Camera = class Camera {
+export class Camera {
 	constructor(engine, x, y, width, height) {
 		this.engine = engine;
 		this.x = x;
@@ -47,4 +47,4 @@ Scribble.Camera = class Camera {
 		this.y = level.camStart.y;
 		this.zoom = 1/level.zoomScale;
 	}
-};
+}

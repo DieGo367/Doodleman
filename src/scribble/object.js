@@ -1,11 +1,11 @@
-Scribble.ObjectManager = class ObjectManager {
+export class ObjectManager {
 	constructor(engine) {
 		this.engine = engine;
 		this.map = {};
 		this.nextID = 0;
 		this.actorData = {};
 		this.registeredClasses = {};
-		this.registerClasses(Scribble.Objects);
+		this.registerClasses(Objects);
 		this.minLayer = this.maxLayer = 0;
 	}
 	async loadActorData(url) {
@@ -16,23 +16,23 @@ Scribble.ObjectManager = class ObjectManager {
 		}
 	}
 	add(object) {
-		if (object instanceof Scribble.Object) {
+		if (object instanceof GameObject) {
 			object.id = this.nextID++;
 			object.objectManager = this;
 			this.map[object.id] = object;
 			this.minLayer = Math.min(this.minLayer, object.drawLayer);
 			this.maxLayer = Math.max(this.maxLayer, object.drawLayer);
 		}
-		else console.error("Not a Scribble.Object!");
+		else console.error("Not a GameObject!");
 	}
 	remove(target) {
 		if (typeof target == "number") {
 			delete this.map[target];
 		}
-		else if (target instanceof Scribble.Object) {
+		else if (target instanceof GameObject) {
 			delete this.map[target.id];
 		}
-		else console.error("Not an id or Scribble.Object!")
+		else console.error("Not an id or GameObject!")
 	}
 	triggerAll(method) {
 		for (let id in this.map) {
@@ -92,9 +92,9 @@ Scribble.ObjectManager = class ObjectManager {
 		classDecl.proto.call(classDecl.prototype);
 		this.registeredClasses[className] = classDecl;
 	}
-};
+}
 
-Scribble.Object = class {
+export class GameObject {
 	constructor(x, y) {
 		this.x = x;
 		this.y = y;
@@ -113,14 +113,14 @@ Scribble.Object = class {
 	
 	/**
 	 * First update step. Runs before the main update. Animations tick here.
-	 * @param {Scribble.Engine} engine 
+	 * @param {Engine} engine 
 	 */
 	start(engine) {
 		if (this.animator) engine.animations.tick(this.animator);
 	}
 	/**
 	 * Handles intended object behavior this tick. Runs before attacks and collision.
-	 * @param {Scribble.Engine} engine 
+	 * @param {Engine} engine 
 	 */
 	update(engine) {
 		if (this.feelsGravity && !this.isGrounded) {
@@ -139,17 +139,17 @@ Scribble.Object = class {
 	}
 	/**
 	 * Update step dedicated to setting hitbox data. Runs after movement but before hit detection and collision.
-	 * @param {Scribble.Engine} engine 
+	 * @param {Engine} engine 
 	 */
 	updateHitboxes(engine) {}
 	/**
 	 * Update step dedicated to attack hit detection. Runs after movement and hitbox updates, but before collision.
-	 * @param {Scribble.Engine} engine 
+	 * @param {Engine} engine 
 	 */
 	updateHitDetection(engine) {}
 	/**
 	 * Final update step. Runs after collision. Track necessary values for next tick.
-	 * @param {Scribble.Engine} engine 
+	 * @param {Engine} engine 
 	 */
 	finish(engine) {
 		if (this.feelsGravity && this.isGrounded) {
@@ -174,7 +174,7 @@ Scribble.Object = class {
 				}
 				else {
 					ctx.fillStyle = graphic.style || "rgba(0,0,0,0)";
-					Scribble.fillShape(ctx, this.x, this.y, graphic);
+					fillShape(ctx, this.x, this.y, graphic);
 				}
 			}
 		}
@@ -192,8 +192,8 @@ Scribble.Object = class {
 		ctx.fill();
 		ctx.globalAlpha = 1;
 		if (this.collision) {
-			ctx.strokeStyle = Scribble.COLOR.DEBUG.COLLISION;
-			Scribble.Collision.drawBounds(ctx, this.x, this.y, this.collision);
+			ctx.strokeStyle = COLOR.DEBUG.COLLISION;
+			Collision.drawBounds(ctx, this.x, this.y, this.collision);
 		}
 	}
 	drawHighlight() {}
@@ -219,7 +219,7 @@ Scribble.Object = class {
 	}
 	/**
 	 * Get data from the current animation action based on the current animation tick
-	 * @param {Scribble.Engine} engine 
+	 * @param {Engine} engine 
 	 * @param {string} key Property name to access. Can be a property chain.
 	 * Examples: "frame", "alpha", "position.x", "items.0.value" 
 	 * @returns {*} The appropriate value from the animation file if it is found, else null.
@@ -228,24 +228,24 @@ Scribble.Object = class {
 		if (this.animator) return engine.animations.getFrameDataFromComponent(this.animator, key);
 		else console.error("No AnimationComponent found. Can't get frame data.")
 	}
-};
+}
 
-Scribble.Objects = {};
-Scribble.Objects.Box = class Box extends Scribble.Object {
+export const Objects = {};
+Objects.Box = class Box extends GameObject {
 	constructor(x, y, width, height, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new Scribble.AnimationComponent(width/2, 0, gfx);
+			this.animator = new AnimationComponent(width/2, 0, gfx);
 		}
 		else this.graphic = {
-			shape: Scribble.SHAPE.BOX,
+			shape: SHAPE.BOX,
 			style: gfx,
 			x: 0, y: 0,
 			width: width,
 			height: height
 		};
 		this.collision = {
-			type: Scribble.SHAPE.BOX,
+			type: SHAPE.BOX,
 			level: 0,
 			x: 0, y: 0,
 			width: width, height: height
@@ -253,22 +253,22 @@ Scribble.Objects.Box = class Box extends Scribble.Object {
 	}
 };
 
-Scribble.Objects.Line = class Line extends Scribble.Object {
+Objects.Line = class Line extends GameObject {
 	constructor(x, y, x2, y2, gfx) {
 		super(x, y);
 		let dx = x2 - x;
 		let dy = y2 - y;
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new Scribble.AnimationComponent(dx/2, dy/2, gfx);
+			this.animator = new AnimationComponent(dx/2, dy/2, gfx);
 		}
 		else this.graphic = {
-			shape: Scribble.SHAPE.LINE,
+			shape: SHAPE.LINE,
 			style: gfx,
 			x: 0, y: 0,
 			dx: dx, dy: dy
 		};
 		this.collision = {
-			type: Scribble.SHAPE.LINE,
+			type: SHAPE.LINE,
 			level: 0,
 			x: 0, y: 0,
 			dx: dx, dy: dy
@@ -276,42 +276,42 @@ Scribble.Objects.Line = class Line extends Scribble.Object {
 	}
 }
 
-Scribble.Objects.Circle = class Circle extends Scribble.Object {
+Objects.Circle = class Circle extends GameObject {
 	constructor(x, y, radius, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new Scribble.AnimationComponent(x, y - radius, gfx);
+			this.animator = new AnimationComponent(x, y - radius, gfx);
 		}
 		else this.graphic = {
-			shape: Scribble.SHAPE.CIRCLE,
+			shape: SHAPE.CIRCLE,
 			style: gfx,
 			x: 0, y: 0,
 			radius: radius
 		};
 		this.collision = {
-			type: Scribble.SHAPE.CIRCLE,
+			type: SHAPE.CIRCLE,
 			level: 0,
 			x: 0, y: 0, radius: radius
 		};
 	}
 }
 
-Scribble.Objects.Polygon = class Polygon extends Scribble.Object {
+Objects.Polygon = class Polygon extends GameObject {
 	constructor(x, y, points, gfx) {
 		super(x, y);
-		let pts = points.map(pt => new Scribble.Pt(pt));
-		let aabb = Scribble.Collision.polyAABB({x: 0, y: 0, points: pts});
+		let pts = points.map(pt => new Pt(pt));
+		let aabb = Collision.polyAABB({x: 0, y: 0, points: pts});
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new Scribble.AnimationComponent(aabb.x + aabb.width/2, aabb.y, gfx);
+			this.animator = new AnimationComponent(aabb.x + aabb.width/2, aabb.y, gfx);
 		}
 		else this.graphic = {
-			shape: Scribble.SHAPE.POLYGON,
+			shape: SHAPE.POLYGON,
 			style: gfx,
 			x: 0, y: 0,
 			points: pts
 		};
 		this.collision = {
-			type: Scribble.SHAPE.POLYGON,
+			type: SHAPE.POLYGON,
 			level: 0,
 			x: 0, y: 0,
 			points: pts
@@ -319,7 +319,7 @@ Scribble.Objects.Polygon = class Polygon extends Scribble.Object {
 	}
 }
 
-Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
+Objects.Entity = class extends GameObject {
 	constructor(x, y) {
 		super(x, y);
 		this.moveSpeed = 0;
@@ -363,7 +363,7 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		for (let id in this.grounds) {
 			if (!this.grounds[id]) continue;
 			let ground = engine.objects.map[id];
-			if (ground && ground.collision.type === Scribble.SHAPE.LINE) {
+			if (ground && ground.collision.type === SHAPE.LINE) {
 				let angle = Math.atan(ground.collision.dy / ground.collision.dx);
 				// engine.debug.print(angle);
 				// if moving down the slope
@@ -444,8 +444,8 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 			hitbox.updated = true;
 			hitbox.x = this.x;
 			hitbox.y = this.y;
-			if (this.animator.direction !== Scribble.RIGHT) {
-				Scribble.Collision.flipShapeX(hitbox.shape);
+			if (this.animator.direction !== RIGHT) {
+				Collision.flipShapeX(hitbox.shape);
 				if (hitbox.knockback) hitbox.knockback.x *= -1;
 			}
 		}
@@ -455,13 +455,13 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 			let hitbox = this.hitboxes[hitboxName];
 			if (!hitbox.updated) delete this.hitboxes[hitboxName];
 			else {
-				engine.objects.forAllOfClass(Scribble.Entity, (obj, id) => {
+				engine.objects.forAllOfClass(Objects.Entity, (obj, id) => {
 					if (id === this.id && !hitbox.selfDamaging) return;
 					// check this object isn't excluded
 					if (hitbox.hits.indexOf(id) === -1) {
 						// check the hitbox intersects the object
 						hitbox.collision = hitbox.shape;
-						if (Scribble.Collision.intersect(hitbox, obj)) {
+						if (Collision.intersect(hitbox, obj)) {
 							obj.hurt(hitbox.damage, hitbox.knockback, this);
 							if (hitbox.onHit) this[hitbox.onHit](obj, hitbox.damage, hitbox.knockback);
 							hitbox.hits.push(id);
@@ -495,8 +495,8 @@ Scribble.Entity = Scribble.Objects.Entity = class extends Scribble.Object {
 		for (let hitboxName in this.hitboxes) {
 			let hitbox = this.hitboxes[hitboxName];
 			if (hitbox && hitbox.shape) {
-				ctx.strokeStyle = Scribble.COLOR.DEBUG.HITBOX;
-				Scribble.Collision.drawBounds(ctx, this.x, this.y, hitbox.shape);
+				ctx.strokeStyle = COLOR.DEBUG.HITBOX;
+				Collision.drawBounds(ctx, this.x, this.y, hitbox.shape);
 			}
 		}
 	}

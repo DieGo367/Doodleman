@@ -1,4 +1,4 @@
-Scribble.Backgrounds = class Backgrounds {
+export class Backgrounds {
 	constructor(engine) {
 		this.engine = engine;
 		this.bgs = [];
@@ -64,4 +64,4 @@ Scribble.Backgrounds = class Backgrounds {
 			}
 		});
 	}
-};
+}

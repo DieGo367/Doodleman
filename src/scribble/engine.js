@@ -1,18 +1,18 @@
-Scribble.Engine = class Engine {
+export class Engine {
 	constructor(divID, canvasWidth, canvasHeight, resources) {
 		// resource managers
-		this.images = new Scribble.ImageManager(this);
-		this.sounds = new Scribble.SoundManager(this);
-		this.animations = new Scribble.AnimationManager(this);
-		this.levels = new Scribble.LevelManager(this);
+		this.images = new ImageManager(this);
+		this.sounds = new SoundManager(this);
+		this.animations = new AnimationManager(this);
+		this.levels = new LevelManager(this);
 		// sub parts
-		this.level = Object.assign({}, Scribble.BlankLevel);
-		this.objects = new Scribble.ObjectManager(this);
-		this.camera = new Scribble.Camera(this, canvasWidth/2, canvasHeight/2, canvasWidth, canvasHeight);
-		this.input = new Scribble.InputManager(this);
-		this.backgrounds = new Scribble.Backgrounds(this);
-		this.file = new Scribble.File();
-		this.debug = new Scribble.Debug(this);
+		this.level = Object.assign({}, BlankLevel);
+		this.objects = new ObjectManager(this);
+		this.camera = new Camera(this, canvasWidth/2, canvasHeight/2, canvasWidth, canvasHeight);
+		this.input = new InputManager(this);
+		this.backgrounds = new Backgrounds(this);
+		this.file = new FileLoader();
+		this.debug = new Debug(this);
 		// page setup
 		this.div = document.getElementById(divID);
 		this.canvas = document.createElement("canvas");
@@ -60,12 +60,12 @@ Scribble.Engine = class Engine {
 		this.loadingCompleted = true;
 		if (this.readyFunc) this.readyFunc();
 	}
-	loadGame(Game) {
-		if (Game.prototype instanceof Scribble.Game) {
-			this.game = new Game(this);
+	loadGame(GameClass) {
+		if (GameClass.prototype instanceof Game) {
+			this.game = new GameClass(this);
 			this.game.init();
 		}
-		else throw new TypeError("Given game is not a Scribble.Game");
+		else throw new TypeError("Given game is not a Game class");
 	}
 	setSpeed(tickSpeed) {
 		this.tickSpeed = tickSpeed;
@@ -106,7 +106,7 @@ Scribble.Engine = class Engine {
 			this.objects.start();
 			this.objects.update();
 			this.objects.attackUpdate();
-			Scribble.Collision.run(this.objects.map, this.gravity, this.level);
+			Collision.run(this.objects.map, this.gravity, this.level);
 			this.objects.finish();
 			this.input.gameUpdate();
 		}
@@ -141,14 +141,14 @@ Scribble.Engine = class Engine {
 		this.ctx.translate(0, -this.height);
 		this.images.flip();
 		// default backdrop
-		this.ctx.fillStyle = Scribble.COLOR.BACKDROP;
+		this.ctx.fillStyle = COLOR.BACKDROP;
 		this.ctx.fillRect(0, 0, this.width, this.height);
 		// camera zoom/pan
 		this.ctx.translate(this.width/2, this.height/2);
 		this.ctx.scale(this.camera.zoom, this.camera.zoom);
 		this.ctx.translate(-this.camera.x, -this.camera.y);
 		// level space
-		this.ctx.fillStyle = Scribble.COLOR.LEVEL;
+		this.ctx.fillStyle = COLOR.LEVEL;
 		this.ctx.fillRect(0, 0, this.level.width, this.level.height);
 		// render layers
 		this._renderLevelLayers();
@@ -175,4 +175,4 @@ Scribble.Engine = class Engine {
 	registerClasses(classGroup) {
 		this.objects.registerClasses(classGroup);
 	}
-};
+}

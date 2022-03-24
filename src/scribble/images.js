@@ -1,4 +1,4 @@
-Scribble.ImageManager = class ImageManager extends Scribble.ResourceManager {
+export class ImageManager extends ResourceManager {
 	constructor(engine) {
 		super(engine, "Images");
 		this.useFlipped = false;
@@ -52,17 +52,17 @@ Scribble.ImageManager = class ImageManager extends Scribble.ResourceManager {
 	drawOverShape(name, x, y, shape) {
 		let img = this.get(name);
 
-		if (shape.shape === Scribble.SHAPE.BOX) {
+		if (shape.shape === SHAPE.BOX) {
 			this.ctx.drawImage(img, x + shape.x, y + shape.y, shape.width, shape.height);
 		}
-		else if (shape.shape === Scribble.SHAPE.CIRCLE) {
+		else if (shape.shape === SHAPE.CIRCLE) {
 			this.ctx.drawImage(img, x + shape.x - shape.radius, y + shape.y - shape.radius, 2 * shape.radius, 2 * shape.radius);
 		}
-		else if (shape.shape === Scribble.SHAPE.LINE) {
+		else if (shape.shape === SHAPE.LINE) {
 			this.ctx.drawImage(img, x + shape.x, y + shape.y, x + shape.x + shape.dx, y + shape.y + shape.dy);
 		}
-		else if (shape.shape === Scribble.SHAPE.POLYGON) {
-			let aabb = Scribble.Collision.polyAABB(shape);
+		else if (shape.shape === SHAPE.POLYGON) {
+			let aabb = Collision.polyAABB(shape);
 			this.ctx.drawImage(img, x + aabb.x, y + aabb.y, aabb.width, aabb.height);
 		}
 		else console.warn("Unknown drawing shape");
@@ -86,7 +86,7 @@ Scribble.ImageManager = class ImageManager extends Scribble.ResourceManager {
 		if (!img || img.width === 0 || img.height === 0) return;
 		if (!img.patterns) img.patterns = {};
 		if (!img.patterns[scale]) {
-			let offscreen = Scribble.HiddenCanvas(img.width*scale, img.height*scale);
+			let offscreen = HiddenCanvas(img.width*scale, img.height*scale);
 			let ctx = offscreen.getContext("2d");
 			ctx.drawImage(img, 0, 0, img.width*scale, img.height*scale);
 			img.patterns[scale] = this.ctx.createPattern(offscreen, "repeat");
@@ -106,4 +106,4 @@ Scribble.ImageManager = class ImageManager extends Scribble.ResourceManager {
 		this.ctx.fillRect((x+offsetX)/parallax, (y+offsetY)/parallax, width, height);
 		this.ctx.restore();
 	}
-};
+}

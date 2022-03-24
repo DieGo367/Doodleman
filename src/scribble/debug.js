@@ -1,4 +1,4 @@
-Scribble.Debug = class Debug {
+export class Debug {
 	constructor(engine) {
 		this.engine = engine;
 		this.enabled = false;
@@ -64,4 +64,4 @@ Scribble.Debug = class Debug {
 		ctx.textAlign = "left";
 		ctx.textBaseline = "alphabetic";
 	}
-};
+}

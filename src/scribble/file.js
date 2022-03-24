@@ -1,4 +1,4 @@
-Scribble.File = class FileLoader {
+export class FileLoader {
 	constructor() {
 		this.input = document.createElement("input");
 		this.input.type = "file";

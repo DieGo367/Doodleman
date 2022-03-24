@@ -1,3 +1,5 @@
+import * as Scribble from './scribble.js';
+
 class DoodlemanGame extends Scribble.Game {
 	constructor(engine) {
 		super(engine);
@@ -138,7 +140,7 @@ class DoodlemanGame extends Scribble.Game {
 
 const DMOs = {};
 
-DMOs.Doodleman = class extends Scribble.Entity {
+DMOs.Doodleman = class extends Scribble.Objects.Entity {
 	constructor(x, y, slot, direction) {
 		super(x, y);
 		this.slot = slot;
@@ -328,7 +330,7 @@ DMOs.Doodleman = class extends Scribble.Entity {
 	}
 };
 
-DMOs.SpawnPoint = class extends Scribble.Object {
+DMOs.SpawnPoint = class extends Scribble.GameObject {
 	constructor(x, y, slot, direction) {
 		super(x, y);
 		this.slot = slot;
@@ -357,7 +359,7 @@ DMOs.SpawnPoint = class extends Scribble.Object {
 };
 
 
-DMOs.Marker = class extends Scribble.Object {
+DMOs.Marker = class extends Scribble.GameObject {
 	constructor(x, y, name) {
 		super(x, y);
 		this.name = name;
@@ -376,7 +378,7 @@ DMOs.Marker = class extends Scribble.Object {
 	}
 };
 
-DMOs.PaintMan = class extends Scribble.Entity {
+DMOs.PaintMan = class extends Scribble.Objects.Entity {
 	constructor(x, y) {
 		super(x, y);
 		this.collision = {
@@ -395,7 +397,7 @@ DMOs.PaintMan = class extends Scribble.Entity {
 	}
 };
 
-DMOs.HelloPlatform = class extends Scribble.Object {
+DMOs.HelloPlatform = class extends Scribble.GameObject {
 	constructor(x, y, width, height, graphic, xVel, yVel) {
 		super(x, y);
 		this.collision = {
@@ -422,7 +424,7 @@ DMOs.HelloPlatform = class extends Scribble.Object {
 	}
 };
 
-DMOs.Door = class extends Scribble.Object {
+DMOs.Door = class extends Scribble.GameObject {
 	constructor(x, y, entranceID, destID, preventEnter, preventExit, destLevel) {
 		super(x, y);
 		this.animator = new Scribble.AnimationComponent(0, 0, "animations/Door.json");
@@ -432,7 +434,7 @@ DMOs.Door = class extends Scribble.Object {
 	}
 };
 
-DMOs.Box201 = class extends Scribble.Object {
+DMOs.Box201 = class extends Scribble.GameObject {
 	constructor(x, y) {
 		super(x, y);
 		this.collision = {
@@ -453,3 +455,5 @@ DMOs.Box201 = class extends Scribble.Object {
 		this.feelsGravity = true;
 	}
 };
+
+export default DoodlemanGame;

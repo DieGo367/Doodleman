@@ -1,11 +1,11 @@
-Scribble.AnimationManager = class AnimationManager extends Scribble.ResourceManager {
+export class AnimationManager extends ResourceManager {
 	constructor(engine) {
 		super(engine, "Animations");
 	}
 	_request = src => this.engine.requestData(src)
 	loadAs(name, src) {
 		return super.loadAs(name, src).then(data => {
-			return this.map[name] = new Scribble.AnimationSheet(name, data);
+			return this.map[name] = new AnimationSheet(name, data);
 		});
 	}
 	loadList(list) {
@@ -38,8 +38,8 @@ Scribble.AnimationManager = class AnimationManager extends Scribble.ResourceMana
 					// apply directional sheet offset
 					if (sheet.hasDirection) {
 						let offset = (
-							component.direction == Scribble.LEFT? sheet.sheetOffsets.left
-							: (component.direction == Scribble.RIGHT? sheet.sheetOffsets.right
+							component.direction == LEFT? sheet.sheetOffsets.left
+							: (component.direction == RIGHT? sheet.sheetOffsets.right
 							: sheet.sheetOffsets.right
 						));
 						frameX = offset.x;
@@ -161,7 +161,7 @@ Scribble.AnimationManager = class AnimationManager extends Scribble.ResourceMana
 	}
 };
 
-Scribble.AnimationSheet = class AnimationSheet {
+export class AnimationSheet {
 	constructor(filename, data) {
 		Object.assign(this, data);
 		this.name = filename;
@@ -182,12 +182,12 @@ Scribble.AnimationSheet = class AnimationSheet {
 		if (this.animations[animationName]) return this.animations[animationName];
 		return null;
 	}
-};
+}
 
-Scribble.AnimationComponent = class AnimationComponent {
+export class AnimationComponent {
 	constructor(x, y, sheetName) {
 		this.x = x;
 		this.y = y;
 		this.name = sheetName;
 	}
-};
+}

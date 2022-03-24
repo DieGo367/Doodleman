@@ -1,4 +1,4 @@
-Scribble.LevelManager = class LevelManager extends Scribble.ResourceManager {
+export class LevelManager extends ResourceManager {
 	constructor(engine) {
 		super(engine, "Levels");
 	}
@@ -40,7 +40,7 @@ Scribble.LevelManager = class LevelManager extends Scribble.ResourceManager {
 		this.engine.objects.removeAll();
 		this.engine.backgrounds.clearAll();
 		// update sectors
-		this.engine.level = Object.assign({}, Scribble.BlankLevel);
+		this.engine.level = Object.assign({}, BlankLevel);
 		this.engine.camera.reset();
 	}
 	_loadTerrain(list) {
@@ -48,10 +48,10 @@ Scribble.LevelManager = class LevelManager extends Scribble.ResourceManager {
 			let terrain = Object.assign({}, list[i]);
 
 			let objectClass;
-			if (terrain.type === Scribble.TERRAIN.BOX) objectClass = Scribble.Objects.Box;
-			else if (terrain.type === Scribble.TERRAIN.LINE) objectClass = Scribble.Objects.Line;
-			else if (terrain.type === Scribble.TERRAIN.CIRCLE) objectClass = Scribble.Objects.Circle;
-			else if (terrain.type === Scribble.TERRAIN.POLYGON) objectClass = Scribble.Objects.Polygon;
+			if (terrain.type === TERRAIN.BOX) objectClass = Objects.Box;
+			else if (terrain.type === TERRAIN.LINE) objectClass = Objects.Line;
+			else if (terrain.type === TERRAIN.CIRCLE) objectClass = Objects.Circle;
+			else if (terrain.type === TERRAIN.POLYGON) objectClass = Objects.Polygon;
 			else {
 				console.warn("Unknown terrain type");
 				continue;
@@ -102,7 +102,7 @@ Scribble.LevelManager = class LevelManager extends Scribble.ResourceManager {
 		}
 	}
 	async updateLevel(data) {
-		if (data._version_ == Scribble.BlankLevel._version_) return;
+		if (data._version_ == BlankLevel._version_) return;
 		switch(data._version_) {
 			case void(0):
 				// No version was specified. File is from before versions were introduced
@@ -150,7 +150,7 @@ Scribble.LevelManager = class LevelManager extends Scribble.ResourceManager {
 					// was: size, stroke (gfx), direction, useBoxCorners
 					// now: gfx ...TODO
 					let direction = terrain.properties[2];
-					if (terrain.type === Scribble.TERRAIN.LINE) {
+					if (terrain.type === TERRAIN.LINE) {
 						terrain.properties = [
 							terrain.properties[1],
 							terrain.properties[0],
@@ -161,7 +161,7 @@ Scribble.LevelManager = class LevelManager extends Scribble.ResourceManager {
 					for (let j = 0; j < terrain.pieces.length; j++) {
 						let piece = terrain.pieces[j];
 						piece[1] = data.height - piece[1];
-						if (terrain.type === Scribble.TERRAIN.LINE) {
+						if (terrain.type === TERRAIN.LINE) {
 							piece[3] = data.height - piece[3];
 
 							// lines now have a single specified direction based on their normal
@@ -225,19 +225,19 @@ Scribble.LevelManager = class LevelManager extends Scribble.ResourceManager {
 					delete data.playerSpawns;
 				}
 		}
-		data._version_ = Scribble.BlankLevel._version_;
+		data._version_ = BlankLevel._version_;
 	}
-};
+}
 
-Scribble.BlankLevel = {
+export const BlankLevel = {
 	name: null,
 	width: 640,
 	height: 360,
 	edge: {
-		top: Scribble.EDGE.NONE,
-		bottom: Scribble.EDGE.SOLID,
-		left: Scribble.EDGE.WRAP,
-		right: Scribble.EDGE.WRAP
+		top: EDGE.NONE,
+		bottom: EDGE.SOLID,
+		left: EDGE.WRAP,
+		right: EDGE.WRAP
 	},
 	camStart: {x: 320, y: 180},
 	horScrollBuffer: 240,
@@ -246,8 +246,8 @@ Scribble.BlankLevel = {
 	minZoom: 1,
 	maxZoom: 1,
 	playerSpawns: [
-		{x: 20, y: 310, direction: Scribble.RIGHT},
-		{x: 620, y: 310, direction: Scribble.LEFT}
+		{x: 20, y: 310, direction: RIGHT},
+		{x: 620, y: 310, direction: LEFT}
 	],
 	actors: [],
 	terrain: [],
@@ -255,4 +255,4 @@ Scribble.BlankLevel = {
 		// {type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 1, velX: 0, velY: 0}
 	],
 	_version_: 2
-}
+};

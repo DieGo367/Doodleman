@@ -1,6 +1,6 @@
 // TODO: projection push cancel?
 // TODO: chain pushing on lower levels?
-Scribble.Collision = {
+export const Collision = {
 	EPS: 0.1,
 	NORMAL_FORCE_THRESH: 0.5,
 	SLOPE_THRESH: 0.8,
@@ -18,7 +18,7 @@ Scribble.Collision = {
 
 		for (let id in objectMap) {
 			let obj = objectMap[id];
-			if (obj instanceof Scribble.Object) {
+			if (obj instanceof GameObject) {
 				// check that the object provides a collider
 				if (obj.collision) {
 					let shape = this.getCollider(obj);
@@ -85,7 +85,7 @@ Scribble.Collision = {
 	},
 	/**
 	 * Get the collider of a Scribble Object, for testing collisions with other colliders.
-	 * @param {Scribble.Object} obj 
+	 * @param {GameObject} obj 
 	 * @returns {Collider} A collider object that is ready for collision tests.
 	 */
 	getCollider(obj) {
@@ -189,54 +189,54 @@ Scribble.Collision = {
 		if (shape.sweepingShapes) return shape.sweepingShapes;
 		let dx = shape.x - shape.lastX;
 		let dy = shape.y - shape.lastY;
-		if (shape.type === Scribble.SHAPE.BOX) {
+		if (shape.type === SHAPE.BOX) {
 			return shape.sweepingShapes = [
 				// current and last
-				{type: Scribble.SHAPE.BOX, x: shape.x, y: shape.y, width: shape.width, height: shape.height},
-				{type: Scribble.SHAPE.BOX, x: shape.lastX, y: shape.lastY, width: shape.width, height: shape.height},
+				{type: SHAPE.BOX, x: shape.x, y: shape.y, width: shape.width, height: shape.height},
+				{type: SHAPE.BOX, x: shape.lastX, y: shape.lastY, width: shape.width, height: shape.height},
 				// draw lines from last to current corner positions
-				{type: Scribble.SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
-				{type: Scribble.SHAPE.LINE, x: shape.lastX + shape.width, y: shape.lastY, dx: dx, dy: dy},
-				{type: Scribble.SHAPE.LINE, x: shape.lastX, y: shape.lastY + shape.height, dx: dx, dy: dy},
-				{type: Scribble.SHAPE.LINE, x: shape.lastX + shape.width, y: shape.lastY + shape.height, dx: dx, dy: dy}
+				{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
+				{type: SHAPE.LINE, x: shape.lastX + shape.width, y: shape.lastY, dx: dx, dy: dy},
+				{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY + shape.height, dx: dx, dy: dy},
+				{type: SHAPE.LINE, x: shape.lastX + shape.width, y: shape.lastY + shape.height, dx: dx, dy: dy}
 			];
 		}
-		else if (shape.type === Scribble.SHAPE.CIRCLE) {
+		else if (shape.type === SHAPE.CIRCLE) {
 			let dmag = Math.sqrt(dx*dx + dy*dy);
 			let shiftX = dx / dmag * shape.radius;
 			let shiftY = dy / dmag * shape.radius;
 			return shape.sweepingShapes = [
 				// current and last
-				{type: Scribble.SHAPE.CIRCLE, x: shape.x, y: shape.y, radius: shape.radius},
-				{type: Scribble.SHAPE.CIRCLE, x: shape.lastX, y: shape.lastY, radius: shape.radius},
+				{type: SHAPE.CIRCLE, x: shape.x, y: shape.y, radius: shape.radius},
+				{type: SHAPE.CIRCLE, x: shape.lastX, y: shape.lastY, radius: shape.radius},
 				// line from last to current center
-				{type: Scribble.SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
+				{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
 				// lines that form a "cylinder" shape with the two end circles
-				{type: Scribble.SHAPE.LINE, x: shape.lastX + shiftY, y: shape.lastY - shiftX, dx: dx, dy: dy},
-				{type: Scribble.SHAPE.LINE, x: shape.lastX - shiftY, y: shape.lastY + shiftX, dx: dx, dy: dy},
+				{type: SHAPE.LINE, x: shape.lastX + shiftY, y: shape.lastY - shiftX, dx: dx, dy: dy},
+				{type: SHAPE.LINE, x: shape.lastX - shiftY, y: shape.lastY + shiftX, dx: dx, dy: dy},
 			];
 		}
-		else if (shape.type === Scribble.SHAPE.LINE) {
+		else if (shape.type === SHAPE.LINE) {
 			return shape.sweepingShapes = [
 				// current and last
-				{type: Scribble.SHAPE.LINE, x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy},
-				{type: Scribble.SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: shape.dx, dy: shape.dy},
+				{type: SHAPE.LINE, x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy},
+				{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: shape.dx, dy: shape.dy},
 				// lines from last to current endpoints
-				{type: Scribble.SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
-				{type: Scribble.SHAPE.LINE, x: shape.lastX + shape.dx, y: shape.lastY + shape.dy, dx: dx, dy: dy},
+				{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
+				{type: SHAPE.LINE, x: shape.lastX + shape.dx, y: shape.lastY + shape.dy, dx: dx, dy: dy},
 			];
 		}
-		else if (shape.type === Scribble.SHAPE.POLYGON) {
+		else if (shape.type === SHAPE.POLYGON) {
 			shape.sweepingShapes = [
 				// current and last
-				{type: Scribble.SHAPE.POLYGON, x: shape.x, y: shape.y, points: shape.points.slice()},
-				{type: Scribble.SHAPE.POLYGON, x: shape.lastX, y: shape.lastY, points: shape.points.slice()}
+				{type: SHAPE.POLYGON, x: shape.x, y: shape.y, points: shape.points.slice()},
+				{type: SHAPE.POLYGON, x: shape.lastX, y: shape.lastY, points: shape.points.slice()}
 			];
 			// lines from last to current vertices
 			for (let i = 0; i < shape.points.length; i++) {
 				let pt = shape.points[i];
 				shape.sweepingShapes.push({
-					type: Scribble.SHAPE.LINE, x: shape.lastX + pt.x, y: shape.lastY + pt.y, dx: dx, dy: dy
+					type: SHAPE.LINE, x: shape.lastX + pt.x, y: shape.lastY + pt.y, dx: dx, dy: dy
 				});
 			}
 			return shape.sweepingShapes;
@@ -378,7 +378,7 @@ Scribble.Collision = {
 				let top = tops[j];
 				try {
 					if (this.intersectFuncMap[bottom.type][top.type](bottom, top)) return true;
-					else if (a.owner.grounds[b.owner.id] && b.type === Scribble.SHAPE.LINE) return true;
+					else if (a.owner.grounds[b.owner.id] && b.type === SHAPE.LINE) return true;
 				}
 				catch(e) {
 					console.log(bottom, top, e);
@@ -388,13 +388,13 @@ Scribble.Collision = {
 		return false;
 	},
 	getShapeBottoms(shape, gravity) {
-		if (shape.type === Scribble.SHAPE.BOX) {
+		if (shape.type === SHAPE.BOX) {
 			let bottoms = [];
 			let sides = [
-				{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: Scribble.SHAPE.LINE},
-				{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: Scribble.SHAPE.LINE},
-				{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: Scribble.SHAPE.LINE},
-				{x: shape.x+shape.width, y: shape.y, dx: -shape.width, dy: 0, type: Scribble.SHAPE.LINE}
+				{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: SHAPE.LINE},
+				{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: SHAPE.LINE},
+				{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: SHAPE.LINE},
+				{x: shape.x+shape.width, y: shape.y, dx: -shape.width, dy: 0, type: SHAPE.LINE}
 			];
 			for (let i = 0; i < sides.length; i++) {
 				let side = sides[i];
@@ -406,7 +406,7 @@ Scribble.Collision = {
 			}
 			return bottoms;
 		}
-		else if (shape.type === Scribble.SHAPE.CIRCLE) {
+		else if (shape.type === SHAPE.CIRCLE) {
 			// angle in radians of the slope threshold
 			let theta = Math.acos(this.SLOPE_THRESH);
 			// angle in which gravity takes place
@@ -417,25 +417,25 @@ Scribble.Collision = {
 			if (start < 0) start += 2*Math.PI;
 			let end = gravAngle + theta;
 			if (end >= 2*Math.PI) end -= 2*Math.PI;
-			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: Scribble.SHAPE.ARC}];
+			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: SHAPE.ARC}];
 		}
-		else if (shape.type === Scribble.SHAPE.LINE) {
+		else if (shape.type === SHAPE.LINE) {
 			// get bottommost endpoint, or both
 			let dot = this.dot({x: shape.dx, y: shape.dy}, gravity);
-			if (dot < -this.EPS) return [{x: shape.x, y: shape.y, type: Scribble.SHAPE.POINT}];
-			else if (dot > this.EPS) return [{x: shape.x+shape.dx, y: shape.y+shape.dy, type: Scribble.SHAPE.POINT}];
+			if (dot < -this.EPS) return [{x: shape.x, y: shape.y, type: SHAPE.POINT}];
+			else if (dot > this.EPS) return [{x: shape.x+shape.dx, y: shape.y+shape.dy, type: SHAPE.POINT}];
 			else return [
-				{x: shape.x, y: shape.y, type: Scribble.SHAPE.POINT},
-				{x: shape.x+shape.dx, y: shape.y+shape.dy, type: Scribble.SHAPE.POINT}
+				{x: shape.x, y: shape.y, type: SHAPE.POINT},
+				{x: shape.x+shape.dx, y: shape.y+shape.dy, type: SHAPE.POINT}
 			];
 		}
-		else if (shape.type === Scribble.SHAPE.POLYGON) {
+		else if (shape.type === SHAPE.POLYGON) {
 			let bottoms = [];
 			for (let i = 0; i < shape.points.length; i++) {
 				let v1 = this.sum(shape, shape.points[i]);
 				let v2 = this.sum(shape, shape.points[(i + 1) % shape.points.length]);
 				let edge = this.makeLine(v1, v2);
-				edge.type = Scribble.SHAPE.LINE;
+				edge.type = SHAPE.LINE;
 				let normal = {x: -edge.dy, y: edge.dx};
 				if (this.dot(normal, gravity) > 0) {
 					let dot = this.dot(this.unit({x: edge.dx, y: edge.dy}), this.unit(gravity));
@@ -447,13 +447,13 @@ Scribble.Collision = {
 		else console.error("Unknown shape type: " + shape.type);
 	},
 	getShapeTops(shape, gravity) {
-		if (shape.type === Scribble.SHAPE.BOX) {
+		if (shape.type === SHAPE.BOX) {
 			let tops = [];
 			let sides = [
-				{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: Scribble.SHAPE.LINE},
-				{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: Scribble.SHAPE.LINE},
-				{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: Scribble.SHAPE.LINE},
-				{x: shape.x+shape.width, y: shape.y, dx: -shape.width, dy: 0, type: Scribble.SHAPE.LINE}
+				{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: SHAPE.LINE},
+				{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: SHAPE.LINE},
+				{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: SHAPE.LINE},
+				{x: shape.x+shape.width, y: shape.y, dx: -shape.width, dy: 0, type: SHAPE.LINE}
 			];
 			for (let i = 0; i < sides.length; i++) {
 				let side = sides[i];
@@ -465,7 +465,7 @@ Scribble.Collision = {
 			}
 			return tops;
 		}
-		else if (shape.type === Scribble.SHAPE.CIRCLE) {
+		else if (shape.type === SHAPE.CIRCLE) {
 			// angle in radians of the slope threshold
 			let theta = Math.acos(this.SLOPE_THRESH);
 			// angle opposite to which gravity takes place
@@ -476,34 +476,34 @@ Scribble.Collision = {
 			if (start < 0) start += 2*Math.PI;
 			let end = gravAngle + theta;
 			if (end >= 2*Math.PI) end -= 2*Math.PI;
-			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: Scribble.SHAPE.ARC}];
+			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: SHAPE.ARC}];
 		}
-		else if (shape.type === Scribble.SHAPE.LINE) {
+		else if (shape.type === SHAPE.LINE) {
 			let normal = {x: -shape.dy, y: shape.dx};
 			if (this.dot(normal, gravity) < 0) {
 				let list = [];
 				// get topmost endpoint, or both
 				let dot = this.dot({x: shape.dx, y: shape.dy}, gravity);
-				if (dot < -this.EPS) list.push({x: shape.x+shape.dx, y: shape.y+shape.dy, type: Scribble.SHAPE.POINT});
-				else if (dot > this.EPS) list.push({x: shape.x, y: shape.y, type: Scribble.SHAPE.POINT});
+				if (dot < -this.EPS) list.push({x: shape.x+shape.dx, y: shape.y+shape.dy, type: SHAPE.POINT});
+				else if (dot > this.EPS) list.push({x: shape.x, y: shape.y, type: SHAPE.POINT});
 				else {
-					list.push({x: shape.x+shape.dx, y: shape.y+shape.dy, type: Scribble.SHAPE.POINT});
-					list.push({x: shape.x, y: shape.y, type: Scribble.SHAPE.POINT});
+					list.push({x: shape.x+shape.dx, y: shape.y+shape.dy, type: SHAPE.POINT});
+					list.push({x: shape.x, y: shape.y, type: SHAPE.POINT});
 				}
 				// get full line, as long as it's slope is within the threshold
 				let unitDot = this.dot(this.unit({x: shape.dx, y: shape.dy}), this.unit(gravity));
-				if (Math.abs(unitDot) <= this.SLOPE_THRESH) list.push({x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy, type: Scribble.SHAPE.LINE});
+				if (Math.abs(unitDot) <= this.SLOPE_THRESH) list.push({x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy, type: SHAPE.LINE});
 				return list;
 			}
 			return [];
 		}
-		else if (shape.type === Scribble.SHAPE.POLYGON) {
+		else if (shape.type === SHAPE.POLYGON) {
 			let tops = [];
 			for (let i = 0; i < shape.points.length; i++) {
 				let v1 = this.sum(shape, shape.points[i]);
 				let v2 = this.sum(shape, shape.points[(i + 1) % shape.points.length]);
 				let edge = this.makeLine(v1, v2);
-				edge.type = Scribble.SHAPE.LINE;
+				edge.type = SHAPE.LINE;
 				let normal = {x: -edge.dy, y: edge.dx};
 				if (this.dot(normal, gravity) < 0) {
 					let dot = this.dot(this.unit({x: edge.dx, y: edge.dy}), this.unit(gravity));
@@ -517,78 +517,78 @@ Scribble.Collision = {
 
 	intersectFuncMap: {
 		pt: {
-			pt: (a, b) => Scribble.Collision.Intersect.ptPt(a, b),
-			arc: (pt, arc) => Scribble.Collision.Intersect.ptArc(pt, arc),
-			circle: (pt, circle) => Scribble.Collision.Intersect.ptCircle(pt, circle),
-			box: (pt, box) => Scribble.Collision.Intersect.ptBox(pt, box),
-			line: (pt, line) => Scribble.Collision.Intersect.ptLine(pt, line),
-			polygon: (pt, poly) => Scribble.Collision.Intersect.ptPolygon(pt, poly)
+			pt: (a, b) => Collision.Intersect.ptPt(a, b),
+			arc: (pt, arc) => Collision.Intersect.ptArc(pt, arc),
+			circle: (pt, circle) => Collision.Intersect.ptCircle(pt, circle),
+			box: (pt, box) => Collision.Intersect.ptBox(pt, box),
+			line: (pt, line) => Collision.Intersect.ptLine(pt, line),
+			polygon: (pt, poly) => Collision.Intersect.ptPolygon(pt, poly)
 		},
 		arc: {
-			pt: (arc, pt) => Scribble.Collision.Intersect.ptArc(pt, arc),
-			arc: (a, b) => Scribble.Collision.Intersect.arcArc(a, b),
-			circle: (arc, circle) => Scribble.Collision.Intersect.arcCircle(arc, circle),
-			box: (arc, box) => Scribble.Collision.Intersect.arcBox(arc, box),
-			line: (arc, line) => Scribble.Collision.Intersect.arcLine(arc, line),
-			polygon: (arc, poly) => Scribble.Collision.Intersect.arcPolygon(arc, poly)
+			pt: (arc, pt) => Collision.Intersect.ptArc(pt, arc),
+			arc: (a, b) => Collision.Intersect.arcArc(a, b),
+			circle: (arc, circle) => Collision.Intersect.arcCircle(arc, circle),
+			box: (arc, box) => Collision.Intersect.arcBox(arc, box),
+			line: (arc, line) => Collision.Intersect.arcLine(arc, line),
+			polygon: (arc, poly) => Collision.Intersect.arcPolygon(arc, poly)
 		},
 		circle: {
-			pt: (circle, pt) => Scribble.Collision.Intersect.ptCircle(pt, circle),
-			arc: (circle, arc) => Scribble.Collision.Intersect.arcCircle(arc, circle),
-			circle: (a, b) => Scribble.Collision.Intersect.circleCircle(a, b),
-			box: (circle, box) => Scribble.Collision.Intersect.circleBox(circle, box),
-			line: (circle, line) => Scribble.Collision.Intersect.circleLine(circle, line),
-			polygon: (circle, poly) => Scribble.Collision.Intersect.circlePolygon(circle, poly)
+			pt: (circle, pt) => Collision.Intersect.ptCircle(pt, circle),
+			arc: (circle, arc) => Collision.Intersect.arcCircle(arc, circle),
+			circle: (a, b) => Collision.Intersect.circleCircle(a, b),
+			box: (circle, box) => Collision.Intersect.circleBox(circle, box),
+			line: (circle, line) => Collision.Intersect.circleLine(circle, line),
+			polygon: (circle, poly) => Collision.Intersect.circlePolygon(circle, poly)
 		},
 		box: {
-			pt: (box, pt) => Scribble.Collision.Intersect.ptBox(pt, box),
-			arc: (box, arc) => Scribble.Collision.Intersect.arcBox(arc, box),
-			circle: (box, circle) => Scribble.Collision.Intersect.circleBox(circle, box),
-			box: (a, b) => Scribble.Collision.Intersect.boxBox(a, b),
-			line: (box, line) => Scribble.Collision.Intersect.boxLine(box, line),
-			polygon: (box, poly) => Scribble.Collision.Intersect.boxPolygon(box, poly)
+			pt: (box, pt) => Collision.Intersect.ptBox(pt, box),
+			arc: (box, arc) => Collision.Intersect.arcBox(arc, box),
+			circle: (box, circle) => Collision.Intersect.circleBox(circle, box),
+			box: (a, b) => Collision.Intersect.boxBox(a, b),
+			line: (box, line) => Collision.Intersect.boxLine(box, line),
+			polygon: (box, poly) => Collision.Intersect.boxPolygon(box, poly)
 		},
 		line: {
-			pt: (line, pt) => Scribble.Collision.Intersect.ptLine(pt, line),
-			arc: (line, arc) => Scribble.Collision.Intersect.arcLine(arc, line),
-			circle: (line, circle) => Scribble.Collision.Intersect.circleLine(circle, line),
-			box: (line, box) => Scribble.Collision.Intersect.boxLine(box, line),
-			line: (a, b) => Scribble.Collision.Intersect.lineLine(a, b),
-			polygon: (line, poly) => Scribble.Collision.Intersect.linePolygon(line, poly)
+			pt: (line, pt) => Collision.Intersect.ptLine(pt, line),
+			arc: (line, arc) => Collision.Intersect.arcLine(arc, line),
+			circle: (line, circle) => Collision.Intersect.circleLine(circle, line),
+			box: (line, box) => Collision.Intersect.boxLine(box, line),
+			line: (a, b) => Collision.Intersect.lineLine(a, b),
+			polygon: (line, poly) => Collision.Intersect.linePolygon(line, poly)
 		},
 		polygon: {
-			pt: (poly, pt) => Scribble.Collision.Intersect.ptPolygon(pt, poly),
-			arc: (poly, arc) => Scribble.Collision.Intersect.arcPolygon(arc, poly),
-			circle: (poly, circle) => Scribble.Collision.Intersect.circlePolygon(circle, poly),
-			box: (poly, box) => Scribble.Collision.Intersect.boxPolygon(box, poly),
-			line: (poly, line) => Scribble.Collision.Intersect.linePolygon(line, poly),
-			polygon: (a, b) => Scribble.Collision.Intersect.polygonPolygon(a, b)
+			pt: (poly, pt) => Collision.Intersect.ptPolygon(pt, poly),
+			arc: (poly, arc) => Collision.Intersect.arcPolygon(arc, poly),
+			circle: (poly, circle) => Collision.Intersect.circlePolygon(circle, poly),
+			box: (poly, box) => Collision.Intersect.boxPolygon(box, poly),
+			line: (poly, line) => Collision.Intersect.linePolygon(line, poly),
+			polygon: (a, b) => Collision.Intersect.polygonPolygon(a, b)
 		}
 	},
 	resolveFuncMap: {
 		circle: {
-			circle: (a, b) => Scribble.Collision.Resolve.circleCircle(a, b),
-			box: (circle, box) => Scribble.Collision.Resolve.circleBox(circle, box),
-			line: (circle, line) => Scribble.Collision.Resolve.circleLine(circle, line),
-			polygon: (circle, poly) => Scribble.Collision.Resolve.circlePolygon(circle, poly)
+			circle: (a, b) => Collision.Resolve.circleCircle(a, b),
+			box: (circle, box) => Collision.Resolve.circleBox(circle, box),
+			line: (circle, line) => Collision.Resolve.circleLine(circle, line),
+			polygon: (circle, poly) => Collision.Resolve.circlePolygon(circle, poly)
 		},
 		box: {
-			circle: (box, circle) => Scribble.Collision.scale(Scribble.Collision.Resolve.circleBox(circle, box), -1),
-			box: (a, b) => Scribble.Collision.Resolve.boxBox(a, b),
-			line: (box, line) => Scribble.Collision.Resolve.boxLine(box, line),
-			polygon: (box, poly) => Scribble.Collision.Resolve.boxPolygon(box, poly)
+			circle: (box, circle) => Collision.scale(Collision.Resolve.circleBox(circle, box), -1),
+			box: (a, b) => Collision.Resolve.boxBox(a, b),
+			line: (box, line) => Collision.Resolve.boxLine(box, line),
+			polygon: (box, poly) => Collision.Resolve.boxPolygon(box, poly)
 		},
 		line: {
-			circle: (line, circle) => Scribble.Collision.scale(Scribble.Collision.Resolve.circleLine(circle, line), -1),
-			box: (line, box) => Scribble.Collision.scale(Scribble.Collision.Resolve.boxLine(box, line), -1),
-			line: (a, b) => Scribble.Collision.Resolve.lineLine(a, b),
-			polygon: (line, poly) => Scribble.Collision.Resolve.linePolygon(line, poly)
+			circle: (line, circle) => Collision.scale(Collision.Resolve.circleLine(circle, line), -1),
+			box: (line, box) => Collision.scale(Collision.Resolve.boxLine(box, line), -1),
+			line: (a, b) => Collision.Resolve.lineLine(a, b),
+			polygon: (line, poly) => Collision.Resolve.linePolygon(line, poly)
 		},
 		polygon: {
-			circle: (poly, circle) => Scribble.Collision.scale(Scribble.Collision.Resolve.circlePolygon(circle, poly), -1),
-			box: (poly, box) => Scribble.Collision.scale(Scribble.Collision.Resolve.boxPolygon(box, poly), -1),
-			line: (poly, line) => Scribble.Collision.scale(Scribble.Collision.Resolve.linePolygon(line, poly), -1),
-			polygon: (a, b) => Scribble.Collision.Resolve.polygonPolygon(a, b)
+			circle: (poly, circle) => Collision.scale(Collision.Resolve.circlePolygon(circle, poly), -1),
+			box: (poly, box) => Collision.scale(Collision.Resolve.boxPolygon(box, poly), -1),
+			line: (poly, line) => Collision.scale(Collision.Resolve.linePolygon(line, poly), -1),
+			polygon: (a, b) => Collision.Resolve.polygonPolygon(a, b)
 		}
 	},
 	levelBoundCheck(shape, level, gravity) {
@@ -602,7 +602,7 @@ Scribble.Collision = {
 		this.resolveBound(shape, 'y', top, bottom, 1, level.edge.top, level.height, 0, gravity);
 	},
 	resolveBound(shape, axis, shapeFront, shapeBack, direction, borderType, borderPos, warpPos, gravity) {
-		if (borderType === Scribble.EDGE.SOLID) {
+		if (borderType === EDGE.SOLID) {
 			if (shapeFront * direction >= borderPos * direction) {
 				let dp = borderPos - shapeFront;
 				shape.owner[axis] += dp;
@@ -619,7 +619,7 @@ Scribble.Collision = {
 				}
 			}
 		}
-		else if (borderType === Scribble.EDGE.WRAP) {
+		else if (borderType === EDGE.WRAP) {
 			if (shapeBack * direction >= borderPos * direction) {
 				let dp = warpPos - shapeFront;
 				shape.owner[axis] += dp;
@@ -712,7 +712,7 @@ Scribble.Collision = {
 	extrema(shape, direction) {
 		let pts = [];
 		let mid = {};
-		if (shape.type === Scribble.SHAPE.BOX) {
+		if (shape.type === SHAPE.BOX) {
 			pts = [
 				{x: 0, y: 0},
 				{x: shape.width, y: 0},
@@ -721,18 +721,18 @@ Scribble.Collision = {
 			];
 			mid = {x: shape.width/2, y: shape.height/2};
 		}
-		else if (shape.type === Scribble.SHAPE.LINE) {
+		else if (shape.type === SHAPE.LINE) {
 			pts = [
 				{x: 0, y: 0},
 				{x: shape.dx, y:  shape.dy}
 			];
 			mid = {x: shape.dx/2, y: shape.dy/2};
 		}
-		else if (shape.type === Scribble.SHAPE.CIRCLE) {
+		else if (shape.type === SHAPE.CIRCLE) {
 			let outward = this.scale(direction, shape.radius / this.mag(direction));
 			return this.sum(shape, outward);
 		}
-		else if (shape.type === Scribble.SHAPE.POLYGON) {
+		else if (shape.type === SHAPE.POLYGON) {
 			pts = shape.points;
 			mid = {x: 0, y: 0};
 		}
@@ -752,27 +752,27 @@ Scribble.Collision = {
 		return extrema;
 	},
 	left(shape) {
-		if (shape.type === Scribble.SHAPE.BOX) return shape.x;
-		else if (shape.type === Scribble.SHAPE.LINE) return shape.x + (Math.min(shape.dx, 0));
-		else if (shape.type === Scribble.SHAPE.CIRCLE) return shape.x - shape.radius;
+		if (shape.type === SHAPE.BOX) return shape.x;
+		else if (shape.type === SHAPE.LINE) return shape.x + (Math.min(shape.dx, 0));
+		else if (shape.type === SHAPE.CIRCLE) return shape.x - shape.radius;
 		return shape.x + this.extrema(shape, {x:-1, y:0}).x;
 	},
 	right(shape) {
-		if (shape.type === Scribble.SHAPE.BOX) return shape.x + shape.width;
-		else if (shape.type === Scribble.SHAPE.LINE) return shape.x + (Math.max(0, shape.dx));
-		else if (shape.type === Scribble.SHAPE.CIRCLE) return shape.x + shape.radius;
+		if (shape.type === SHAPE.BOX) return shape.x + shape.width;
+		else if (shape.type === SHAPE.LINE) return shape.x + (Math.max(0, shape.dx));
+		else if (shape.type === SHAPE.CIRCLE) return shape.x + shape.radius;
 		return shape.x + this.extrema(shape, {x:1, y:0}).x;
 	},
 	top(shape) {
-		if (shape.type === Scribble.SHAPE.BOX) return shape.y + shape.height;
-		else if (shape.type === Scribble.SHAPE.LINE) return shape.y + (Math.max(0, shape.dy));
-		else if (shape.type === Scribble.SHAPE.CIRCLE) return shape.y + shape.radius;
+		if (shape.type === SHAPE.BOX) return shape.y + shape.height;
+		else if (shape.type === SHAPE.LINE) return shape.y + (Math.max(0, shape.dy));
+		else if (shape.type === SHAPE.CIRCLE) return shape.y + shape.radius;
 		return shape.y + this.extrema(shape, {x:0, y:1}).y;
 	},
 	bottom(shape) {
-		if (shape.type === Scribble.SHAPE.BOX) return shape.y;
-		else if (shape.type === Scribble.SHAPE.LINE) return shape.y + (Math.min(shape.dy, 0));
-		else if (shape.type === Scribble.SHAPE.CIRCLE) return shape.y - shape.radius;
+		if (shape.type === SHAPE.BOX) return shape.y;
+		else if (shape.type === SHAPE.LINE) return shape.y + (Math.min(shape.dy, 0));
+		else if (shape.type === SHAPE.CIRCLE) return shape.y - shape.radius;
 		return shape.y + this.extrema(shape, {x:0, y:-1}).y;
 	},
 	lineEnds(line) {
@@ -780,22 +780,22 @@ Scribble.Collision = {
 		else return line.ends = [{x: line.x, y: line.y}, {x: line.x + line.dx, y: line.y + line.dy}];
 	},
 	shapeMid(shape) {
-		if (shape.type === Scribble.SHAPE.BOX) {
+		if (shape.type === SHAPE.BOX) {
 			return {x: shape.x + shape.width/2, y: shape.y + shape.height/2};
 		}
-		else if (shape.type === Scribble.SHAPE.CIRCLE) {
+		else if (shape.type === SHAPE.CIRCLE) {
 			return {x: shape.x, y: shape.y};
 		}
-		else if (shape.type === Scribble.SHAPE.LINE) {
+		else if (shape.type === SHAPE.LINE) {
 			return {x: shape.x + shape.dx/2, y: shape.y + shape.dy/2};
 		}
-		else if (shape.type === Scribble.SHAPE.POLYGON) {
+		else if (shape.type === SHAPE.POLYGON) {
 			return this.polyMid(shape, true);
 		}
 		console.error("Invalid shape type: " + shape.type);
 	},
 	lineSidePassCheck(line, shape) {
-		let Col = Scribble.Collision;
+		let Col = Collision;
 
 		// return result from last collision, if it exists
 		let prevResult = line.owner.collisions[shape.owner.id];
@@ -828,8 +828,8 @@ Scribble.Collision = {
 			return a.x === b.x && a.y === b.y;
 		},
 		ptArc(pt, arc) {
-			let dist = Scribble.Collision.dist(pt, arc);
-			if (arc.radius - Scribble.Collision.EPS <= dist && dist <= arc.radius) {
+			let dist = Collision.dist(pt, arc);
+			if (arc.radius - Collision.EPS <= dist && dist <= arc.radius) {
 				let angle = Math.atan2(pt.y - arc.y, pt.x - arc.x);
 				if (angle < 0) angle += 2*Math.PI;
 				let end = arc.end - arc.start;
@@ -841,14 +841,14 @@ Scribble.Collision = {
 			return false;
 		},
 		ptCircle(pt, circle) {
-			return Scribble.Collision.dist(pt, circle) <= circle.radius;
+			return Collision.dist(pt, circle) <= circle.radius;
 		},
 		ptBox(pt, box) {
 			return (pt.x >= box.x && pt.x <= box.x + box.width
 				&& pt.y >= box.y && pt.y <= box.y + box.height);
 		},
 		ptLine(pt, line) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			let endpoint1 = {x: line.x, y: line.y};
 			let endpoint2 = {x: line.x + line.dx, y: line.y + line.dy};
 			let length = Col.dist(endpoint1, endpoint2);
@@ -859,7 +859,7 @@ Scribble.Collision = {
 			// return Col.dist(pt, proj) <= Col.EPS;
 		},
 		ptPolygon(pt, poly) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			let collided = false;
 			let aabb = Col.polyAABB(poly);
 			if (Col.Intersect.ptBox(pt, aabb)) {
@@ -878,7 +878,7 @@ Scribble.Collision = {
 		},
 		arcArc(a, b) {
 			if (!this.circleCircle(a, b)) return false;
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			let diff = Col.diff(b, a);
 			let diffNormal = {x: -diff.y, y: diff.x};
 			let d = Col.mag(diff);
@@ -924,7 +924,7 @@ Scribble.Collision = {
 		},
 		arcLine(arc, line) {
 			if (!this.circleLine(arc, line)) return false;
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			// project arc center onto line
 			let ppt = Col.project(arc, line);
 			let diff = Col.diff(ppt, arc);
@@ -955,7 +955,7 @@ Scribble.Collision = {
 			return this.ptPolygon(arcStart, poly);
 		},
 		circleCircle(a, b) {
-			return Scribble.Collision.dist(a, b) <= a.radius + b.radius;
+			return Collision.dist(a, b) <= a.radius + b.radius;
 		},
 		circleBox(circle, box) {
 			let target = {x: circle.x, y: circle.y};
@@ -972,13 +972,13 @@ Scribble.Collision = {
 			let end2 = {x: line.x + line.dx, y: line.y + line.dy};
 			if (this.ptCircle(end1, circle) || this.ptCircle(end2, circle)) return true;
 
-			let target = Scribble.Collision.project(circle, line);
+			let target = Collision.project(circle, line);
 
 			if (!this.ptLine(target, line)) return false;
 			return this.ptCircle(target, circle);
 		},
 		circlePolygon(circle, poly) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			let aabb = Col.polyAABB(poly);
 			if (Col.Intersect.circleBox(circle, aabb)) {
 				for (let i = 0; i < poly.points.length; i++) {
@@ -1008,7 +1008,7 @@ Scribble.Collision = {
 				|| this.ptBox(line, box));
 		},
 		boxPolygon(box, poly) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			let aabb = Col.polyAABB(poly);
 			if (Col.Intersect.boxBox(box, aabb)) {
 				for (let i = 0; i < poly.points.length; i++) {
@@ -1023,7 +1023,7 @@ Scribble.Collision = {
 		},
 		lineLine(a, b) {
 			let denom = (b.dy*a.dx) - (b.dx*a.dy);
-			if (Math.abs(denom) <= Scribble.Collision.EPS) {
+			if (Math.abs(denom) <= Collision.EPS) {
 				// hijack to test parallel line collision
 				if (this.ptLine({x: a.x, y: a.y}, b)
 				 || this.ptLine({x: a.x+a.dx, y: a.y+a.dy}, b)
@@ -1034,11 +1034,11 @@ Scribble.Collision = {
 			}
 			let ua = ((b.dx)*(a.y-b.y) - (b.dy)*(a.x-b.x)) / denom;
 			let ub = ((a.dx)*(a.y-b.y) - (a.dy)*(a.x-b.x)) / denom;
-			let spec = Scribble.Collision.EPS * 0.01;
+			let spec = Collision.EPS * 0.01;
 			return (ua >= -spec && ua <= 1+spec && ub >= -spec && ub <= 1+spec);
 		},
 		linePolygon(line, poly) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			let aabb = Col.polyAABB(poly);
 			if (Col.Intersect.boxLine(aabb, line)) {
 				for (let i = 0; i < poly.points.length; i++) {
@@ -1052,7 +1052,7 @@ Scribble.Collision = {
 			else return false;
 		},
 		polygonPolygon(a, b) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			let aBound = Col.polyAABB(a);
 			let bBound = Col.polyAABB(b);
 			if (Col.Intersect.boxBox(aBound, bBound)) {
@@ -1071,7 +1071,7 @@ Scribble.Collision = {
 	},
 	Resolve: {
 		circleCircle(a, b) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			let dist = Col.dist(a, b);
 			let overlap = a.radius + b.radius - dist;
 			let push = Col.scale(Col.diff(a, b), overlap / dist);
@@ -1123,7 +1123,7 @@ Scribble.Collision = {
 			}
 		},
 		circleLine(circle, line, skipCheck) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 
 			if (skipCheck || Col.lineSidePassCheck(line, circle)) {
 				let target = Col.project(circle, line);
@@ -1138,7 +1138,7 @@ Scribble.Collision = {
 			else return false;
 		},
 		circlePolygon(circle, poly) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			let minVert;
 			let minVertDist = Infinity;
 
@@ -1214,7 +1214,7 @@ Scribble.Collision = {
 			return correctionA;
 		},
 		boxLine(box, line) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 
 			if (Col.lineSidePassCheck(line, box)) {
 				let overlap = {x: 0, y: 0};
@@ -1290,7 +1290,7 @@ Scribble.Collision = {
 			return this.polygonPolygon(bpoly, poly);
 		},
 		lineLine(a, b) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 
 			if (Col.lineSidePassCheck(a, b) || Col.lineSidePassCheck(b, a)) {
 				// find intersection point
@@ -1349,7 +1349,7 @@ Scribble.Collision = {
 			else return false;
 		},
 		linePolygon(line, poly) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 
 			if (Col.lineSidePassCheck(line, poly)) {
 				// setup flags and storage to check if endpoints should trigger
@@ -1410,7 +1410,7 @@ Scribble.Collision = {
 			else return false;
 		},
 		polygonPolygon(a, b) {
-			let Col = Scribble.Collision;
+			let Col = Collision;
 			// find polygon midpoints
 			let midA = Col.polyMid(a);
 			let midB = Col.polyMid(b);
@@ -1458,21 +1458,21 @@ Scribble.Collision = {
 
 	// miscellaneous
 	drawBounds(ctx, x, y, shape) {
-		if (shape.type === Scribble.SHAPE.BOX) {
+		if (shape.type === SHAPE.BOX) {
 			ctx.strokeRect(x + shape.x, y + shape.y, shape.width, shape.height);
 		}
-		else if (shape.type === Scribble.SHAPE.LINE) {
+		else if (shape.type === SHAPE.LINE) {
 			ctx.beginPath();
 			ctx.moveTo(x + shape.x, y + shape.y);
 			ctx.lineTo(x + shape.x + shape.dx, y + shape.y + shape.dy);
 			ctx.stroke();
 		}
-		else if (shape.type === Scribble.SHAPE.CIRCLE) {
+		else if (shape.type === SHAPE.CIRCLE) {
 			ctx.beginPath();
 			ctx.arc(x + shape.x, y + shape.y, shape.radius, 0, Math.PI * 2);
 			ctx.stroke();
 		}
-		else if (shape.type === Scribble.SHAPE.POLYGON) {
+		else if (shape.type === SHAPE.POLYGON) {
 			ctx.beginPath();
 			let first = shape.points[0];
 			ctx.moveTo(x + shape.x + first.x, y + shape.y + first.y);
@@ -1485,7 +1485,7 @@ Scribble.Collision = {
 			ctx.save();
 			ctx.linewidth /= 2;
 			ctx.setLineDash([5]);
-			let aabb = Scribble.Collision.polyAABB(shape, false);
+			let aabb = Collision.polyAABB(shape, false);
 			ctx.strokeRect(x + aabb.x, y + aabb.y, aabb.width, aabb.height);
 			ctx.restore();
 		}
@@ -1493,13 +1493,13 @@ Scribble.Collision = {
 	},
 	flipShapeX(shape) {
 		shape.x *= -1;
-		if (shape.type === Scribble.SHAPE.BOX) {
+		if (shape.type === SHAPE.BOX) {
 			shape.x -= shape.width;
 		}
-		else if (shape.type === Scribble.SHAPE.LINE) {
+		else if (shape.type === SHAPE.LINE) {
 			shape.dx *= -1;
 		}
-		else if (shape.type === Scribble.SHAPE.POLYGON) {
+		else if (shape.type === SHAPE.POLYGON) {
 			let points = [];
 			for (let i = 0; i < shape.points.length; i++) {
 				let point = shape.points[i];
@@ -1510,13 +1510,13 @@ Scribble.Collision = {
 	},
 	flipShapeY(shape) {
 		shape.y *= -1;
-		if (shape.type === Scribble.SHAPE.BOX) {
+		if (shape.type === SHAPE.BOX) {
 			shape.y -= shape.height;
 		}
-		else if (shape.type === Scribble.SHAPE.LINE) {
+		else if (shape.type === SHAPE.LINE) {
 			shape.dy *= -1;
 		}
-		else if (shape.type === Scribble.SHAPE.POLYGON) {
+		else if (shape.type === SHAPE.POLYGON) {
 			let points = [];
 			for (let i = 0; i < shape.points.length; i++) {
 				let point = shape.points[i];

@@ -1,4 +1,4 @@
-Scribble.ResourceManager = class ResourceManager {
+export class ResourceManager {
 	constructor(engine, name) {
 		this.engine = engine;
 		this.name = name || "Unknown Resource Manager";

@@ -1,5 +1,5 @@
-Scribble.SoundManager = class SoundManager extends Scribble.ResourceManager {
+export class SoundManager extends ResourceManager {
 	constructor(engine) {
-		super(engine, "Sounds")
+		super(engine, "Sounds");
 	}
-};
+}

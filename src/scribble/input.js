@@ -1,4 +1,4 @@
-Scribble.InputManager = class InputManager {
+export class InputManager {
 	constructor(engine) {
 		this.engine = engine;
 		this.keys = {};
@@ -76,4 +76,4 @@ Scribble.InputManager = class InputManager {
 		this.cursor.x *= this.engine.width/rect.width;
 		this.cursor.y *= this.engine.height/rect.height;
 	}
-};
+}
