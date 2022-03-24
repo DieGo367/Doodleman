@@ -28,7 +28,8 @@ static_folders = [
   "animations",
   "data",
   "levels",
-  "res"
+  "res",
+  "src"
 ]
 
 def send404(msg=""):
@@ -40,24 +41,6 @@ def default404(e):
 @app.route("/")
 def game():
 	return send_file("index.html")
-
-@app.route("/src/<path:subpath>.js")
-def collect_scripts(subpath):
-	path = f"src/{subpath}"
-	final_name = subpath.split("/")[-1] + ".js"
-	if subpath in os.listdir("src"):
-		if "order.txt" in os.listdir(path):
-			with open(f"{path}/order.txt") as order_file:
-				script_order = [script_name.strip() for script_name in order_file.readlines()]
-			script = ""
-			for filename in script_order:
-				with open(f"{path}/{filename}") as script_file:
-					script += script_file.read() + '\n'
-			return send_file(io.BytesIO(script.encode()),attachment_filename=final_name)
-		else:
-			return send404("File was missing configuration.")
-	else:
-		return send404("File was not found.")
 
 @app.route("/<folder>/<path:subpath>")
 def get_static(folder,subpath):
@@ -78,34 +61,16 @@ def get_static_list_new(folder):
 			ext = filename.split(".").pop()
 			if ext == "png":
 				paths.append("res/GUI/"+filename)
-	if folder == "sounds":
+	elif folder == "sounds":
 		for dirpath, _dirnames, filenames in os.walk("res/sounds"):
 			for filename in filenames:
 				path = os.path.join(dirpath,filename).replace('\\','/')
 				paths.append(path)
-	if folder == "animations":
-		for dirpath, _dirnames, filenames in os.walk("animations"):
+	elif folder in ["animations", "levels"]:
+		for dirpath, _dirnames, filenames in os.walk(folder):
 			for filename in filenames:
 				path = os.path.join(dirpath,filename).replace('\\','/')
 				paths.append(path)
-	if folder == "levels":
-		for dirpath, _dirnames, filenames in os.walk("levels"):
-			for filename in filenames:
-				path = os.path.join(dirpath,filename).replace('\\','/')
-				paths.append(path)
-	return jsonify(paths)
-
-@app.route("/imagelist.json")
-def get_preload_images():
-	paths = []
-	for filename in os.listdir("res"):
-		ext = filename.split(".").pop()
-		if ext == "png":
-			paths.append(filename)
-	for filename in os.listdir("res/GUI"):
-		ext = filename.split(".").pop()
-		if ext == "png":
-			paths.append("GUI/"+filename)
 	return jsonify(paths)
 
 @app.route("/favicon.ico")
@@ -118,7 +83,7 @@ def get_manifest():
 
 @app.route("/sw.js")
 def build_service_worker():
-	paths = ["/", "/scripts/scribble.js", "/scripts/doodleman.js", "/imagelist.json", "/favicon.ico", "/manifest.json"]
+	paths = ["/", "/favicon.ico", "/manifest.json"]
 	for dir in static_folders:
 		paths.append(f"/list/{dir}.json")
 		for dirpath, dirnames, filenames in os.walk(dir):

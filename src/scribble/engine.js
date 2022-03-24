@@ -1,3 +1,18 @@
+import { Game } from "./game.js";
+import { ImageManager } from "./images.js";
+import { SoundManager } from "./sounds.js";
+import { AnimationManager } from "./animations.js";
+import { LevelManager, BlankLevel } from "./level.js";
+import { ObjectManager } from "./object.js";
+import { Collision } from "./collision.js";
+import { Camera } from "./camera.js";
+import { InputManager } from "./input.js";
+import { Backgrounds } from "./backgrounds.js";
+import { FileLoader } from "./file.js";
+import { Debug } from "./debug.js";
+import { COLOR } from "./util.js";
+
+
 export class Engine {
 	constructor(divID, canvasWidth, canvasHeight, resources) {
 		// resource managers

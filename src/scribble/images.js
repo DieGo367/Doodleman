@@ -1,3 +1,6 @@
+import { ResourceManager } from "./resource.js";
+import { HiddenCanvas, SHAPE } from "./util.js";
+
 export class ImageManager extends ResourceManager {
 	constructor(engine) {
 		super(engine, "Images");

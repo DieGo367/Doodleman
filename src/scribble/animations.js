@@ -1,3 +1,6 @@
+import { ResourceManager } from "./resource.js";
+import { LEFT, RIGHT } from "./util.js";
+
 export class AnimationManager extends ResourceManager {
 	constructor(engine) {
 		super(engine, "Animations");

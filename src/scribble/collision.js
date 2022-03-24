@@ -1,3 +1,6 @@
+import { GameObject } from "./object.js";
+import { SHAPE, EDGE } from "./util.js";
+
 // TODO: projection push cancel?
 // TODO: chain pushing on lower levels?
 export const Collision = {

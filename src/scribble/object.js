@@ -1,3 +1,6 @@
+import { Collision } from "./collision.js";
+import { SHAPE, fillShape, RIGHT, COLOR } from "./util.js";
+
 export class ObjectManager {
 	constructor(engine) {
 		this.engine = engine;
@@ -319,7 +322,7 @@ Objects.Polygon = class Polygon extends GameObject {
 	}
 }
 
-Objects.Entity = class extends GameObject {
+Objects.Entity = class Entity extends GameObject {
 	constructor(x, y) {
 		super(x, y);
 		this.moveSpeed = 0;
