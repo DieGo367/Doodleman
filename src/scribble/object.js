@@ -1,5 +1,5 @@
 import * as Collision from "./collision.js";
-import { SHAPE, fillShape, RIGHT, COLOR } from "./util.js";
+import { SHAPE, fillShape, RIGHT, COLOR, Pt} from "./util.js";
 
 export class ObjectManager {
 	constructor(engine) {
