@@ -13,11 +13,11 @@ class DoodlemanGame extends Scribble.Game {
 		this.engine.setAirResistance(0.92);
 		this.engine.loadActorData("data/actors.json").then(() => {
 			this.engine.registerClasses(DMOs);
-			let url = new URL(window.location.href);
-			let level = url.searchParams.get("level");
-			if (level) this.engine.levels.set("levels/"+level+".json");
-			else this.engine.levels.set("levels/1st Platformy Level.json");
-			// this.tempTestBlocks();
+			// let url = new URL(window.location.href);
+			// let level = url.searchParams.get("level");
+			// if (level) this.engine.levels.set("levels/"+level+".json");
+			// else this.engine.levels.set("levels/1st Platformy Level.json");
+			this.tempTestBlocks();
 		});
 		document.addEventListener("mousemove", e => this.onmousemove(e));
 		document.addEventListener("click", e => this.onclick(e));

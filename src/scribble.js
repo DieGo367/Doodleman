@@ -4,7 +4,7 @@ import {
 } from "./scribble/util.js";
 import { Engine } from "./scribble/engine.js";
 import { ResourceManager } from "./scribble/resource.js";
-import { Collision } from "./scribble/collision.js";
+import * as Collision from "./scribble/collision.js";
 import { ObjectManager, GameObject, Objects } from "./scribble/object.js";
 import { Game } from "./scribble/game.js";
 import { ImageManager } from "./scribble/images.js";

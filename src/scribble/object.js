@@ -1,4 +1,4 @@
-import { Collision } from "./collision.js";
+import * as Collision from "./collision.js";
 import { SHAPE, fillShape, RIGHT, COLOR } from "./util.js";
 
 export class ObjectManager {
