@@ -5,19 +5,19 @@ export class Backgrounds {
 		this.minLayer = this.maxLayer = 0;
 		this.rawBGs = 0;
 	}
-	load(background) {
+	async load(background) {
 		let bg = Object.assign({tick: 0}, background);
 		this.bgs.push(bg);
 		this.minLayer = Math.min(this.minLayer, bg.layer);
 		this.maxLayer = Math.max(this.maxLayer, bg.layer);
 		if (bg.type === "name") {
 			if (!this.engine.images.has(bg.name)) {
-				this.engine.images.load(bg.name);
+				await this.engine.images.load(bg.name);
 			}
 		}
 		else if (bg.type === "raw") {
 			bg.name = "Raw:" + this.rawBGs;
-			this.engine.images.loadB64(bg.name, bg.raw);
+			await this.engine.images.loadB64(bg.name, bg.raw);
 			this.rawBGs++;
 		}
 	}

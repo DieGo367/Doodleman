@@ -38,6 +38,7 @@ export class Engine {
 		this.div.appendChild(this.canvas);
 		this.ctx = this.images.ctx = this.backgrounds.ctx = this.canvas.getContext("2d");
 		// state
+		this.levelReady = true;
 		this.paused = false;
 		this.gravity = {x: 0, y: 0};
 		this.friction = 0.9;
@@ -112,7 +113,7 @@ export class Engine {
 		}, this.tickSpeed);
 	}
 	canUpdate() {
-		return !this.paused && (this.debug.frameStepper != this.debug.frameCanStep);
+		return this.levelReady && !this.paused && (this.debug.frameStepper != this.debug.frameCanStep);
 	}
 	_run() {
 		this.debug.update();
@@ -144,7 +145,7 @@ export class Engine {
 		this.ctx.save();
 		this.ctx.scale(density, density);
 		// render passes
-		this._renderLevel();
+		if (this.levelReady) this._renderLevel();
 		this._renderUI();
 		// finished
 		this.ctx.restore();

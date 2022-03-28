@@ -21,29 +21,30 @@ export class LevelManager extends ResourceManager {
 		});
 	}
 	async set(level) {
+		this.engine.levelReady = false;
 		let data;
 		if (typeof level === "string") {
-			data = await (await fetch(level)).json();
+			data = await this.engine.requestData(level);
 		}
 		else if (typeof level === "object") data = level;
-		else return console.error("Unable to load type "+(typeof level)+" as a level.")
+		else throw new Error("Unable to load type "+(typeof level)+" as a level.")
 
 		await this.updateLevel(data);
 		this.clear();
-		// send over network
+		// TODO: send over network
 		Object.assign(this.engine.level, data);
 		this._loadTerrain(data.terrain);
 		this._loadActors(data.actors);
-		this._loadBackgrounds(data.bg);
-		// reset camera
+		await this._loadBackgrounds(data.bg);
+		this.engine.camera.reset();
+		this.engine.levelReady = true;
 		this.engine.game.onLevelLoad();
 		console.log("Loaded Level "+data.name);
 	}
 	clear() {
-		// TODO: comments
 		this.engine.objects.removeAll();
 		this.engine.backgrounds.clearAll();
-		// update sectors
+		// TODO: update sectors
 		this.engine.level = Object.assign({}, BlankLevel);
 		this.engine.camera.reset();
 	}
@@ -100,10 +101,12 @@ export class LevelManager extends ResourceManager {
 			}
 		}
 	}
-	_loadBackgrounds(list) {
+	async _loadBackgrounds(list) {
+		let promises = [];
 		if (list) for (let i = 0; i < list.length; i++) {
-			if (list[i]) this.engine.backgrounds.load(list[i]);
+			if (list[i]) promises.push(this.engine.backgrounds.load(list[i]));
 		}
+		await Promise.all(promises);
 	}
 	async updateLevel(data) {
 		if (data._version_ == BlankLevel._version_) return;
