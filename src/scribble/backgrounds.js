@@ -16,9 +16,8 @@ export class Backgrounds {
 			}
 		}
 		else if (bg.type === "raw") {
-			bg.name = "Raw:" + this.rawBGs;
+			bg.name = `raw:${this.rawBGs++}`;
 			await this.engine.images.loadB64(bg.name, bg.raw);
-			this.rawBGs++;
 		}
 	}
 	clearAll() {
@@ -39,8 +38,8 @@ export class Backgrounds {
 		let level = this.engine.level;
 		let cam = this.engine.camera;
 		this.forAll(bg => {
-			let img = this.engine.images.get(bg.name);
-			if (img && bg.layer == layer) {
+			if (this.engine.images.has(bg.name) && bg.layer == layer) {
+				let img = this.engine.images.get(bg.name);
 				let x = Math.max(0, cam.left());
 				let y = Math.max(0, cam.bottom());
 				let width = Math.min(level.width, cam.right()) - x;
