@@ -17,13 +17,6 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 cors = CORS(app, resources={"/net/*":{"origins": "*"}})
 
-gamemodes = [
-  "title.js",
-  "editor.js",
-  "sandbox.js",
-  "survival.js",
-  "online-lobby.js"
-]
 static_folders = [
   "animations",
   "data",
@@ -91,7 +84,6 @@ def build_service_worker():
 				paths.append(f"/list/{dirpath}/{subpath}.json")
 			for filename in filenames:
 				paths.append("/"+os.path.join(dirpath,filename).replace("\\","/"))
-	str = ""
 	with open("sw.js") as file:
 		str = file.read()
 	str = str.replace('["staticFiles"]',f"{paths}")
@@ -140,7 +132,7 @@ def fire_append(path,value=None):
 		data.append(value)
 		print(data)
 		return fire_put(path,data)
-def fire_pop(path,value=None,index=-1):
+def fire_pop(path,index=-1):
 	data = fire_get(path)
 	if isinstance(data,list):
 		first = data.pop(index)
@@ -149,8 +141,8 @@ def fire_pop(path,value=None,index=-1):
 		else:
 			fire_put(path,data)
 		return {"data":first}
-def fire_popleft(path,value=None):
-	return fire_pop(path,value,0)
+def fire_popleft(path):
+	return fire_pop(path,0)
 
 # NET CODE
 
