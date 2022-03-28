@@ -118,7 +118,7 @@ class DoodlemanGame extends Scribble.Game {
 			this.follow.dx = this.follow.collision.dx = dx;
 			this.follow.dy = this.follow.collision.dy = dy;
 		}
-		if (event.pageX - rect.left < 0) this.engine.level.loadFromFile();
+		if (event.pageX - rect.left < 0) this.engine.levels.loadFromFile();
 	}
 	tempTestBlocks() {
 		this.engine.objects.add(new Scribble.Objects.Box(400, 200, 100, 150, "black"));
