@@ -13,20 +13,19 @@ export class ResourceManager {
 	has = name => this.map[name] !== void(0)
 	
 	_request = src => this.engine.request(src)
-	loadAs(name, src) {
+	async loadAs(name, src) {
 		this.loadingCount++;
-		return this._request(name, src).then(response => {
-			this.map[name] = response;
-			this.loadingCount--;
-			return response;
-		});
+		let response = await this._request(name, src);
+		this.map[name] = response;
+		this.loadingCount--;
+		return response;
 	}
 	load = name => this.loadAs(name, name)
-	loadList(list) {
-		let promises = [];
+	async loadList(list) {
+		let res = [];
 		for (let i = 0; i < list.length; i++) {
-			promises.push(this.load(list[i]));
+			res.push(this.load(list[i]));
 		}
-		return Promise.all(promises);
+		return await Promise.all(res);
 	}
 }

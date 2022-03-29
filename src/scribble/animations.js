@@ -6,13 +6,13 @@ export class AnimationManager extends ResourceManager {
 		super(engine, "Animations");
 	}
 	_request = src => this.engine.requestData(src)
-	loadAs(name, src) {
-		return super.loadAs(name, src).then(data => {
-			return this.map[name] = new AnimationSheet(name, data);
-		});
+	async loadAs(name, src) {
+		let data = await super.loadAs(name, src);
+		return this.map[name] = new AnimationSheet(name, data);
 	}
-	loadList(list) {
-		return super.loadList(list).then(() => this.inheritance());
+	async loadList(list) {
+		await super.loadList(list);
+		this.inheritance();
 	}
 	inheritance() {
 		for (let name in this.map) {

@@ -11,19 +11,17 @@ export class ImageManager extends ResourceManager {
 		if (this.useFlipped) return img.flipped;
 		else return img;
 	}
-	loadAs(name, src) {
+	async loadAs(name, src) {
 		this.loadingCount++;
-		return new Promise((resolve, reject) => {
+		let img = await new Promise((resolve, reject) => {
 			let img = new Image();
-			img.addEventListener("load", () => {
-				this.map[name] = img;
-				this.loadingCount--;
-				this.makeFlipped(img);
-				resolve(img);
-			});
-			img.addEventListener("error", err => reject(err.type));
+			img.onload = () => resolve(img);
+			img.onerror = err => reject(err.type);
 			img.src = src;
 		});
+		this.map[name] = img;
+		this.makeFlipped(img);
+		this.loadingCount--;
 	}
 	loadB64 = (name, b64) => this.loadAs(name, `data:image/*;base64, ${b64}`)
 	makeFlipped(img) {
