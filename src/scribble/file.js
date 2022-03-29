@@ -2,70 +2,59 @@ export class FileLoader {
 	constructor() {
 		this.input = document.createElement("input");
 		this.input.type = "file";
-		this.input.onchange = event => this.onChange(event);
-		window.addEventListener("focus", () => this.onLostFocus());
+		window.addEventListener("focus", () => {
+			if (typeof this.onLostFocus === "function") {
+				this.onLostFocus();
+			}
+		});
 		this.asking = false;
-		this.success = null;
-		this.failure = null;
-		this.extensions = [];
 		this.changeFired = false;
 	}
-	ask(extensions, success, failure) {
+	async ask(extensions) {
+		// make sure another request isn't already happening
 		if (this.asking) {
-			return console.error("Already asking for a File");
+			throw new Error("Already asking for a File");
 		}
-		if (extensions instanceof Array) {
-			this.extensions = extensions;
-			if (extensions.length > 0) {
-				this.input.accept = '.' + extensions.join(",.");
-			}
-		}
-		if (typeof success === "function") this.success = success;
-		if (typeof failure === "function") this.failure = failure;
 		this.asking = true;
-		this.input.click();
-	}
-	onLostFocus() {
-		if (this.asking) {
-			setTimeout(() => {
-				if (this.asking && !this.changeFired) this.error("No file selected.");
+		// set preferred extensions
+		if (extensions instanceof Array && extensions.length > 0) {
+			this.input.accept = '.' + extensions.join(",.");
+		}
+		// promisified FileList getter
+		let fileList = await new Promise((resolve, reject) => {
+			this.input.onchange = event => {
+				this.changeFired = true;
+				resolve(event.target.files);
+			};
+			this.input.onerror = err => reject(err.type);
+			this.onLostFocus = () => setTimeout(() => {
+				if (this.asking && !this.changeFired) reject("No file selected.");
 			}, 1000);
-		}
-	}
-	onChange(event) {
-		this.changeFired = true;
-		if (this.asking) {
-			if (window.File && window.FileReader && window.FileList && window.Blob) {
-				let file = event.target.files[0];
-				if (file) {
-					let ext = file.name.split(".").pop();
-					if (this.extensions.indexOf(ext) !== -1) {
-						let reader = new FileReader;
-						reader.onload = e => {
-							if (this.success) this.success(e.target.result, file);
-							this.finish();
-						}
-						reader.readAsText(file);
-					}
-					else this.error("Incorrect file type!");
-				}
-				else this.error("No file selected.")
-			}
-			else this.error("Unsupported browser");
-		}
-	}
-	error(msg) {
-		if (this.failure) this.failure(msg);
-		else console.error(msg);
-		this.finish();
-	}
-	finish() {
+			this.input.click();
+		});
+		// finish up
 		this.asking = false;
-		this.success = this.failure = null;
-		this.extensions = [];
 		this.changeFired = false;
 		this.input.type = "text";
 		this.input.type = "file";
 		this.input.accept = '';
+		return fileList;
+	}
+	async askText(extensions) {
+		let fileList = await this.ask(extensions);
+		let texts = [];
+		for (let i = 0; i < fileList.length; i++) {
+			let reader = new FileReader;
+			texts.push(new Promise((resolve, reject) => {
+				reader.onload = event => resolve(event.target.result);
+				reader.onerror = err => reject(err.type);
+			}));
+			reader.readAsText(fileList[i]);
+		}
+		return await Promise.all(texts);
+	}
+	async askData(extensions) {
+		let texts = await this.askText(extensions);
+		return texts.map(value => JSON.parse(value));
 	}
 }

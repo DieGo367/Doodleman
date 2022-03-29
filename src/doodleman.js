@@ -15,8 +15,8 @@ class DoodlemanGame extends Scribble.Game {
 			this.engine.registerClasses(DMOs);
 			let url = new URL(window.location.href);
 			let level = url.searchParams.get("level");
-			if (level) this.engine.levels.set("levels/"+level+".json");
-			else this.engine.levels.set("levels/1st Platformy Level.json");
+			if (level) this.engine.levels.open("levels/"+level+".json");
+			else this.engine.levels.open("levels/1st Platformy Level.json");
 			// this.tempTestBlocks();
 		});
 		document.addEventListener("mousemove", e => this.onmousemove(e));
@@ -118,7 +118,7 @@ class DoodlemanGame extends Scribble.Game {
 			this.follow.dx = this.follow.collision.dx = dx;
 			this.follow.dy = this.follow.collision.dy = dy;
 		}
-		if (event.pageX - rect.left < 0) this.engine.levels.loadFromFile();
+		if (event.pageX - rect.left < 0) this.engine.levels.openFromFile();
 	}
 	tempTestBlocks() {
 		this.engine.objects.add(new Scribble.Objects.Box(400, 200, 100, 150, "black"));

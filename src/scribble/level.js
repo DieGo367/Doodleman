@@ -7,29 +7,19 @@ export class LevelManager extends ResourceManager {
 		super(engine, "Levels");
 	}
 	_request = src => this.engine.requestData(src)
-	loadFromFile() {
-		this.engine.file.ask(["json"], (data, file) => {
-			let json;
-			try {
-				json = JSON.parse(data);
-			}
-			catch(e) {console.error(e)};
-			if (json) this.set(json);
-		},
-		(msg) => {
-			console.log("Well that didn't work... ("+msg+")");
-		});
-	}
-	async set(level) {
-		this.engine.levelReady = false;
-		let data;
-		if (typeof level === "string") {
-			data = await this.engine.requestData(level);
+	async loadFileInput() {
+		this.loadingCount++;
+		let dataList = await this.engine.file.askData(["json"]);
+		for (let i = 0; i < dataList.length; i++) {
+			this.map[`file:${i}`] = dataList[i];
 		}
-		else if (typeof level === "object") data = level;
-		else throw new Error("Unable to load type "+(typeof level)+" as a level.")
-
-		await this.updateLevel(data);
+		this.loadingCount--;
+	}
+	async open(level) {
+		this.engine.levelReady = false;
+		if (!this.has(level)) await this.load(level);
+		let data = this.get(level);
+		this.updateLevel(data);
 		this.clear();
 		// TODO: send over network
 		Object.assign(this.engine.level, data);
@@ -39,7 +29,15 @@ export class LevelManager extends ResourceManager {
 		this.engine.camera.reset();
 		this.engine.levelReady = true;
 		this.engine.game.onLevelLoad();
-		console.log("Loaded Level "+data.name);
+		console.log(`Loaded Level ${data.name | level}`);
+	}
+	async openFromData(data) {
+		this.map["data:"] = data;
+		await this.open("data:");
+	}
+	async openFromFile() {
+		await this.loadFileInput();
+		await this.open("file:0");
 	}
 	clear() {
 		this.engine.objects.removeAll();
@@ -108,7 +106,7 @@ export class LevelManager extends ResourceManager {
 		}
 		await Promise.all(promises);
 	}
-	async updateLevel(data) {
+	updateLevel(data) {
 		if (data._version_ == BlankLevel._version_) return;
 		switch(data._version_) {
 			case void(0):
@@ -252,10 +250,6 @@ export const BlankLevel = {
 	zoomScale: 1,
 	minZoom: 1,
 	maxZoom: 1,
-	playerSpawns: [
-		{x: 20, y: 310, direction: RIGHT},
-		{x: 620, y: 310, direction: LEFT}
-	],
 	actors: [],
 	terrain: [],
 	bg: [
