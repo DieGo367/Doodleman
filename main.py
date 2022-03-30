@@ -22,7 +22,7 @@ static_folders = [
   "data",
   "levels",
   "res",
-  "src"
+  "modules"
 ]
 
 def send404(msg=""):
