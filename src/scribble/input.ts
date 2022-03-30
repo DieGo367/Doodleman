@@ -1,15 +1,15 @@
 export class InputManager {
-	constructor(engine) {
+	keys = {};
+	keyPrev = {};
+	keyPrevGame = {};
+	cursor = {
+		x: 0, y: 0,
+		buttons: {},
+		buttonsPrev: {},
+		buttonsPrevGame: {}
+	};
+	constructor(public engine) {
 		this.engine = engine;
-		this.keys = {};
-		this.keyPrev = {};
-		this.keyPrevGame = {};
-		this.cursor = {
-			x: 0, y: 0,
-			buttons: {},
-			buttonsPrev: {},
-			buttonsPrevGame: {}
-		};
 		document.addEventListener("keydown", event => this._handle_key(event, true));
 		document.addEventListener("keyup", event => this._handle_key(event, false));
 		document.addEventListener("mousemove", event => this._handle_mouse(event));

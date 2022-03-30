@@ -1,10 +1,12 @@
 import { ResourceManager } from "./resource.js";
 import { HiddenCanvas, SHAPE } from "./util.js";
+import * as Collision from "./collision.js";
 
 export class ImageManager extends ResourceManager {
+	useFlipped = false;
+	ctx;
 	constructor(engine) {
 		super(engine, "Images");
-		this.useFlipped = false;
 	}
 	get(name) {
 		let img = super.get(name);
@@ -16,7 +18,7 @@ export class ImageManager extends ResourceManager {
 		let img = await new Promise((resolve, reject) => {
 			let img = new Image();
 			img.onload = () => resolve(img);
-			img.onerror = err => reject(err.type);
+			img.onerror = (err: Event) => reject(err.type);
 			img.src = src;
 		});
 		this.map[name] = img;

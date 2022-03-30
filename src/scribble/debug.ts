@@ -1,12 +1,10 @@
 export class Debug {
-	constructor(engine) {
-		this.engine = engine;
-		this.enabled = false;
-		this.lines = [];
-		this.dict = {};
-		this.frameStepper = true;
-		this.frameCanStep = false;
-	}
+	enabled = false;
+	lines = [];
+	dict = {};
+	frameStepper = true;
+	frameCanStep = false;
+	constructor(public engine) {}
 	toggle() {
 		this.enabled = !this.enabled;
 	}

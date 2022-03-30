@@ -1,4 +1,8 @@
 export class FileLoader {
+	input;
+	asking = false;
+	changeFired = false;
+	onLostFocus;
 	constructor() {
 		this.input = document.createElement("input");
 		this.input.type = "file";
@@ -7,8 +11,6 @@ export class FileLoader {
 				this.onLostFocus();
 			}
 		});
-		this.asking = false;
-		this.changeFired = false;
 	}
 	async ask(extensions) {
 		// make sure another request isn't already happening
@@ -41,7 +43,7 @@ export class FileLoader {
 		return fileList;
 	}
 	async askText(extensions) {
-		let fileList = await this.ask(extensions);
+		let fileList: any = await this.ask(extensions);
 		let texts = [];
 		for (let i = 0; i < fileList.length; i++) {
 			let reader = new FileReader;

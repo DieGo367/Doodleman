@@ -11,8 +11,9 @@ export class AnimationManager extends ResourceManager {
 		return this.map[name] = new AnimationSheet(name, data);
 	}
 	async loadList(list) {
-		await super.loadList(list);
+		let results = await super.loadList(list);
 		this.inheritance();
+		return results;
 	}
 	inheritance() {
 		for (let name in this.map) {
@@ -165,9 +166,10 @@ export class AnimationManager extends ResourceManager {
 };
 
 export class AnimationSheet {
-	constructor(filename, data) {
+	extends;
+	animations;
+	constructor(public name, data) {
 		Object.assign(this, data);
-		this.name = filename;
 	}
 	extend(map) {
 		let source = map[this.extends];
@@ -188,9 +190,5 @@ export class AnimationSheet {
 }
 
 export class AnimationComponent {
-	constructor(x, y, sheetName) {
-		this.x = x;
-		this.y = y;
-		this.name = sheetName;
-	}
+	constructor(public x, public y, public name) {}
 }

@@ -1,10 +1,13 @@
 import * as Scribble from './scribble.js';
+declare global {
+	var collisionLevel;
+}
 
 class DoodlemanGame extends Scribble.Game {
-	constructor(engine) {
-		super(engine);
-		this.mode = null;
-	}
+	mode = null;
+	follow;
+	mouseX;
+	mouseY;
 	init() {
 		// called when first loaded
 		this.engine.setSpeed(1000/60);
@@ -84,7 +87,7 @@ class DoodlemanGame extends Scribble.Game {
 	}
 	onRenderUI(ctx) {
 		// graphics drawn every window animation frame
-		super.onRenderUI();
+		super.onRenderUI(ctx);
 		ctx.fillStyle = "gray";
 		ctx.globalAlpha = 0.5;
 		ctx.beginPath();
@@ -138,13 +141,11 @@ class DoodlemanGame extends Scribble.Game {
 }
 
 
-const DMOs = {};
+const DMOs = {} as any;
 
 DMOs.Doodleman = class extends Scribble.Objects.Entity {
-	constructor(x, y, slot, direction) {
+	constructor(x, y, public slot, public direction) {
 		super(x, y);
-		this.slot = slot;
-		this.direction = direction;
 		this.collision = {
 			type: Scribble.SHAPE.BOX,
 			level: 0,
@@ -152,6 +153,18 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 			width: 19, height: 44
 		};
 		this.animator = new Scribble.AnimationComponent(0, 0, "animations/Doodleman.json");
+		delete this.drawLayer;
+		delete this.feelsGravity;
+		delete this.terminalVel;
+		delete this.normalMoveSpeed;
+		delete this.slowMoveSpeed;
+		delete this.targetMoveSpeed;
+		delete this.moveAccel;
+		delete this.jumpAccel;
+		delete this.jumpCancelTime;
+		delete this.jumpCancelAccel;
+		delete this.maxHealth;
+		delete this.knockBack;
 	}
 	static proto() {
 		super.proto();
@@ -186,7 +199,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 		engine.debug.print("X: " + Math.round(this.x) + ", Y: " + Math.round(this.y));
 	}
 	finish(engine) {
-		this.chooseAnimation(engine);
+		this.chooseAnimation();
 		super.finish(engine);
 	}
 	controls(engine) {
@@ -235,7 +248,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 		return this.isGrounded;
 	}
 	cancelJump() {
-		let currentJumpVel = this.jumpAccel + engine.gravity.y * (this.jumpFrame);
+		let currentJumpVel = this.jumpAccel + this.objectManager.engine.gravity.y * (this.jumpFrame);
 		// cancel the remaining velocity of the current jump and add some final compensation
 		this.velY += -currentJumpVel + this.jumpCancelAccel;
 		this.jumpFrame = 0;
@@ -331,10 +344,8 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 };
 
 DMOs.SpawnPoint = class extends Scribble.GameObject {
-	constructor(x, y, slot, direction) {
+	constructor(x, y, public slot, public direction) {
 		super(x, y);
-		this.slot = slot;
-		this.direction = direction;
 		let color = ["Blue", "Red", "Green", "Yellow"][slot % 4];
 		let sheet = "animations/" + color + "man.json";
 		this.animator = new Scribble.AnimationComponent(0, 0, sheet);
@@ -360,12 +371,11 @@ DMOs.SpawnPoint = class extends Scribble.GameObject {
 
 
 DMOs.Marker = class extends Scribble.GameObject {
-	constructor(x, y, name) {
+	constructor(x, y, public name) {
 		super(x, y);
-		this.name = name;
 	}
-	drawDebug(ctx) {
-		super.drawDebug(ctx);
+	drawDebug(ctx, i, a) {
+		super.drawDebug(ctx, i, a);
 		ctx.fillStyle = "yellow";
 		ctx.font = "10px Consolas";
 		ctx.textAlign = "center";
@@ -388,6 +398,9 @@ DMOs.PaintMan = class extends Scribble.Objects.Entity {
 			width: 19, height: 44
 		};
 		this.animator = new Scribble.AnimationComponent(0, 0, "animations/PaintMinion.json");
+		delete this.feelsGravity;
+		delete this.terminalVel;
+		delete this.maxHealth;
 	}
 	static proto() {
 		super.proto();
@@ -428,8 +441,9 @@ DMOs.Door = class extends Scribble.GameObject {
 	constructor(x, y, entranceID, destID, preventEnter, preventExit, destLevel) {
 		super(x, y);
 		this.animator = new Scribble.AnimationComponent(0, 0, "animations/Door.json");
+		delete this.drawLayer;
 	}
-	static proto() {
+	static proto(this) {
 		this.drawLayer = -1;
 	}
 };
@@ -449,8 +463,9 @@ DMOs.Box201 = class extends Scribble.GameObject {
 			width: 50, height: 40,
 			style: "res/Box201.png"
 		};
+		delete this.feelsGravity;
 	}
-	static proto() {
+	static proto(this) {
 		super.proto();
 		this.feelsGravity = true;
 	}

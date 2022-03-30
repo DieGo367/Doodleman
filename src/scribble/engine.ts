@@ -14,6 +14,33 @@ import { COLOR } from "./util.js";
 
 
 export class Engine {
+	images;
+	sounds;
+	animations;
+	levels;
+	level;
+	objects;
+	camera;
+	input;
+	backgrounds;
+	file;
+	debug;
+	div;
+	canvas;
+	width;
+	height;
+	ctx;
+	levelReady;
+	paused;
+	gravity;
+	friction;
+	frictionSnap;
+	airResistance;
+	readyFunc;
+	loadingCompleted;
+	game;
+	tickSpeed;
+	interval;
 	constructor(divID, canvasWidth, canvasHeight, resources) {
 		// resource managers
 		this.images = new ImageManager(this);

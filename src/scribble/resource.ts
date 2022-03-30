@@ -1,10 +1,7 @@
 export class ResourceManager {
-	constructor(engine, name) {
-		this.engine = engine;
-		this.name = name || "Unknown Resource Manager";
-		this.map = {};
-		this.loadingCount = 0;
-	}
+	map = {};
+	loadingCount = 0;
+	constructor(public engine, public name = "Unknown Resource Manager") {}
 
 	get(name) {
 		if (this.map[name]) return this.map[name];
@@ -15,7 +12,7 @@ export class ResourceManager {
 	_request = src => this.engine.request(src)
 	async loadAs(name, src) {
 		this.loadingCount++;
-		let response = await this._request(name, src);
+		let response = await this._request(src);
 		this.map[name] = response;
 		this.loadingCount--;
 		return response;

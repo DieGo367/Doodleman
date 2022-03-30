@@ -25,7 +25,7 @@ export const SHAPE = {
 	POINT: "pt", ARC: "arc", BOX: "box", CIRCLE: "circle", LINE: "line", POLYGON: "polygon"
 };
 
-export function Pt(x, y) {
+export function Pt(x, y?) {
 	if (x.x !== void(0) && x.y !== void(0)) {
 		this.x = x.x;
 		this.y = x.y;
@@ -87,6 +87,9 @@ export function fillShape(ctx, x, y, shape) {
 		ctx.fill();
 	}
 	else console.warn("Unknown drawing shape");
+}
+declare global {
+	var OffscreenCanvas;
 }
 export function HiddenCanvas(width, height) {
 	if ("OffscreenCanvas" in window) {

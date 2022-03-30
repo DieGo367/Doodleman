@@ -1,10 +1,9 @@
 export class Backgrounds {
-	constructor(engine) {
-		this.engine = engine;
-		this.bgs = [];
-		this.minLayer = this.maxLayer = 0;
-		this.rawBGs = 0;
-	}
+	bgs = [];
+	minLayer = 0;
+	maxLayer = 0;
+	rawBGs = 0;
+	constructor(public engine) {}
 	async load(background) {
 		let bg = Object.assign({tick: 0}, background);
 		this.bgs.push(bg);

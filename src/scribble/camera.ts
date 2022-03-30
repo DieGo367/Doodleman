@@ -1,13 +1,7 @@
 export class Camera {
-	constructor(engine, x, y, width, height) {
-		this.engine = engine;
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
-		this.zoom = 1;
-		this.snapDistance = 1;
-	}
+	zoom = 1;
+	snapDistance = 1;
+	constructor(public engine, public x, public y, public width, public height) {}
 	
 	right = () => this.x + this.width/2;
 	left = () => this.x - this.width/2;

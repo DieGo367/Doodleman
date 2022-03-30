@@ -1,9 +1,7 @@
 export class Game {
-	constructor(engine) {
-		this.engine = engine;
-	}
+	constructor(public engine) {}
 	init() {}
 	tick() {}
-	onRenderUI() {}
+	onRenderUI(_ctx) {}
 	onLevelLoad() {}
-};
+}

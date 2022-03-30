@@ -93,7 +93,7 @@ export function run(objectMap, gravity, level) {
  */
 export function getCollider(obj) {
 	// make a copy of the collider shape, with helper structures for the collision process
-	let shape = {
+	let shape: any = {
 		owner: obj,
 		hit: false,
 		pushVector: {x: 0, y: 0, count: 0},
@@ -437,7 +437,7 @@ export function getShapeBottoms(shape, gravity) {
 		for (let i = 0; i < shape.points.length; i++) {
 			let v1 = sum(shape, shape.points[i]);
 			let v2 = sum(shape, shape.points[(i + 1) % shape.points.length]);
-			let edge = makeLine(v1, v2);
+			let edge: any = makeLine(v1, v2);
 			edge.type = SHAPE.LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
 			if (dot(normal, gravity) > 0) {
@@ -505,7 +505,7 @@ export function getShapeTops(shape, gravity) {
 		for (let i = 0; i < shape.points.length; i++) {
 			let v1 = sum(shape, shape.points[i]);
 			let v2 = sum(shape, shape.points[(i + 1) % shape.points.length]);
-			let edge = makeLine(v1, v2);
+			let edge: any = makeLine(v1, v2);
 			edge.type = SHAPE.LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
 			if (dot(normal, gravity) < 0) {
@@ -1114,9 +1114,9 @@ export const Resolve = {
 			return this.circleCircle(circle, corner);
 		}
 	},
-	circleLine(circle, line, skipCheck) {
+	circleLine(circle, line, skipCheck?) {
 		if (skipCheck || lineSidePassCheck(line, circle)) {
-			let target = project(circle, line);
+			let target: any = project(circle, line);
 			let [u, v] = lineEnds(line);
 			if (!Intersect.ptLine(target, line)) {
 				if (Intersect.ptCircle(u, circle)) target = u;
@@ -1208,7 +1208,7 @@ export const Resolve = {
 			let oDist = 0;
 
 			// first, check box corners
-			let corners = [
+			let corners: any[] = [
 				{x: box.x, y: box.y},
 				{x: box.x + box.width, y: box.y},
 				{x: box.x + box.width, y: box.y + box.height},
@@ -1281,7 +1281,7 @@ export const Resolve = {
 			// find intersection point
 			let ma = a.dy / a.dx;
 			let mb = b.dy / b.dx;
-			let intersect = {};
+			let intersect: any = {};
 			if (ma === Infinity) {
 				if (mb === Infinity) return (a.x >= b.x - EPS && a.x <= b.x + EPS);
 				else {

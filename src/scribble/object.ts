@@ -1,15 +1,16 @@
 import * as Collision from "./collision.js";
 import { SHAPE, fillShape, RIGHT, COLOR, Pt} from "./util.js";
+import { AnimationComponent } from "./animations.js";
 
 export class ObjectManager {
-	constructor(engine) {
-		this.engine = engine;
-		this.map = {};
-		this.nextID = 0;
-		this.actorData = {};
-		this.registeredClasses = {};
+	map = {};
+	nextID = 0;
+	actorData = {};
+	registeredClasses = {};
+	minLayer = 0;
+	maxLayer = 0;
+	constructor(public engine) {
 		this.registerClasses(Objects);
-		this.minLayer = this.maxLayer = 0;
 	}
 	async loadActorData(url) {
 		let data = await (await fetch(url)).json();
@@ -98,13 +99,30 @@ export class ObjectManager {
 }
 
 export class GameObject {
-	constructor(x, y) {
-		this.x = x;
-		this.y = y;
-		this.velX = 0;
-		this.velY = 0;
+	collisions;
+	grounds;
+	velX = 0;
+	velY = 0;
+	id;
+	objectManager;
+	animator;
+	feelsGravity;
+	isGrounded;
+	gravityScale;
+	terminalVel;
+	lastX;
+	lastY;
+	lastVelX;
+	lastVelY;
+	graphic;
+	collision;
+	drawLayer;
+	constructor(public x, public y) {
+		delete this.drawLayer;
+		delete this.gravityScale;
+		delete this.terminalVel;
 	}
-	static proto() {
+	static proto(this) {
 		this.drawLayer = 0;
 		this.gravityScale = 1;
 		this.terminalVel = null;
@@ -187,7 +205,7 @@ export class GameObject {
 	}
 	drawElements() {}
 	drawUI() {}
-	drawDebug(ctx) {
+	drawDebug(ctx, _images, _animations) {
 		ctx.fillStyle = "gray";
 		ctx.globalAlpha = 0.5;
 		ctx.beginPath();
@@ -233,7 +251,7 @@ export class GameObject {
 	}
 }
 
-export const Objects = {};
+export const Objects = {} as any;
 Objects.Box = class Box extends GameObject {
 	constructor(x, y, width, height, gfx) {
 		super(x, y);
@@ -323,16 +341,33 @@ Objects.Polygon = class Polygon extends GameObject {
 }
 
 Objects.Entity = class Entity extends GameObject {
+	moveSpeed = 0;
+	moveDir = 1;
+	lastMoveDir = 1;
+	moved = false;
+	health;
+	maxHealth;
+	hitboxes = {};
+	lockMovement;
+	moveAccel;
+	targetMoveSpeed;
+	lockDirection;
+	direction;
+	jumpAccel;
+	actionLock;
+	currentAction;
+	actionFrame;
+
 	constructor(x, y) {
 		super(x, y);
-		this.moveSpeed = 0;
-		this.moveDir = 1;
-		this.lastMoveDir = 1;
-		this.moved = false;
+		delete this.maxHealth;
+		delete this.drawLayer;
+		delete this.targetMoveSpeed;
+		delete this.moveAccel;
+		delete this.jumpAccel;
 		this.health = this.maxHealth;
-		this.hitboxes = {};
 	}
-	static proto() {
+	static proto(this) {
 		super.proto();
 		this.drawLayer = 1;
 		this.targetMoveSpeed = 5;
@@ -493,8 +528,8 @@ Objects.Entity = class Entity extends GameObject {
 		this.remove();
 	}
 
-	drawDebug(ctx) {
-		super.drawDebug(ctx);
+	drawDebug(ctx, i, a) {
+		super.drawDebug(ctx, i, a);
 		for (let hitboxName in this.hitboxes) {
 			let hitbox = this.hitboxes[hitboxName];
 			if (hitbox && hitbox.shape) {
