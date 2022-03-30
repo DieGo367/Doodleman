@@ -8,7 +8,6 @@ from oauth2client.client import GoogleCredentials
 from threading import Thread
 from flask import Flask
 from flask import jsonify
-from flask import render_template
 from flask import request
 from flask import send_file
 from flask import send_from_directory
@@ -26,7 +25,7 @@ static_folders = [
 ]
 
 def send404(msg=""):
-	return render_template("404.html",msg=msg), 404
+	return msg, 404
 @app.errorhandler(404)
 def default404(e):
 	return send404("Page not found")
