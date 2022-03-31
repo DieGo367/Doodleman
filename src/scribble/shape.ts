@@ -1,3 +1,4 @@
+import { scale, mag, sum, diff, dot } from "./point_math.js";
 import { never } from "./util.js";
 
 export const POINT = "point";
@@ -61,14 +62,145 @@ export function Box(x: number, y: number, width: number, height: number): Box {
 export function Arc(x: number, y: number, radius: number, start: number, end: number): Arc {
 	return {x: x, y: y, radius: radius, start: start, end: end};
 }
-export function Line(x: number, y: number, dx: number, dy: number): Line {
-	return {x: x, y: y, dx: dx, dy: dy};
+export function Line(x: number, y: number, dx: number, dy: number): Line;
+export function Line(a: Point, b: Point): Line;
+export function Line(x: number | Point, y: number | Point, dx?: number, dy?: number): Line {
+	if (typeof x === "number" && typeof y === "number")
+		return {x: x, y: y, dx: dx, dy: dy};
+	else if (typeof x === "object" && typeof y === "object")
+		return {x: x.x, y: x.y, dx: y.x - x.x, dy: y.y - x.y};
+	else throw new TypeError("Arguments must be of same type");
 }
 export function Polygon(x: number, y: number, points: Point[]): Polygon {
 	return {x: x, y: y, points: points};
 }
 
-// utility functions
+export function boxCenter(box: Box): Point {
+	return {x: box.x + box.width/2, y: box.y + box.height/2};
+}
+export function lineCenter(line: Line): Point {
+	return {x: line.x + line.dx/2, y: line.y + line.dy/2};
+}
+export function polygonCenter(poly: Polygon): Point {
+	let avg = scale(sum(...poly.points), 1/poly.points.length);
+	return sum(poly, avg);
+}
+export function center(shape: Shape): Point {
+	if (shape.type === POINT || shape.type == CIRCLE) return Pt(shape);
+	else if (shape.type === BOX) return boxCenter(shape);
+	else if (shape.type === LINE) return lineCenter(shape);
+	else if (shape.type === POLYGON) return polygonCenter(shape);
+	else never(shape);
+}
+
+export function extrema(shape: Shape, direction: Point): Point {
+	let pts: Point[] = [];
+	let mid: Point;
+	if (shape.type === POINT) return Pt(shape);
+	else if (shape.type === CIRCLE) {
+		let outward = scale(direction, shape.radius / mag(direction));
+		return sum(shape, outward);
+	}
+	else if (shape.type === BOX) {
+		pts = [
+			{x: 0, y: 0},
+			{x: shape.width, y: 0},
+			{x: 0, y: shape.height},
+			{x: shape.width, y: shape.height}
+		];
+		mid = {x: shape.width/2, y: shape.height/2};
+	}
+	else if (shape.type === LINE) {
+		pts = [
+			{x: 0, y: 0},
+			{x: shape.dx, y:  shape.dy}
+		];
+		mid = {x: shape.dx/2, y: shape.dy/2};
+	}
+	else if (shape.type === POLYGON) {
+		pts = shape.points;
+		mid = scale(sum(...shape.points), 1/shape.points.length);
+	}
+	else never(shape);
+
+	let max = 0;
+	let extrema: Point = null;
+	for (let pt of pts) {
+		let outward = diff(pt, mid);
+		let dp = dot(outward, direction);
+		if (dp > max) {
+			max = dp;
+			extrema = pt;
+		}
+	}
+	return sum(shape, extrema);
+}
+
+export function left(shape: Shape): number {
+	if (shape.type === POINT || shape.type === BOX) return shape.x;
+	else if (shape.type === CIRCLE) return shape.x - shape.radius;
+	else if (shape.type === LINE) return shape.x + (Math.min(shape.dx, 0));
+	else if (shape.type === POLYGON) return polygonAABB(shape).x;
+	else never(shape);
+}
+export function right(shape: Shape): number {
+	if (shape.type === POINT) return shape.x;
+	else if (shape.type === CIRCLE) return shape.x + shape.radius;
+	else if (shape.type === BOX) return shape.x + shape.width;
+	else if (shape.type === LINE) return shape.x + (Math.max(0, shape.dx));
+	else if (shape.type === POLYGON) {
+		let aabb = polygonAABB(shape);
+		return aabb.x + aabb.width;
+	}
+	else never(shape);
+}
+export function top(shape: Shape): number {
+	if (shape.type === POINT) return shape.y;
+	else if (shape.type === CIRCLE) return shape.y + shape.radius;
+	else if (shape.type === BOX) return shape.y + shape.height;
+	else if (shape.type === LINE) return shape.y + (Math.max(0, shape.dy));
+	else if (shape.type === POLYGON) {
+		let aabb = polygonAABB(shape);
+		return aabb.y + aabb.height;
+	}
+	else never(shape);
+}
+export function bottom(shape: Shape): number {
+	if (shape.type === POINT || shape.type === BOX) return shape.y;
+	else if (shape.type === CIRCLE) return shape.y - shape.radius;
+	else if (shape.type === LINE) return shape.y + (Math.min(shape.dy, 0));
+	else if (shape.type === POLYGON) return polygonAABB(shape).y;
+	else never(shape);
+}
+
+export function polygonAABB(poly: Polygon): Box {
+	let minX = 0;
+	let minY = 0;
+	let maxX = 0;
+	let maxY = 0;
+	for (let pt of poly.points) {
+		if (pt.x < minX) minX = pt.x;
+		if (pt.y < minY) minY = pt.y;
+		if (pt.x > maxX) maxX = pt.x;
+		if (pt.y > maxY) maxY = pt.y;
+	}
+	return {
+		x: poly.x + minX,
+		y: poly.y + minY,
+		width: maxX - minX,
+		height: maxY - minY
+	};
+}
+export function AABB(shape: Shape): Box {
+	// TODO: other cases
+	if (shape.type === POLYGON) return polygonAABB(shape);
+	// fallback when unimplemented
+	let l = left(shape);
+	let r = right(shape);
+	let t = top(shape);
+	let b = bottom(shape);
+	return Box(l, b, r-l, t-b);
+}
 
 export function flipX(shape: Shape) {
 	shape.x *= -1;

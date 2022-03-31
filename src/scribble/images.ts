@@ -55,21 +55,8 @@ export class ImageManager extends ResourceManager {
 	}
 	drawOverShape(name, x, y, shape) {
 		let img = this.get(name);
-
-		if (shape.type === Shape.BOX) {
-			this.ctx.drawImage(img, x + shape.x, y + shape.y, shape.width, shape.height);
-		}
-		else if (shape.type === Shape.CIRCLE) {
-			this.ctx.drawImage(img, x + shape.x - shape.radius, y + shape.y - shape.radius, 2 * shape.radius, 2 * shape.radius);
-		}
-		else if (shape.type === Shape.LINE) {
-			this.ctx.drawImage(img, x + shape.x, y + shape.y, x + shape.x + shape.dx, y + shape.y + shape.dy);
-		}
-		else if (shape.type === Shape.POLYGON) {
-			let aabb = Collision.polyAABB(shape);
-			this.ctx.drawImage(img, x + aabb.x, y + aabb.y, aabb.width, aabb.height);
-		}
-		else console.warn("Unknown drawing shape");
+		let aabb = Shape.AABB(shape);
+		this.ctx.drawImage(img, x + aabb.x, y + aabb.y, aabb.width, aabb.height);
 	}
 	/**
 	 * Fills a rectangle using an image as a canvas pattern.

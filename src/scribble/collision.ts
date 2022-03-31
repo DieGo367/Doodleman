@@ -1,12 +1,15 @@
 import { GameObject } from "./object.js";
 import { EDGE } from "./util.js";
+import { diff, dist, dot, mag, project, scale, sum, unit } from "./point_math.js";
 import {
 	POINT, type Point,
 	CIRCLE, type Circle,
 	BOX, type Box,
 	ARC, type Arc,
-	LINE, type Line,
-	POLYGON, type Polygon
+	LINE, Line,
+	POLYGON, type Polygon,
+	left, right, top, bottom, center,
+	polygonCenter, polygonAABB
 } from "./shape.js";
 
 type Vector = Point;
@@ -378,6 +381,10 @@ export function resolvePush(a, b, force) {
 	}
 	return {a: resA, b: resB};
 }
+export function reverseResolution(resol: Resolution) {
+	if (resol) return scale(resol, -1);
+	else return resol;
+}
 export function collisionBasedGrounding(a, b, resolution, gravity) {
 	if (gravity.x === 0 && gravity.y === 0) return;
 	if (shapeGroundedOn(resolution.a, resolution.b, gravity)) {
@@ -454,7 +461,7 @@ export function getShapeBottoms(shape, gravity) {
 		for (let i = 0; i < shape.points.length; i++) {
 			let v1 = sum(shape, shape.points[i]);
 			let v2 = sum(shape, shape.points[(i + 1) % shape.points.length]);
-			let edge: any = makeLine(v1, v2);
+			let edge: any = Line(v1, v2);
 			edge.type = LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
 			if (dot(normal, gravity) > 0) {
@@ -522,7 +529,7 @@ export function getShapeTops(shape, gravity) {
 		for (let i = 0; i < shape.points.length; i++) {
 			let v1 = sum(shape, shape.points[i]);
 			let v2 = sum(shape, shape.points[(i + 1) % shape.points.length]);
-			let edge: any = makeLine(v1, v2);
+			let edge: any = Line(v1, v2);
 			edge.type = LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
 			if (dot(normal, gravity) < 0) {
@@ -593,21 +600,21 @@ export const resolveFuncMap = {
 		polygon: (circle, poly) => Resolve.circlePolygon(circle, poly)
 	},
 	box: {
-		circle: (box, circle) => scale(Resolve.circleBox(circle, box), -1),
+		circle: (box, circle) => reverseResolution(Resolve.circleBox(circle, box)),
 		box: (a, b) => Resolve.boxBox(a, b),
 		line: (box, line) => Resolve.boxLine(box, line),
 		polygon: (box, poly) => Resolve.boxPolygon(box, poly)
 	},
 	line: {
-		circle: (line, circle) => scale(Resolve.circleLine(circle, line), -1),
-		box: (line, box) => scale(Resolve.boxLine(box, line), -1),
+		circle: (line, circle) => reverseResolution(Resolve.circleLine(circle, line)),
+		box: (line, box) => reverseResolution(Resolve.boxLine(box, line)),
 		line: (a, b) => Resolve.lineLine(a, b),
 		polygon: (line, poly) => Resolve.linePolygon(line, poly)
 	},
 	polygon: {
-		circle: (poly, circle) => scale(Resolve.circlePolygon(circle, poly), -1),
-		box: (poly, box) => scale(Resolve.boxPolygon(box, poly), -1),
-		line: (poly, line) => scale(Resolve.linePolygon(line, poly), -1),
+		circle: (poly, circle) => reverseResolution(Resolve.circlePolygon(circle, poly)),
+		box: (poly, box) => reverseResolution(Resolve.boxPolygon(box, poly)),
+		line: (poly, line) => reverseResolution(Resolve.linePolygon(line, poly)),
 		polygon: (a, b) => Resolve.polygonPolygon(a, b)
 	}
 };
@@ -646,173 +653,10 @@ export function resolveBound(shape, axis, shapeFront, shapeBack, direction, bord
 		}
 	}
 }
-// math helpers
-export function dist(ptA, ptB) {
-	let dx = ptB.x - ptA.x;
-	let dy = ptB.y - ptA.y;
-	return Math.sqrt((dx*dx) + (dy*dy));
-}
-export function sum(a, b) {
-	return {
-		x: a.x + b.x,
-		y: a.y + b.y
-	};
-}
-export function diff(a, b) {
-	return {
-		x: a.x - b.x,
-		y: a.y - b.y
-	};
-}
-export function dot(a, b) {
-	return (a.x * b.x) + (a.y * b.y);
-}
-export function scale (pt, n) {
-	if (!pt) return pt;
-	return {x: pt.x * n, y: pt.y * n}
-}
-export function mag(pt) {
-	return Math.sqrt(pt.x*pt.x + pt.y*pt.y);
-}
-export function project(pt, line) {
-	let end1 = {x: line.x, y: line.y};
-	let end2 = {x: line.x + line.dx, y: line.y + line.dy};
-	let length = dist(end1, end2);
-	let dp = (((pt.x - end1.x)*(end2.x - end1.x)) + ((pt.y - end1.y)*(end2.y - end1.y))) / (length*length);
-	return {
-		x: end1.x + (dp * (end2.x - end1.x)),
-		y: end1.y + (dp * (end2.y - end1.y))
-	};
-}
-export function unit(a) {
-	return scale(a, 1/mag(a));
-}
-export function polyMid(poly, memoize=true) {
-	if (poly.mid) return poly.mid;
-	let sumX = 0;
-	let sumY = 0;
-	for (let i = 0; i < poly.points.length; i++) {
-		let pt = poly.points[i];
-		sumX += pt.x;
-		sumY += pt.y;
-	}
-	let mid = {
-		x: poly.x + sumX / poly.points.length,
-		y: poly.y + sumY / poly.points.length
-	};
-	if (memoize) poly.mid = mid;
-	return mid;
-}
-export function polyAABB(poly, memoize=true) {
-	if (poly.aabb) return poly.aabb;
-	let minX = 0;
-	let minY = 0;
-	let maxX = 0;
-	let maxY = 0;
-	for (let i = 0; i < poly.points.length; i++) {
-		let pt = poly.points[i];
-		if (pt.x < minX) minX = pt.x;
-		if (pt.y < minY) minY = pt.y;
-		if (pt.x > maxX) maxX = pt.x;
-		if (pt.y > maxY) maxY = pt.y;
-	}
-	let aabb = {
-		x: (poly.x || 0) + minX,
-		y: (poly.y || 0) + minY,
-		width: maxX - minX,
-		height: maxY - minY
-	};
-	if (memoize) poly.aabb = aabb;
-	return aabb;
-}
-export function makeLine(ptA, ptB) {
-	let d = diff(ptB, ptA);
-	return {x: ptA.x, y: ptA.y, dx: d.x, dy: d.y};
-}
-export function extrema(shape, direction) {
-	let pts = [];
-	let mid = {};
-	if (shape.type === BOX) {
-		pts = [
-			{x: 0, y: 0},
-			{x: shape.width, y: 0},
-			{x: 0, y: shape.height},
-			{x: shape.width, y: shape.height}
-		];
-		mid = {x: shape.width/2, y: shape.height/2};
-	}
-	else if (shape.type === LINE) {
-		pts = [
-			{x: 0, y: 0},
-			{x: shape.dx, y:  shape.dy}
-		];
-		mid = {x: shape.dx/2, y: shape.dy/2};
-	}
-	else if (shape.type === CIRCLE) {
-		let outward = scale(direction, shape.radius / mag(direction));
-		return sum(shape, outward);
-	}
-	else if (shape.type === POLYGON) {
-		pts = shape.points;
-		mid = {x: 0, y: 0};
-	}
-
-	let max = 0;
-	let extrema = null;
-	for (let i = 0; i < pts.length; i++) {
-		let pt = pts[i];
-		let outward = diff(pt, mid);
-		let dp = dot(outward, direction);
-		if (dp > max) {
-			max = dp;
-			extrema = pt;
-		}
-	}
-
-	return extrema;
-}
-export function left(shape) {
-	if (shape.type === BOX) return shape.x;
-	else if (shape.type === LINE) return shape.x + (Math.min(shape.dx, 0));
-	else if (shape.type === CIRCLE) return shape.x - shape.radius;
-	return shape.x + extrema(shape, {x:-1, y:0}).x;
-}
-export function right(shape) {
-	if (shape.type === BOX) return shape.x + shape.width;
-	else if (shape.type === LINE) return shape.x + (Math.max(0, shape.dx));
-	else if (shape.type === CIRCLE) return shape.x + shape.radius;
-	return shape.x + extrema(shape, {x:1, y:0}).x;
-}
-export function top(shape) {
-	if (shape.type === BOX) return shape.y + shape.height;
-	else if (shape.type === LINE) return shape.y + (Math.max(0, shape.dy));
-	else if (shape.type === CIRCLE) return shape.y + shape.radius;
-	return shape.y + extrema(shape, {x:0, y:1}).y;
-}
-export function bottom(shape) {
-	if (shape.type === BOX) return shape.y;
-	else if (shape.type === LINE) return shape.y + (Math.min(shape.dy, 0));
-	else if (shape.type === CIRCLE) return shape.y - shape.radius;
-	return shape.y + extrema(shape, {x:0, y:-1}).y;
-}
+// small helpers
 export function lineEnds(line) {
 	if (line.ends) return line.ends;
 	else return line.ends = [{x: line.x, y: line.y}, {x: line.x + line.dx, y: line.y + line.dy}];
-}
-export function shapeMid(shape) {
-	if (shape.type === BOX) {
-		return {x: shape.x + shape.width/2, y: shape.y + shape.height/2};
-	}
-	else if (shape.type === CIRCLE) {
-		return {x: shape.x, y: shape.y};
-	}
-	else if (shape.type === LINE) {
-		return {x: shape.x + shape.dx/2, y: shape.y + shape.dy/2};
-	}
-	else if (shape.type === POLYGON) {
-		return polyMid(shape, true);
-	}
-	console.error("Invalid shape type: " + shape.type);
 }
 export function lineSidePassCheck(line, shape) {
 	// return result from last collision, if it exists
@@ -831,7 +675,7 @@ export function lineSidePassCheck(line, shape) {
 	// // if moved against the line's push direction (or no movement)
 	// if (dp <= 0) {
 		// check whether the object was on the correct side last frame
-		let mid = shapeMid(shape);
+		let mid = center(shape);
 		let lastMid = sum(diff(mid, shape), {x: shape.lastX, y: shape.lastY});
 		let sideTest = (lastMid.x - line.lastX)*line.dy - (lastMid.y - line.lastY)*line.dx;
 		return sideTest <= 0;
@@ -877,7 +721,7 @@ export const Intersect = {
 	},
 	ptPolygon(pt: Point, poly: Polygon): boolean {
 		let collided = false;
-		let aabb = polyAABB(poly);
+		let aabb = polygonAABB(poly);
 		if (Intersect.ptBox(pt, aabb)) {
 			for (let i = 0; i < poly.points.length; i++) {
 				let v1 = sum(poly, poly.points[i]);
@@ -962,7 +806,7 @@ export const Intersect = {
 		for (let i = 0; i < poly.points.length; i++) {
 			let v1 = sum(poly, poly.points[i]);
 			let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
-			let edge = makeLine(v1, v2);
+			let edge = Line(v1, v2);
 			if (Intersect.arcLine(arc, edge)) return true;
 		}
 		let arcStart = {x: arc.x + arc.radius*Math.cos(arc.start), y: arc.y + arc.radius*Math.sin(arc.start)};
@@ -992,12 +836,12 @@ export const Intersect = {
 		return Intersect.ptCircle(target, circle);
 	},
 	circlePolygon(circle: Circle, poly: Polygon): boolean {
-		let aabb = polyAABB(poly);
+		let aabb = polygonAABB(poly);
 		if (Intersect.circleBox(circle, aabb)) {
 			for (let i = 0; i < poly.points.length; i++) {
 				let v1 = sum(poly, poly.points[i]);
 				let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
-				let edge = makeLine(v1, v2);
+				let edge = Line(v1, v2);
 				if (Intersect.circleLine(circle, edge)) return true;
 			}
 			return Intersect.ptPolygon(circle, poly);
@@ -1021,12 +865,12 @@ export const Intersect = {
 			|| Intersect.ptBox(line, box));
 	},
 	boxPolygon(box: Box, poly: Polygon): boolean {
-		let aabb = polyAABB(poly);
+		let aabb = polygonAABB(poly);
 		if (Intersect.boxBox(box, aabb)) {
 			for (let i = 0; i < poly.points.length; i++) {
 				let v1 = sum(poly, poly.points[i]);
 				let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
-				let edge = makeLine(v1, v2);
+				let edge = Line(v1, v2);
 				if (Intersect.boxLine(box, edge)) return true;
 			}
 			return Intersect.ptPolygon(box, poly);
@@ -1050,12 +894,12 @@ export const Intersect = {
 		return (ua >= -spec && ua <= 1+spec && ub >= -spec && ub <= 1+spec);
 	},
 	linePolygon(line: Line, poly: Polygon): boolean {
-		let aabb = polyAABB(poly);
+		let aabb = polygonAABB(poly);
 		if (Intersect.boxLine(aabb, line)) {
 			for (let i = 0; i < poly.points.length; i++) {
 				let v1 = sum(poly, poly.points[i]);
 				let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
-				let edge = makeLine(v1, v2);
+				let edge = Line(v1, v2);
 				if (Intersect.lineLine(line, edge)) return true;
 			}
 			return Intersect.ptPolygon(line, poly);
@@ -1063,13 +907,13 @@ export const Intersect = {
 		else return false;
 	},
 	polygonPolygon(a: Polygon, b: Polygon): boolean {
-		let aBound = polyAABB(a);
-		let bBound = polyAABB(b);
+		let aBound = polygonAABB(a);
+		let bBound = polygonAABB(b);
 		if (Intersect.boxBox(aBound, bBound)) {
 			for (let i = 0; i < a.points.length; i++) {
 				let v1 = sum(a, a.points[i]);
 				let v2 = sum(a, a.points[(i + 1) % a.points.length]);
-				let edge = makeLine(v1, v2);
+				let edge = Line(v1, v2);
 				if (Intersect.linePolygon(edge, b)) return true;
 			}
 			let ptA = sum(a, a.points[0]);
@@ -1151,7 +995,7 @@ export const Resolve = {
 		for (let i = 0; i < poly.points.length; i++) {
 			let v1 = sum(poly, poly.points[i]);
 			let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
-			let edge: any = makeLine(v1, v2);
+			let edge: any = Line(v1, v2);
 
 			// if collided with an edge
 			if (Intersect.circleLine(circle, edge)) {
@@ -1364,11 +1208,11 @@ export const Resolve = {
 			let correction = {x: 0, y: 0};
 			let hits = 0;
 			
-			let mid = polyMid(poly);
+			let mid = polygonCenter(poly);
 			for (let i = 0; i < poly.points.length; i++) {
 				let pt = sum(poly, poly.points[i]);
 				// use diagonal collision
-				let diag = makeLine(mid, pt);
+				let diag = Line(mid, pt);
 				if (Intersect.lineLine(line, diag)) {
 					let target = project(pt, line);
 					correction = sum(correction, diff(target, pt));
@@ -1376,7 +1220,7 @@ export const Resolve = {
 				}
 				// check endpoint collision
 				let pt2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
-				let edge = makeLine(pt, pt2);
+				let edge = Line(pt, pt2);
 				if (end1Collides) {
 					let target = project(end1, edge);
 					let distance = dist(end1, target);
@@ -1412,19 +1256,19 @@ export const Resolve = {
 	},
 	polygonPolygon(a: Collider<Polygon>, b: Collider<Polygon>): Resolution {
 		// find polygon midpoints
-		let midA = polyMid(a);
-		let midB = polyMid(b);
+		let midA = polygonCenter(a);
+		let midB = polygonCenter(b);
 		
 		// do diagonals for each
 		let correction = {x: 0, y: 0};
 		let hits = 0;
 		for (let i = 0; i < a.points.length; i++) {
 			let pt = sum(a, a.points[i]);
-			let diag = makeLine(midA, pt);
+			let diag = Line(midA, pt);
 			for (let j = 0; j < b.points.length; j++) {
 				let end1 = sum(b, b.points[j]);
 				let end2 = sum(b, b.points[(j + 1) % b.points.length]);
-				let edge = makeLine(end1, end2);
+				let edge = Line(end1, end2);
 				if (Intersect.lineLine(diag, edge)) {
 					let target = project(pt, edge);
 					correction = sum(correction, diff(target, pt));
@@ -1434,11 +1278,11 @@ export const Resolve = {
 		}
 		for (let i = 0; i < b.points.length; i++) {
 			let pt = sum(b, b.points[i]);
-			let diag = makeLine(midB, pt);
+			let diag = Line(midB, pt);
 			for (let j = 0; j < a.points.length; j++) {
 				let end1 = sum(a, a.points[j]);
 				let end2 = sum(a, a.points[(j + 1) % a.points.length]);
-				let edge = makeLine(end1, end2);
+				let edge = Line(end1, end2);
 				if (Intersect.lineLine(diag, edge)) {
 					let target = project(pt, edge);
 					correction = diff(correction, diff(target, pt));

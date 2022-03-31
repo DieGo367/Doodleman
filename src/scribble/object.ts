@@ -322,7 +322,7 @@ Objects.Polygon = class Polygon extends GameObject {
 	constructor(x, y, points, gfx) {
 		super(x, y);
 		let pts = points.map(pt => Shape.Pt(pt));
-		let aabb = Collision.polyAABB({x: 0, y: 0, points: pts});
+		let aabb = Shape.polygonAABB({x: 0, y: 0, points: pts});
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
 			this.animator = new AnimationComponent(aabb.x + aabb.width/2, aabb.y, gfx);
 		}

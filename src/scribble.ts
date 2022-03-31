@@ -1,7 +1,6 @@
 export * from "./scribble/util.js";
 export * from "./scribble/engine.js";
 export * from "./scribble/resource.js";
-export * as Collision from "./scribble/collision.js";
 export * from "./scribble/object.js";
 export * from "./scribble/game.js";
 export * from "./scribble/images.js";
@@ -13,4 +12,6 @@ export * from "./scribble/input.js";
 export * from "./scribble/backgrounds.js";
 export * from "./scribble/file.js";
 export * from "./scribble/debug.js";
-export * as Shape from "./scribble/shape.js"
+export * as Collision from "./scribble/collision.js";
+export * as Shape from "./scribble/shape.js";
+export * as PointMath from "./scribble/point_math.js";
