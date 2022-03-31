@@ -196,7 +196,7 @@ export class GameObject {
 				}
 				else {
 					ctx.fillStyle = graphic.style || "rgba(0,0,0,0)";
-					Shape.fillShape(ctx, this.x, this.y, graphic);
+					Shape.fill(ctx, this.x, this.y, graphic);
 				}
 			}
 		}
@@ -215,7 +215,7 @@ export class GameObject {
 		ctx.globalAlpha = 1;
 		if (this.collision) {
 			ctx.strokeStyle = COLOR.DEBUG.COLLISION;
-			Collision.drawBounds(ctx, this.x, this.y, this.collision);
+			Shape.stroke(ctx, this.x, this.y, this.collision);
 		}
 	}
 	drawHighlight() {}
@@ -484,7 +484,7 @@ Objects.Entity = class Entity extends GameObject {
 			hitbox.x = this.x;
 			hitbox.y = this.y;
 			if (this.animator.direction !== RIGHT) {
-				Collision.flipShapeX(hitbox.shape);
+				Shape.flipX(hitbox.shape);
 				if (hitbox.knockback) hitbox.knockback.x *= -1;
 			}
 		}
@@ -535,7 +535,7 @@ Objects.Entity = class Entity extends GameObject {
 			let hitbox = this.hitboxes[hitboxName];
 			if (hitbox && hitbox.shape) {
 				ctx.strokeStyle = COLOR.DEBUG.HITBOX;
-				Collision.drawBounds(ctx, this.x, this.y, hitbox.shape);
+				Shape.stroke(ctx, this.x, this.y, hitbox.shape);
 			}
 		}
 	}
