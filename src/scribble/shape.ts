@@ -126,8 +126,9 @@ export function lineCenter(line: Line): Point {
 	return {x: line.x + line.dx/2, y: line.y + line.dy/2};
 }
 export function polygonCenter(poly: Polygon): Point {
-	let avg = scale(sum(...poly.vertices), 1/poly.vertices.length);
-	return sum(poly, avg);
+	if (!poly.vertices.localCenter)
+		poly.vertices.localCenter = scale(sum(...poly.vertices), 1/poly.vertices.length)
+	return sum(poly, poly.vertices.localCenter);
 }
 export function center(shape: Shape): Point {
 	if (shape.type === POINT || shape.type == CIRCLE) return Pt(shape);
@@ -177,7 +178,9 @@ export function extrema(shape: Shape, direction: Point): Point {
 	}
 	else if (shape.type === POLYGON) {
 		pts = shape.vertices;
-		mid = scale(sum(...shape.vertices), 1/shape.vertices.length);
+		if (!shape.vertices.localCenter)
+			shape.vertices.localCenter = scale(sum(...shape.vertices), 1/shape.vertices.length);
+		mid = shape.vertices.localCenter;
 	}
 	else never(shape);
 
@@ -236,22 +239,26 @@ export function bottom(shape: Shape): number {
 }
 
 export function polygonAABB(poly: Polygon): Box {
-	let minX = 0;
-	let minY = 0;
-	let maxX = 0;
-	let maxY = 0;
-	for (let pt of poly.vertices) {
-		if (pt.x < minX) minX = pt.x;
-		if (pt.y < minY) minY = pt.y;
-		if (pt.x > maxX) maxX = pt.x;
-		if (pt.y > maxY) maxY = pt.y;
+	if (!poly.vertices.localAABB) {
+		let minX = 0;
+		let minY = 0;
+		let maxX = 0;
+		let maxY = 0;
+		for (let pt of poly.vertices) {
+			if (pt.x < minX) minX = pt.x;
+			if (pt.y < minY) minY = pt.y;
+			if (pt.x > maxX) maxX = pt.x;
+			if (pt.y > maxY) maxY = pt.y;
+		}
+		poly.vertices.localAABB = {
+			x: minX,
+			y: minY,
+			width: maxX - minX,
+			height: maxY - minY
+		};
 	}
-	return {
-		x: poly.x + minX,
-		y: poly.y + minY,
-		width: maxX - minX,
-		height: maxY - minY
-	};
+	let aabb = poly.vertices.localAABB;
+	return Box(poly.x + aabb.x, poly.y + aabb.y, aabb.width, aabb.height);
 }
 export function AABB(shape: Shape): Box {
 	// TODO: other cases
