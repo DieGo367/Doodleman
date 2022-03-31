@@ -13,3 +13,4 @@ export * from "./scribble/input.js";
 export * from "./scribble/backgrounds.js";
 export * from "./scribble/file.js";
 export * from "./scribble/debug.js";
+export * as Shape from "./scribble/shape.js"

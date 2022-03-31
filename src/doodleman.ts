@@ -60,7 +60,7 @@ class DoodlemanGame extends Scribble.Game {
 				let ss = Scribble.Collision.getShapeTops(coll, this.engine.gravity);
 				for (let i = 0; i < ss.length; i++) {
 					const shape = ss[i];
-					if (Scribble.Collision.intersectFuncMap[Scribble.SHAPE.POINT][shape.type](this.engine.input.cursorPos(), shape))
+					if (Scribble.Collision.intersectFuncMap[Scribble.Shape.POINT][shape.type](this.engine.input.cursorPos(), shape))
 						this.follow.graphic.style = "green";
 				}
 			}
@@ -147,7 +147,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 	constructor(x, y, public slot, public direction) {
 		super(x, y);
 		this.collision = {
-			type: Scribble.SHAPE.BOX,
+			type: Scribble.Shape.BOX,
 			level: 0,
 			x: -19/2, y: 0,
 			width: 19, height: 44
@@ -392,7 +392,7 @@ DMOs.PaintMan = class extends Scribble.Objects.Entity {
 	constructor(x, y) {
 		super(x, y);
 		this.collision = {
-			type: Scribble.SHAPE.BOX,
+			type: Scribble.Shape.BOX,
 			level: 0,
 			x: -19/2, y: 0,
 			width: 19, height: 44
@@ -414,13 +414,13 @@ DMOs.HelloPlatform = class extends Scribble.GameObject {
 	constructor(x, y, width, height, graphic, xVel, yVel) {
 		super(x, y);
 		this.collision = {
-			type: Scribble.SHAPE.BOX,
+			type: Scribble.Shape.BOX,
 			level: Infinity,
 			x: -width/2, y: 0,
 			width: width, height: height 
 		};
 		this.graphic = {
-			shape: Scribble.SHAPE.BOX,
+			type: Scribble.Shape.BOX,
 			x: -width/2, y: 0,
 			width: width, height: height,
 			style: graphic
@@ -452,13 +452,13 @@ DMOs.Box201 = class extends Scribble.GameObject {
 	constructor(x, y) {
 		super(x, y);
 		this.collision = {
-			type: Scribble.SHAPE.BOX,
+			type: Scribble.Shape.BOX,
 			level: 0,
 			x: -25, y: 0,
 			width: 50, height: 40
 		};
 		this.graphic = {
-			shape: Scribble.SHAPE.BOX,
+			type: Scribble.Shape.BOX,
 			x: -25, y: 0,
 			width: 50, height: 40,
 			style: "res/Box201.png"

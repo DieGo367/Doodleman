@@ -1,6 +1,7 @@
 import * as Collision from "./collision.js";
-import { SHAPE, fillShape, RIGHT, COLOR, Pt} from "./util.js";
+import { RIGHT, COLOR } from "./util.js";
 import { AnimationComponent } from "./animations.js";
+import * as Shape from "./shape.js";
 
 export class ObjectManager {
 	map = {};
@@ -195,7 +196,7 @@ export class GameObject {
 				}
 				else {
 					ctx.fillStyle = graphic.style || "rgba(0,0,0,0)";
-					fillShape(ctx, this.x, this.y, graphic);
+					Shape.fillShape(ctx, this.x, this.y, graphic);
 				}
 			}
 		}
@@ -259,14 +260,14 @@ Objects.Box = class Box extends GameObject {
 			this.animator = new AnimationComponent(width/2, 0, gfx);
 		}
 		else this.graphic = {
-			shape: SHAPE.BOX,
+			type: Shape.BOX,
 			style: gfx,
 			x: 0, y: 0,
 			width: width,
 			height: height
 		};
 		this.collision = {
-			type: SHAPE.BOX,
+			type: Shape.BOX,
 			level: 0,
 			x: 0, y: 0,
 			width: width, height: height
@@ -283,13 +284,13 @@ Objects.Line = class Line extends GameObject {
 			this.animator = new AnimationComponent(dx/2, dy/2, gfx);
 		}
 		else this.graphic = {
-			shape: SHAPE.LINE,
+			type: Shape.LINE,
 			style: gfx,
 			x: 0, y: 0,
 			dx: dx, dy: dy
 		};
 		this.collision = {
-			type: SHAPE.LINE,
+			type: Shape.LINE,
 			level: 0,
 			x: 0, y: 0,
 			dx: dx, dy: dy
@@ -304,13 +305,13 @@ Objects.Circle = class Circle extends GameObject {
 			this.animator = new AnimationComponent(x, y - radius, gfx);
 		}
 		else this.graphic = {
-			shape: SHAPE.CIRCLE,
+			type: Shape.CIRCLE,
 			style: gfx,
 			x: 0, y: 0,
 			radius: radius
 		};
 		this.collision = {
-			type: SHAPE.CIRCLE,
+			type: Shape.CIRCLE,
 			level: 0,
 			x: 0, y: 0, radius: radius
 		};
@@ -320,19 +321,19 @@ Objects.Circle = class Circle extends GameObject {
 Objects.Polygon = class Polygon extends GameObject {
 	constructor(x, y, points, gfx) {
 		super(x, y);
-		let pts = points.map(pt => new Pt(pt));
+		let pts = points.map(pt => Shape.Pt(pt));
 		let aabb = Collision.polyAABB({x: 0, y: 0, points: pts});
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
 			this.animator = new AnimationComponent(aabb.x + aabb.width/2, aabb.y, gfx);
 		}
 		else this.graphic = {
-			shape: SHAPE.POLYGON,
+			type: Shape.POLYGON,
 			style: gfx,
 			x: 0, y: 0,
 			points: pts
 		};
 		this.collision = {
-			type: SHAPE.POLYGON,
+			type: Shape.POLYGON,
 			level: 0,
 			x: 0, y: 0,
 			points: pts
@@ -401,7 +402,7 @@ Objects.Entity = class Entity extends GameObject {
 		for (let id in this.grounds) {
 			if (!this.grounds[id]) continue;
 			let ground = engine.objects.map[id];
-			if (ground && ground.collision.type === SHAPE.LINE) {
+			if (ground && ground.collision.type === Shape.LINE) {
 				let angle = Math.atan(ground.collision.dy / ground.collision.dx);
 				// engine.debug.print(angle);
 				// if moving down the slope

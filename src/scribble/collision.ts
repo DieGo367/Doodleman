@@ -1,5 +1,6 @@
 import { GameObject } from "./object.js";
-import { SHAPE, EDGE } from "./util.js";
+import { EDGE } from "./util.js";
+import * as Shape from "./shape.js";
 
 // TODO: projection push cancel?
 // TODO: chain pushing on lower levels?
@@ -192,54 +193,54 @@ export function getSweepingShapes(shape) {
 	if (shape.sweepingShapes) return shape.sweepingShapes;
 	let dx = shape.x - shape.lastX;
 	let dy = shape.y - shape.lastY;
-	if (shape.type === SHAPE.BOX) {
+	if (shape.type === Shape.BOX) {
 		return shape.sweepingShapes = [
 			// current and last
-			{type: SHAPE.BOX, x: shape.x, y: shape.y, width: shape.width, height: shape.height},
-			{type: SHAPE.BOX, x: shape.lastX, y: shape.lastY, width: shape.width, height: shape.height},
+			{type: Shape.BOX, x: shape.x, y: shape.y, width: shape.width, height: shape.height},
+			{type: Shape.BOX, x: shape.lastX, y: shape.lastY, width: shape.width, height: shape.height},
 			// draw lines from last to current corner positions
-			{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
-			{type: SHAPE.LINE, x: shape.lastX + shape.width, y: shape.lastY, dx: dx, dy: dy},
-			{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY + shape.height, dx: dx, dy: dy},
-			{type: SHAPE.LINE, x: shape.lastX + shape.width, y: shape.lastY + shape.height, dx: dx, dy: dy}
+			{type: Shape.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
+			{type: Shape.LINE, x: shape.lastX + shape.width, y: shape.lastY, dx: dx, dy: dy},
+			{type: Shape.LINE, x: shape.lastX, y: shape.lastY + shape.height, dx: dx, dy: dy},
+			{type: Shape.LINE, x: shape.lastX + shape.width, y: shape.lastY + shape.height, dx: dx, dy: dy}
 		];
 	}
-	else if (shape.type === SHAPE.CIRCLE) {
+	else if (shape.type === Shape.CIRCLE) {
 		let dmag = Math.sqrt(dx*dx + dy*dy);
 		let shiftX = dx / dmag * shape.radius;
 		let shiftY = dy / dmag * shape.radius;
 		return shape.sweepingShapes = [
 			// current and last
-			{type: SHAPE.CIRCLE, x: shape.x, y: shape.y, radius: shape.radius},
-			{type: SHAPE.CIRCLE, x: shape.lastX, y: shape.lastY, radius: shape.radius},
+			{type: Shape.CIRCLE, x: shape.x, y: shape.y, radius: shape.radius},
+			{type: Shape.CIRCLE, x: shape.lastX, y: shape.lastY, radius: shape.radius},
 			// line from last to current center
-			{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
+			{type: Shape.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
 			// lines that form a "cylinder" shape with the two end circles
-			{type: SHAPE.LINE, x: shape.lastX + shiftY, y: shape.lastY - shiftX, dx: dx, dy: dy},
-			{type: SHAPE.LINE, x: shape.lastX - shiftY, y: shape.lastY + shiftX, dx: dx, dy: dy},
+			{type: Shape.LINE, x: shape.lastX + shiftY, y: shape.lastY - shiftX, dx: dx, dy: dy},
+			{type: Shape.LINE, x: shape.lastX - shiftY, y: shape.lastY + shiftX, dx: dx, dy: dy},
 		];
 	}
-	else if (shape.type === SHAPE.LINE) {
+	else if (shape.type === Shape.LINE) {
 		return shape.sweepingShapes = [
 			// current and last
-			{type: SHAPE.LINE, x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy},
-			{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: shape.dx, dy: shape.dy},
+			{type: Shape.LINE, x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy},
+			{type: Shape.LINE, x: shape.lastX, y: shape.lastY, dx: shape.dx, dy: shape.dy},
 			// lines from last to current endpoints
-			{type: SHAPE.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
-			{type: SHAPE.LINE, x: shape.lastX + shape.dx, y: shape.lastY + shape.dy, dx: dx, dy: dy},
+			{type: Shape.LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
+			{type: Shape.LINE, x: shape.lastX + shape.dx, y: shape.lastY + shape.dy, dx: dx, dy: dy},
 		];
 	}
-	else if (shape.type === SHAPE.POLYGON) {
+	else if (shape.type === Shape.POLYGON) {
 		shape.sweepingShapes = [
 			// current and last
-			{type: SHAPE.POLYGON, x: shape.x, y: shape.y, points: shape.points.slice()},
-			{type: SHAPE.POLYGON, x: shape.lastX, y: shape.lastY, points: shape.points.slice()}
+			{type: Shape.POLYGON, x: shape.x, y: shape.y, points: shape.points.slice()},
+			{type: Shape.POLYGON, x: shape.lastX, y: shape.lastY, points: shape.points.slice()}
 		];
 		// lines from last to current vertices
 		for (let i = 0; i < shape.points.length; i++) {
 			let pt = shape.points[i];
 			shape.sweepingShapes.push({
-				type: SHAPE.LINE, x: shape.lastX + pt.x, y: shape.lastY + pt.y, dx: dx, dy: dy
+				type: Shape.LINE, x: shape.lastX + pt.x, y: shape.lastY + pt.y, dx: dx, dy: dy
 			});
 		}
 		return shape.sweepingShapes;
@@ -381,7 +382,7 @@ export function shapeGroundedOn(a, b, gravity) {
 			let top = tops[j];
 			try {
 				if (intersectFuncMap[bottom.type][top.type](bottom, top)) return true;
-				else if (a.owner.grounds[b.owner.id] && b.type === SHAPE.LINE) return true;
+				else if (a.owner.grounds[b.owner.id] && b.type === Shape.LINE) return true;
 			}
 			catch(e) {
 				console.log(bottom, top, e);
@@ -391,13 +392,13 @@ export function shapeGroundedOn(a, b, gravity) {
 	return false;
 }
 export function getShapeBottoms(shape, gravity) {
-	if (shape.type === SHAPE.BOX) {
+	if (shape.type === Shape.BOX) {
 		let bottoms = [];
 		let sides = [
-			{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: SHAPE.LINE},
-			{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: SHAPE.LINE},
-			{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: SHAPE.LINE},
-			{x: shape.x+shape.width, y: shape.y, dx: -shape.width, dy: 0, type: SHAPE.LINE}
+			{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: Shape.LINE},
+			{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: Shape.LINE},
+			{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: Shape.LINE},
+			{x: shape.x+shape.width, y: shape.y, dx: -shape.width, dy: 0, type: Shape.LINE}
 		];
 		for (let i = 0; i < sides.length; i++) {
 			let side = sides[i];
@@ -409,7 +410,7 @@ export function getShapeBottoms(shape, gravity) {
 		}
 		return bottoms;
 	}
-	else if (shape.type === SHAPE.CIRCLE) {
+	else if (shape.type === Shape.CIRCLE) {
 		// angle in radians of the slope threshold
 		let theta = Math.acos(SLOPE_THRESH);
 		// angle in which gravity takes place
@@ -420,25 +421,25 @@ export function getShapeBottoms(shape, gravity) {
 		if (start < 0) start += 2*Math.PI;
 		let end = gravAngle + theta;
 		if (end >= 2*Math.PI) end -= 2*Math.PI;
-		return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: SHAPE.ARC}];
+		return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: Shape.ARC}];
 	}
-	else if (shape.type === SHAPE.LINE) {
+	else if (shape.type === Shape.LINE) {
 		// get bottommost endpoint, or both
 		let dp = dot({x: shape.dx, y: shape.dy}, gravity);
-		if (dp < -EPS) return [{x: shape.x, y: shape.y, type: SHAPE.POINT}];
-		else if (dp > EPS) return [{x: shape.x+shape.dx, y: shape.y+shape.dy, type: SHAPE.POINT}];
+		if (dp < -EPS) return [{x: shape.x, y: shape.y, type: Shape.POINT}];
+		else if (dp > EPS) return [{x: shape.x+shape.dx, y: shape.y+shape.dy, type: Shape.POINT}];
 		else return [
-			{x: shape.x, y: shape.y, type: SHAPE.POINT},
-			{x: shape.x+shape.dx, y: shape.y+shape.dy, type: SHAPE.POINT}
+			{x: shape.x, y: shape.y, type: Shape.POINT},
+			{x: shape.x+shape.dx, y: shape.y+shape.dy, type: Shape.POINT}
 		];
 	}
-	else if (shape.type === SHAPE.POLYGON) {
+	else if (shape.type === Shape.POLYGON) {
 		let bottoms = [];
 		for (let i = 0; i < shape.points.length; i++) {
 			let v1 = sum(shape, shape.points[i]);
 			let v2 = sum(shape, shape.points[(i + 1) % shape.points.length]);
 			let edge: any = makeLine(v1, v2);
-			edge.type = SHAPE.LINE;
+			edge.type = Shape.LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
 			if (dot(normal, gravity) > 0) {
 				let dp = dot(unit({x: edge.dx, y: edge.dy}), unit(gravity));
@@ -450,13 +451,13 @@ export function getShapeBottoms(shape, gravity) {
 	else console.error("Unknown shape type: " + shape.type);
 }
 export function getShapeTops(shape, gravity) {
-	if (shape.type === SHAPE.BOX) {
+	if (shape.type === Shape.BOX) {
 		let tops = [];
 		let sides = [
-			{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: SHAPE.LINE},
-			{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: SHAPE.LINE},
-			{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: SHAPE.LINE},
-			{x: shape.x+shape.width, y: shape.y, dx: -shape.width, dy: 0, type: SHAPE.LINE}
+			{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: Shape.LINE},
+			{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: Shape.LINE},
+			{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: Shape.LINE},
+			{x: shape.x+shape.width, y: shape.y, dx: -shape.width, dy: 0, type: Shape.LINE}
 		];
 		for (let i = 0; i < sides.length; i++) {
 			let side = sides[i];
@@ -468,7 +469,7 @@ export function getShapeTops(shape, gravity) {
 		}
 		return tops;
 	}
-	else if (shape.type === SHAPE.CIRCLE) {
+	else if (shape.type === Shape.CIRCLE) {
 		// angle in radians of the slope threshold
 		let theta = Math.acos(SLOPE_THRESH);
 		// angle opposite to which gravity takes place
@@ -479,34 +480,34 @@ export function getShapeTops(shape, gravity) {
 		if (start < 0) start += 2*Math.PI;
 		let end = gravAngle + theta;
 		if (end >= 2*Math.PI) end -= 2*Math.PI;
-		return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: SHAPE.ARC}];
+		return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: Shape.ARC}];
 	}
-	else if (shape.type === SHAPE.LINE) {
+	else if (shape.type === Shape.LINE) {
 		let normal = {x: -shape.dy, y: shape.dx};
 		if (dot(normal, gravity) < 0) {
 			let list = [];
 			// get topmost endpoint, or both
 			let dp = dot({x: shape.dx, y: shape.dy}, gravity);
-			if (dp < -EPS) list.push({x: shape.x+shape.dx, y: shape.y+shape.dy, type: SHAPE.POINT});
-			else if (dp > EPS) list.push({x: shape.x, y: shape.y, type: SHAPE.POINT});
+			if (dp < -EPS) list.push({x: shape.x+shape.dx, y: shape.y+shape.dy, type: Shape.POINT});
+			else if (dp > EPS) list.push({x: shape.x, y: shape.y, type: Shape.POINT});
 			else {
-				list.push({x: shape.x+shape.dx, y: shape.y+shape.dy, type: SHAPE.POINT});
-				list.push({x: shape.x, y: shape.y, type: SHAPE.POINT});
+				list.push({x: shape.x+shape.dx, y: shape.y+shape.dy, type: Shape.POINT});
+				list.push({x: shape.x, y: shape.y, type: Shape.POINT});
 			}
 			// get full line, as long as it's slope is within the threshold
 			let unitDot = dot(unit({x: shape.dx, y: shape.dy}), unit(gravity));
-			if (Math.abs(unitDot) <= SLOPE_THRESH) list.push({x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy, type: SHAPE.LINE});
+			if (Math.abs(unitDot) <= SLOPE_THRESH) list.push({x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy, type: Shape.LINE});
 			return list;
 		}
 		return [];
 	}
-	else if (shape.type === SHAPE.POLYGON) {
+	else if (shape.type === Shape.POLYGON) {
 		let tops = [];
 		for (let i = 0; i < shape.points.length; i++) {
 			let v1 = sum(shape, shape.points[i]);
 			let v2 = sum(shape, shape.points[(i + 1) % shape.points.length]);
 			let edge: any = makeLine(v1, v2);
-			edge.type = SHAPE.LINE;
+			edge.type = Shape.LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
 			if (dot(normal, gravity) < 0) {
 				let dp = dot(unit({x: edge.dx, y: edge.dy}), unit(gravity));
@@ -519,8 +520,8 @@ export function getShapeTops(shape, gravity) {
 }
 
 export const intersectFuncMap = {
-	pt: {
-		pt: (a, b) => Intersect.ptPt(a, b),
+	point: {
+		point: (a, b) => Intersect.ptPt(a, b),
 		arc: (pt, arc) => Intersect.ptArc(pt, arc),
 		circle: (pt, circle) => Intersect.ptCircle(pt, circle),
 		box: (pt, box) => Intersect.ptBox(pt, box),
@@ -528,7 +529,7 @@ export const intersectFuncMap = {
 		polygon: (pt, poly) => Intersect.ptPolygon(pt, poly)
 	},
 	arc: {
-		pt: (arc, pt) => Intersect.ptArc(pt, arc),
+		point: (arc, pt) => Intersect.ptArc(pt, arc),
 		arc: (a, b) => Intersect.arcArc(a, b),
 		circle: (arc, circle) => Intersect.arcCircle(arc, circle),
 		box: (arc, box) => Intersect.arcBox(arc, box),
@@ -536,7 +537,7 @@ export const intersectFuncMap = {
 		polygon: (arc, poly) => Intersect.arcPolygon(arc, poly)
 	},
 	circle: {
-		pt: (circle, pt) => Intersect.ptCircle(pt, circle),
+		point: (circle, pt) => Intersect.ptCircle(pt, circle),
 		arc: (circle, arc) => Intersect.arcCircle(arc, circle),
 		circle: (a, b) => Intersect.circleCircle(a, b),
 		box: (circle, box) => Intersect.circleBox(circle, box),
@@ -544,7 +545,7 @@ export const intersectFuncMap = {
 		polygon: (circle, poly) => Intersect.circlePolygon(circle, poly)
 	},
 	box: {
-		pt: (box, pt) => Intersect.ptBox(pt, box),
+		point: (box, pt) => Intersect.ptBox(pt, box),
 		arc: (box, arc) => Intersect.arcBox(arc, box),
 		circle: (box, circle) => Intersect.circleBox(circle, box),
 		box: (a, b) => Intersect.boxBox(a, b),
@@ -552,7 +553,7 @@ export const intersectFuncMap = {
 		polygon: (box, poly) => Intersect.boxPolygon(box, poly)
 	},
 	line: {
-		pt: (line, pt) => Intersect.ptLine(pt, line),
+		point: (line, pt) => Intersect.ptLine(pt, line),
 		arc: (line, arc) => Intersect.arcLine(arc, line),
 		circle: (line, circle) => Intersect.circleLine(circle, line),
 		box: (line, box) => Intersect.boxLine(box, line),
@@ -560,7 +561,7 @@ export const intersectFuncMap = {
 		polygon: (line, poly) => Intersect.linePolygon(line, poly)
 	},
 	polygon: {
-		pt: (poly, pt) => Intersect.ptPolygon(pt, poly),
+		point: (poly, pt) => Intersect.ptPolygon(pt, poly),
 		arc: (poly, arc) => Intersect.arcPolygon(arc, poly),
 		circle: (poly, circle) => Intersect.circlePolygon(circle, poly),
 		box: (poly, box) => Intersect.boxPolygon(box, poly),
@@ -715,7 +716,7 @@ export function makeLine(ptA, ptB) {
 export function extrema(shape, direction) {
 	let pts = [];
 	let mid = {};
-	if (shape.type === SHAPE.BOX) {
+	if (shape.type === Shape.BOX) {
 		pts = [
 			{x: 0, y: 0},
 			{x: shape.width, y: 0},
@@ -724,18 +725,18 @@ export function extrema(shape, direction) {
 		];
 		mid = {x: shape.width/2, y: shape.height/2};
 	}
-	else if (shape.type === SHAPE.LINE) {
+	else if (shape.type === Shape.LINE) {
 		pts = [
 			{x: 0, y: 0},
 			{x: shape.dx, y:  shape.dy}
 		];
 		mid = {x: shape.dx/2, y: shape.dy/2};
 	}
-	else if (shape.type === SHAPE.CIRCLE) {
+	else if (shape.type === Shape.CIRCLE) {
 		let outward = scale(direction, shape.radius / mag(direction));
 		return sum(shape, outward);
 	}
-	else if (shape.type === SHAPE.POLYGON) {
+	else if (shape.type === Shape.POLYGON) {
 		pts = shape.points;
 		mid = {x: 0, y: 0};
 	}
@@ -755,27 +756,27 @@ export function extrema(shape, direction) {
 	return extrema;
 }
 export function left(shape) {
-	if (shape.type === SHAPE.BOX) return shape.x;
-	else if (shape.type === SHAPE.LINE) return shape.x + (Math.min(shape.dx, 0));
-	else if (shape.type === SHAPE.CIRCLE) return shape.x - shape.radius;
+	if (shape.type === Shape.BOX) return shape.x;
+	else if (shape.type === Shape.LINE) return shape.x + (Math.min(shape.dx, 0));
+	else if (shape.type === Shape.CIRCLE) return shape.x - shape.radius;
 	return shape.x + extrema(shape, {x:-1, y:0}).x;
 }
 export function right(shape) {
-	if (shape.type === SHAPE.BOX) return shape.x + shape.width;
-	else if (shape.type === SHAPE.LINE) return shape.x + (Math.max(0, shape.dx));
-	else if (shape.type === SHAPE.CIRCLE) return shape.x + shape.radius;
+	if (shape.type === Shape.BOX) return shape.x + shape.width;
+	else if (shape.type === Shape.LINE) return shape.x + (Math.max(0, shape.dx));
+	else if (shape.type === Shape.CIRCLE) return shape.x + shape.radius;
 	return shape.x + extrema(shape, {x:1, y:0}).x;
 }
 export function top(shape) {
-	if (shape.type === SHAPE.BOX) return shape.y + shape.height;
-	else if (shape.type === SHAPE.LINE) return shape.y + (Math.max(0, shape.dy));
-	else if (shape.type === SHAPE.CIRCLE) return shape.y + shape.radius;
+	if (shape.type === Shape.BOX) return shape.y + shape.height;
+	else if (shape.type === Shape.LINE) return shape.y + (Math.max(0, shape.dy));
+	else if (shape.type === Shape.CIRCLE) return shape.y + shape.radius;
 	return shape.y + extrema(shape, {x:0, y:1}).y;
 }
 export function bottom(shape) {
-	if (shape.type === SHAPE.BOX) return shape.y;
-	else if (shape.type === SHAPE.LINE) return shape.y + (Math.min(shape.dy, 0));
-	else if (shape.type === SHAPE.CIRCLE) return shape.y - shape.radius;
+	if (shape.type === Shape.BOX) return shape.y;
+	else if (shape.type === Shape.LINE) return shape.y + (Math.min(shape.dy, 0));
+	else if (shape.type === Shape.CIRCLE) return shape.y - shape.radius;
 	return shape.y + extrema(shape, {x:0, y:-1}).y;
 }
 export function lineEnds(line) {
@@ -783,16 +784,16 @@ export function lineEnds(line) {
 	else return line.ends = [{x: line.x, y: line.y}, {x: line.x + line.dx, y: line.y + line.dy}];
 }
 export function shapeMid(shape) {
-	if (shape.type === SHAPE.BOX) {
+	if (shape.type === Shape.BOX) {
 		return {x: shape.x + shape.width/2, y: shape.y + shape.height/2};
 	}
-	else if (shape.type === SHAPE.CIRCLE) {
+	else if (shape.type === Shape.CIRCLE) {
 		return {x: shape.x, y: shape.y};
 	}
-	else if (shape.type === SHAPE.LINE) {
+	else if (shape.type === Shape.LINE) {
 		return {x: shape.x + shape.dx/2, y: shape.y + shape.dy/2};
 	}
-	else if (shape.type === SHAPE.POLYGON) {
+	else if (shape.type === Shape.POLYGON) {
 		return polyMid(shape, true);
 	}
 	console.error("Invalid shape type: " + shape.type);
@@ -1440,21 +1441,21 @@ export const Resolve = {
 
 // miscellaneous
 export function drawBounds(ctx, x, y, shape) {
-	if (shape.type === SHAPE.BOX) {
+	if (shape.type === Shape.BOX) {
 		ctx.strokeRect(x + shape.x, y + shape.y, shape.width, shape.height);
 	}
-	else if (shape.type === SHAPE.LINE) {
+	else if (shape.type === Shape.LINE) {
 		ctx.beginPath();
 		ctx.moveTo(x + shape.x, y + shape.y);
 		ctx.lineTo(x + shape.x + shape.dx, y + shape.y + shape.dy);
 		ctx.stroke();
 	}
-	else if (shape.type === SHAPE.CIRCLE) {
+	else if (shape.type === Shape.CIRCLE) {
 		ctx.beginPath();
 		ctx.arc(x + shape.x, y + shape.y, shape.radius, 0, Math.PI * 2);
 		ctx.stroke();
 	}
-	else if (shape.type === SHAPE.POLYGON) {
+	else if (shape.type === Shape.POLYGON) {
 		ctx.beginPath();
 		let first = shape.points[0];
 		ctx.moveTo(x + shape.x + first.x, y + shape.y + first.y);
@@ -1475,13 +1476,13 @@ export function drawBounds(ctx, x, y, shape) {
 }
 export function flipShapeX(shape) {
 	shape.x *= -1;
-	if (shape.type === SHAPE.BOX) {
+	if (shape.type === Shape.BOX) {
 		shape.x -= shape.width;
 	}
-	else if (shape.type === SHAPE.LINE) {
+	else if (shape.type === Shape.LINE) {
 		shape.dx *= -1;
 	}
-	else if (shape.type === SHAPE.POLYGON) {
+	else if (shape.type === Shape.POLYGON) {
 		let points = [];
 		for (let i = 0; i < shape.points.length; i++) {
 			let point = shape.points[i];
@@ -1492,13 +1493,13 @@ export function flipShapeX(shape) {
 }
 export function flipShapeY(shape) {
 	shape.y *= -1;
-	if (shape.type === SHAPE.BOX) {
+	if (shape.type === Shape.BOX) {
 		shape.y -= shape.height;
 	}
-	else if (shape.type === SHAPE.LINE) {
+	else if (shape.type === Shape.LINE) {
 		shape.dy *= -1;
 	}
-	else if (shape.type === SHAPE.POLYGON) {
+	else if (shape.type === Shape.POLYGON) {
 		let points = [];
 		for (let i = 0; i < shape.points.length; i++) {
 			let point = shape.points[i];

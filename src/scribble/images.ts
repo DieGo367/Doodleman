@@ -1,6 +1,7 @@
 import { ResourceManager } from "./resource.js";
-import { HiddenCanvas, SHAPE } from "./util.js";
+import { HiddenCanvas } from "./util.js";
 import * as Collision from "./collision.js";
+import * as Shape from "./shape.js";
 
 export class ImageManager extends ResourceManager {
 	useFlipped = false;
@@ -55,16 +56,16 @@ export class ImageManager extends ResourceManager {
 	drawOverShape(name, x, y, shape) {
 		let img = this.get(name);
 
-		if (shape.shape === SHAPE.BOX) {
+		if (shape.type === Shape.BOX) {
 			this.ctx.drawImage(img, x + shape.x, y + shape.y, shape.width, shape.height);
 		}
-		else if (shape.shape === SHAPE.CIRCLE) {
+		else if (shape.type === Shape.CIRCLE) {
 			this.ctx.drawImage(img, x + shape.x - shape.radius, y + shape.y - shape.radius, 2 * shape.radius, 2 * shape.radius);
 		}
-		else if (shape.shape === SHAPE.LINE) {
+		else if (shape.type === Shape.LINE) {
 			this.ctx.drawImage(img, x + shape.x, y + shape.y, x + shape.x + shape.dx, y + shape.y + shape.dy);
 		}
-		else if (shape.shape === SHAPE.POLYGON) {
+		else if (shape.type === Shape.POLYGON) {
 			let aabb = Collision.polyAABB(shape);
 			this.ctx.drawImage(img, x + aabb.x, y + aabb.y, aabb.width, aabb.height);
 		}
