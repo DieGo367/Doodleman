@@ -30,13 +30,14 @@ export interface Polygon extends Point {
 	points: Point[];
 }
 
+type Shaped<Type, Name> = Type & {type: Name};
 export type Shape = (
-	Point & {type: typeof POINT}
-	| Circle & {type: typeof CIRCLE}
-	| Box & {type: typeof BOX}
-	| Arc & {type: typeof ARC}
-	| Line & {type: typeof LINE}
-	| Polygon & {type: typeof POLYGON}
+	Shaped<Point, typeof POINT>
+	| Shaped<Circle, typeof CIRCLE>
+	| Shaped<Box, typeof BOX>
+	| Shaped<Arc, typeof ARC>
+	| Shaped<Line, typeof LINE>
+	| Shaped<Polygon, typeof POLYGON>
 )
 
 export function Pt(x: number, y: number): Point;
