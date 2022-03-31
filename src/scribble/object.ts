@@ -319,10 +319,10 @@ Objects.Circle = class Circle extends GameObject {
 }
 
 Objects.Polygon = class Polygon extends GameObject {
-	constructor(x, y, points, gfx) {
+	constructor(x, y, vertices, gfx) {
 		super(x, y);
-		let pts = points.map(pt => Shape.Pt(pt));
-		let aabb = Shape.polygonAABB({x: 0, y: 0, points: pts});
+		let pts = vertices.map(pt => Shape.Pt(pt));
+		let aabb = Shape.polygonAABB({x: 0, y: 0, vertices: pts});
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
 			this.animator = new AnimationComponent(aabb.x + aabb.width/2, aabb.y, gfx);
 		}
@@ -330,13 +330,13 @@ Objects.Polygon = class Polygon extends GameObject {
 			type: Shape.POLYGON,
 			style: gfx,
 			x: 0, y: 0,
-			points: pts
+			vertices: pts
 		};
 		this.collision = {
 			type: Shape.POLYGON,
 			level: 0,
 			x: 0, y: 0,
-			points: pts
+			vertices: pts
 		};
 	}
 }

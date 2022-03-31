@@ -252,12 +252,12 @@ export function getSweepingShapes(shape) {
 	else if (shape.type === POLYGON) {
 		shape.sweepingShapes = [
 			// current and last
-			{type: POLYGON, x: shape.x, y: shape.y, points: shape.points.slice()},
-			{type: POLYGON, x: shape.lastX, y: shape.lastY, points: shape.points.slice()}
+			{type: POLYGON, x: shape.x, y: shape.y, vertices: shape.vertices.slice()},
+			{type: POLYGON, x: shape.lastX, y: shape.lastY, vertices: shape.vertices.slice()}
 		];
 		// lines from last to current vertices
-		for (let i = 0; i < shape.points.length; i++) {
-			let pt = shape.points[i];
+		for (let i = 0; i < shape.vertices.length; i++) {
+			let pt = shape.vertices[i];
 			shape.sweepingShapes.push({
 				type: LINE, x: shape.lastX + pt.x, y: shape.lastY + pt.y, dx: dx, dy: dy
 			});
@@ -458,9 +458,9 @@ export function getShapeBottoms(shape, gravity) {
 	}
 	else if (shape.type === POLYGON) {
 		let bottoms = [];
-		for (let i = 0; i < shape.points.length; i++) {
-			let v1 = sum(shape, shape.points[i]);
-			let v2 = sum(shape, shape.points[(i + 1) % shape.points.length]);
+		for (let i = 0; i < shape.vertices.length; i++) {
+			let v1 = sum(shape, shape.vertices[i]);
+			let v2 = sum(shape, shape.vertices[(i + 1) % shape.vertices.length]);
 			let edge: any = Line(v1, v2);
 			edge.type = LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
@@ -526,9 +526,9 @@ export function getShapeTops(shape, gravity) {
 	}
 	else if (shape.type === POLYGON) {
 		let tops = [];
-		for (let i = 0; i < shape.points.length; i++) {
-			let v1 = sum(shape, shape.points[i]);
-			let v2 = sum(shape, shape.points[(i + 1) % shape.points.length]);
+		for (let i = 0; i < shape.vertices.length; i++) {
+			let v1 = sum(shape, shape.vertices[i]);
+			let v2 = sum(shape, shape.vertices[(i + 1) % shape.vertices.length]);
 			let edge: any = Line(v1, v2);
 			edge.type = LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
@@ -723,9 +723,9 @@ export const Intersect = {
 		let collided = false;
 		let aabb = polygonAABB(poly);
 		if (Intersect.ptBox(pt, aabb)) {
-			for (let i = 0; i < poly.points.length; i++) {
-				let v1 = sum(poly, poly.points[i]);
-				let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
+			for (let i = 0; i < poly.vertices.length; i++) {
+				let v1 = sum(poly, poly.vertices[i]);
+				let v2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
 
 				// Jordan Curve Theorem. I don't understand it yet but the algorithm works
 				if (((v1.y >= pt.y && v2.y < pt.y) || (v1.y < pt.y && v2.y >= pt.y))
@@ -803,9 +803,9 @@ export const Intersect = {
 		return Intersect.ptArc(p2, arc) && Intersect.ptLine(p2, line);
 	},
 	arcPolygon(arc: Arc, poly: Polygon): boolean {
-		for (let i = 0; i < poly.points.length; i++) {
-			let v1 = sum(poly, poly.points[i]);
-			let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
+		for (let i = 0; i < poly.vertices.length; i++) {
+			let v1 = sum(poly, poly.vertices[i]);
+			let v2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
 			let edge = Line(v1, v2);
 			if (Intersect.arcLine(arc, edge)) return true;
 		}
@@ -838,9 +838,9 @@ export const Intersect = {
 	circlePolygon(circle: Circle, poly: Polygon): boolean {
 		let aabb = polygonAABB(poly);
 		if (Intersect.circleBox(circle, aabb)) {
-			for (let i = 0; i < poly.points.length; i++) {
-				let v1 = sum(poly, poly.points[i]);
-				let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
+			for (let i = 0; i < poly.vertices.length; i++) {
+				let v1 = sum(poly, poly.vertices[i]);
+				let v2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
 				let edge = Line(v1, v2);
 				if (Intersect.circleLine(circle, edge)) return true;
 			}
@@ -867,9 +867,9 @@ export const Intersect = {
 	boxPolygon(box: Box, poly: Polygon): boolean {
 		let aabb = polygonAABB(poly);
 		if (Intersect.boxBox(box, aabb)) {
-			for (let i = 0; i < poly.points.length; i++) {
-				let v1 = sum(poly, poly.points[i]);
-				let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
+			for (let i = 0; i < poly.vertices.length; i++) {
+				let v1 = sum(poly, poly.vertices[i]);
+				let v2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
 				let edge = Line(v1, v2);
 				if (Intersect.boxLine(box, edge)) return true;
 			}
@@ -896,9 +896,9 @@ export const Intersect = {
 	linePolygon(line: Line, poly: Polygon): boolean {
 		let aabb = polygonAABB(poly);
 		if (Intersect.boxLine(aabb, line)) {
-			for (let i = 0; i < poly.points.length; i++) {
-				let v1 = sum(poly, poly.points[i]);
-				let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
+			for (let i = 0; i < poly.vertices.length; i++) {
+				let v1 = sum(poly, poly.vertices[i]);
+				let v2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
 				let edge = Line(v1, v2);
 				if (Intersect.lineLine(line, edge)) return true;
 			}
@@ -910,14 +910,14 @@ export const Intersect = {
 		let aBound = polygonAABB(a);
 		let bBound = polygonAABB(b);
 		if (Intersect.boxBox(aBound, bBound)) {
-			for (let i = 0; i < a.points.length; i++) {
-				let v1 = sum(a, a.points[i]);
-				let v2 = sum(a, a.points[(i + 1) % a.points.length]);
+			for (let i = 0; i < a.vertices.length; i++) {
+				let v1 = sum(a, a.vertices[i]);
+				let v2 = sum(a, a.vertices[(i + 1) % a.vertices.length]);
 				let edge = Line(v1, v2);
 				if (Intersect.linePolygon(edge, b)) return true;
 			}
-			let ptA = sum(a, a.points[0]);
-			let ptB = sum(b, b.points[0]);
+			let ptA = sum(a, a.vertices[0]);
+			let ptB = sum(b, b.vertices[0]);
 			return Intersect.ptPolygon(ptB, a) || Intersect.ptPolygon(ptA, b);
 		}
 		else return false;
@@ -992,9 +992,9 @@ export const Resolve = {
 		let minVert;
 		let minVertDist = Infinity;
 
-		for (let i = 0; i < poly.points.length; i++) {
-			let v1 = sum(poly, poly.points[i]);
-			let v2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
+		for (let i = 0; i < poly.vertices.length; i++) {
+			let v1 = sum(poly, poly.vertices[i]);
+			let v2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
 			let edge: any = Line(v1, v2);
 
 			// if collided with an edge
@@ -1127,7 +1127,7 @@ export const Resolve = {
 		let bpoly = {
 			x: box.x, y: box.y,
 			lastX: box.lastX, lastY: box.lastY,
-			points: [
+			vertices: [
 				{x: 0, y: 0},
 				{x: 0, y: box.height},
 				{x: box.width, y: box.height},
@@ -1209,8 +1209,8 @@ export const Resolve = {
 			let hits = 0;
 			
 			let mid = polygonCenter(poly);
-			for (let i = 0; i < poly.points.length; i++) {
-				let pt = sum(poly, poly.points[i]);
+			for (let i = 0; i < poly.vertices.length; i++) {
+				let pt = sum(poly, poly.vertices[i]);
 				// use diagonal collision
 				let diag = Line(mid, pt);
 				if (Intersect.lineLine(line, diag)) {
@@ -1219,7 +1219,7 @@ export const Resolve = {
 					hits++;
 				}
 				// check endpoint collision
-				let pt2 = sum(poly, poly.points[(i + 1) % poly.points.length]);
+				let pt2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
 				let edge = Line(pt, pt2);
 				if (end1Collides) {
 					let target = project(end1, edge);
@@ -1262,12 +1262,12 @@ export const Resolve = {
 		// do diagonals for each
 		let correction = {x: 0, y: 0};
 		let hits = 0;
-		for (let i = 0; i < a.points.length; i++) {
-			let pt = sum(a, a.points[i]);
+		for (let i = 0; i < a.vertices.length; i++) {
+			let pt = sum(a, a.vertices[i]);
 			let diag = Line(midA, pt);
-			for (let j = 0; j < b.points.length; j++) {
-				let end1 = sum(b, b.points[j]);
-				let end2 = sum(b, b.points[(j + 1) % b.points.length]);
+			for (let j = 0; j < b.vertices.length; j++) {
+				let end1 = sum(b, b.vertices[j]);
+				let end2 = sum(b, b.vertices[(j + 1) % b.vertices.length]);
 				let edge = Line(end1, end2);
 				if (Intersect.lineLine(diag, edge)) {
 					let target = project(pt, edge);
@@ -1276,12 +1276,12 @@ export const Resolve = {
 				}
 			}
 		}
-		for (let i = 0; i < b.points.length; i++) {
-			let pt = sum(b, b.points[i]);
+		for (let i = 0; i < b.vertices.length; i++) {
+			let pt = sum(b, b.vertices[i]);
 			let diag = Line(midB, pt);
-			for (let j = 0; j < a.points.length; j++) {
-				let end1 = sum(a, a.points[j]);
-				let end2 = sum(a, a.points[(j + 1) % a.points.length]);
+			for (let j = 0; j < a.vertices.length; j++) {
+				let end1 = sum(a, a.vertices[j]);
+				let end2 = sum(a, a.vertices[(j + 1) % a.vertices.length]);
 				let edge = Line(end1, end2);
 				if (Intersect.lineLine(diag, edge)) {
 					let target = project(pt, edge);

@@ -28,7 +28,13 @@ export interface Line extends Point {
 	dy: number;
 }
 export interface Polygon extends Point {
-	points: Point[];
+	vertices: PolygonVertices;
+}
+
+export type PolygonVertices = Point[] & {
+	0?: {x: 0, y: 0};
+	localCenter?: Point,
+	localAABB?: Box
 }
 
 type Shaped<Type, Name> = Type & {type: Name};
@@ -62,17 +68,50 @@ export function Box(x: number, y: number, width: number, height: number): Box {
 export function Arc(x: number, y: number, radius: number, start: number, end: number): Arc {
 	return {x: x, y: y, radius: radius, start: start, end: end};
 }
+
 export function Line(x: number, y: number, dx: number, dy: number): Line;
 export function Line(a: Point, b: Point): Line;
 export function Line(x: number | Point, y: number | Point, dx?: number, dy?: number): Line {
-	if (typeof x === "number" && typeof y === "number")
-		return {x: x, y: y, dx: dx, dy: dy};
-	else if (typeof x === "object" && typeof y === "object")
-		return {x: x.x, y: x.y, dx: y.x - x.x, dy: y.y - x.y};
-	else throw new TypeError("Arguments must be of same type");
+	if (typeof x === "number")
+		return {x: x, y: y as number, dx: dx, dy: dy};
+	else if (typeof x === "object")
+		return {x: x.x, y: x.y, dx: (y as Point).x - x.x, dy: (y as Point).y - x.y};
+	else never(x);
 }
-export function Polygon(x: number, y: number, points: Point[]): Polygon {
-	return {x: x, y: y, points: points};
+
+export function Polygon(x: number, y: number, vertices: PolygonVertices): Polygon;
+export function Polygon(points: Point[]): Polygon;
+export function Polygon(...points: Point[]): Polygon;
+export function Polygon(x: number | Point[] | Point, y?: number | Point, points?: PolygonVertices | Point, ...restPoints: Point[]): Polygon {
+	// standard definition: x, y, and relative vertices
+	if (typeof x === "number") {
+		if (points[0].x !== 0 || points[1].x != 0) throw new Error("Bad PolygonVertices. First vertex MUST be (0,0)");
+		else return {x: x, y: y as number, vertices: points as PolygonVertices};
+	}
+	// array of absolute points
+	else if (x instanceof Array)
+		return {
+			x: x[0].x,
+			y: x[0].y,
+			vertices: x.map(pt => diff(pt, x[0]))
+		};
+	// params as absolute points
+	else if (typeof x === "object") {
+		let verts: Point[] = [];
+		if (typeof y === "object") {
+			verts.push(y);
+			if (typeof points === "object") {
+				verts.push(points as Point);
+				verts.push(...restPoints);
+			}
+		}
+		return {
+			x: x.x,
+			y: x.y,
+			vertices: verts.map(pt => diff(pt, x))
+		};
+	}
+	else never(x);
 }
 
 export function boxCenter(box: Box): Point {
@@ -87,7 +126,7 @@ export function lineCenter(line: Line): Point {
 	return {x: line.x + line.dx/2, y: line.y + line.dy/2};
 }
 export function polygonCenter(poly: Polygon): Point {
-	let avg = scale(sum(...poly.points), 1/poly.points.length);
+	let avg = scale(sum(...poly.vertices), 1/poly.vertices.length);
 	return sum(poly, avg);
 }
 export function center(shape: Shape): Point {
@@ -137,8 +176,8 @@ export function extrema(shape: Shape, direction: Point): Point {
 		mid = {x: shape.dx/2, y: shape.dy/2};
 	}
 	else if (shape.type === POLYGON) {
-		pts = shape.points;
-		mid = scale(sum(...shape.points), 1/shape.points.length);
+		pts = shape.vertices;
+		mid = scale(sum(...shape.vertices), 1/shape.vertices.length);
 	}
 	else never(shape);
 
@@ -201,7 +240,7 @@ export function polygonAABB(poly: Polygon): Box {
 	let minY = 0;
 	let maxX = 0;
 	let maxY = 0;
-	for (let pt of poly.points) {
+	for (let pt of poly.vertices) {
 		if (pt.x < minX) minX = pt.x;
 		if (pt.y < minY) minY = pt.y;
 		if (pt.x > maxX) maxX = pt.x;
@@ -238,7 +277,7 @@ export function flipX(shape: Shape) {
 			shape.dx *= -1;
 			break;
 		case POLYGON:
-			shape.points = shape.points.map(pt => Pt(pt.x * -1, pt.y));
+			shape.vertices = shape.vertices.map(pt => Pt(pt.x * -1, pt.y));
 		case POINT:
 		case CIRCLE:
 			break;
@@ -259,7 +298,7 @@ export function flipY(shape: Shape) {
 			shape.dy *= -1;
 			break;
 		case POLYGON:
-			shape.points = shape.points.map(pt => Pt(pt.x, pt.y * -1));
+			shape.vertices = shape.vertices.map(pt => Pt(pt.x, pt.y * -1));
 		case POINT:
 		case CIRCLE:
 			break;
@@ -298,9 +337,9 @@ export function fill(ctx: CanvasRenderingContext2D, x: number, y: number, shape:
 	}
 	else if (shape.type === POLYGON) {
 		ctx.beginPath();
-		ctx.moveTo(x + shape.x + shape.points[0].x, y + shape.y + shape.points[0].y);
-		for (let i = 0; i < shape.points.length; i++) {
-			let next = shape.points[(i + 1) % shape.points.length];
+		ctx.moveTo(x + shape.x + shape.vertices[0].x, y + shape.y + shape.vertices[0].y);
+		for (let i = 0; i < shape.vertices.length; i++) {
+			let next = shape.vertices[(i + 1) % shape.vertices.length];
 			ctx.lineTo(x + shape.x + next.x, y + shape.y + next.y);
 		}
 		ctx.fill();
@@ -334,9 +373,9 @@ export function stroke(ctx: CanvasRenderingContext2D, x: number, y: number, shap
 	}
 	else if (shape.type === POLYGON) {
 		ctx.beginPath();
-		ctx.moveTo(x + shape.x + shape.points[0].x, y + shape.y + shape.points[0].y);
-		for (let i = 0; i < shape.points.length; i++) {
-			let next = shape.points[(i + 1) % shape.points.length];
+		ctx.moveTo(x + shape.x + shape.vertices[0].x, y + shape.y + shape.vertices[0].y);
+		for (let i = 0; i < shape.vertices.length; i++) {
+			let next = shape.vertices[(i + 1) % shape.vertices.length];
 			ctx.lineTo(x + shape.x + next.x, y + shape.y + next.y);
 		}
 		ctx.stroke();

@@ -127,14 +127,14 @@ class DoodlemanGame extends Scribble.Game {
 		this.engine.objects.add(new Scribble.Objects.Box(400, 200, 100, 150, "black"));
 		this.engine.objects.add(new Scribble.Objects.Line(10, 250, 300, 290, "black")); 
 		this.engine.objects.add(new Scribble.Objects.Circle(205, 115, 40, "black")); 
-		this.engine.objects.add(new Scribble.Objects.Polygon(450, 90, [
-			[-100, 0], [-80, 70], [0, 80], [40, 30], [50, 0], [0, -60]
+		this.engine.objects.add(new Scribble.Objects.Polygon(350, 90, [
+			[0, 0], [20, 70], [100, 80], [140, 30], [150, 0], [100, -60]
 		], "black"));
 
 		// this.follow = new Scribble.Objects.Box(0, 0, 40, 50, "blue");
 		this.follow = new Scribble.Objects.Circle(0, 0, 40, "blue");
 		// this.follow = new Scribble.Objects.Line(0, 0, 40, 40, "blue");
-		// this.follow = new Scribble.Objects.Polygon(0, 0, [[60, 70], [70, 0], [71, -30], [45, -80], [0, -45], [-10, -35], [-15, -27], [-20, 0], [-10, 45], [0, 50], [25, 67]], "blue");
+		// this.follow = new Scribble.Objects.Polygon(60, 70, [[0, 0], [10, -70], [11, -100], [-15, -150], [-60, -115], [-70, -105], [-75, -97], [-80, -70], [-70, -25], [-60, -20], [-35, -3]], "blue");
 		window.collisionLevel = 0;
 		this.engine.objects.add(this.follow);
 	}
