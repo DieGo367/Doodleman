@@ -1,5 +1,5 @@
 import { scale, mag, sum, diff, dot } from "./point_math.js";
-import { never } from "./util.js";
+import { Angle, never } from "./util.js";
 
 export const POINT = "point";
 export const CIRCLE = "circle";
@@ -78,6 +78,11 @@ export function Polygon(x: number, y: number, points: Point[]): Polygon {
 export function boxCenter(box: Box): Point {
 	return {x: box.x + box.width/2, y: box.y + box.height/2};
 }
+export function arcCenter(arc: Arc): Point {
+	let dAngle = arc.end - arc.start;
+	let angle = arc.start + dAngle/2;
+	return sum(arc, scale(Angle.position(angle), arc.radius));
+}
 export function lineCenter(line: Line): Point {
 	return {x: line.x + line.dx/2, y: line.y + line.dy/2};
 }
@@ -88,6 +93,7 @@ export function polygonCenter(poly: Polygon): Point {
 export function center(shape: Shape): Point {
 	if (shape.type === POINT || shape.type == CIRCLE) return Pt(shape);
 	else if (shape.type === BOX) return boxCenter(shape);
+	else if (shape.type === ARC) return arcCenter(shape);
 	else if (shape.type === LINE) return lineCenter(shape);
 	else if (shape.type === POLYGON) return polygonCenter(shape);
 	else never(shape);
@@ -100,6 +106,19 @@ export function extrema(shape: Shape, direction: Point): Point {
 	else if (shape.type === CIRCLE) {
 		let outward = scale(direction, shape.radius / mag(direction));
 		return sum(shape, outward);
+	}
+	else if (shape.type === ARC) {
+		let angle = Math.atan2(direction.y, direction.x);
+		if (Angle.withinArc(angle, shape))
+			return scale(direction, shape.radius / mag(direction));
+		else {
+			pts = [
+				scale(Angle.position(shape.start), shape.radius),
+				scale(Angle.position(shape.end), shape.radius)
+			];
+			let dAngle = shape.end - shape.start;
+			mid = scale(Angle.position(shape.start + dAngle/2), shape.radius);
+		}
 	}
 	else if (shape.type === BOX) {
 		pts = [
@@ -139,6 +158,7 @@ export function extrema(shape: Shape, direction: Point): Point {
 export function left(shape: Shape): number {
 	if (shape.type === POINT || shape.type === BOX) return shape.x;
 	else if (shape.type === CIRCLE) return shape.x - shape.radius;
+	else if (shape.type === ARC) return extrema(shape, Pt(-1,0)).x;
 	else if (shape.type === LINE) return shape.x + (Math.min(shape.dx, 0));
 	else if (shape.type === POLYGON) return polygonAABB(shape).x;
 	else never(shape);
@@ -147,6 +167,7 @@ export function right(shape: Shape): number {
 	if (shape.type === POINT) return shape.x;
 	else if (shape.type === CIRCLE) return shape.x + shape.radius;
 	else if (shape.type === BOX) return shape.x + shape.width;
+	else if (shape.type === ARC) return extrema(shape, Pt(1,0)).x;
 	else if (shape.type === LINE) return shape.x + (Math.max(0, shape.dx));
 	else if (shape.type === POLYGON) {
 		let aabb = polygonAABB(shape);
@@ -158,6 +179,7 @@ export function top(shape: Shape): number {
 	if (shape.type === POINT) return shape.y;
 	else if (shape.type === CIRCLE) return shape.y + shape.radius;
 	else if (shape.type === BOX) return shape.y + shape.height;
+	else if (shape.type === ARC) return extrema(shape, Pt(0,1)).y;
 	else if (shape.type === LINE) return shape.y + (Math.max(0, shape.dy));
 	else if (shape.type === POLYGON) {
 		let aabb = polygonAABB(shape);
@@ -168,6 +190,7 @@ export function top(shape: Shape): number {
 export function bottom(shape: Shape): number {
 	if (shape.type === POINT || shape.type === BOX) return shape.y;
 	else if (shape.type === CIRCLE) return shape.y - shape.radius;
+	else if (shape.type === ARC) return extrema(shape, Pt(0,-1)).y;
 	else if (shape.type === LINE) return shape.y + (Math.min(shape.dy, 0));
 	else if (shape.type === POLYGON) return polygonAABB(shape).y;
 	else never(shape);

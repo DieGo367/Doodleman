@@ -48,3 +48,25 @@ export function HiddenCanvas(width: number, height: number): HTMLCanvasElement {
 		return canvas;
 	}
 }
+
+const TAU = 2*Math.PI;
+export const Angle = {
+	position(angle: number) {
+		return {x: Math.cos(angle), y: Math.sin(angle)};
+	},
+	bound(angle: number): number {
+		while (angle < 0) angle += TAU;
+		while (angle >= TAU) angle -= TAU;
+		return angle;
+	},
+	withinArc(angle: number, arc: {start: number, end: number}): boolean {
+		let dAngle = arc.end - arc.start;
+		if (dAngle >= TAU) return true;
+		let start = Angle.bound(arc.start);
+		let end = Angle.bound(arc.end);
+		if (end > start)
+			return start <= angle && angle <= end;
+		else
+			return angle <= end || start <= angle;
+	}
+}
