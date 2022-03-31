@@ -33,9 +33,11 @@ export function never(value: never): never {
 }
 
 declare global {
-	var OffscreenCanvas;
+	var OffscreenCanvas: {
+		new (width: number, height: number): HTMLCanvasElement
+	};
 }
-export function HiddenCanvas(width, height) {
+export function HiddenCanvas(width: number, height: number): HTMLCanvasElement {
 	if ("OffscreenCanvas" in window) {
 		return new OffscreenCanvas(width, height);
 	}
