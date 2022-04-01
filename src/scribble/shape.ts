@@ -47,6 +47,36 @@ export type Shape = (
 	| Shaped<Polygon, typeof POLYGON>
 )
 
+export function isShape(obj: any): obj is Shape {
+	if (typeof obj.type === "string") {
+		if (typeof obj.x === "number" && typeof obj.y === "number") {
+			if (obj.type === POINT)
+				return true;
+			else if (obj.type === CIRCLE)
+				return typeof obj.radius === "number";
+			else if (obj.type === BOX)
+				return typeof obj.width === "number" && typeof obj.height === "number";
+			else if (obj.type === ARC)
+				return typeof obj.radius === "number" && typeof obj.start === "number" && typeof obj.end === "number";
+			else if (obj.type === LINE)
+				return typeof obj.dx === "number" && typeof obj.dy === "number";
+			else if (obj.type === POLYGON)
+				return (
+					obj.vertices instanceof Array
+					&& obj.vertices.length > 0
+					&& obj.vertices.every(item => {
+						typeof item === "object"
+						&& typeof item.x === "number"
+						&& typeof item.y === "number"
+					})
+					&& obj.vertices[0].x === 0
+					&& obj.vertices[0].y === 0
+				);
+		}
+	}
+	return false;
+}
+
 export function Pt(x: number, y: number): Point;
 export function Pt(array: number[]): Point;
 export function Pt(point: Point): Point;
@@ -312,6 +342,24 @@ export function flipY(shape: Shape) {
 		default:
 			never(shape);
 	}
+}
+
+/**
+ * Gets a copy of a `Shape` that is stored on an object, and adds the owner's position to the `Shape`.
+ * @param owner Owner of a `Shape`.
+ * @param propName Name of the property of `owner` that contains a `Shape`
+ * @returns A copy of the `Shape` stored at `owner[propName]`, with adjusted coordinates.
+ * @throws When `owner` does not have a `Shape` at the given property
+ */
+export function access<Owner extends Point>(owner: Owner, propName: keyof Owner): Shape {
+	let og = owner[propName];
+	if (isShape(og)) {
+		let result = Object.assign({}, og);
+		result.x += owner.x;
+		result.y += owner.y;
+		return result;
+	}
+	else throw Error(`Property ${propName} of object was not a Shape.`);
 }
 
 export function fill(ctx: CanvasRenderingContext2D, x: number, y: number, shape: Shape) {

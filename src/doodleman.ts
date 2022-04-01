@@ -59,7 +59,7 @@ class DoodlemanGame extends Scribble.Game {
 				let ss = Scribble.Collision.getShapeTops(coll, this.engine.gravity);
 				for (let i = 0; i < ss.length; i++) {
 					const shape = ss[i];
-					if (Scribble.Collision.intersectFuncMap[Scribble.Shape.POINT][shape.type](this.engine.input.cursorPos(), shape))
+					if (Scribble.Collision.intersectsPt(this.engine.input.cursorPos(), shape))
 						this.follow.graphic.style = "green";
 				}
 			}

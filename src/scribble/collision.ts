@@ -1,7 +1,8 @@
 import { GameObject } from "./object.js";
-import { EDGE } from "./util.js";
+import { EDGE, never } from "./util.js";
 import { diff, dist, dot, mag, project, scale, sum, unit } from "./point_math.js";
 import {
+	type Shape,
 	POINT, type Point,
 	CIRCLE, type Circle,
 	BOX, type Box,
@@ -128,16 +129,6 @@ export function getCollider(obj) {
 	shape.y += obj.y;
 	return shape;
 }
-/**
- * Tests whether two objects intersect. Must have coordinates and a "collision" object.
- */
-export function intersect(a, b) {
-	let shapeA = getCollider(a);
-	let shapeB = getCollider(b);
-	let func = intersectFuncMap[shapeA.type][shapeB.type];
-	if (typeof func === "function") return func(shapeA, shapeB);
-	else console.error(`Missing intersect function for collision of ${shapeA.type} with ${shapeB.type}`);
-}
 // the entire collision check process, including detection, push vector creation, and ground detection
 export function collisionCheck(a, b, gravity) {
 	if (a.weight === Infinity && b.weight === Infinity) return;
@@ -146,7 +137,6 @@ export function collisionCheck(a, b, gravity) {
 	continuousCollision(a, b, gravity);
 }
 export function discreteCollision(a, b, gravity) {
-	let intersect = intersectFuncMap[a.type][b.type];
 	let resolve = resolveFuncMap[a.type][b.type];
 	if (intersect(a, b)) {
 		let push = resolve(a, b);
@@ -194,7 +184,7 @@ export function sweepCheck(a, b) {
 	let bx = b.x - b.lastX;
 	let by = b.y - b.lastY;
 	let motion = {x: ax - bx, y: ay - by};
-	if (motion.x === 0 && motion.y === 0) return intersectFuncMap[a.type][b.type](a, b);
+	if (motion.x === 0 && motion.y === 0) return intersect(a, b);
 	// actual sweep check
 	let shapesA = getSweepingShapes(a);
 	let shapesB = getSweepingShapes(b);
@@ -202,7 +192,6 @@ export function sweepCheck(a, b) {
 		let shapeA = shapesA[i];
 		for (let j = 0; j < shapesB.length; j++) {
 			let shapeB = shapesB[j];
-			let intersect = intersectFuncMap[shapeA.type][shapeB.type];
 			if (intersect(shapeA, shapeB)) return true;
 		}
 	}
@@ -267,7 +256,6 @@ export function getSweepingShapes(shape) {
 	else console.error("Unknown shape type: " + shape.type);
 }
 export function bisectionMethod(a, b) {
-	let intersect = intersectFuncMap[a.type][b.type];
 	let resolve = resolveFuncMap[a.type][b.type];
 	// velocities
 	let velA = {x: a.x - a.lastX, y: a.y - a.lastY};
@@ -404,7 +392,7 @@ export function shapeGroundedOn(a, b, gravity) {
 		for (let j = 0; j < tops.length; j++) {
 			let top = tops[j];
 			try {
-				if (intersectFuncMap[bottom.type][top.type](bottom, top)) return true;
+				if (intersect(bottom, top)) return true;
 				else if (a.owner.grounds[b.owner.id] && b.type === LINE) return true;
 			}
 			catch(e) {
@@ -542,56 +530,7 @@ export function getShapeTops(shape, gravity) {
 	else console.error("Unknown shape type: " + shape.type);
 }
 
-export const intersectFuncMap = {
-	point: {
-		point: (a, b) => Intersect.ptPt(a, b),
-		arc: (pt, arc) => Intersect.ptArc(pt, arc),
-		circle: (pt, circle) => Intersect.ptCircle(pt, circle),
-		box: (pt, box) => Intersect.ptBox(pt, box),
-		line: (pt, line) => Intersect.ptLine(pt, line),
-		polygon: (pt, poly) => Intersect.ptPolygon(pt, poly)
-	},
-	arc: {
-		point: (arc, pt) => Intersect.ptArc(pt, arc),
-		arc: (a, b) => Intersect.arcArc(a, b),
-		circle: (arc, circle) => Intersect.arcCircle(arc, circle),
-		box: (arc, box) => Intersect.arcBox(arc, box),
-		line: (arc, line) => Intersect.arcLine(arc, line),
-		polygon: (arc, poly) => Intersect.arcPolygon(arc, poly)
-	},
-	circle: {
-		point: (circle, pt) => Intersect.ptCircle(pt, circle),
-		arc: (circle, arc) => Intersect.arcCircle(arc, circle),
-		circle: (a, b) => Intersect.circleCircle(a, b),
-		box: (circle, box) => Intersect.circleBox(circle, box),
-		line: (circle, line) => Intersect.circleLine(circle, line),
-		polygon: (circle, poly) => Intersect.circlePolygon(circle, poly)
-	},
-	box: {
-		point: (box, pt) => Intersect.ptBox(pt, box),
-		arc: (box, arc) => Intersect.arcBox(arc, box),
-		circle: (box, circle) => Intersect.circleBox(circle, box),
-		box: (a, b) => Intersect.boxBox(a, b),
-		line: (box, line) => Intersect.boxLine(box, line),
-		polygon: (box, poly) => Intersect.boxPolygon(box, poly)
-	},
-	line: {
-		point: (line, pt) => Intersect.ptLine(pt, line),
-		arc: (line, arc) => Intersect.arcLine(arc, line),
-		circle: (line, circle) => Intersect.circleLine(circle, line),
-		box: (line, box) => Intersect.boxLine(box, line),
-		line: (a, b) => Intersect.lineLine(a, b),
-		polygon: (line, poly) => Intersect.linePolygon(line, poly)
-	},
-	polygon: {
-		point: (poly, pt) => Intersect.ptPolygon(pt, poly),
-		arc: (poly, arc) => Intersect.arcPolygon(arc, poly),
-		circle: (poly, circle) => Intersect.circlePolygon(circle, poly),
-		box: (poly, box) => Intersect.boxPolygon(box, poly),
-		line: (poly, line) => Intersect.linePolygon(line, poly),
-		polygon: (a, b) => Intersect.polygonPolygon(a, b)
-	}
-};
+
 export const resolveFuncMap = {
 	circle: {
 		circle: (a, b) => Resolve.circleCircle(a, b),
@@ -683,6 +622,69 @@ export function lineSidePassCheck(line, shape) {
 }
 
 // detection and resolution
+export function intersectsPt(pt: Point, shape: Shape): boolean {
+	if (shape.type === POINT) return Intersect.ptPt(pt, shape);
+	else if (shape.type === ARC) return Intersect.ptArc(pt, shape);
+	else if (shape.type === CIRCLE) return Intersect.ptCircle(pt, shape);
+	else if (shape.type === BOX) return Intersect.ptBox(pt, shape);
+	else if (shape.type === LINE) return Intersect.ptLine(pt, shape);
+	else if (shape.type === POLYGON) return Intersect.ptPolygon(pt, shape);
+	else never(shape);
+}
+export function intersectsArc(arc: Arc, shape: Shape): boolean {
+	if (shape.type === POINT) return Intersect.ptArc(shape, arc);
+	else if (shape.type === ARC) return Intersect.arcArc(arc, shape);
+	else if (shape.type === CIRCLE) return Intersect.arcCircle(arc, shape);
+	else if (shape.type === BOX) return Intersect.arcBox(arc, shape);
+	else if (shape.type === LINE) return Intersect.arcLine(arc, shape);
+	else if (shape.type === POLYGON) return Intersect.arcPolygon(arc, shape);
+	else never(shape);
+}
+export function intersectsCircle(circle: Circle, shape: Shape): boolean {
+	if (shape.type === POINT) return Intersect.ptCircle(shape, circle);
+	else if (shape.type === ARC) return Intersect.arcCircle(shape, circle);
+	else if (shape.type === CIRCLE) return Intersect.circleCircle(circle, shape);
+	else if (shape.type === BOX) return Intersect.circleBox(circle, shape);
+	else if (shape.type === LINE) return Intersect.circleLine(circle, shape);
+	else if (shape.type === POLYGON) return Intersect.circlePolygon(circle, shape);
+	else never(shape);
+}
+export function intersectsBox(box: Box, shape: Shape): boolean {
+	if (shape.type === POINT) return Intersect.ptBox(shape, box);
+	else if (shape.type === ARC) return Intersect.arcBox(shape, box);
+	else if (shape.type === CIRCLE) return Intersect.circleBox(shape, box);
+	else if (shape.type === BOX) return Intersect.boxBox(box, shape);
+	else if (shape.type === LINE) return Intersect.boxLine(box, shape);
+	else if (shape.type === POLYGON) return Intersect.boxPolygon(box, shape);
+	else never(shape);
+}
+export function intersectsLine(line: Line, shape: Shape): boolean {
+	if (shape.type === POINT) return Intersect.ptLine(shape, line);
+	else if (shape.type === ARC) return Intersect.arcLine(shape, line);
+	else if (shape.type === CIRCLE) return Intersect.circleLine(shape, line);
+	else if (shape.type === BOX) return Intersect.boxLine(shape, line);
+	else if (shape.type === LINE) return Intersect.lineLine(line, shape);
+	else if (shape.type === POLYGON) return Intersect.linePolygon(line, shape);
+	else never(shape);
+}
+export function intersectsPolygon(poly: Polygon, shape: Shape): boolean {
+	if (shape.type === POINT) return Intersect.ptPolygon(shape, poly);
+	else if (shape.type === ARC) return Intersect.arcPolygon(shape, poly);
+	else if (shape.type === CIRCLE) return Intersect.circlePolygon(shape, poly);
+	else if (shape.type === BOX) return Intersect.boxPolygon(shape, poly);
+	else if (shape.type === LINE) return Intersect.linePolygon(shape, poly);
+	else if (shape.type === POLYGON) return Intersect.polygonPolygon(poly, shape);
+	else never(shape);
+}
+export function intersect(a: Shape, b: Shape): boolean {
+	if (a.type === POINT) return intersectsPt(a, b);
+	else if (a.type === ARC) return intersectsArc(a, b);
+	else if (a.type === CIRCLE) return intersectsCircle(a, b);
+	else if (a.type === BOX) return intersectsBox(a, b);
+	else if (a.type === LINE) return intersectsLine(a, b);
+	else if (a.type === POLYGON) return intersectsPolygon(a, b);
+	else console.log(a), never(a);
+}
 
 
 export const Intersect = {

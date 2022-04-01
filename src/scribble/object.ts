@@ -499,8 +499,7 @@ Objects.Entity = class Entity extends GameObject {
 					// check this object isn't excluded
 					if (hitbox.hits.indexOf(id) === -1) {
 						// check the hitbox intersects the object
-						hitbox.collision = hitbox.shape;
-						if (Collision.intersect(hitbox, obj)) {
+						if (Collision.intersect(Shape.access(hitbox, "shape"), Shape.access(obj, "collision"))) {
 							obj.hurt(hitbox.damage, hitbox.knockback, this);
 							if (hitbox.onHit) this[hitbox.onHit](obj, hitbox.damage, hitbox.knockback);
 							hitbox.hits.push(id);
