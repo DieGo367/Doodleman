@@ -37,15 +37,16 @@ export type PolygonVertices = Point[] & {
 	localAABB?: Box
 }
 
-type Shaped<Type, Name> = Type & {type: Name};
-export type Shape = (
-	Shaped<Point, typeof POINT>
-	| Shaped<Circle, typeof CIRCLE>
-	| Shaped<Box, typeof BOX>
-	| Shaped<Arc, typeof ARC>
-	| Shaped<Line, typeof LINE>
-	| Shaped<Polygon, typeof POLYGON>
+export type Basic = Point | Circle | Box | Arc | Line | Polygon;
+export type Shaped<Type extends Basic> = (
+	Type extends Polygon? Polygon & {type: typeof POLYGON} :
+	Type extends Line? Line & {type: typeof LINE} :
+	Type extends Arc? Arc & {type: typeof ARC} :
+	Type extends Box? Box & {type: typeof BOX} :
+	Type extends Circle? Circle & {type: typeof CIRCLE} :
+	Point & {type: typeof POINT}
 )
+export type Shape = Shaped<Basic>;
 
 export function isShape(obj: any): obj is Shape {
 	if (typeof obj.type === "string") {
