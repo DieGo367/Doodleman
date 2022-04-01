@@ -344,7 +344,7 @@ export function fill(ctx: CanvasRenderingContext2D, x: number, y: number, shape:
 	}
 	else if (shape.type === POLYGON) {
 		ctx.beginPath();
-		ctx.moveTo(x + shape.x + shape.vertices[0].x, y + shape.y + shape.vertices[0].y);
+		ctx.moveTo(x + shape.x, y + shape.y);
 		for (let i = 0; i < shape.vertices.length; i++) {
 			let next = shape.vertices[(i + 1) % shape.vertices.length];
 			ctx.lineTo(x + shape.x + next.x, y + shape.y + next.y);
@@ -380,7 +380,7 @@ export function stroke(ctx: CanvasRenderingContext2D, x: number, y: number, shap
 	}
 	else if (shape.type === POLYGON) {
 		ctx.beginPath();
-		ctx.moveTo(x + shape.x + shape.vertices[0].x, y + shape.y + shape.vertices[0].y);
+		ctx.moveTo(x + shape.x, y + shape.y);
 		for (let i = 0; i < shape.vertices.length; i++) {
 			let next = shape.vertices[(i + 1) % shape.vertices.length];
 			ctx.lineTo(x + shape.x + next.x, y + shape.y + next.y);

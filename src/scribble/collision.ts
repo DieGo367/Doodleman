@@ -916,9 +916,7 @@ export const Intersect = {
 				let edge = Line(v1, v2);
 				if (Intersect.linePolygon(edge, b)) return true;
 			}
-			let ptA = sum(a, a.vertices[0]);
-			let ptB = sum(b, b.vertices[0]);
-			return Intersect.ptPolygon(ptB, a) || Intersect.ptPolygon(ptA, b);
+			return Intersect.ptPolygon(b, a) || Intersect.ptPolygon(a, b);
 		}
 		else return false;
 	}
