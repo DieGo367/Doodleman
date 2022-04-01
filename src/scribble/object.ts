@@ -268,7 +268,7 @@ Objects.Box = class Box extends GameObject {
 		};
 		this.collision = {
 			type: Shape.BOX,
-			level: 0,
+			weight: 0,
 			x: 0, y: 0,
 			width: width, height: height
 		};
@@ -291,7 +291,7 @@ Objects.Line = class Line extends GameObject {
 		};
 		this.collision = {
 			type: Shape.LINE,
-			level: 0,
+			weight: 0,
 			x: 0, y: 0,
 			dx: dx, dy: dy
 		};
@@ -312,7 +312,7 @@ Objects.Circle = class Circle extends GameObject {
 		};
 		this.collision = {
 			type: Shape.CIRCLE,
-			level: 0,
+			weight: 0,
 			x: 0, y: 0, radius: radius
 		};
 	}
@@ -334,7 +334,7 @@ Objects.Polygon = class Polygon extends GameObject {
 		};
 		this.collision = {
 			type: Shape.POLYGON,
-			level: 0,
+			weight: 0,
 			x: 0, y: 0,
 			vertices: pts
 		};

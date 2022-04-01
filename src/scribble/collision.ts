@@ -18,7 +18,7 @@ type Collider<Type> = Type & {
 	lastX: number;
 	lastY: number;
 	pushVector: Vector;
-	level: number;
+	weight: number;
 }
 
 // TODO: projection push cancel?
@@ -46,11 +46,11 @@ export function run(objectMap, gravity, level) {
 			if (obj.collision) {
 				let shape = getCollider(obj);
 				// add the shape to the bucket for its collision weight level
-				if (!bucketMap[shape.level]) {
-					bucketMap[shape.level] = [];
-					mapLevels.push(shape.level);
+				if (!bucketMap[shape.weight]) {
+					bucketMap[shape.weight] = [];
+					mapLevels.push(shape.weight);
 				}
-				bucketMap[shape.level].push(shape);
+				bucketMap[shape.weight].push(shape);
 			}
 			if (!obj.collisions) obj.collisions = {};
 			if (!obj.grounds) obj.grounds = {};
@@ -140,7 +140,7 @@ export function intersect(a, b) {
 }
 // the entire collision check process, including detection, push vector creation, and ground detection
 export function collisionCheck(a, b, gravity) {
-	if (a.level === Infinity && b.level === Infinity) return;
+	if (a.weight === Infinity && b.weight === Infinity) return;
 	if (typeof a.type != "string" || typeof b.type != "string") return console.warn("Expected a string collision type.");
 	// discreteCollision(a, b, gravity);
 	continuousCollision(a, b, gravity);
@@ -332,13 +332,13 @@ export function bisectionMethod(a, b) {
 	if (!pushbackA) return pushbackA;
 	let resolved = resolvePush(testA, testB, pushbackA);
 	// handle long-distance correction according to collision weight level
-	if (a.level === b.level) {
+	if (a.weight === b.weight) {
 		a.pushVector.x += correctionA.x;
 		a.pushVector.y += correctionA.y;
 		b.pushVector.x += correctionB.x;
 		b.pushVector.y += correctionB.y;
 	}
-	else if (a.level > b.level) {
+	else if (a.weight > b.weight) {
 		b.pushVector.x += correctionB.x - correctionA.x;
 		b.pushVector.y += correctionB.y - correctionA.y;
 	}
@@ -353,7 +353,7 @@ export function resolvePush(a, b, force) {
 	let resA = Object.assign({}, a);
 	let resB = Object.assign({}, b);
 	// do the actual push force sum
-	if (a.level === b.level) {
+	if (a.weight === b.weight) {
 		a.pushVector.x += force.x / 2;
 		a.pushVector.y += force.y / 2;
 		a.pushVector.count++;
@@ -365,7 +365,7 @@ export function resolvePush(a, b, force) {
 		resB.x -= force.x / 2;
 		resB.y -= force.y / 2;
 	}
-	else if (a.level > b.level) {
+	else if (a.weight > b.weight) {
 		b.pushVector.x -= force.x;
 		b.pushVector.y -= force.y;
 		b.pushVector.count++;
@@ -1134,7 +1134,7 @@ export const Resolve = {
 				{x: box.width, y: 0}
 			],
 			pushVector: box.pushVector,
-			level: box.level
+			weight: box.weight
 		};
 		return Resolve.polygonPolygon(bpoly, poly);
 	},

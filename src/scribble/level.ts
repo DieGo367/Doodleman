@@ -65,7 +65,7 @@ export class LevelManager extends ResourceManager {
 				let args = [...piece, ...terrain.properties];
 				
 				let obj = new objectClass(...args);
-				obj.collision.level = Infinity;
+				obj.collision.weight = Infinity;
 				this.engine.objects.add(obj);
 			}
 		}

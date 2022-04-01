@@ -55,7 +55,7 @@ class DoodlemanGame extends Scribble.Game {
 				if (this.engine.input.key("KeyA")) this.follow.x -= 5;
 				if (this.engine.input.key("KeyS")) this.follow.y -= 5;
 				if (this.engine.input.key("KeyD")) this.follow.x += 5;
-				this.follow.collision.level = window.collisionLevel;
+				this.follow.collision.weight = window.collisionLevel;
 				let coll = Scribble.Collision.getCollider(this.follow);
 				let ss = Scribble.Collision.getShapeTops(coll, this.engine.gravity);
 				for (let i = 0; i < ss.length; i++) {
@@ -148,7 +148,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 		super(x, y);
 		this.collision = {
 			type: Scribble.Shape.BOX,
-			level: 0,
+			weight: 0,
 			x: -19/2, y: 0,
 			width: 19, height: 44
 		};
@@ -393,7 +393,7 @@ DMOs.PaintMan = class extends Scribble.Objects.Entity {
 		super(x, y);
 		this.collision = {
 			type: Scribble.Shape.BOX,
-			level: 0,
+			weight: 0,
 			x: -19/2, y: 0,
 			width: 19, height: 44
 		};
@@ -415,7 +415,7 @@ DMOs.HelloPlatform = class extends Scribble.GameObject {
 		super(x, y);
 		this.collision = {
 			type: Scribble.Shape.BOX,
-			level: Infinity,
+			weight: Infinity,
 			x: -width/2, y: 0,
 			width: width, height: height 
 		};
@@ -453,7 +453,7 @@ DMOs.Box201 = class extends Scribble.GameObject {
 		super(x, y);
 		this.collision = {
 			type: Scribble.Shape.BOX,
-			level: 0,
+			weight: 0,
 			x: -25, y: 0,
 			width: 50, height: 40
 		};
