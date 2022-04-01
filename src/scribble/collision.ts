@@ -622,7 +622,7 @@ export function lineSidePassCheck(line, shape) {
 }
 
 // detection and resolution
-export function intersectsPt(pt: Point, shape: Shape): boolean {
+export function intersectsPt(shape: Shape, pt: Point): boolean {
 	if (shape.type === POINT) return Intersect.ptPt(pt, shape);
 	else if (shape.type === ARC) return Intersect.ptArc(pt, shape);
 	else if (shape.type === CIRCLE) return Intersect.ptCircle(pt, shape);
@@ -631,7 +631,7 @@ export function intersectsPt(pt: Point, shape: Shape): boolean {
 	else if (shape.type === POLYGON) return Intersect.ptPolygon(pt, shape);
 	else never(shape);
 }
-export function intersectsArc(arc: Arc, shape: Shape): boolean {
+export function intersectsArc(shape: Shape, arc: Arc): boolean {
 	if (shape.type === POINT) return Intersect.ptArc(shape, arc);
 	else if (shape.type === ARC) return Intersect.arcArc(arc, shape);
 	else if (shape.type === CIRCLE) return Intersect.arcCircle(arc, shape);
@@ -640,7 +640,7 @@ export function intersectsArc(arc: Arc, shape: Shape): boolean {
 	else if (shape.type === POLYGON) return Intersect.arcPolygon(arc, shape);
 	else never(shape);
 }
-export function intersectsCircle(circle: Circle, shape: Shape): boolean {
+export function intersectsCircle(shape: Shape, circle: Circle): boolean {
 	if (shape.type === POINT) return Intersect.ptCircle(shape, circle);
 	else if (shape.type === ARC) return Intersect.arcCircle(shape, circle);
 	else if (shape.type === CIRCLE) return Intersect.circleCircle(circle, shape);
@@ -649,7 +649,7 @@ export function intersectsCircle(circle: Circle, shape: Shape): boolean {
 	else if (shape.type === POLYGON) return Intersect.circlePolygon(circle, shape);
 	else never(shape);
 }
-export function intersectsBox(box: Box, shape: Shape): boolean {
+export function intersectsBox(shape: Shape, box: Box): boolean {
 	if (shape.type === POINT) return Intersect.ptBox(shape, box);
 	else if (shape.type === ARC) return Intersect.arcBox(shape, box);
 	else if (shape.type === CIRCLE) return Intersect.circleBox(shape, box);
@@ -658,7 +658,7 @@ export function intersectsBox(box: Box, shape: Shape): boolean {
 	else if (shape.type === POLYGON) return Intersect.boxPolygon(box, shape);
 	else never(shape);
 }
-export function intersectsLine(line: Line, shape: Shape): boolean {
+export function intersectsLine(shape: Shape, line: Line): boolean {
 	if (shape.type === POINT) return Intersect.ptLine(shape, line);
 	else if (shape.type === ARC) return Intersect.arcLine(shape, line);
 	else if (shape.type === CIRCLE) return Intersect.circleLine(shape, line);
@@ -667,7 +667,7 @@ export function intersectsLine(line: Line, shape: Shape): boolean {
 	else if (shape.type === POLYGON) return Intersect.linePolygon(line, shape);
 	else never(shape);
 }
-export function intersectsPolygon(poly: Polygon, shape: Shape): boolean {
+export function intersectsPolygon(shape: Shape, poly: Polygon): boolean {
 	if (shape.type === POINT) return Intersect.ptPolygon(shape, poly);
 	else if (shape.type === ARC) return Intersect.arcPolygon(shape, poly);
 	else if (shape.type === CIRCLE) return Intersect.circlePolygon(shape, poly);
@@ -677,12 +677,12 @@ export function intersectsPolygon(poly: Polygon, shape: Shape): boolean {
 	else never(shape);
 }
 export function intersect(a: Shape, b: Shape): boolean {
-	if (a.type === POINT) return intersectsPt(a, b);
-	else if (a.type === ARC) return intersectsArc(a, b);
-	else if (a.type === CIRCLE) return intersectsCircle(a, b);
-	else if (a.type === BOX) return intersectsBox(a, b);
-	else if (a.type === LINE) return intersectsLine(a, b);
-	else if (a.type === POLYGON) return intersectsPolygon(a, b);
+	if (a.type === POINT) return intersectsPt(b, a);
+	else if (a.type === ARC) return intersectsArc(b, a);
+	else if (a.type === CIRCLE) return intersectsCircle(b, a);
+	else if (a.type === BOX) return intersectsBox(b, a);
+	else if (a.type === LINE) return intersectsLine(b, a);
+	else if (a.type === POLYGON) return intersectsPolygon(b, a);
 	else console.log(a), never(a);
 }
 
