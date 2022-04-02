@@ -1,15 +1,24 @@
+import { Engine } from "./engine";
+import { Point } from "./shape";
+
+interface Keys {
+	[key: string]: boolean;
+}
+interface Buttons {
+	[key: number]: boolean;
+}
+
 export class InputManager {
-	keys = {};
-	keyPrev = {};
-	keyPrevGame = {};
+	keys = {} as Keys;
+	keyPrev = {} as Keys;
+	keyPrevGame = {} as Keys;
 	cursor = {
 		x: 0, y: 0,
-		buttons: {},
-		buttonsPrev: {},
-		buttonsPrevGame: {}
+		buttons: {} as Buttons,
+		buttonsPrev: {} as Buttons,
+		buttonsPrevGame: {} as Buttons
 	};
-	constructor(public engine) {
-		this.engine = engine;
+	constructor(public engine: Engine) {
 		document.addEventListener("keydown", event => this._handle_key(event, true));
 		document.addEventListener("keyup", event => this._handle_key(event, false));
 		document.addEventListener("mousemove", event => this._handle_mouse(event));
@@ -26,50 +35,50 @@ export class InputManager {
 		this.cursor.buttonsPrev = Object.assign({}, this.cursor.buttons);
 	}
 
-	key(key) {
+	key(key: string): boolean {
 		return this.keys[key];
 	}
-	keyEventDown(key) {
+	keyEventDown(key: string): boolean {
 		return this.keys[key] && !this.keyPrev[key];
 	}
-	keyEventUp(key) {
+	keyEventUp(key: string): boolean {
 		return !this.keys[key] && this.keyPrev[key];
 	}
-	keyPress(key) {
+	keyPress(key: string): boolean {
 		return this.keys[key] && !this.keyPrevGame[key];
 	}
-	keyRelease(key) {
+	keyRelease(key: string): boolean {
 		return !this.keys[key] && this.keyPrevGame[key];
 	}
-	_handle_key(event, state) {
+	_handle_key(event: KeyboardEvent, state: boolean) {
 		let code = event.code;
 		this.keys[code] = state;
 		if (state) this.engine.debug.set("LastPressedKey", code);
 	}
 
-	mouseButton(number) {
-		return this.cursor.buttons[number||1];
+	mouseButton(number = 1): boolean {
+		return this.cursor.buttons[number];
 	}
-	mouseEventDown(number) {
-		return this.cursor.buttons[number||1] && !this.cursor.buttonsPrev[number||1];
+	mouseEventDown(number = 1): boolean {
+		return this.cursor.buttons[number] && !this.cursor.buttonsPrev[number];
 	}
-	mouseEventUp(number) {
-		return !this.cursor.buttons[number||1] && this.cursor.buttonsPrev[number||1];
+	mouseEventUp(number = 1): boolean {
+		return !this.cursor.buttons[number] && this.cursor.buttonsPrev[number];
 	}
-	mousePress(number) {
-		return this.cursor.buttons[number||1] && !this.cursor.buttonsPrevGame[number||1];
+	mousePress(number = 1): boolean {
+		return this.cursor.buttons[number] && !this.cursor.buttonsPrevGame[number];
 	}
-	mouseRelease(number) {
-		return !this.cursor.buttons[number||1] && this.cursor.buttonsPrevGame[number||1];
+	mouseRelease(number = 1): boolean {
+		return !this.cursor.buttons[number] && this.cursor.buttonsPrevGame[number];
 	}
-	_handle_click(event, state) {
-		this.cursor.buttons[event.which] = state;
+	_handle_click(event: MouseEvent, state) {
+		this.cursor.buttons[event.button] = state;
 	}
 	
-	cursorPosX = () => this.cursor.x + this.engine.camera.left();
-	cursorPosY = () => this.engine.height - this.cursor.y + this.engine.camera.bottom();
-	cursorPos = () => {return {x: this.cursorPosX(), y: this.cursorPosY()}};
-	_handle_mouse(event) {
+	cursorPosX(): number { return this.cursor.x + this.engine.camera.left(); }
+	cursorPosY(): number { return this.engine.height - this.cursor.y + this.engine.camera.bottom(); }
+	cursorPos(): Point { return {x: this.cursorPosX(), y: this.cursorPosY()}; }
+	_handle_mouse(event: MouseEvent) {
 		let rect = this.engine.canvas.getBoundingClientRect();
 		this.cursor.x = event.pageX - rect.left;
 		this.cursor.y = event.pageY - rect.top;

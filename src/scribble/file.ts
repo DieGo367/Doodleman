@@ -1,8 +1,8 @@
 export class FileLoader {
-	input;
+	input: HTMLInputElement;
 	asking = false;
 	changeFired = false;
-	onLostFocus;
+	onLostFocus: () => void;
 	constructor() {
 		this.input = document.createElement("input");
 		this.input.type = "file";
@@ -12,7 +12,7 @@ export class FileLoader {
 			}
 		});
 	}
-	async ask(extensions) {
+	async ask(extensions: string[]): Promise<FileList> {
 		// make sure another request isn't already happening
 		if (this.asking) {
 			throw new Error("Already asking for a File");
@@ -23,12 +23,12 @@ export class FileLoader {
 			this.input.accept = '.' + extensions.join(",.");
 		}
 		// promisified FileList getter
-		let fileList = await new Promise((resolve, reject) => {
+		let fileList: FileList = await new Promise((resolve, reject) => {
 			this.input.onchange = event => {
 				this.changeFired = true;
-				resolve(event.target.files);
+				resolve((event.target as HTMLInputElement).files);
 			};
-			this.input.onerror = err => reject(err.type);
+			this.input.onerror = (err: Event) => reject(err.type);
 			this.onLostFocus = () => setTimeout(() => {
 				if (this.asking && !this.changeFired) reject("No file selected.");
 			}, 1000);
@@ -42,21 +42,21 @@ export class FileLoader {
 		this.input.accept = '';
 		return fileList;
 	}
-	async askText(extensions) {
-		let fileList: any = await this.ask(extensions);
-		let texts = [];
-		for (let i = 0; i < fileList.length; i++) {
+	async askText(extensions: string[]): Promise<string[]> {
+		let fileList = await this.ask(extensions);
+		let texts: Promise<string>[] = [];
+		for (let file of fileList) {
 			let reader = new FileReader;
 			texts.push(new Promise((resolve, reject) => {
-				reader.onload = event => resolve(event.target.result);
+				reader.onload = event => resolve(event.target.result as string);
 				reader.onerror = err => reject(err.type);
 			}));
-			reader.readAsText(fileList[i]);
+			reader.readAsText(file);
 		}
 		return await Promise.all(texts);
 	}
-	async askData(extensions) {
+	async askData(extensions: string[]): Promise<unknown[]> {
 		let texts = await this.askText(extensions);
-		return texts.map(value => JSON.parse(value));
+		return texts.map(value => JSON.parse(value) as unknown);
 	}
 }

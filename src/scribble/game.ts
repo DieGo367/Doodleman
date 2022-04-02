@@ -1,7 +1,9 @@
+import { Engine } from "./engine";
+
 export class Game {
-	constructor(public engine) {}
+	constructor(public engine: Engine) {}
 	init() {}
 	tick() {}
-	onRenderUI(_ctx) {}
+	onRenderUI(_ctx: CanvasRenderingContext2D) {}
 	onLevelLoad() {}
 }

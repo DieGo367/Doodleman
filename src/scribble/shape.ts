@@ -31,14 +31,14 @@ export interface Polygon extends Point {
 	vertices: PolygonVertices;
 }
 
-export type PolygonVertices = Point[] & {
+export interface PolygonVertices extends Array<Point> {
 	0?: {x: 0, y: 0};
 	localCenter?: Point,
 	localAABB?: Box
 }
 
 export type Basic = Point | Circle | Box | Arc | Line | Polygon;
-export type WithType<Name> = {type: Name};
+export interface WithType<Name> {type: Name};
 export type Shaped<Type extends Basic> = (
 	Type extends Polygon? Polygon & WithType<typeof POLYGON> :
 	Type extends Line? Line & WithType<typeof LINE> :
