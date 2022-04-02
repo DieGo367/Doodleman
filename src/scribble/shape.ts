@@ -38,13 +38,14 @@ export type PolygonVertices = Point[] & {
 }
 
 export type Basic = Point | Circle | Box | Arc | Line | Polygon;
+export type WithType<Name> = {type: Name};
 export type Shaped<Type extends Basic> = (
-	Type extends Polygon? Polygon & {type: typeof POLYGON} :
-	Type extends Line? Line & {type: typeof LINE} :
-	Type extends Arc? Arc & {type: typeof ARC} :
-	Type extends Box? Box & {type: typeof BOX} :
-	Type extends Circle? Circle & {type: typeof CIRCLE} :
-	Point & {type: typeof POINT}
+	Type extends Polygon? Polygon & WithType<typeof POLYGON> :
+	Type extends Line? Line & WithType<typeof LINE> :
+	Type extends Arc? Arc & WithType<typeof ARC> :
+	Type extends Box? Box & WithType<typeof BOX> :
+	Type extends Circle? Circle & WithType<typeof CIRCLE> :
+	Point & WithType<typeof POINT>
 )
 export type Shape = Shaped<Basic>;
 
