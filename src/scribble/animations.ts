@@ -1,14 +1,18 @@
 import { ResourceManager } from "./resource.js";
 import { LEFT, RIGHT } from "./util.js";
 
-export class AnimationManager extends ResourceManager {
+export class AnimationManager extends ResourceManager<AnimationSheet> {
 	constructor(engine) {
 		super(engine, "Animations");
 	}
-	_request = src => this.engine.requestData(src)
+	async _request(src: string): Promise<AnimationSheet> {
+		let data = await this.engine.requestData(src);
+		return new AnimationSheet(src, data);
+	}
 	async loadAs(name, src) {
-		let data = await super.loadAs(name, src);
-		return this.map[name] = new AnimationSheet(name, data);
+		let sheet = await super.loadAs(name, src);
+		sheet.name = name;
+		return sheet;
 	}
 	async loadList(list) {
 		let results = await super.loadList(list);
@@ -167,7 +171,15 @@ export class AnimationManager extends ResourceManager {
 
 export class AnimationSheet {
 	extends;
+	extended;
 	animations;
+	pages;
+	defaultAnimation;
+	hasDirection;
+	sheetOffsets;
+	spriteWidth;
+	spriteHeight;
+	drawOffset;
 	constructor(public name, data) {
 		Object.assign(this, data);
 	}

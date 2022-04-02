@@ -2,7 +2,7 @@ import { ResourceManager } from "./resource.js";
 import { Objects } from "./object.js";
 import { EDGE, LEFT, RIGHT, TERRAIN } from "./util.js";
 
-export class LevelManager extends ResourceManager {
+export class LevelManager extends ResourceManager<any> {
 	constructor(engine) {
 		super(engine, "Levels");
 	}

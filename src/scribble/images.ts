@@ -3,7 +3,7 @@ import { HiddenCanvas } from "./util.js";
 import * as Collision from "./collision.js";
 import * as Shape from "./shape.js";
 
-export class ImageManager extends ResourceManager {
+export class ImageManager extends ResourceManager<any> {
 	useFlipped = false;
 	ctx;
 	constructor(engine) {
