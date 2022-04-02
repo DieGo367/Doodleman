@@ -230,7 +230,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 			up: !!engine.input.key("KeyW"),
 			down: !!engine.input.key("KeyS")
 		};
-		if (engine.input.mousePress(1)) {
+		if (engine.input.mousePress(0)) {
 			if (this.isGrounded) this.act("attack");
 			else if (this.airAttacks > 0) this.act("airAttack");
 		}

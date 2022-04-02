@@ -56,19 +56,19 @@ export class InputManager {
 		if (state) this.engine.debug.set("LastPressedKey", code);
 	}
 
-	mouseButton(number = 1): boolean {
+	mouseButton(number = 0): boolean {
 		return this.cursor.buttons[number];
 	}
-	mouseEventDown(number = 1): boolean {
+	mouseEventDown(number = 0): boolean {
 		return this.cursor.buttons[number] && !this.cursor.buttonsPrev[number];
 	}
-	mouseEventUp(number = 1): boolean {
+	mouseEventUp(number = 0): boolean {
 		return !this.cursor.buttons[number] && this.cursor.buttonsPrev[number];
 	}
-	mousePress(number = 1): boolean {
+	mousePress(number = 0): boolean {
 		return this.cursor.buttons[number] && !this.cursor.buttonsPrevGame[number];
 	}
-	mouseRelease(number = 1): boolean {
+	mouseRelease(number = 0): boolean {
 		return !this.cursor.buttons[number] && this.cursor.buttonsPrevGame[number];
 	}
 	_handle_click(event: MouseEvent, state) {
