@@ -137,7 +137,6 @@ export function collisionCheck(a, b, gravity) {
 	continuousCollision(a, b, gravity);
 }
 export function discreteCollision(a, b, gravity) {
-	let resolve = resolveFuncMap[a.type][b.type];
 	if (intersect(a, b)) {
 		let push = resolve(a, b);
 		if (push) {
@@ -256,7 +255,6 @@ export function getSweepingShapes(shape) {
 	else console.error("Unknown shape type: " + shape.type);
 }
 export function bisectionMethod(a, b) {
-	let resolve = resolveFuncMap[a.type][b.type];
 	// velocities
 	let velA = {x: a.x - a.lastX, y: a.y - a.lastY};
 	let velB = {x: b.x - b.lastX, y: b.y - b.lastY};
@@ -368,10 +366,6 @@ export function resolvePush(a, b, force) {
 		resA.y += force.y;
 	}
 	return {a: resA, b: resB};
-}
-export function reverseResolution(resol: Resolution) {
-	if (resol) return scale(resol, -1);
-	else return resol;
 }
 export function collisionBasedGrounding(a, b, resolution, gravity) {
 	if (gravity.x === 0 && gravity.y === 0) return;
@@ -529,34 +523,6 @@ export function getShapeTops(shape, gravity) {
 	}
 	else console.error("Unknown shape type: " + shape.type);
 }
-
-
-export const resolveFuncMap = {
-	circle: {
-		circle: (a, b) => Resolve.circleCircle(a, b),
-		box: (circle, box) => Resolve.circleBox(circle, box),
-		line: (circle, line) => Resolve.circleLine(circle, line),
-		polygon: (circle, poly) => Resolve.circlePolygon(circle, poly)
-	},
-	box: {
-		circle: (box, circle) => reverseResolution(Resolve.circleBox(circle, box)),
-		box: (a, b) => Resolve.boxBox(a, b),
-		line: (box, line) => Resolve.boxLine(box, line),
-		polygon: (box, poly) => Resolve.boxPolygon(box, poly)
-	},
-	line: {
-		circle: (line, circle) => reverseResolution(Resolve.circleLine(circle, line)),
-		box: (line, box) => reverseResolution(Resolve.boxLine(box, line)),
-		line: (a, b) => Resolve.lineLine(a, b),
-		polygon: (line, poly) => Resolve.linePolygon(line, poly)
-	},
-	polygon: {
-		circle: (poly, circle) => reverseResolution(Resolve.circlePolygon(circle, poly)),
-		box: (poly, box) => reverseResolution(Resolve.boxPolygon(box, poly)),
-		line: (poly, line) => reverseResolution(Resolve.linePolygon(line, poly)),
-		polygon: (a, b) => Resolve.polygonPolygon(a, b)
-	}
-};
 export function levelBoundCheck(shape, level, gravity) {
 	let l = left(shape);
 	let r = right(shape);
@@ -619,6 +585,10 @@ export function lineSidePassCheck(line, shape) {
 		let sideTest = (lastMid.x - line.lastX)*line.dy - (lastMid.y - line.lastY)*line.dx;
 		return sideTest <= 0;
 	// }
+}
+export function reverse(resolution: Resolution) {
+	if (resolution) return scale(resolution, -1);
+	else return resolution;
 }
 
 // detection and resolution
@@ -924,7 +894,73 @@ export const Intersect = {
 		else return false;
 	}
 };
+export function resolve(a: Collider<Shape>, b: Collider<Shape>): Resolution {
+	return Resolve.shapeShape(a, b);
+}
 export const Resolve = {
+	shapeShape(a: Collider<Shape>, b: Collider<Shape>): Resolution {
+		if (b.type === POINT) return Resolve.shapePt(a, b);
+		else if (b.type === ARC) return Resolve.shapeArc(a, b);
+		else if (b.type === CIRCLE) return Resolve.shapeCircle(a, b);
+		else if (b.type === BOX) return Resolve.shapeBox(a, b);
+		else if (b.type === LINE) return Resolve.shapeLine(a, b);
+		else if (b.type === POLYGON) return Resolve.shapePolygon(a, b);
+		else never(b);
+	},
+	shapePt(shape: Collider<Shape>, pt: Collider<Point>): Resolution {
+		if (shape.type === POINT) return Resolve.ptPt(shape, pt);
+		else if (shape.type === ARC) return reverse(Resolve.ptArc(pt, shape));
+		else if (shape.type === CIRCLE) return reverse(Resolve.ptCircle(pt, shape));
+		else if (shape.type === BOX) return reverse(Resolve.ptBox(pt, shape));
+		else if (shape.type === LINE) return reverse(Resolve.ptLine(pt, shape));
+		else if (shape.type === POLYGON) return reverse(Resolve.ptPolygon(pt, shape));
+		else never(shape);
+	},
+	shapeArc(shape: Collider<Shape>, arc: Collider<Arc>): Resolution {
+		if (shape.type === POINT) return Resolve.ptArc(shape, arc);
+		else if (shape.type === ARC) return Resolve.arcArc(shape, arc);
+		else if (shape.type === CIRCLE) return reverse(Resolve.arcCircle(arc, shape));
+		else if (shape.type === BOX) return reverse(Resolve.arcBox(arc, shape));
+		else if (shape.type === LINE) return reverse(Resolve.arcLine(arc, shape));
+		else if (shape.type === POLYGON) return reverse(Resolve.arcPolygon(arc, shape));
+		else never(shape);
+	},
+	shapeCircle(shape: Collider<Shape>, circle: Collider<Circle>): Resolution {
+		if (shape.type === POINT) return Resolve.ptCircle(shape, circle);
+		else if (shape.type === ARC) return Resolve.arcCircle(shape, circle);
+		else if (shape.type === CIRCLE) return Resolve.circleCircle(shape, circle);
+		else if (shape.type === BOX) return reverse(Resolve.circleBox(circle, shape));
+		else if (shape.type === LINE) return reverse(Resolve.circleLine(circle, shape));
+		else if (shape.type === POLYGON) return reverse(Resolve.circlePolygon(circle, shape));
+		else never(shape);
+	},
+	shapeBox(shape: Collider<Shape>, box: Collider<Box>): Resolution {
+		if (shape.type === POINT) return Resolve.ptBox(shape, box);
+		else if (shape.type === ARC) return Resolve.arcBox(shape, box);
+		else if (shape.type === CIRCLE) return Resolve.circleBox(shape, box);
+		else if (shape.type === BOX) return Resolve.boxBox(shape, box);
+		else if (shape.type === LINE) return reverse(Resolve.boxLine(box, shape));
+		else if (shape.type === POLYGON) return reverse(Resolve.boxPolygon(box, shape));
+		else never(shape);
+	},
+	shapeLine(shape: Collider<Shape>, line: Collider<Line>): Resolution {
+		if (shape.type === POINT) return Resolve.ptLine(shape, line);
+		else if (shape.type === ARC) return Resolve.arcLine(shape, line);
+		else if (shape.type === CIRCLE) return Resolve.circleLine(shape, line);
+		else if (shape.type === BOX) return Resolve.boxLine(shape, line);
+		else if (shape.type === LINE) return Resolve.lineLine(shape, line);
+		else if (shape.type === POLYGON) return reverse(Resolve.linePolygon(line, shape));
+		else never(shape);
+	},
+	shapePolygon(shape: Collider<Shape>, poly: Collider<Polygon>): Resolution {
+		if (shape.type === POINT) return Resolve.ptPolygon(shape, poly);
+		else if (shape.type === ARC) return Resolve.arcPolygon(shape, poly);
+		else if (shape.type === CIRCLE) return Resolve.circlePolygon(shape, poly);
+		else if (shape.type === BOX) return Resolve.boxPolygon(shape, poly);
+		else if (shape.type === LINE) return Resolve.linePolygon(shape, poly);
+		else if (shape.type === POLYGON) return Resolve.polygonPolygon(shape, poly);
+		else never(shape);
+	},
 	circleCircle(a: Collider<Circle>, b: Collider<Circle>): Resolution {
 		let distance = dist(a, b);
 		let overlap = a.radius + b.radius - distance;
