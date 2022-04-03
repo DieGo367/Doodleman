@@ -590,6 +590,7 @@ export function reverse(resolution: Resolution) {
 	if (resolution) return scale(resolution, -1);
 	else return resolution;
 }
+export function ZERO(): Point { return {x: 0, y: 0}; }
 
 // detection and resolution
 export function intersect(a: Shape, b: Shape): boolean {
@@ -960,6 +961,103 @@ export const Resolve = {
 		else if (shape.type === LINE) return Resolve.linePolygon(shape, poly);
 		else if (shape.type === POLYGON) return Resolve.polygonPolygon(shape, poly);
 		else never(shape);
+	},
+	ptPt(_a: Collider<Point>, _b: Collider<Point>): Resolution {
+		return ZERO();
+	},
+	ptArc(_pt: Collider<Point>, _arc: Collider<Point>): Resolution {
+		return ZERO();
+	},
+	ptCircle(pt: Collider<Point>, circle: Collider<Circle>): Resolution {
+		let difference = diff(pt, circle);
+		let distance = mag(difference);
+		let proj = scale(difference, circle.radius/distance);
+		return diff(proj, pt);
+	},
+	ptBox(pt: Collider<Point>, box: Collider<Box>): Resolution {
+		let xInBox = pt.x - box.x;
+		let yInBox = pt.y - box.y;
+		let diagSlope = box.height / box.width;
+
+		let testBLtoTR = yInBox - (diagSlope * xInBox);
+		let inTopLeftHalf = testBLtoTR > 0;
+		let inBottomRightHalf = testBLtoTR < 0;
+
+		let testTLtoBR = yInBox - (box.height - diagSlope * xInBox);
+		let inTopRightHalf = testTLtoBR > 0;
+		let inBottomLeftHalf = testTLtoBR < 0;
+
+		// in top triangle
+		if (inTopLeftHalf && inTopRightHalf) {
+			return {x: 0, y: box.height - yInBox};
+		}
+		// in bottom triangle
+		if (inBottomLeftHalf && inBottomRightHalf) {
+			return {x: 0, y: -yInBox};
+		}
+		// in left triangle
+		if (inTopLeftHalf && inBottomLeftHalf) {
+			return {x: -xInBox, y: 0};
+		}
+		// in right triangle
+		if (inTopRightHalf && inBottomRightHalf) {
+			return {x: box.width - xInBox, y: 0};
+		}
+
+		// center of box case
+		if (!(inTopLeftHalf || inTopRightHalf || inBottomLeftHalf || inBottomRightHalf)) {
+			return {x: 0, y: 0};
+		}
+
+		// landed directly on a diagonal somewhere
+		return {
+			x: (inTopRightHalf || inBottomRightHalf ? box.width : 0) - xInBox,
+			y: (inTopLeftHalf || inTopRightHalf ? box.height : 0) - yInBox
+		}
+	},
+	ptLine(_pt: Collider<Point>, _line: Collider<Line>): Resolution {
+		return ZERO();
+	},
+	ptPolygon(pt: Collider<Point>, poly: Collider<Polygon>): Resolution {
+		let minVert;
+		let minVertDist = Infinity;
+
+		let minEdgeProjection;
+		let minEdgeDist = Infinity;
+
+		for (let i = 0; i < poly.vertices.length; i++) {
+			let v1 = sum(poly, poly.vertices[i]);
+			let v2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
+			let edge = Line(v1, v2);
+			let target = project(pt, edge);
+
+			// record edge distance if point projects onto the line, to find the closest
+			if (Intersect.ptLine(target, edge)) {
+				let edgeDist = dist(target, pt);
+				if (edgeDist < minEdgeDist) {
+					minEdgeProjection = target;
+					minEdgeDist = edgeDist;
+				}
+			}
+
+			// record distance from vertex to find the closest
+			let vertDist = dist(v1, pt);
+			if (vertDist < minVertDist) {
+				minVert = v1;
+				minVertDist = vertDist;
+			}
+		}
+
+		// move out to closest edge if one is found
+		if (minEdgeProjection) {
+			return diff(minEdgeProjection, pt);
+		}
+		// point may have been on a diagonal, try moving to a vertex
+		else if (minVert) {
+			return diff(minVert, pt);
+		}
+		// assumed to be in the dead center of the polygon
+		else return ZERO();
 	},
 	circleCircle(a: Collider<Circle>, b: Collider<Circle>): Resolution {
 		let distance = dist(a, b);
