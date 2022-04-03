@@ -1,24 +1,27 @@
+import { Engine } from "./engine";
+
+type DebugData = string | object;
+
 export class Debug {
 	enabled = false;
-	lines = [];
-	dict = {};
+	lines = [] as string[];
+	dict = {} as {[key: string]: string};
 	frameStepper = true;
 	frameCanStep = false;
-	constructor(public engine) {}
+	constructor(public engine: Engine) {}
 	toggle() {
 		this.enabled = !this.enabled;
 	}
 
-	set(key, text) {
+	set(key: string, text: DebugData) {
 		if (typeof text === "object") this.dict[key] = JSON.stringify(text);
 		else this.dict[key] = text;
 	}
-	remove(key) {
+	remove(key: string) {
 		delete this.dict[key];
 	}
-	print() {
-		for (let i = 0; i < arguments.length; i++) {
-			let arg = arguments[i];
+	print(...args: DebugData[]) {
+		for (let arg of args) {
 			if (typeof arg === "object") {
 				this.lines.push(JSON.stringify(arg));
 			}
@@ -29,7 +32,7 @@ export class Debug {
 	update() {
 		this.lines = [];
 	}
-	render(ctx) {
+	render(ctx: CanvasRenderingContext2D) {
 		ctx.fillStyle = "black";
 		ctx.font = "12px Consolas";
 		ctx.textAlign = "left";
@@ -41,8 +44,8 @@ export class Debug {
 			ctx.fillText(text, 10, y);
 			y += yShift;
 		}
-		for (let i = 0; i < this.lines.length; i++) {
-			ctx.fillText(this.lines[i], 10, y);
+		for (let line of this.lines) {
+			ctx.fillText(line, 10, y);
 			y += yShift;
 		}
 

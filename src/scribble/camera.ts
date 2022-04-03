@@ -1,36 +1,39 @@
+import { Engine } from "./engine";
+import { Point } from "./shape";
+
 export class Camera {
 	zoom = 1;
 	snapDistance = 1;
-	constructor(public engine, public x, public y, public width, public height) {}
+	constructor(public engine: Engine, public x: number, public y: number, public width: number, public height: number) {}
 	
-	right = () => this.x + this.width/2;
-	left = () => this.x - this.width/2;
-	top = () => this.y + this.height/2;
-	bottom = () => this.y - this.height/2;
+	right(): number { return this.x + this.width/2; }
+	left(): number { return this.x - this.width/2; }
+	top(): number { return this.y + this.height/2; }
+	bottom(): number { return this.y - this.height/2; }
 	
-	getRightLimit = () => this.engine.level.width - this.width/2;
-	getLeftLimit = () => 0 + this.width/2;
-	getTopLimit = () => this.engine.level.height - this.height/2;
-	getBottomLimit = () => 0 + this.height/2;
+	getRightLimit(): number { return this.engine.level.width - this.width/2; }
+	getLeftLimit(): number { return 0 + this.width/2; }
+	getTopLimit(): number { return this.engine.level.height - this.height/2; }
+	getBottomLimit(): number { return 0 + this.height/2; }
 	
-	approachValue(prop, goal, smoothing, lowerBound, upperBound) {
-		let pos = Math.max(lowerBound, Math.min(this[prop], upperBound));
+	approachValue(axis: "x" | "y", goal: number, smoothing: number, lowerBound: number, upperBound: number) {
+		let pos = Math.max(lowerBound, Math.min(this[axis], upperBound));
 		if (goal != void(0)) {
 			let boundedGoal = Math.max(lowerBound, Math.min(goal, upperBound));
 			let diff = boundedGoal - pos;
 			let step = diff / smoothing;
-			if (Math.abs(diff) < this.snapDistance) this[prop] = boundedGoal;
-			else this[prop] += step;
+			if (Math.abs(diff) < this.snapDistance) this[axis] = boundedGoal;
+			else this[axis] += step;
 		}
 	}
 
-	approachX(goal, smoothing) {
+	approachX(goal: number, smoothing: number) {
 		this.approachValue('x', goal, smoothing, this.getLeftLimit(), this.getRightLimit());
 	}
-	approachY(goal, smoothing) {
+	approachY(goal: number, smoothing: number) {
 		this.approachValue('y', goal, smoothing, this.getBottomLimit(), this.getTopLimit());
 	}
-	approachPt(pt, smoothing) {
+	approachPt(pt: Point, smoothing: number) {
 		this.approachX(pt.x, smoothing);
 		this.approachY(pt.y, smoothing);
 	}
