@@ -20,6 +20,7 @@ type Collider<Type extends Basic> = Shaped<Type> & {
 	lastY: number;
 	pushVector: Vector;
 	weight: number;
+	sweep?: Shape[];
 }
 
 // TODO: projection push cancel?
@@ -176,7 +177,7 @@ export function continuousCollision(a, b, gravity) {
 		else if (resolution != null) console.error("No proper resolution given!");
 	}
 }
-export function sweepCheck(a, b) {
+export function sweepCheck(a: Collider<Shape>, b: Collider<Shape>): boolean {
 	// motion check
 	let ax = a.x - a.lastX;
 	let ay = a.y - a.lastY;
@@ -196,12 +197,27 @@ export function sweepCheck(a, b) {
 	}
 	return false;
 }
-export function getSweepingShapes(shape) {
-	if (shape.sweepingShapes) return shape.sweepingShapes;
+export function getSweepingShapes(shape: Collider<Shape>): Shape[] {
+	if (shape.sweep) return shape.sweep;
 	let dx = shape.x - shape.lastX;
 	let dy = shape.y - shape.lastY;
-	if (shape.type === BOX) {
-		return shape.sweepingShapes = [
+	if (shape.type === POINT) {
+		return shape.sweep = [{type: LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy}];
+	}
+	else if (shape.type === ARC) {
+		let start = Angle.position(shape.start, shape.radius);
+		let end = Angle.position(shape.end, shape.radius);
+		return shape.sweep = [
+			// current and last
+			{type: ARC, x: shape.x, y: shape.y, radius: shape.radius, start: shape.start, end: shape.end},
+			{type: ARC, x: shape.lastX, y: shape.lastY, radius: shape.radius, start: shape.start, end: shape.end},
+			// lines from last to current endpoints
+			{type: LINE, x: shape.lastX + start.x, y: shape.lastY + start.y, dx: dx, dy: dy},
+			{type: LINE, x: shape.lastX + end.x, y: shape.lastY + end.y, dx: dx, dy: dy},
+		];
+	}
+	else if (shape.type === BOX) {
+		return shape.sweep = [
 			// current and last
 			{type: BOX, x: shape.x, y: shape.y, width: shape.width, height: shape.height},
 			{type: BOX, x: shape.lastX, y: shape.lastY, width: shape.width, height: shape.height},
@@ -216,7 +232,7 @@ export function getSweepingShapes(shape) {
 		let dmag = Math.sqrt(dx*dx + dy*dy);
 		let shiftX = dx / dmag * shape.radius;
 		let shiftY = dy / dmag * shape.radius;
-		return shape.sweepingShapes = [
+		return shape.sweep = [
 			// current and last
 			{type: CIRCLE, x: shape.x, y: shape.y, radius: shape.radius},
 			{type: CIRCLE, x: shape.lastX, y: shape.lastY, radius: shape.radius},
@@ -228,7 +244,7 @@ export function getSweepingShapes(shape) {
 		];
 	}
 	else if (shape.type === LINE) {
-		return shape.sweepingShapes = [
+		return shape.sweep = [
 			// current and last
 			{type: LINE, x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy},
 			{type: LINE, x: shape.lastX, y: shape.lastY, dx: shape.dx, dy: shape.dy},
@@ -238,7 +254,7 @@ export function getSweepingShapes(shape) {
 		];
 	}
 	else if (shape.type === POLYGON) {
-		shape.sweepingShapes = [
+		shape.sweep = [
 			// current and last
 			{type: POLYGON, x: shape.x, y: shape.y, vertices: shape.vertices.slice()},
 			{type: POLYGON, x: shape.lastX, y: shape.lastY, vertices: shape.vertices.slice()}
@@ -246,13 +262,13 @@ export function getSweepingShapes(shape) {
 		// lines from last to current vertices
 		for (let i = 0; i < shape.vertices.length; i++) {
 			let pt = shape.vertices[i];
-			shape.sweepingShapes.push({
+			shape.sweep.push({
 				type: LINE, x: shape.lastX + pt.x, y: shape.lastY + pt.y, dx: dx, dy: dy
 			});
 		}
-		return shape.sweepingShapes;
+		return shape.sweep;
 	}
-	else console.error("Unknown shape type: " + shape.type);
+	else never(shape);
 }
 export function bisectionMethod(a, b) {
 	// velocities
