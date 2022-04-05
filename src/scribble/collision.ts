@@ -396,8 +396,41 @@ export function shapeGroundedOn(a, b, gravity) {
 	}
 	return false;
 }
-export function getShapeBottoms(shape, gravity) {
-	if (shape.type === BOX) {
+export function getShapeBottoms(shape: Shape, gravity: Vector): Shape[] {
+	if (shape.type === POINT) {
+		return [{x: shape.x, y: shape.y, type: POINT}];
+	}
+	else if (shape.type === ARC) {
+		// angle in radians of the slope threshold
+		let theta = Math.acos(SLOPE_THRESH);
+		// angle in which gravity takes place
+		let gravAngle = Math.atan2(gravity.y, gravity.x);
+		if (gravAngle < 0) gravAngle += 2*Math.PI;
+		// starting and ending positions of the arc, which are +-theta from the gravity angle
+		let start = gravAngle - theta;
+		if (start < 0) start += 2*Math.PI;
+		let end = gravAngle + theta;
+		if (end >= 2*Math.PI) end -= 2*Math.PI;
+
+		if (Angle.withinArc(start, shape) && Angle.withinArc(end, shape))
+			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: ARC}];
+		else if (Angle.withinArc(start, shape))
+			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: shape.end, type: ARC}];
+		else if (Angle.withinArc(end, shape))
+			return [{x: shape.x, y: shape.y, radius: shape.radius, start: shape.start, end: end, type: ARC}];
+		else {
+			let arcStart = Angle.position(shape.start, shape.radius);
+			let arcEnd = Angle.position(shape.start, shape.radius);
+			let gravityPoint = scale(gravity, shape.radius/mag(gravity));
+			let startDist = dist(arcStart, gravityPoint);
+			let endDist = dist(arcEnd, gravityPoint);
+			let results = [] as Point[];
+			if (startDist <= endDist) results.push(arcStart);
+			if (endDist <= startDist) results.push(arcEnd);
+			return results.map(pt => Object.assign(pt, {type: POINT} as Shaped<Point>))
+		}
+	}
+	else if (shape.type === BOX) {
 		let bottoms = [];
 		let sides = [
 			{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: LINE},
@@ -443,7 +476,7 @@ export function getShapeBottoms(shape, gravity) {
 		for (let i = 0; i < shape.vertices.length; i++) {
 			let v1 = sum(shape, shape.vertices[i]);
 			let v2 = sum(shape, shape.vertices[(i + 1) % shape.vertices.length]);
-			let edge: any = Line(v1, v2);
+			let edge = Line(v1, v2) as Shaped<Line>;
 			edge.type = LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
 			if (dot(normal, gravity) > 0) {
@@ -453,10 +486,43 @@ export function getShapeBottoms(shape, gravity) {
 		}
 		return bottoms;
 	}
-	else console.error("Unknown shape type: " + shape.type);
+	else never(shape);
 }
-export function getShapeTops(shape, gravity) {
-	if (shape.type === BOX) {
+export function getShapeTops(shape: Shape, gravity: Vector): Shape[] {
+	if (shape.type === POINT) {
+		return [{x: shape.x, y: shape.y, type: POINT}];
+	}
+	else if (shape.type === ARC) {
+		// angle in radians of the slope threshold
+		let theta = Math.acos(SLOPE_THRESH);
+		// angle opposite to which gravity takes place
+		let gravAngle = Math.atan2(-gravity.y, -gravity.x);
+		if (gravAngle < 0) gravAngle += 2*Math.PI;
+		// starting and ending positions of the arc, which are +-theta from the gravity angle
+		let start = gravAngle - theta;
+		if (start < 0) start += 2*Math.PI;
+		let end = gravAngle + theta;
+		if (end >= 2*Math.PI) end -= 2*Math.PI;
+
+		if (Angle.withinArc(start, shape) && Angle.withinArc(end, shape))
+			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: ARC}];
+		else if (Angle.withinArc(start, shape))
+			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: shape.end, type: ARC}];
+		else if (Angle.withinArc(end, shape))
+			return [{x: shape.x, y: shape.y, radius: shape.radius, start: shape.start, end: end, type: ARC}];
+		else {
+			let arcStart = Angle.position(shape.start, shape.radius);
+			let arcEnd = Angle.position(shape.start, shape.radius);
+			let gravityPoint = scale(gravity, shape.radius/mag(gravity));
+			let startDist = dist(arcStart, gravityPoint);
+			let endDist = dist(arcEnd, gravityPoint);
+			let results = [] as Point[];
+			if (startDist <= endDist) results.push(arcStart);
+			if (endDist <= startDist) results.push(arcEnd);
+			return results.map(pt => Object.assign(pt, {type: POINT} as Shaped<Point>))
+		}
+	}
+	else if (shape.type === BOX) {
 		let tops = [];
 		let sides = [
 			{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: LINE},
@@ -511,7 +577,7 @@ export function getShapeTops(shape, gravity) {
 		for (let i = 0; i < shape.vertices.length; i++) {
 			let v1 = sum(shape, shape.vertices[i]);
 			let v2 = sum(shape, shape.vertices[(i + 1) % shape.vertices.length]);
-			let edge: any = Line(v1, v2);
+			let edge = Line(v1, v2) as Shaped<Line>;
 			edge.type = LINE;
 			let normal = {x: -edge.dy, y: edge.dx};
 			if (dot(normal, gravity) < 0) {
@@ -521,7 +587,7 @@ export function getShapeTops(shape, gravity) {
 		}
 		return tops;
 	}
-	else console.error("Unknown shape type: " + shape.type);
+	else never(shape);
 }
 export function levelBoundCheck(shape, level, gravity) {
 	let l = left(shape);
@@ -1289,14 +1355,14 @@ export const Resolve = {
 	},
 	circleLine(circle: Collider<Circle>, line: Collider<Line>, skipCheck?): Resolution {
 		if (skipCheck || lineSidePassCheck(line, circle)) {
-			let target: any = project(circle, line);
+			let target = project(circle, line);
 			let [u, v] = lineEnds(line);
 			if (!Intersect.ptLine(target, line)) {
 				if (Intersect.ptCircle(u, circle)) target = u;
 				else if (Intersect.ptCircle(v, circle)) target = v;
 			}
-			target.radius = 0;
-			return Resolve.circleCircle(circle, target);
+			(target as Circle).radius = 0;
+			return Resolve.circleCircle(circle, target as Collider<Circle>);
 		}
 		else return false;
 	},
@@ -1307,7 +1373,7 @@ export const Resolve = {
 		for (let i = 0; i < poly.vertices.length; i++) {
 			let v1 = sum(poly, poly.vertices[i]);
 			let v2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
-			let edge: any = Line(v1, v2);
+			let edge = Line(v1, v2);
 
 			// if collided with an edge
 			if (Intersect.circleLine(circle, edge)) {
@@ -1315,7 +1381,7 @@ export const Resolve = {
 
 				// collide with the line if the circle center projects onto the line
 				if (Intersect.ptLine(target, edge)) {
-					return Resolve.circleLine(circle, edge, true);
+					return Resolve.circleLine(circle, edge as Collider<Line>, true);
 				}
 
 				// record distance from vertex to find the closest
@@ -1381,17 +1447,16 @@ export const Resolve = {
 			let oDist = 0;
 
 			// first, check box corners
-			let corners: any[] = [
-				{x: box.x, y: box.y},
-				{x: box.x + box.width, y: box.y},
-				{x: box.x + box.width, y: box.y + box.height},
-				{x: box.x, y: box.y + box.height}
+			let corners = [
+				{radius: EPS, x: box.x, y: box.y},
+				{radius: EPS, x: box.x + box.width, y: box.y},
+				{radius: EPS, x: box.x + box.width, y: box.y + box.height},
+				{radius: EPS, x: box.x, y: box.y + box.height}
 			];
 			let hit = false;
 			let normal = {x: -line.dy, y: line.dx};
 			for (let i = 0; i < corners.length; i++) {
 				let corner = corners[i];
-				corner.radius = EPS;
 				let target = project(corner, line);
 				let aligned = Intersect.ptLine(target, line);
 				let pastLine = dot(diff(corner, line), normal) <= 0;
@@ -1443,7 +1508,7 @@ export const Resolve = {
 			// find intersection point
 			let ma = a.dy / a.dx;
 			let mb = b.dy / b.dx;
-			let intersect: any = {};
+			let intersect = {} as Point;
 			if (ma === Infinity) {
 				if (mb === Infinity) return false;
 				else {
