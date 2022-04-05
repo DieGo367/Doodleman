@@ -2,6 +2,7 @@ import * as Collision from "./collision.js";
 import { RIGHT, COLOR } from "./util.js";
 import { AnimationComponent } from "./animations.js";
 import * as Shape from "./shape.js";
+import { Game } from "./game.js";
 
 export class ObjectManager {
 	map = {};
@@ -253,6 +254,48 @@ export class GameObject {
 }
 
 export const Objects = {} as any;
+Objects.Point = class Point extends GameObject {
+	constructor(x, y, gfx) {
+		super(x, y);
+		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
+			this.animator = new AnimationComponent(0, 0, gfx);
+		}
+		else this.graphic = {
+			type: Shape.POINT,
+			style: gfx,
+			x: 0, y: 0
+		};
+		this.collision = {
+			type: Shape.POINT,
+			weight: 0,
+			x: 0, y: 0
+		};
+	}
+};
+
+Objects.Arc = class Arc extends GameObject {
+	constructor(x, y, radius, start, end, gfx) {
+		super(x, y);
+		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
+			this.animator = new AnimationComponent(0, 0, gfx);
+		}
+		else this.graphic = {
+			type: Shape.ARC,
+			style: gfx,
+			x: 0, y: 0,
+			radius: radius,
+			start: start, end: end
+		};
+		this.collision = {
+			type: Shape.ARC,
+			weight: 0,
+			x: 0, y: 0,
+			radius: radius,
+			start: start, end: end
+		};
+	}
+};
+
 Objects.Box = class Box extends GameObject {
 	constructor(x, y, width, height, gfx) {
 		super(x, y);
@@ -296,7 +339,7 @@ Objects.Line = class Line extends GameObject {
 			dx: dx, dy: dy
 		};
 	}
-}
+};
 
 Objects.Circle = class Circle extends GameObject {
 	constructor(x, y, radius, gfx) {
@@ -316,7 +359,7 @@ Objects.Circle = class Circle extends GameObject {
 			x: 0, y: 0, radius: radius
 		};
 	}
-}
+};
 
 Objects.Polygon = class Polygon extends GameObject {
 	constructor(x, y, vertices, gfx) {
@@ -339,7 +382,7 @@ Objects.Polygon = class Polygon extends GameObject {
 			vertices: pts
 		};
 	}
-}
+};
 
 Objects.Entity = class Entity extends GameObject {
 	moveSpeed = 0;

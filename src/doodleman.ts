@@ -130,6 +130,8 @@ class DoodlemanGame extends Scribble.Game {
 		this.engine.objects.add(new Scribble.Objects.Polygon(350, 90, [
 			[0, 0], [20, 70], [100, 80], [140, 30], [150, 0], [100, -60]
 		], "black"));
+		this.engine.objects.add(new Scribble.Objects.Point(576, 143, "black"));
+		this.engine.objects.add(new Scribble.Objects.Arc(576, 40, 50, Math.PI/2, Math.PI, "black"));
 		if (as === Scribble.Shape.CIRCLE)
 			this.follow = new Scribble.Objects.Circle(0, 0, 40, "blue");
 		else if (as === Scribble.Shape.BOX)
@@ -138,6 +140,10 @@ class DoodlemanGame extends Scribble.Game {
 			this.follow = new Scribble.Objects.Line(0, 0, 40, 40, "blue");
 		else if (as === Scribble.Shape.POLYGON)
 			this.follow = new Scribble.Objects.Polygon(60, 70, [[0, 0], [10, -70], [11, -100], [-15, -150], [-60, -115], [-70, -105], [-75, -97], [-80, -70], [-70, -25], [-60, -20], [-35, -3]], "blue");
+		else if (as === Scribble.Shape.POINT)
+			this.follow = new Scribble.Objects.Point(0, 0);
+		else if (as === Scribble.Shape.ARC)
+			this.follow = new Scribble.Objects.Arc(0, 0, 50, 0, Math.PI/2, "blue");
 		window.collisionLevel = 0;
 		this.engine.objects.add(this.follow);
 	}
