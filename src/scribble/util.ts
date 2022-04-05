@@ -51,8 +51,8 @@ export function HiddenCanvas(width: number, height: number): HTMLCanvasElement {
 
 const TAU = 2*Math.PI;
 export const Angle = {
-	position(angle: number) {
-		return {x: Math.cos(angle), y: Math.sin(angle)};
+	position(angle: number, scale = 1) {
+		return {x: Math.cos(angle) * scale, y: Math.sin(angle) * scale};
 	},
 	bound(angle: number): number {
 		while (angle < 0) angle += TAU;

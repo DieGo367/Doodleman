@@ -1,8 +1,8 @@
 import { GameObject } from "./object.js";
-import { EDGE, never } from "./util.js";
+import { EDGE, never, Angle } from "./util.js";
 import { diff, dist, dot, mag, project, scale, sum, unit } from "./point_math.js";
 import {
-	type Shape,
+	type Shape, type Shaped, type Basic,
 	POINT, type Point,
 	CIRCLE, type Circle,
 	BOX, type Box,
@@ -10,12 +10,12 @@ import {
 	LINE, Line,
 	POLYGON, type Polygon,
 	left, right, top, bottom, center,
-	polygonCenter, polygonAABB
+	polygonCenter, polygonAABB,
 } from "./shape.js";
 
 type Vector = Point;
 type Resolution = Vector | false;
-type Collider<Type> = Type & {
+type Collider<Type extends Basic> = Shaped<Type> & {
 	lastX: number;
 	lastY: number;
 	pushVector: Vector;
@@ -559,6 +559,21 @@ export function resolveBound(shape, axis, shapeFront, shapeBack, direction, bord
 	}
 }
 // small helpers
+export function boxAsPolygon(box: Collider<Box>): Collider<Polygon> {
+	return {
+		x: box.x, y: box.y,
+		lastX: box.lastX, lastY: box.lastY,
+		type: POLYGON,
+		vertices: [
+			{x: 0, y: 0},
+			{x: 0, y: box.height},
+			{x: box.width, y: box.height},
+			{x: box.width, y: 0}
+		],
+		pushVector: box.pushVector,
+		weight: box.weight
+	};
+}
 export function lineEnds(line) {
 	if (line.ends) return line.ends;
 	else return line.ends = [{x: line.x, y: line.y}, {x: line.x + line.dx, y: line.y + line.dy}];
@@ -585,6 +600,15 @@ export function lineSidePassCheck(line, shape) {
 		let sideTest = (lastMid.x - line.lastX)*line.dy - (lastMid.y - line.lastY)*line.dx;
 		return sideTest <= 0;
 	// }
+}
+export function arcPassCheck(arc, shape): boolean {
+	// return result from last collision, if it exists
+	let prevResult = arc.owner.collisions[shape.owner.id];
+	if (typeof prevResult === "boolean") return prevResult;
+	// check whether the object was on the correct side last frame
+	let mid = center(shape);
+	let lastMid = sum(diff(mid, shape), {x: shape.lastX, y: shape.lastY});
+	return dist(arc, lastMid) >= arc.radius;
 }
 export function reverse(resolution: Resolution) {
 	if (resolution) return scale(resolution, -1);
@@ -739,7 +763,7 @@ export const Intersect = {
 	arcCircle(arc: Arc, circle: Circle): boolean {
 		return Intersect.arcArc(
 			arc,
-			{x: circle.x, y: circle.y, radius: circle.radius, start: 0, end:0}
+			{x: circle.x, y: circle.y, radius: circle.radius, start: 0, end: 2*Math.PI}
 		);
 	},
 	arcBox(arc: Arc, box: Box): boolean {
@@ -965,7 +989,7 @@ export const Resolve = {
 	ptPt(_a: Collider<Point>, _b: Collider<Point>): Resolution {
 		return ZERO();
 	},
-	ptArc(_pt: Collider<Point>, _arc: Collider<Point>): Resolution {
+	ptArc(_pt: Collider<Point>, _arc: Collider<Arc>): Resolution {
 		return ZERO();
 	},
 	ptCircle(pt: Collider<Point>, circle: Collider<Circle>): Resolution {
@@ -1058,6 +1082,159 @@ export const Resolve = {
 		}
 		// assumed to be in the dead center of the polygon
 		else return ZERO();
+	},
+	arcArc(a: Collider<Arc>, b: Collider<Arc>): Resolution {
+		if (arcPassCheck(a, b) || arcPassCheck(b, a)) {
+			let d = diff(b, a);
+			let angleFromA = Math.atan2(d.y, d.x);
+			let angleFromB = Math.atan2(-d.y, -d.x);
+			if (Angle.withinArc(angleFromA, a) && Angle.withinArc(angleFromB, b))
+				return Resolve.circleCircle(a as unknown as Collider<Circle>, b as unknown as Collider<Circle>);
+			else
+				throw new Error("Unimplemented case! I haven't figured this out yet!")
+		}
+		else return false;
+	},
+	arcCircle(arc: Collider<Arc>, circle: Collider<Circle>): Resolution {
+		if (!arcPassCheck(arc, circle)) return false;
+		let d = diff(circle, arc);
+		let angle = Math.atan2(d.y, d.x);
+		if (Angle.withinArc(angle, arc)) {
+			return Resolve.circleCircle(arc as unknown as Collider<Circle>, circle);
+		}
+		else {
+			// try with arc endpoints
+			let start = Angle.position(arc.start, arc.radius);
+			let end = Angle.position(arc.end, arc.radius);
+			let startDist = diff(circle, start);
+			let endDist = diff(circle, end);
+			if (startDist !== endDist) {
+				let target = startDist < endDist? start : end;
+				let difference = diff(target, circle);
+				let distance = mag(difference);
+				let proj = scale(difference, circle.radius/distance);
+				return diff(proj, target);
+			}
+			else {
+				// weird even case
+				let midAngle = arc.start + (arc.start - arc.end)/2;
+				let unitPos = Angle.position(midAngle);
+				let bisector = Line(circle.x, circle.y, unitPos.x, unitPos.y);
+				let crossing = project(start, bisector);
+				let arcCenter = sum(arc, Angle.position(midAngle, arc.radius));
+				let almostAtChordMid = scale(crossing, circle.radius / mag(crossing));
+				let smidge = diff(arcCenter, crossing);
+				let chordMid = diff(almostAtChordMid, smidge);
+				return chordMid;
+			}
+		}
+	},
+	arcBox(arc: Collider<Arc>, box: Collider<Box>): Resolution {
+		return Resolve.arcPolygon(arc, boxAsPolygon(box));
+	},
+	arcLine(arc: Collider<Arc>, line: Collider<Line>): Resolution {
+		if (arcPassCheck(arc, line) || lineSidePassCheck(line, arc)) {
+			// project arc center onto line
+			let ppt = project(arc, line);
+			let difference = diff(ppt, arc);
+
+			// if the arc faces the line, resolve with simple circle-line collision
+			let angleToProjection = Math.atan2(difference.y, difference.x);
+			if (Angle.withinArc(angleToProjection, arc)) {
+				return Resolve.circleLine(arc as unknown as Collider<Circle>, line);
+			}
+
+			// continue to find the intersection points
+			// let diffNormal = {x: -difference.y, y: difference.x};
+			// let d = mag(difference);
+			// let height;
+			// if (d === 0) {
+			// 	let segment = {x: line.dx, y: line.dy};
+			// 	height = scale(segment, arc.radius / mag(segment));
+			// }
+			// else {
+			// 	let sinTheta = Math.sqrt(arc.radius*arc.radius - d*d) / arc.radius;
+			// 	height = scale(diffNormal, arc.radius*sinTheta/d);
+			// }
+			// let p1 = sum(ppt, height);
+			// let p1Hits = Intersect.ptArc(p1, arc) && Intersect.ptLine(p1, line);
+			// let p2 = diff(ppt, height);
+			// let p2Hits = Intersect.ptArc(p2, arc) && Intersect.ptLine(p2, line);
+
+			// if two intersections
+			// if (p1Hits && p2Hits) {
+				// get furthest distance inward of an arc endpoint and push it out
+				// project the ends against the normal
+				let lineNormal = {x: line.x, y: line.y, dx: -line.dy, dy: line.dx};
+				let dist1 = dist(lineNormal, project(Angle.position(arc.start, arc.radius), lineNormal));
+				let dist2 = dist(lineNormal, project(Angle.position(arc.end, arc.radius), lineNormal));
+				// furthest dist
+				let overlap = Math.min(dist1, dist2);
+				return scale(lineNormal, overlap / mag(lineNormal));
+			// }
+		}
+		return false;
+	},
+	arcPolygon(arc: Collider<Arc>, poly: Collider<Polygon>): Resolution {
+		if (arcPassCheck(arc, poly)) {
+			// setup flags and storage to check if endpoints should trigger
+			let start = Angle.position(arc.start, arc.radius);
+			let end = Angle.position(arc.end, arc.radius);
+			let startCollides = Intersect.ptPolygon(start, poly);
+			let endCollides = Intersect.ptPolygon(end, poly);
+			let startMinDist = Infinity, starttarget = null;
+			let endMinDist = Infinity, endtarget = null;
+			
+			let correction = {x: 0, y: 0};
+			let hits = 0;
+			
+			let mid = polygonCenter(poly);
+			for (let i = 0; i < poly.vertices.length; i++) {
+				let pt = sum(poly, poly.vertices[i]);
+				// use diagonal collision
+				let diag = Line(mid, pt);
+				if (Intersect.arcLine(arc, diag)) {
+					// let target = project(pt, line);
+					let targetDiff = diff(arc, pt);
+					let target = scale(targetDiff, arc.radius/mag(targetDiff));
+					correction = sum(correction, diff(target, pt));
+					hits++;
+				}
+				// check endpoint collision
+				let pt2 = sum(poly, poly.vertices[(i + 1) % poly.vertices.length]);
+				let edge = Line(pt, pt2);
+				if (startCollides) {
+					let target = project(start, edge);
+					let distance = dist(start, target);
+					if (distance < startMinDist) {
+						starttarget = target;
+						startMinDist = distance;
+					}
+				}
+				if (endCollides) {
+					let target = project(end, edge);
+					let distance = dist(end, target);
+					if (distance < endMinDist) {
+						endtarget = target;
+						endMinDist = distance;
+					}
+				}
+			}
+			// finish endpoint checks
+			if (starttarget) {
+				correction = sum(correction, diff(start, starttarget));
+				hits++;
+			}
+			if (endtarget) {
+				correction = sum(correction, diff(end, endtarget));
+				hits++;
+			}
+
+			if (hits > 0) {
+				return scale(correction, -1);
+			}
+		}
+		else return false;
 	},
 	circleCircle(a: Collider<Circle>, b: Collider<Circle>): Resolution {
 		let distance = dist(a, b);
@@ -1259,19 +1436,7 @@ export const Resolve = {
 	},
 	boxPolygon(box: Collider<Box>, poly: Collider<Polygon>): Resolution {
 		// just turn the box into a polygon and let that handle it
-		let bpoly = {
-			x: box.x, y: box.y,
-			lastX: box.lastX, lastY: box.lastY,
-			vertices: [
-				{x: 0, y: 0},
-				{x: 0, y: box.height},
-				{x: box.width, y: box.height},
-				{x: box.width, y: 0}
-			],
-			pushVector: box.pushVector,
-			weight: box.weight
-		};
-		return Resolve.polygonPolygon(bpoly, poly);
+		return Resolve.polygonPolygon(boxAsPolygon(box), poly);
 	},
 	lineLine(a: Collider<Line>, b: Collider<Line>): Resolution {
 		if (lineSidePassCheck(a, b) || lineSidePassCheck(b, a)) {
