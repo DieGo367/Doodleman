@@ -110,6 +110,7 @@ export class GameObject {
 	animator;
 	feelsGravity;
 	isGrounded;
+	collided;
 	gravityScale;
 	terminalVel;
 	lastX;
