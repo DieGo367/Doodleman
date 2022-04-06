@@ -11,16 +11,47 @@ import {
 	POLYGON, type Polygon,
 	left, right, top, bottom, center,
 	polygonCenter, polygonAABB,
+	access,
+	isShape
 } from "./shape.js";
 
 type Vector = Point;
 type Resolution = Vector | false;
 type Collider<Type extends Basic> = Shaped<Type> & {
+	id: number;
+	weight: number;
 	lastX: number;
 	lastY: number;
-	pushVector: Vector;
-	weight: number;
+	collided: boolean;
+	collisions: Record<number, boolean>;
+	lastCollisions: Record<number, boolean>;
+	isGrounded: boolean;
+	grounds: Record<number, boolean>;
+	lastGrounds: Record<number, boolean>;
+	pushVector: {x: number, y: number, count: number};
 	sweep?: Shape[];
+}
+// type helpers
+function isIDRecord(obj: any): obj is Record<number, boolean> {
+	return typeof obj === "object" && Object.keys(obj).every(key => typeof obj[key] === "boolean")
+}
+export function isCollider(obj: any): obj is Collider<Shape> {
+	return typeof obj.id === "number"
+		&& typeof obj.weight === "number"
+		&& typeof obj.lastX === "number"
+		&& typeof obj.lastY === "number"
+		&& typeof obj.collided === "boolean"
+		&& isIDRecord(obj.collisions)
+		&& isIDRecord(obj.lastCollisions)
+		&& typeof obj.isGrounded === "boolean"
+		&& isIDRecord(obj.grounds)
+		&& isIDRecord(obj.lastGrounds)
+		&& typeof obj.pushVector === "object"
+			&& typeof obj.pushVector.x === "number"
+			&& typeof obj.pushVector.y === "number"
+			&& typeof obj.pushVector.count === "number"
+		&& (typeof obj.sweep === "undefined" || (obj.sweep instanceof Array && obj.sweep.every(item => isShape(item))))
+		&& isShape(obj);
 }
 
 // TODO: projection push cancel?
@@ -54,12 +85,10 @@ export function run(objectMap, gravity, level) {
 				}
 				bucketMap[shape.weight].push(shape);
 			}
-			if (!obj.collisions) obj.collisions = {};
-			if (!obj.grounds) obj.grounds = {};
 		}
 	}
 
-	let processedShapes = [];
+	let processedShapes = [] as Collider<Shape>[];
 	// sort the weight levels in ascending order
 	mapLevels.sort();
 	for (let i = 0; i < mapLevels.length; i++) {
@@ -83,29 +112,37 @@ export function run(objectMap, gravity, level) {
 		for (let j = 0; j < processedShapes.length; j++) {
 			let shape = processedShapes[j];
 			if (shape.pushVector.count === 0) continue;
-			shape.owner.x += shape.pushVector.x;
-			shape.owner.y += shape.pushVector.y;
-			shape.x += shape.pushVector.x / shape.pushVector.count;
-			shape.y += shape.pushVector.y / shape.pushVector.count;
-			shape.pushVector = {x: 0, y: 0, count: 0};
+			let owner = objectMap[shape.id];
+			if (owner) {
+				owner.x += shape.pushVector.x;
+				owner.y += shape.pushVector.y;
+				shape.x += shape.pushVector.x / shape.pushVector.count;
+				shape.y += shape.pushVector.y / shape.pushVector.count;
+				shape.pushVector = {x: 0, y: 0, count: 0};
+			}
+			else throw new Error("TODO: remove object from shape list");
 		}
 	}
 	
 	// resolve each shape's other variables
 	for (let i = 0; i < processedShapes.length; i++) {
 		let shape = processedShapes[i];
-		levelBoundCheck(shape, level, gravity);
-		shape.owner.collided = shape.hit;
-		shape.owner.isGrounded = shape.feltNormalForce;
-		shape.owner.collisions = shape.collisions;
-		shape.owner.grounds = shape.grounds;
-		if (shape.feltNormalForce) {
-			// TODO move this to once per owner, not once for each shape collider
-			let gravityLine = {x: 0, y: 0, dx: gravity.x, dy: gravity.y};
-			let proj = project({x: shape.owner.velX, y: shape.owner.velY}, gravityLine);
-			shape.owner.velX -= proj.x;
-			shape.owner.velY -= proj.y;
+		let owner = objectMap[shape.id];
+		if (owner) {
+			levelBoundCheck(shape, owner, level, gravity);
+			owner.collided = shape.collided;
+			owner.isGrounded = shape.isGrounded;
+			owner.collisions = shape.collisions;
+			owner.grounds = shape.grounds;
+			if (shape.isGrounded) {
+				// TODO move this to once per owner, not once for each shape collider
+				let gravityLine = {x: 0, y: 0, dx: gravity.x, dy: gravity.y};
+				let proj = project({x: owner.velX, y: owner.velY}, gravityLine);
+				owner.velX -= proj.x;
+				owner.velY -= proj.y;
+			}
 		}
+		else throw new Error("TODO: remove object from shape list");
 	}
 }
 /**
@@ -113,22 +150,26 @@ export function run(objectMap, gravity, level) {
  * @param {GameObject} obj 
  * @returns {Collider} A collider object that is ready for collision tests.
  */
-export function getCollider(obj) {
+export function getCollider(obj: GameObject): Collider<Shape> {
 	// make a copy of the collider shape, with helper structures for the collision process
-	let shape: any = {
-		owner: obj,
-		hit: false,
-		pushVector: {x: 0, y: 0, count: 0},
-		feltNormalForce: false,
-		collisions: {},
-		grounds: {}
-	};
-	Object.assign(shape, obj.collision);
-	shape.lastX = shape.x + (obj.lastX == null? obj.x : obj.lastX);
-	shape.lastY = shape.y + (obj.lastY == null? obj.y : obj.lastY);
-	shape.x += obj.x;
-	shape.y += obj.y;
-	return shape;
+	let shape: Partial<Collider<Shape>> = access(obj, "collision");
+	shape.id = obj.id;
+	shape.lastX = shape.x;
+	if (typeof obj.lastX === "number") shape.lastX += obj.lastX - obj.x;
+	shape.lastY = shape.y;
+	if (typeof obj.lastY === "number") shape.lastY += obj.lastY - obj.y;
+	shape.collided = false;
+	shape.isGrounded = false;
+	shape.collisions = {};
+	shape.grounds = {};
+	shape.lastCollisions = obj.collisions || {};
+	shape.lastGrounds = obj.grounds || {};
+	shape.pushVector = {x: 0, y: 0, count: 0};
+	if (isCollider(shape)) return shape;
+	else {
+		console.log(shape);
+		throw new Error("Improper collider!");
+	}
 }
 // the entire collision check process, including detection, push vector creation, and ground detection
 export function collisionCheck(a, b, gravity) {
@@ -141,38 +182,38 @@ export function discreteCollision(a, b, gravity) {
 	if (intersect(a, b)) {
 		let push = resolve(a, b);
 		if (push) {
-			a.hit = true;
-			b.hit = true;
-			a.collisions[b.owner.id] = true;
-			b.collisions[a.owner.id] = true;
+			a.collided = true;
+			b.collided = true;
+			a.collisions[b.id] = true;
+			b.collisions[a.id] = true;
 			let resolution = resolvePush(a, b, push);
 			collisionBasedGrounding(a, b, resolution, gravity);
 		}
 		else if (push === false) {
-			a.collisions[b.owner.id] = false;
-			b.collisions[a.owner.id] = false;
+			a.collisions[b.id] = false;
+			b.collisions[a.id] = false;
 		}
 		else console.error("No proper resolution given!");
 	}
 }
 export function continuousCollision(a, b, gravity) {
 	// if collided last frame, just use discrete collision
-	if (a.owner.collisions[b.owner.id] || b.owner.collisions[a.owner.id]) {
+	if (a.lastCollisions[b.id] || b.lastCollisions[a.id]) {
 		discreteCollision(a, b, gravity);
 	}
 	else if (sweepCheck(a, b)) {
 		let resolution;
 		resolution = bisectionMethod(a, b);
 		if (resolution) {
-			a.hit = true;
-			b.hit = true;
-			a.collisions[b.owner.id] = true;
-			b.collisions[a.owner.id] = true;
+			a.collided = true;
+			b.collided = true;
+			a.collisions[b.id] = true;
+			b.collisions[a.id] = true;
 			collisionBasedGrounding(a, b, resolution, gravity);
 		}
 		else if (resolution === false) {
-			a.collisions[b.owner.id] = false;
-			b.collisions[a.owner.id] = false;
+			a.collisions[b.id] = false;
+			b.collisions[a.id] = false;
 		}
 		else if (resolution != null) console.error("No proper resolution given!");
 	}
@@ -386,12 +427,12 @@ export function resolvePush(a, b, force) {
 export function collisionBasedGrounding(a, b, resolution, gravity) {
 	if (gravity.x === 0 && gravity.y === 0) return;
 	if (shapeGroundedOn(resolution.a, resolution.b, gravity)) {
-		a.grounds[b.owner.id] = true;
-		a.feltNormalForce = true;
+		a.grounds[b.id] = true;
+		a.isGrounded = true;
 	}
 	if (shapeGroundedOn(resolution.b, resolution.a, gravity)) {
-		b.grounds[a.owner.id] = true;
-		b.feltNormalForce = true;
+		b.grounds[a.id] = true;
+		b.isGrounded = true;
 	}
 }
 export function shapeGroundedOn(a, b, gravity) {
@@ -403,7 +444,7 @@ export function shapeGroundedOn(a, b, gravity) {
 			let top = tops[j];
 			try {
 				if (intersect(bottom, top)) return true;
-				else if (a.owner.grounds[b.owner.id] && b.type === LINE) return true;
+				else if (a.grounds[b.id] && b.type === LINE) return true;
 			}
 			catch(e) {
 				console.log(bottom, top, e);
@@ -605,22 +646,22 @@ export function getShapeTops(shape: Shape, gravity: Vector): Shape[] {
 	}
 	else never(shape);
 }
-export function levelBoundCheck(shape, level, gravity) {
+export function levelBoundCheck(shape, owner, level, gravity) {
 	let l = left(shape);
 	let r = right(shape);
 	let b = bottom(shape);
 	let t = top(shape);
-	resolveBound(shape, 'x', l, r, -1, level.edge.left, 0, level.width, gravity);
-	resolveBound(shape, 'x', r, l, 1, level.edge.right, level.width, 0, gravity);
-	resolveBound(shape, 'y', b, t, -1, level.edge.bottom, 0, level.height, gravity);
-	resolveBound(shape, 'y', t, b, 1, level.edge.top, level.height, 0, gravity);
+	resolveBound(shape, owner, 'x', l, r, -1, level.edge.left, 0, level.width, gravity);
+	resolveBound(shape, owner, 'x', r, l, 1, level.edge.right, level.width, 0, gravity);
+	resolveBound(shape, owner, 'y', b, t, -1, level.edge.bottom, 0, level.height, gravity);
+	resolveBound(shape, owner, 'y', t, b, 1, level.edge.top, level.height, 0, gravity);
 }
-export function resolveBound(shape, axis, shapeFront, shapeBack, direction, borderType, borderPos, warpPos, gravity) {
+export function resolveBound(shape, owner, axis, shapeFront, shapeBack, direction, borderType, borderPos, warpPos, gravity) {
 	if (borderType === EDGE.SOLID) {
 		if (shapeFront * direction >= borderPos * direction) {
 			let dp = borderPos - shapeFront;
-			shape.owner[axis] += dp;
-			shape.hit = true;
+			owner[axis] += dp;
+			shape.collided = true;
 			// check grounding
 			if (gravity.x !== 0 || gravity.y !== 0) {
 				let normal = {x: 0, y: 0};
@@ -628,7 +669,7 @@ export function resolveBound(shape, axis, shapeFront, shapeBack, direction, bord
 				if (dot(normal, gravity) < 0) {
 					let segment = {x: normal.y, y: -normal.x};
 					let dp = dot(unit(segment), unit(gravity));
-					if (Math.abs(dp) <= SLOPE_THRESH) shape.feltNormalForce = true;
+					if (Math.abs(dp) <= SLOPE_THRESH) shape.isGrounded = true;
 				}
 			}
 		}
@@ -636,25 +677,38 @@ export function resolveBound(shape, axis, shapeFront, shapeBack, direction, bord
 	else if (borderType === EDGE.WRAP) {
 		if (shapeBack * direction >= borderPos * direction) {
 			let dp = warpPos - shapeFront;
-			shape.owner[axis] += dp;
+			owner[axis] += dp;
 		}
 	}
 }
 // small helpers
+export function reshapeCollider(collider: Collider<Shape>, modify: object): Collider<Shape> {
+	let copy: Partial<Collider<Shape>> = {
+		id: collider.id,
+		weight: collider.weight,
+		x: collider.x, y: collider.y,
+		lastX: collider.lastX, lastY: collider.lastY,
+		collided: collider.collided,
+		collisions: collider.collisions,
+		lastCollisions: collider.lastCollisions,
+		isGrounded: collider.isGrounded,
+		grounds: collider.grounds,
+		lastGrounds: collider.lastGrounds,
+		pushVector: collider.pushVector
+	};
+	Object.assign(copy, modify);
+	if (isCollider(copy)) return copy;
+}
 export function boxAsPolygon(box: Collider<Box>): Collider<Polygon> {
-	return {
-		x: box.x, y: box.y,
-		lastX: box.lastX, lastY: box.lastY,
+	return reshapeCollider(box, {
 		type: POLYGON,
 		vertices: [
 			{x: 0, y: 0},
 			{x: 0, y: box.height},
 			{x: box.width, y: box.height},
 			{x: box.width, y: 0}
-		],
-		pushVector: box.pushVector,
-		weight: box.weight
-	};
+		]
+	}) as Collider<Polygon>;
 }
 export function lineEnds(line) {
 	if (line.ends) return line.ends;
@@ -662,7 +716,7 @@ export function lineEnds(line) {
 }
 export function lineSidePassCheck(line, shape) {
 	// return result from last collision, if it exists
-	let prevResult = line.owner.collisions[shape.owner.id];
+	let prevResult = line.lastCollisions[shape.id];
 	if (typeof prevResult === "boolean") return prevResult;
 
 	// // find the net movement between the shape and line
@@ -685,7 +739,7 @@ export function lineSidePassCheck(line, shape) {
 }
 export function arcPassCheck(arc, shape): boolean {
 	// return result from last collision, if it exists
-	let prevResult = arc.owner.collisions[shape.owner.id];
+	let prevResult = arc.lastCollisions[shape.id];
 	if (typeof prevResult === "boolean") return prevResult;
 	// check whether the object was on the correct side last frame
 	let mid = center(shape);
