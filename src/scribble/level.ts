@@ -1,25 +1,102 @@
 import { ResourceManager } from "./resource.js";
 import { Objects } from "./object.js";
-import { EDGE, LEFT, RIGHT, TERRAIN } from "./util.js";
+import { BackgroundData } from "./backgrounds.js";
+import { never, validate, ValidationRule } from "./util.js";
 
-export class LevelManager extends ResourceManager<any> {
+export enum EDGE { NONE, SOLID, WRAP, KILL };
+export enum TERRAIN { BOX, LINE, CIRCLE, POLYGON };
+
+interface ActorData extends Array<unknown> {
+	0: number;
+	1: number;
+	2: number;
+}
+interface TerrainData {
+	type: TERRAIN;
+	properties: unknown[];
+	pieces: unknown[][];
+}
+
+interface Level {
+	_version_: number;
+	name: string;
+	width: number;
+	height: number;
+	edge: {
+		top: EDGE;
+		bottom: EDGE;
+		left: EDGE;
+		right: EDGE;
+	};
+	camStart: {
+		x: number;
+		y: number;
+	};
+	horScrollBuffer: number;
+	vertScrollBuffer: number;
+	zoomScale: number;
+	minZoom: number;
+	maxZoom: number;
+	actors: ActorData[];
+	terrain: TerrainData[];
+	bg: BackgroundData[];
+}
+const LevelValidation: ValidationRule[] = [
+	{test: ["name"], is: "string"},
+	{test: [
+		"_version_", "width", "height",
+		"horScrollBuffer", "vertScrollBuffer",
+		"zoomScale", "minZoom", "maxZoom"
+	], is: "number"},
+	{test: ["edge"], is: [
+		{test: ["top", "bottom", "left", "right"], is: "number", keyOf: EDGE},
+	]},
+	{test: ["camStart"], is: [
+		{test: ["x", "y"], is: "number"}
+	]},
+	{test: ["actors"], arrayOf: Array},
+	{test: ["actors"], arrayOf: [
+		{test: ["0", "1", "2"], is: "number"}
+	]},
+	{test: ["terrain"], arrayOf: [
+		{test: ["type"], is: "number", keyOf: TERRAIN},
+		{test: ["properties"], is: Array},
+		{test: ["pieces"], arrayOf: Array}
+	]},
+	{test: ["bg"], arrayOf: [
+		{test: ["type"], in: ["name", "raw"]},
+		{test: ["name", "raw"], is: "string", optional: true},
+		{test: ["layer", "scale", "parallax", "velX", "velY"], is: "number"},
+		{test: ["anchorFlip"], is: [
+			{test: ["x", "y"], is: "boolean"}
+		]}
+	]}
+];
+
+export class LevelManager extends ResourceManager<Level> {
 	constructor(engine) {
 		super(engine, "Levels");
 	}
-	_request = src => this.engine.requestData(src)
-	async loadFileInput() {
+	async _request(src: string): Promise<Level> {
+		let data: unknown = await this.engine.requestData(src);
+		return this.updateLevel(data);
+	}
+	async loadFileInput(): Promise<Level[]> {
+		let levels = [] as Level[];
 		this.loadingCount++;
-		let dataList = await this.engine.file.askData(["json"]);
+		let dataList = await this.engine.file.askData(["json"]) as unknown[];
 		for (let i = 0; i < dataList.length; i++) {
-			this.map[`file:${i}`] = dataList[i];
+			let data = this.updateLevel(dataList[i]);
+			this.map[`file:${i}`] = data;
+			levels.push(data);
 		}
 		this.loadingCount--;
+		return levels;
 	}
-	async open(level) {
+	async open(level: string) {
 		this.engine.levelReady = false;
 		if (!this.has(level)) await this.load(level);
 		let data = this.get(level);
-		this.updateLevel(data);
 		this.clear();
 		// TODO: send over network
 		Object.assign(this.engine.level, data);
@@ -29,10 +106,11 @@ export class LevelManager extends ResourceManager<any> {
 		this.engine.camera.reset();
 		this.engine.levelReady = true;
 		this.engine.game.onLevelLoad();
-		console.log(`Loaded Level ${data.name | level}`);
+		console.log(`Loaded Level ${data.name || level}`);
 	}
-	async openFromData(data) {
-		this.map["data:"] = data;
+	async openFromData(data: unknown) {
+		let level = this.updateLevel(data);
+		this.map["data:"] = level;
 		await this.open("data:");
 	}
 	async openFromFile() {
@@ -46,22 +124,19 @@ export class LevelManager extends ResourceManager<any> {
 		this.engine.level = Object.assign({}, BlankLevel);
 		this.engine.camera.reset();
 	}
-	_loadTerrain(list) {
-		if (list) for (let i = 0; i < list.length; i++) {
-			let terrain = Object.assign({}, list[i]);
+	_loadTerrain(list: TerrainData[]) {
+		for (let terrainDataEntry of list) {
+			let terrain = {...terrainDataEntry};
 
 			let objectClass;
 			if (terrain.type === TERRAIN.BOX) objectClass = Objects.Box;
 			else if (terrain.type === TERRAIN.LINE) objectClass = Objects.Line;
 			else if (terrain.type === TERRAIN.CIRCLE) objectClass = Objects.Circle;
 			else if (terrain.type === TERRAIN.POLYGON) objectClass = Objects.Polygon;
-			else {
-				console.warn("Unknown terrain type");
-				continue;
-			}
+			else never(terrain.type);
 			
-			for (let j = 0; j < terrain.pieces.length; j++) {
-				let piece = terrain.pieces[j].slice();
+			for (let pieceData of terrain.pieces) {
+				let piece = pieceData.slice();
 				let args = [...piece, ...terrain.properties];
 				
 				let obj = new objectClass(...args);
@@ -70,9 +145,8 @@ export class LevelManager extends ResourceManager<any> {
 			}
 		}
 	}
-	_loadActors(list) {
-		if (list) for (let i = 0; i < list.length; i++) {
-			let actor = list[i];
+	_loadActors(list: ActorData[]) {
+		for (let actor of list) {
 			let id = actor[0];
 			let args = actor.slice(1,3);
 			let inputs = actor.slice(3);
@@ -84,7 +158,11 @@ export class LevelManager extends ResourceManager<any> {
 					let prop = guide.arguments[j];
 					if (typeof prop == "object") {
 						let arg = inputs[prop.input];
-						if (prop.remap) arg = prop.remap[arg];
+						if (prop.remap) {
+							if (typeof arg === "number")
+								arg = prop.remap[arg];
+							else throw new Error(`Couldn't remap value ${arg} since it was not a number.`);
+						}
 						args.push(arg);
 					}
 					else args.push(prop);
@@ -99,15 +177,17 @@ export class LevelManager extends ResourceManager<any> {
 			}
 		}
 	}
-	async _loadBackgrounds(list) {
+	async _loadBackgrounds(list: BackgroundData[]) {
 		let promises = [];
-		if (list) for (let i = 0; i < list.length; i++) {
-			if (list[i]) promises.push(this.engine.backgrounds.load(list[i]));
+		for (let bgData of list) {
+			promises.push(this.engine.backgrounds.load(bgData));
 		}
 		await Promise.all(promises);
 	}
-	updateLevel(data) {
-		if (data._version_ == BlankLevel._version_) return;
+	isLevel(data: unknown): data is Level {
+		return validate(data, LevelValidation);
+	}
+	updateLevel(data: any): Level {
 		switch(data._version_) {
 			case void(0):
 				// No version was specified. File is from before versions were introduced
@@ -179,30 +259,6 @@ export class LevelManager extends ResourceManager<any> {
 							) {
 								terrain.pieces[j] = [piece[2], piece[3], piece[0], piece[1]];
 							}
-							// if (direction === 2) { // UP
-							// 	// left-most should be first
-							// 	if (piece[2] < piece[0]) {
-							// 		terrain.pieces[j] = [piece[2], piece[3], piece[0], piece[1]];
-							// 	}
-							// }
-							// else if (direction === 1) { // RIGHT
-							// 	// top-most should be first
-							// 	if (piece[3] > piece[1]) {
-							// 		terrain.pieces[j] = [piece[2], piece[3], piece[0], piece[1]];
-							// 	}
-							// }
-							// else if (direction === -2) { // DOWN
-							// 	// right-most should be first
-							// 	if (piece[2] > piece[0]) {
-							// 		terrain.pieces[j] = [piece[2], piece[3], piece[0], piece[1]];
-							// 	}
-							// }
-							// else if (direction === -1) { // LEFT
-							// 	// bottom-most should be first
-							// 	if (piece[3] < piece[1]) {
-							// 		terrain.pieces[j] = [piece[2], piece[3], piece[0], piece[1]];
-							// 	}
-							// }
 						}
 					}
 				}
@@ -231,10 +287,13 @@ export class LevelManager extends ResourceManager<any> {
 				}
 		}
 		data._version_ = BlankLevel._version_;
+		let out = {...BlankLevel, ...data};
+		if (this.isLevel(out)) return out;
+		else throw new Error("Bad level data.");
 	}
 }
 
-export const BlankLevel = {
+export const BlankLevel: Level = {
 	name: null,
 	width: 640,
 	height: 360,
@@ -252,8 +311,6 @@ export const BlankLevel = {
 	maxZoom: 1,
 	actors: [],
 	terrain: [],
-	bg: [
-		// {type: "name", name: "", raw:"", layer: -2, scale: 1, parallax: 1, velX: 0, velY: 0}
-	],
+	bg: [],
 	_version_: 2
 };

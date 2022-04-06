@@ -1,18 +1,6 @@
 export const RIGHT = 1;
 export const LEFT = -1;
 export const CENTER = 0;
-export enum EDGE {
-	NONE,
-	SOLID,
-	WRAP,
-	KILL
-};
-export enum TERRAIN {
-	BOX,
-	LINE,
-	CIRCLE,
-	POLYGON
-};
 export const COLOR = {
 	BACKDROP: "gray",
 	LEVEL: "lightGray",

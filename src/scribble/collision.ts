@@ -1,5 +1,6 @@
 import { GameObject } from "./object.js";
-import { EDGE, never, Angle } from "./util.js";
+import { EDGE } from "./level.js";
+import { never, Angle } from "./util.js";
 import { diff, dist, dot, mag, project, scale, sum, unit } from "./point_math.js";
 import {
 	type Shape, type Shaped, type Basic,
