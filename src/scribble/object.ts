@@ -1,8 +1,6 @@
 import * as Collision from "./collision.js";
 import { RIGHT, COLOR } from "./util.js";
-import { AnimationComponent } from "./animations.js";
 import * as Shape from "./shape.js";
-import { Game } from "./game.js";
 
 export class ObjectManager {
 	map = {};
@@ -259,7 +257,7 @@ Objects.Point = class Point extends GameObject {
 	constructor(x, y, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new AnimationComponent(0, 0, gfx);
+			this.animator = {name: gfx, x: 0, y: 0};
 		}
 		else this.graphic = {
 			type: Shape.POINT,
@@ -278,7 +276,7 @@ Objects.Arc = class Arc extends GameObject {
 	constructor(x, y, radius, start, end, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new AnimationComponent(0, 0, gfx);
+			this.animator = {name: gfx, x: 0, y: 0};
 		}
 		else this.graphic = {
 			type: Shape.ARC,
@@ -301,7 +299,7 @@ Objects.Box = class Box extends GameObject {
 	constructor(x, y, width, height, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new AnimationComponent(width/2, 0, gfx);
+			this.animator = {name: gfx, x: width/2, y: 0};
 		}
 		else this.graphic = {
 			type: Shape.BOX,
@@ -325,7 +323,7 @@ Objects.Line = class Line extends GameObject {
 		let dx = x2 - x;
 		let dy = y2 - y;
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new AnimationComponent(dx/2, dy/2, gfx);
+			this.animator = {name: gfx, x: dx/2, y: dy/2};
 		}
 		else this.graphic = {
 			type: Shape.LINE,
@@ -346,7 +344,7 @@ Objects.Circle = class Circle extends GameObject {
 	constructor(x, y, radius, gfx) {
 		super(x, y);
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new AnimationComponent(x, y - radius, gfx);
+			this.animator = {name: gfx, x: 0, y: -radius};
 		}
 		else this.graphic = {
 			type: Shape.CIRCLE,
@@ -368,7 +366,7 @@ Objects.Polygon = class Polygon extends GameObject {
 		let pts = vertices.map(pt => Shape.Pt(pt));
 		let aabb = Shape.polygonAABB({x: 0, y: 0, vertices: pts});
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
-			this.animator = new AnimationComponent(aabb.x + aabb.width/2, aabb.y, gfx);
+			this.animator = {name: gfx, x: aabb.x + aabb.width/2, y: aabb.y};
 		}
 		else this.graphic = {
 			type: Shape.POLYGON,

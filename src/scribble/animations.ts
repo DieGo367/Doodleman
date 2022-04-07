@@ -1,5 +1,46 @@
 import { ResourceManager } from "./resource.js";
-import { LEFT, RIGHT } from "./util.js";
+import { LEFT, RIGHT, CENTER, never } from "./util.js";
+type DIR = typeof LEFT | typeof RIGHT | typeof CENTER;
+
+
+interface Animation {
+	row: number;
+	col: number;
+	frameCount: number;
+	frameRate: number;
+	data: {
+		frame: AnimationFrameData;
+		alpha: AnimationFrameData;
+		[miscData: string]: AnimationFrameData;
+	}
+}
+interface DataResponse {
+	response: "data";
+	[index: string]: JSONValue
+}
+interface ExpressionResponse {
+	response: "expression";
+	expression: "string";
+}
+interface KeyFrameResponse {
+	response: "keyframes";
+	[index: number]: JSONValue
+}
+type FrameDataResponse = DataResponse | ExpressionResponse | KeyFrameResponse;
+type JSONValue = string | number | boolean | JSONValue[] | {[key: string]: JSONValue} | null;
+type AnimationFrameData = FrameDataResponse | JSONValue;
+
+export interface AnimationComponent {
+	name: string;
+	x: number;
+	y: number;
+	page?: number;
+	current?: string;
+	direction?: DIR;
+	tick?: number;
+	lock?: number | "full";
+	previous?: string;
+}
 
 export class AnimationManager extends ResourceManager<AnimationSheet> {
 	constructor(engine) {
@@ -9,12 +50,12 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 		let data = await this.engine.requestData(src);
 		return new AnimationSheet(src, data);
 	}
-	async loadAs(name, src) {
+	async loadAs(name: string, src: string): Promise<AnimationSheet> {
 		let sheet = await super.loadAs(name, src);
 		sheet.name = name;
 		return sheet;
 	}
-	async loadList(list) {
+	async loadList(list: string[]): Promise<AnimationSheet[]> {
 		let results = await super.loadList(list);
 		this.inheritance();
 		return results;
@@ -22,12 +63,10 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 	inheritance() {
 		for (let name in this.map) {
 			let target = this.map[name];
-			if (target) {
-				if (target.extends && !target.extended) target.extend(this.map);
-			}
+			if (target.extends && !target.extended) target.extend(this.map);
 		}
 	}
-	render(ctx, x, y, component) {
+	render(ctx: CanvasRenderingContext2D, x: number, y: number, component: AnimationComponent) {
 		// get animation sheet
 		let sheet = this.map[component.name];
 		if (sheet) {
@@ -60,15 +99,17 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 
 					// move corresponding amount of frames forward in the animation
 					let frameIndex = Math.floor((component.tick||0) * anim.frameRate);
-					let frame = this.getFrameData(frameIndex, anim, "frame") || 0;
-					frameX += frame * sheet.spriteWidth;
+					let frame = this.getFrameData(frameIndex, anim, "frame");
+					if (typeof frame === "number")
+						frameX += frame * sheet.spriteWidth;
 					
 					// determine alpha value for frame
 					let alpha = this.getFrameData(frameIndex, anim, "alpha");
 
 					// draw image
 					let globalAlpha = ctx.globalAlpha;
-					ctx.globalAlpha *= alpha;
+					if (typeof alpha === "number")
+						ctx.globalAlpha *= alpha;
 					ctx.drawImage(img,
 						frameX, img.height - frameY,
 						sheet.spriteWidth, -sheet.spriteHeight,
@@ -83,19 +124,19 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 		}
 		else console.warn("Unknown animation file " + component.name);
 	}
-	set(component, animationName, direction, lockTime) {
+	set(component: AnimationComponent, animationName: string, direction?: DIR, lockTime?: number | "full"): boolean {
 		if (component.lock > 0 || component.lock === "full") return false;
-		if (direction != void(0)) component.direction = direction;
+		if (direction !== undefined) component.direction = direction;
 		if (component.current === animationName) return true;
 		component.previous = component.current;
 		component.current = animationName;
 		component.tick = 0;
-		if (lockTime === "full" || typeof lockTime === "number") {
+		if (lockTime !== undefined) {
 			component.lock = lockTime;
 		}
 		return true;
 	}
-	getAnimation(component) {
+	getAnimation(component: AnimationComponent): Animation {
 		let sheet = this.map[component.name];
 		if (sheet) {
 			if (component.current == void(0)) {
@@ -107,7 +148,7 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 		}
 		else console.error("Unknown animation file " + component.name);
 	}
-	tick(component) {
+	tick(component: AnimationComponent) {
 		let anim = this.getAnimation(component);
 		component.tick++;
 		if (component.lock === "full") component.lock = anim.frameCount / anim.frameRate;
@@ -117,24 +158,24 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 			component.previous = component.current;
 		}
 	}
-	getFrameData(frameIndex, anim, key) {
+	getFrameData(frameIndex: number, anim: Animation, key: string): unknown {
 		let chain = key.split(".");
 		if (!anim.data) throw new Error("Frame data not provided!");
-		let value = anim.data;
+		let value = anim.data as JSONValue;
 		while (chain.length > 0) value = value[chain.shift()];
 		return this.resolveDataValue(frameIndex, value);
 	}
-	resolveDataValue(frameIndex, value) {
+	resolveDataValue(frameIndex: number, value: AnimationFrameData): unknown {
 		if (value instanceof Array) return value[frameIndex];
-		else if (typeof value === "object" && value.response) return this.resolveDataResponse(frameIndex, value);
+		else if (typeof value === "object" && "response" in value) return this.resolveDataResponse(frameIndex, value as FrameDataResponse);
 		else return value;
 	}
-	resolveDataResponse(frameIndex, response) {
+	resolveDataResponse(frameIndex: number, response: FrameDataResponse): unknown {
 		switch(response.response) {
 			case "expression":
 				let validExpr = /^([0-9x\.+\-*/%() ]|floor\(|ceil\(|round\()+$/;
 				if (validExpr.test(response.expression)) {
-					let expr = response.expression.replace(/x/g, frameIndex);
+					let expr = response.expression.replace(/x/g, String(frameIndex));
 					expr = expr.replace(/floor\(/g, "Math.floor(");
 					expr = expr.replace(/ceil\(/g, "Math.ceil(");
 					expr = expr.replace(/round\(/g, "Math.round(");
@@ -159,10 +200,10 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 				return resolved;
 			
 			default:
-				throw new Error(`Unknown data response type "${response.response}"`);
+				never(response);
 		}
 	}
-	getFrameDataFromComponent(component, key) {
+	getFrameDataFromComponent(component: AnimationComponent, key: string): unknown {
 		let anim = this.getAnimation(component);
 		let frameIndex = Math.floor((component.tick||0) * anim.frameRate);
 		return this.getFrameData(frameIndex, anim, key);
@@ -170,37 +211,38 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 };
 
 export class AnimationSheet {
-	extends;
-	extended;
-	animations;
-	pages;
-	defaultAnimation;
-	hasDirection;
-	sheetOffsets;
-	spriteWidth;
-	spriteHeight;
-	drawOffset;
+	extends?: string;
+	extended = false;
+	pages?: string[];
+	spriteWidth?: number;
+	spriteHeight?: number;
+	hasDirection?: boolean;
+	sheetOffsets?: {
+		left: {x: number, y: number};
+		center: {x: number, y: number};
+		right: {x: number, y: number};
+	};
+	drawOffset?: {x: number, y: number};
+	animations?: {[actionName: string]: Animation};
+	defaultAnimation?: string;
 	constructor(public name, data) {
 		Object.assign(this, data);
 	}
-	extend(map) {
+	extend(map: {[name: string]: AnimationSheet}) {
 		let source = map[this.extends];
 		if (source) {
 			if (source.extends && !source.extended) source.extend(map);
 			for (let property in source) {
-				if (this[property] === void(0)) {
+				if (typeof this[property] === "undefined") {
 					this[property] = source[property];
 				}
 			}
+			this.extended = true;
 		}
-		else console.log("Couldn't extend animations from: "+this.extends);
+		else console.warn("Couldn't extend animations from: "+this.extends);
 	}
-	get(animationName) {
+	get(animationName: string): Animation {
 		if (this.animations[animationName]) return this.animations[animationName];
 		return null;
 	}
-}
-
-export class AnimationComponent {
-	constructor(public x, public y, public name) {}
 }
