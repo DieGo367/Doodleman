@@ -25,16 +25,18 @@ interface ActorDefArg {
 	input: number;
 	type?: "number" | "boolean" | "string" | "option";
 	options?: {[key: string]: JSONValue};
+	remap?: unknown[]
 }
-function isActorDefArg(data: unknown): data is ActorDefArg {
+export function isActorDefArg(data: unknown): data is ActorDefArg {
 	return validate(data, [
 		{test: ["name"], is: "string"},
 		{test: ["input"], is: "number"},
 		{test: ["type"], in: ["number", "boolean", "string", "option"], optional: true},
 		{test: ["options"], is: "object", optional: true},
-	]);
+		{test: ["remap"], is: Array, optional: true},
+	], false);
 }
-type ObjectClass = {
+export type ObjectClass = {
 	new (...args: any[]): any
 	proto?(): void;
 };
@@ -123,7 +125,7 @@ export class ObjectManager {
 			}
 		}
 	}
-	forAllOfClass(classRef: ObjectClass, func: (object: GameObject, id: number) => boolean | void) {
+	forAllOfClass(classRef: ObjectClass, func: (object: InstanceType<ObjectClass>, id: number) => boolean | void) {
 		this.forAll((obj, id) => {
 			if (obj instanceof classRef) {
 				return func(obj, id);

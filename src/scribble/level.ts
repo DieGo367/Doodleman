@@ -1,5 +1,5 @@
 import { ResourceManager } from "./resource.js";
-import { Objects } from "./object.js";
+import { isActorDefArg, Objects } from "./object.js";
 import { BackgroundData } from "./backgrounds.js";
 import { never, validate, ValidationRule } from "./util.js";
 
@@ -17,7 +17,7 @@ interface TerrainData {
 	pieces: unknown[][];
 }
 
-interface Level {
+export interface Level {
 	_version_: number;
 	name: string;
 	width: number;
@@ -156,7 +156,7 @@ export class LevelManager extends ResourceManager<Level> {
 			if (targetClass) {
 				if (guide.arguments) for (let j = 0; j < guide.arguments.length; j++) {
 					let prop = guide.arguments[j];
-					if (typeof prop == "object") {
+					if (isActorDefArg(prop)) {
 						let arg = inputs[prop.input];
 						if (prop.remap) {
 							if (typeof arg === "number")

@@ -2,8 +2,8 @@ import { Game } from "./game.js";
 import { ImageManager } from "./images.js";
 import { SoundManager } from "./sounds.js";
 import { AnimationManager } from "./animations.js";
-import { LevelManager, BlankLevel } from "./level.js";
-import { ObjectManager } from "./object.js";
+import { LevelManager, BlankLevel, Level } from "./level.js";
+import { ObjectClass, ObjectManager } from "./object.js";
 import * as Collision from "./collision.js";
 import { Camera } from "./camera.js";
 import { InputManager } from "./input.js";
@@ -14,33 +14,38 @@ import { COLOR } from "./util.js";
 
 
 export class Engine {
-	images;
-	sounds;
-	animations;
-	levels;
-	level;
-	objects;
-	camera;
-	input;
-	backgrounds;
-	file;
-	debug;
-	div;
-	canvas;
-	width;
-	height;
-	ctx;
-	levelReady;
-	paused;
-	gravity;
-	friction;
-	frictionSnap;
-	airResistance;
-	readyFunc;
-	loadingCompleted;
-	game;
-	tickSpeed;
-	interval;
+	// resource managers
+	images: ImageManager;
+	sounds: SoundManager;
+	animations: AnimationManager;
+	levels: LevelManager;
+	// engine components
+	objects: ObjectManager;
+	camera: Camera;
+	input: InputManager;
+	backgrounds: Backgrounds;
+	file: FileLoader;
+	debug: Debug;
+	// page setup
+	div: HTMLElement;
+	canvas: HTMLCanvasElement;
+	ctx: CanvasRenderingContext2D;
+	width: number;
+	height: number;
+	// engine state
+	level: Level = {...BlankLevel};
+	levelReady = true;
+	paused = false;
+	gravity = {x: 0, y: 0};
+	friction = 0.9;
+	frictionSnap = 0.1;
+	airResistance = 0.9;
+	// game loading
+	readyFunc = () => {};
+	loadingCompleted = false;
+	game: Game;
+	tickSpeed: number;
+	interval: number;
 	constructor(divID, canvasWidth, canvasHeight, resources) {
 		// resource managers
 		this.images = new ImageManager(this);
@@ -63,7 +68,7 @@ export class Engine {
 		this.canvas.style.width = canvasWidth + "px";
 		this.canvas.style.height = canvasHeight + "px";
 		this.div.appendChild(this.canvas);
-		this.ctx = this.images.ctx = this.backgrounds.ctx = this.canvas.getContext("2d");
+		this.ctx = this.images.ctx = this.canvas.getContext("2d");
 		// state
 		this.levelReady = true;
 		this.paused = false;
@@ -74,15 +79,15 @@ export class Engine {
 		// final load
 		this._collectResources(resources);
 	}
-	ready(func) {
+	ready(func: () => void) {
 		if (typeof func == "function") {
 			this.readyFunc = func;
 			if (this.loadingCompleted) func();
 		}
 		else throw new TypeError("Expected a function");
 	}
-	request = url => fetch(url);
-	requestData = url => this.request(url).then(response => response.json());
+	request(url: string) { return fetch(url); }
+	requestData(url: string): Promise<unknown> { return this.request(url).then(response => response.json()); }
 	async _collectResources(resources) {
 		if (resources) {
 			let lists = [];
@@ -90,42 +95,44 @@ export class Engine {
 			for (let listType in resources) {
 				let listName = resources[listType]; 
 				lists.push(this.requestData(listName).then(list => {
-					if (listType === "images") batches.push(this.images.loadList(list));
-					else if (listType === "sounds") batches.push(this.sounds.loadList(list));
-					else if (listType === "animations") batches.push(this.animations.loadList(list));
-					else if (listType === "levels") batches.push(this.levels.loadList(list));
-					else throw new Error("Unknown resource type: "+listType);
+					if (list instanceof Array && list.every(item => typeof item === "string")) {
+						if (listType === "images") batches.push(this.images.loadList(list));
+						else if (listType === "sounds") batches.push(this.sounds.loadList(list));
+						else if (listType === "animations") batches.push(this.animations.loadList(list));
+						else if (listType === "levels") batches.push(this.levels.loadList(list));
+						else throw new Error("Unknown resource type: "+listType);
+					}
 				}));
 			}
 			await Promise.all(lists);
 			await Promise.all(batches);
 		}
 		this.loadingCompleted = true;
-		if (this.readyFunc) this.readyFunc();
+		this.readyFunc();
 	}
-	loadGame(GameClass) {
+	loadGame<Type extends Game>(GameClass: {new (...args: any[]): Type}) {
 		if (GameClass.prototype instanceof Game) {
 			this.game = new GameClass(this);
 			this.game.init();
 		}
 		else throw new TypeError("Given game is not a Game class");
 	}
-	setSpeed(tickSpeed) {
+	setSpeed(tickSpeed: number) {
 		this.tickSpeed = tickSpeed;
 		this._resetInterval();
 	}
-	setGravity(x, y) {
+	setGravity(x: number, y: number) {
 		this.gravity.x = x;
 		this.gravity.y = y;
 	}
-	setFriction(u, lowerSnap) {
+	setFriction(u: number, lowerSnap: number) {
 		this.friction = u;
 		this.frictionSnap = lowerSnap;
 	}
-	setAirResistance(u) {
+	setAirResistance(u: number) {
 		this.airResistance = u;
 	}
-	setFullscreen(bool) {
+	setFullscreen(bool: boolean) {
 		if (bool) {
 			this.canvas.requestFullscreen();
 		}
@@ -134,7 +141,7 @@ export class Engine {
 		}
 	}
 	_resetInterval() {
-		if (this.interval) window.clearInterval(this.interval);
+		if (this.interval !== undefined) window.clearInterval(this.interval);
 		this.interval = window.setInterval(() => {
 			this._run();
 		}, this.tickSpeed);
@@ -212,10 +219,10 @@ export class Engine {
 		this.game.onRenderUI(this.ctx);
 		if (this.debug.enabled) this.debug.render(this.ctx);
 	}
-	async loadActorData(url) {
+	async loadActorData(url: string) {
 		await this.objects.loadActorData(url);
 	}
-	registerClasses(classGroup) {
+	registerClasses(classGroup: {[name: string]: ObjectClass}) {
 		this.objects.registerClasses(classGroup);
 	}
 }
