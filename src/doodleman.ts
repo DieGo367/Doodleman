@@ -175,7 +175,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 		delete this.maxHealth;
 		delete this.knockBack;
 	}
-	static proto() {
+	static proto(this) {
 		super.proto();
 		this.drawLayer = 2;
 		this.feelsGravity = true;
@@ -411,7 +411,7 @@ DMOs.PaintMan = class extends Scribble.Objects.Entity {
 		delete this.terminalVel;
 		delete this.maxHealth;
 	}
-	static proto() {
+	static proto(this) {
 		super.proto();
 		this.feelsGravity = true;
 		this.terminalVel = 10;
@@ -420,6 +420,7 @@ DMOs.PaintMan = class extends Scribble.Objects.Entity {
 };
 
 DMOs.HelloPlatform = class extends Scribble.GameObject {
+	declare collision: Scribble.Collision.CollisionComponent & Scribble.Shape.Box;
 	constructor(x, y, width, height, graphic, xVel, yVel) {
 		super(x, y);
 		this.collision = {

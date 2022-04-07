@@ -31,6 +31,7 @@ type Collider<Type extends Basic> = Shaped<Type> & {
 	pushVector: {x: number, y: number, count: number};
 	sweep?: Shape[];
 }
+export type CollisionComponent = Shape & {weight: number};
 // type helpers
 function isIDBoolMap(obj: any): obj is IDBoolMap {
 	return typeof obj === "object" && Object.keys(obj).every(key => typeof obj[key] === "boolean")

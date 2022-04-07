@@ -1,47 +1,90 @@
 import * as Collision from "./collision.js";
-import { RIGHT, COLOR } from "./util.js";
 import * as Shape from "./shape.js";
+import { Engine } from "./engine.js";
+import { AnimationComponent, AnimationManager } from "./animations.js";
+import { ImageManager } from "./images.js";
+import { LEFT, RIGHT, CENTER, COLOR, validate, never } from "./util.js";
+type CollisionComponent = Collision.CollisionComponent;
+type DIR = (typeof LEFT | typeof CENTER | typeof RIGHT);
+
+type JSONValue = string | number | boolean | JSONValue[] | {[key: string]: JSONValue} | null;
+interface ActorDef {
+	id: number;
+	class: string;
+	arguments?: (ActorDefArg | unknown)[]
+}
+function isActorDef(data: unknown): data is ActorDef {
+	return validate(data, [
+		{test: ["id"], is: "number"},
+		{test: ["class"], is: "string"},
+		{test: ["arguments"], is: Array, optional: true}
+	]);
+}
+interface ActorDefArg {
+	name: string;
+	input: number;
+	type?: "number" | "boolean" | "string" | "option";
+	options?: {[key: string]: JSONValue};
+}
+function isActorDefArg(data: unknown): data is ActorDefArg {
+	return validate(data, [
+		{test: ["name"], is: "string"},
+		{test: ["input"], is: "number"},
+		{test: ["type"], in: ["number", "boolean", "string", "option"], optional: true},
+		{test: ["options"], is: "object", optional: true},
+	]);
+}
+type ObjectClass = {
+	new (...args: any[]): any
+	proto?(): void;
+};
 
 export class ObjectManager {
-	map = {};
+	map = {} as {[id: number]: GameObject};
 	nextID = 0;
-	actorData = {};
-	registeredClasses = {};
+	actorData = {} as ActorDef[];
+	registeredClasses = {} as {[className: string]: ObjectClass};
 	minLayer = 0;
 	maxLayer = 0;
-	constructor(public engine) {
+	constructor(public engine: Engine) {
 		this.registerClasses(Objects);
 	}
-	async loadActorData(url) {
-		let data = await (await fetch(url)).json();
-		for (let i = 0; i < data.length; i++) {
-			let id = data[i].id;
-			this.actorData[id] = data[i];
+	async loadActorData(url: string) {
+		let data: unknown = await (await fetch(url)).json();
+		if (data instanceof Array) {
+			for (let entry of data as unknown[]) {
+				if (isActorDef(entry)) {
+					let id = entry.id;
+					this.actorData[id] = entry;
+				}
+				else console.warn("An Actor data entry was not loaded.");
+			}
 		}
+		else throw new Error("Actor data was not an array.");
 	}
-	add(object) {
-		if (object instanceof GameObject) {
-			object.id = this.nextID++;
-			object.objectManager = this;
-			this.map[object.id] = object;
-			this.minLayer = Math.min(this.minLayer, object.drawLayer);
-			this.maxLayer = Math.max(this.maxLayer, object.drawLayer);
-		}
-		else console.error("Not a GameObject!");
+	add(object: GameObject) {
+		object.id = this.nextID++;
+		object.objectManager = this;
+		this.map[object.id] = object;
+		this.minLayer = Math.min(this.minLayer, object.drawLayer);
+		this.maxLayer = Math.max(this.maxLayer, object.drawLayer);
 	}
-	remove(target) {
+	remove(target: number | GameObject) {
 		if (typeof target == "number") {
 			delete this.map[target];
 		}
 		else if (target instanceof GameObject) {
 			delete this.map[target.id];
 		}
-		else console.error("Not an id or GameObject!")
+		else never(target);
 	}
-	triggerAll(method) {
+	triggerAll(method: string) {
 		for (let id in this.map) {
-			if (this.map.hasOwnProperty(id)) {
-				if (this.map[id]) this.map[id][method](this.engine);
+			let obj = this.map[id];
+			if (obj instanceof GameObject) {
+				if (method in obj && typeof obj[method] === "function") {
+					obj[method](this.engine);
+				}
 			}
 		}
 	}
@@ -62,7 +105,7 @@ export class ObjectManager {
 	finish() {
 		this.triggerAll("finish");
 	}
-	renderLayer(layer) {
+	renderLayer(layer: number) {
 		this.forAll(object => {
 			if (object.drawLayer === layer) object.draw(this.engine.ctx, this.engine.images, this.engine.animations);
 		});
@@ -72,7 +115,7 @@ export class ObjectManager {
 			object.drawDebug(this.engine.ctx, this.engine.images, this.engine.animations);
 		});
 	}
-	forAll(func) {
+	forAll(func: (object: GameObject, id: number) => boolean | void) {
 		for (let id in this.map) {
 			if (this.map[id]) {
 				let response = func(this.map[id], parseInt(id));
@@ -80,45 +123,49 @@ export class ObjectManager {
 			}
 		}
 	}
-	forAllOfClass(classRef, func) {
+	forAllOfClass(classRef: ObjectClass, func: (object: GameObject, id: number) => boolean | void) {
 		this.forAll((obj, id) => {
 			if (obj instanceof classRef) {
 				return func(obj, id);
 			}
 		});
 	}
-	registerClasses(classGroup) {
+	registerClasses(classGroup: {[className: string]: ObjectClass}) {
 		for (let name in classGroup) {
 			this.registerClass(name, classGroup[name]);
 		}
 	}
-	registerClass(className, classDecl) {
+	registerClass(className: string, classDecl: ObjectClass) {
 		classDecl.proto.call(classDecl.prototype);
 		this.registeredClasses[className] = classDecl;
 	}
 }
 
+type GraphicsComponent = Shape.Shape & {
+	style: string;
+}
+
 export class GameObject {
-	collisions;
-	grounds;
+	id: number;
+	objectManager: ObjectManager;
 	velX = 0;
 	velY = 0;
-	id;
-	objectManager;
-	animator;
-	feelsGravity;
-	isGrounded;
-	collided;
-	gravityScale;
-	terminalVel;
-	lastX;
-	lastY;
-	lastVelX;
-	lastVelY;
-	graphic;
-	collision;
-	drawLayer;
-	constructor(public x, public y) {
+	lastX: number;
+	lastY: number;
+	lastVelX: number;
+	lastVelY: number;
+	drawLayer: number;
+	feelsGravity: boolean;
+	gravityScale: number;
+	terminalVel: number;
+	graphic: GraphicsComponent;
+	animator: AnimationComponent;
+	collision: CollisionComponent;
+	collided: boolean;
+	collisions: {[objectID: number]: boolean};
+	isGrounded: boolean;
+	grounds: {[objectID: number]: boolean};
+	constructor(public x: number, public y: number) {
 		delete this.drawLayer;
 		delete this.gravityScale;
 		delete this.terminalVel;
@@ -135,16 +182,14 @@ export class GameObject {
 	
 	/**
 	 * First update step. Runs before the main update. Animations tick here.
-	 * @param {Engine} engine 
 	 */
-	start(engine) {
+	start(engine: Engine) {
 		if (this.animator) engine.animations.tick(this.animator);
 	}
 	/**
 	 * Handles intended object behavior this tick. Runs before attacks and collision.
-	 * @param {Engine} engine 
 	 */
-	update(engine) {
+	update(engine: Engine) {
 		if (this.feelsGravity && !this.isGrounded) {
 			this.velX += engine.gravity.x * this.gravityScale;
 			this.velY += engine.gravity.y * this.gravityScale;
@@ -161,19 +206,16 @@ export class GameObject {
 	}
 	/**
 	 * Update step dedicated to setting hitbox data. Runs after movement but before hit detection and collision.
-	 * @param {Engine} engine 
 	 */
-	updateHitboxes(engine) {}
+	updateHitboxes(engine: Engine) {}
 	/**
 	 * Update step dedicated to attack hit detection. Runs after movement and hitbox updates, but before collision.
-	 * @param {Engine} engine 
 	 */
-	updateHitDetection(engine) {}
+	updateHitDetection(engine: Engine) {}
 	/**
 	 * Final update step. Runs after collision. Track necessary values for next tick.
-	 * @param {Engine} engine 
 	 */
-	finish(engine) {
+	finish(engine: Engine) {
 		if (this.feelsGravity && this.isGrounded) {
 			this.velX *= engine.friction;
 			this.velY *= engine.friction;
@@ -187,17 +229,15 @@ export class GameObject {
 	}
 
 	drawTint() {}
-	draw(ctx, images, animations) {
+	draw(ctx: CanvasRenderingContext2D, images: ImageManager, animations: AnimationManager) {
 		if (this.graphic) {
 			let graphic = this.graphic;
-			if (typeof graphic.style === "string") {
-				if (graphic.style.indexOf('.') != -1) {
-					images.drawOverShape(graphic.style, this.x, this.y, graphic);
-				}
-				else {
-					ctx.fillStyle = graphic.style || "rgba(0,0,0,0)";
-					Shape.fill(ctx, this.x, this.y, graphic);
-				}
+			if (graphic.style.indexOf('.') != -1) {
+				images.drawOverShape(graphic.style, this.x, this.y, graphic);
+			}
+			else {
+				ctx.fillStyle = graphic.style || "rgba(0,0,0,0)";
+				Shape.fill(ctx, this.x, this.y, graphic);
 			}
 		}
 		if (this.animator) {
@@ -222,41 +262,39 @@ export class GameObject {
 
 	/**
 	 * Updates the current animation of the object
-	 * @param {string} animName Name of the animation to use
-	 * @param {number} direction Direction to face the animation in
-	 * @param {number} lockTime Time the animation should hold for without being overwritten
+	 * @param animName Name of the animation to use
+	 * @param direction Direction to face the animation in
+	 * @param lockTime Time the animation should hold for without being overwritten
 	 */
-	animate(animName, direction, lockTime) {
+	animate(animName: string, direction?: DIR, lockTime?: number | "full") {
 		let component = this.animator;
 		if (component.lock > 0 || component.lock === "full") return false;
-		if (direction != void(0)) component.direction = direction;
+		if (direction != undefined) component.direction = direction;
 		if (component.current === animName) return true;
 		component.previous = component.current;
 		component.current = animName;
 		component.tick = 0;
-		if (lockTime === "full" || typeof lockTime === "number") {
-			component.lock = lockTime;
-		}
+		if (lockTime !== undefined) component.lock = lockTime;
 		return true;
 	}
 	/**
 	 * Get data from the current animation action based on the current animation tick
-	 * @param {Engine} engine 
-	 * @param {string} key Property name to access. Can be a property chain.
+	 * @param engine 
+	 * @param key Property name to access. Can be a property chain.
 	 * Examples: "frame", "alpha", "position.x", "items.0.value" 
-	 * @returns {*} The appropriate value from the animation file if it is found, else null.
+	 * @returns The appropriate value from the animation file if it is found, else null.
 	 */
-	getFrameData(engine, key) {
+	getFrameData(engine: Engine, key: string): unknown {
 		if (this.animator) return engine.animations.getFrameDataFromComponent(this.animator, key);
 		else console.error("No AnimationComponent found. Can't get frame data.")
 	}
 }
 
-export const Objects = {} as any;
+export const Objects: {[className: string]: ObjectClass} = {};
 Objects.Point = class Point extends GameObject {
-	constructor(x, y, gfx) {
+	constructor(x: number, y: number, gfx: string) {
 		super(x, y);
-		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
+		if (gfx.slice(-5) === ".json") {
 			this.animator = {name: gfx, x: 0, y: 0};
 		}
 		else this.graphic = {
@@ -273,9 +311,9 @@ Objects.Point = class Point extends GameObject {
 };
 
 Objects.Arc = class Arc extends GameObject {
-	constructor(x, y, radius, start, end, gfx) {
+	constructor(x: number, y: number, radius: number, start: number, end: number, gfx: string) {
 		super(x, y);
-		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
+		if (gfx.slice(-5) === ".json") {
 			this.animator = {name: gfx, x: 0, y: 0};
 		}
 		else this.graphic = {
@@ -296,9 +334,9 @@ Objects.Arc = class Arc extends GameObject {
 };
 
 Objects.Box = class Box extends GameObject {
-	constructor(x, y, width, height, gfx) {
+	constructor(x: number, y: number, width: number, height: number, gfx: string) {
 		super(x, y);
-		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
+		if (gfx.slice(-5) === ".json") {
 			this.animator = {name: gfx, x: width/2, y: 0};
 		}
 		else this.graphic = {
@@ -318,11 +356,11 @@ Objects.Box = class Box extends GameObject {
 };
 
 Objects.Line = class Line extends GameObject {
-	constructor(x, y, x2, y2, gfx) {
+	constructor(x: number, y: number, x2: number, y2: number, gfx: string) {
 		super(x, y);
 		let dx = x2 - x;
 		let dy = y2 - y;
-		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
+		if (gfx.slice(-5) === ".json") {
 			this.animator = {name: gfx, x: dx/2, y: dy/2};
 		}
 		else this.graphic = {
@@ -341,9 +379,9 @@ Objects.Line = class Line extends GameObject {
 };
 
 Objects.Circle = class Circle extends GameObject {
-	constructor(x, y, radius, gfx) {
+	constructor(x: number, y: number, radius: number, gfx: string) {
 		super(x, y);
-		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
+		if (gfx.slice(-5) === ".json") {
 			this.animator = {name: gfx, x: 0, y: -radius};
 		}
 		else this.graphic = {
@@ -361,10 +399,9 @@ Objects.Circle = class Circle extends GameObject {
 };
 
 Objects.Polygon = class Polygon extends GameObject {
-	constructor(x, y, vertices, gfx) {
+	constructor(x: number, y: number, vertices: Shape.Point[], gfx: string) {
 		super(x, y);
-		let pts = vertices.map(pt => Shape.Pt(pt));
-		let aabb = Shape.polygonAABB({x: 0, y: 0, vertices: pts});
+		let aabb = Shape.polygonAABB({x: 0, y: 0, vertices: vertices});
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
 			this.animator = {name: gfx, x: aabb.x + aabb.width/2, y: aabb.y};
 		}
@@ -372,36 +409,62 @@ Objects.Polygon = class Polygon extends GameObject {
 			type: Shape.POLYGON,
 			style: gfx,
 			x: 0, y: 0,
-			vertices: pts
+			vertices: vertices
 		};
 		this.collision = {
 			type: Shape.POLYGON,
 			weight: 0,
 			x: 0, y: 0,
-			vertices: pts
+			vertices: vertices
 		};
 	}
 };
 
-Objects.Entity = class Entity extends GameObject {
-	moveSpeed = 0;
-	moveDir = 1;
-	lastMoveDir = 1;
-	moved = false;
-	health;
-	maxHealth;
-	hitboxes = {};
-	lockMovement;
-	moveAccel;
-	targetMoveSpeed;
-	lockDirection;
-	direction;
-	jumpAccel;
-	actionLock;
-	currentAction;
-	actionFrame;
+interface HitboxData {
+	damage: number;
+	knockback: Shape.Point;
+	shape: Shape.Shape;
+	selfDamaging?: boolean;
+	onHit?: string;
+}
+interface Hitbox extends HitboxData {
+	x: number;
+	y: number;
+	hits: number[];
+	updated?: boolean;
+}
+function isHitboxData(data: any): data is HitboxData {
+	return typeof data === "object"
+		&& typeof data.damage === "number"
+		&& typeof data.knockback === "object"
+			&& typeof data.knockback.x === "number"
+			&& typeof data.knockback.y === "number"
+		&& (typeof data.selfDamaging === "boolean"
+			|| typeof data.selfDamaging === "undefined")
+		&& (typeof data.onHit === "string"
+			|| typeof data.onHit === "undefined")
+		&& Shape.isShape(data.shape);
+}
 
-	constructor(x, y) {
+Objects.Entity = class Entity extends GameObject {
+	health: number;
+	maxHealth: number;
+	moved = false;
+	moveDir: DIR = RIGHT;
+	lastMoveDir: DIR = RIGHT;
+	lockMovement: boolean;
+	moveSpeed = 0;
+	targetMoveSpeed: number;
+	moveAccel: number;
+	jumpAccel: number;
+	direction: DIR;
+	lockDirection: boolean;
+	currentAction: string;
+	actionLock: number;
+	actionFrame: number;
+	hitboxes = {} as {[name: string]: Hitbox};
+
+	constructor(x: number, y: number) {
 		super(x, y);
 		delete this.maxHealth;
 		delete this.drawLayer;
@@ -418,7 +481,7 @@ Objects.Entity = class Entity extends GameObject {
 		this.jumpAccel = 10;
 		this.maxHealth = 10;
 	}
-	move(sign) {
+	move(sign: number) {
 		if (!this.lockMovement) {
 			if (this.moveDir * sign >= 0) { // same sign or 0 involved
 				this.moveSpeed += this.moveAccel;
@@ -433,7 +496,7 @@ Objects.Entity = class Entity extends GameObject {
 			this.moved = this.moveDir !== 0;
 		}
 	}
-	movementUpdate(engine) {
+	movementUpdate(engine: Engine) {
 		if (this.lockMovement) {
 			this.moveDir = this.lastMoveDir;
 			return;
@@ -458,12 +521,12 @@ Objects.Entity = class Entity extends GameObject {
 	jump() {
 		this.velY += this.jumpAccel;
 	}
-	update(engine) {
+	update(engine: Engine) {
 		this.movementUpdate(engine);
 		this.actionsUpdate(engine);
 		super.update(engine);
 	}
-	finish(engine) {
+	finish(engine: Engine) {
 		if (this.feelsGravity && !this.moved) {
 			if (this.isGrounded) this.moveSpeed *= engine.friction;
 			else this.moveSpeed *= engine.airResistance;
@@ -471,37 +534,51 @@ Objects.Entity = class Entity extends GameObject {
 		}
 		this.moved = false;
 		this.lastMoveDir = this.moveDir;
-		this.moveDir = 0;
+		this.moveDir = CENTER;
 		super.finish(engine);
 	}
 	
-	act(name) {
+	act(name: string) {
 		if (this.actionLock > 0) return false;
+		
 		this.currentAction = name;
-		this.actionFrame = 0;
-		this.actionLock = this.getActionProperty("Cooldown");
+		let cooldown = this.getActionProperty("Cooldown");
+		if (typeof cooldown !== "number")
+			throw new Error(`${name}Cooldown was not a number or "full"!`);
 		let init = this.getActionProperty("Init");
+		if (typeof init !== "function")
+			throw new Error(`${name}Cooldown was not a function!`);
+			
+		this.actionFrame = 0;
+		this.actionLock = cooldown;
 		init();
 	}
-	getActionProperty(property) {
+	getActionProperty(property: string) {
 		let fullName = `${this.currentAction}${property}`;
 		let prop = this[fullName];
-		if (prop !== void(0)) return prop;
+		if (prop !== undefined) return prop;
 		else throw new Error(`${fullName} is undefined.`);
 	}
-	cancelAction(e) {
+	cancelAction(e: Engine) {
 		if (this.currentAction != null) {
 			let finish = this.getActionProperty("Finish");
-			finish(e);
+			if (typeof finish === "function") finish(e);
 			this.actionLock = 0;
 		}
 	}
-	actionsUpdate(e) {
+	actionsUpdate(e: Engine) {
 		if (this.currentAction != null) {
 			let tick = this.getActionProperty("Tick");
+			if (typeof tick !== "function")
+				throw new Error(`${this.currentAction}Tick was not a function!`);
 			let finish = this.getActionProperty("Finish");
-			let result = tick(e, this.actionFrame);
+			if (typeof finish !== "function")
+				throw new Error(`${this.currentAction}Finish was not a function!`);
 			let duration = this.getActionProperty("Duration");
+			if (typeof duration !== "number")
+				throw new Error(`${this.currentAction}Tick was not a number!`);
+				
+			let result: unknown = tick(e, this.actionFrame);
 			if (++this.actionFrame >= duration || result === false) {
 				this.currentAction = null;
 				finish(e);
@@ -512,26 +589,25 @@ Objects.Entity = class Entity extends GameObject {
 
 	updateHitboxes(e) {
 		let hitboxesData = this.getFrameData(e, "hitboxes");
-		if (hitboxesData) for (let hitboxName in hitboxesData) {
-			let hitbox = this.hitboxes[hitboxName];
+		if (typeof hitboxesData == "object") for (let hitboxName in hitboxesData) {
 			let hitboxData = this.getFrameData(e, `hitboxes.${hitboxName}`);
-			if (!hitboxData.shape) continue;
-			if (!hitbox) {
-				hitbox = this.hitboxes[hitboxName] = {};
-				hitbox.hits = [];
-			}
-			
-			Object.assign(hitbox, hitboxData);
-			hitbox.updated = true;
-			hitbox.x = this.x;
-			hitbox.y = this.y;
-			if (this.animator.direction !== RIGHT) {
-				Shape.flipX(hitbox.shape);
-				if (hitbox.knockback) hitbox.knockback.x *= -1;
+			if (isHitboxData(hitboxData)) {
+				let hitbox = this.hitboxes[hitboxName];
+				if (!hitbox) {
+					hitbox = this.hitboxes[hitboxName] = {hits: []} as Hitbox;
+				}
+				Object.assign(hitbox, hitboxData);
+				hitbox.updated = true;
+				hitbox.x = this.x;
+				hitbox.y = this.y;
+				if (this.animator.direction === LEFT) {
+					Shape.flipX(hitbox.shape);
+					if (hitbox.knockback) hitbox.knockback.x *= -1;
+				}
 			}
 		}
 	}
-	updateHitDetection(engine) {
+	updateHitDetection(engine: Engine) {
 		for (let hitboxName in this.hitboxes) {
 			let hitbox = this.hitboxes[hitboxName];
 			if (!hitbox.updated) delete this.hitboxes[hitboxName];
@@ -553,7 +629,7 @@ Objects.Entity = class Entity extends GameObject {
 		}
 	}
 
-	hurt(damage, knockback, attacker) {
+	hurt(damage: number, knockback: Shape.Point, attacker: Entity) {
 		// probably make a hook for game here
 		this.health -= damage;
 		if (this.health <= 0) return this.die(attacker);
@@ -565,12 +641,12 @@ Objects.Entity = class Entity extends GameObject {
 		}
 	}
 
-	die(attacker) {
+	die(_attacker: Entity) {
 		// probably make a hook for game here
 		this.remove();
 	}
 
-	drawDebug(ctx, i, a) {
+	drawDebug(ctx: CanvasRenderingContext2D, i: ImageManager, a: AnimationManager) {
 		super.drawDebug(ctx, i, a);
 		for (let hitboxName in this.hitboxes) {
 			let hitbox = this.hitboxes[hitboxName];

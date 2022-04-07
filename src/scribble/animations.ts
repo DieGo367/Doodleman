@@ -28,7 +28,7 @@ interface KeyFrameResponse {
 }
 type FrameDataResponse = DataResponse | ExpressionResponse | KeyFrameResponse;
 type JSONValue = string | number | boolean | JSONValue[] | {[key: string]: JSONValue} | null;
-type AnimationFrameData = FrameDataResponse | JSONValue;
+export type AnimationFrameData = FrameDataResponse | JSONValue;
 
 export interface AnimationComponent {
 	name: string;
