@@ -70,6 +70,7 @@ export interface ValidationRule {
 	keyOf?: any;
 	arrayOf?: primitiveName | ValidationRule[] | {new(...args: any[]): any};
 	mapOf?: primitiveName | ValidationRule[] | {new(...args: any[]): any};
+	either?: (primitiveName | ValidationRule[] | {new(...args: any[]): any})[];
 }
 export function validate(data: unknown, format: ValidationRule[], warn = true, prefix = "{}"): boolean {
 	let fail = (msg: string) => {
@@ -206,6 +207,26 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 				}
 				else {
 					fail(`Property "${prop}" was not an object.`);
+					return false;
+				}
+			}
+		}
+		if ("either" in rule) for (let prop of rule.test) {
+			if (!(rule.optional && typeof data[prop] === undefined)) {
+				let passed = false;
+				for (let subTest of rule.either) {
+					if (typeof subTest === "string") {
+						if (typeof data[prop] === subTest) passed = true;
+					}
+					else if (subTest instanceof Array) {
+						if (validate(data[prop], subTest, warn, `${prefix}.${prop}`)) passed = true;
+					}
+					else {
+						if (data[prop] instanceof subTest) passed = true;
+					}
+				}
+				if (!passed) {
+					fail(`Property "${prop}" did not match any of its given "either" tests.`);
 					return false;
 				}
 			}
