@@ -24,7 +24,7 @@ export class ResourceManager<StoredType> {
 		return response;
 	}
 	load(name: string): Promise<StoredType> { return this.loadAs(name, name); }
-	async loadList(list): Promise<StoredType[]> {
+	async loadList(list: string[]): Promise<StoredType[]> {
 		let res: Promise<StoredType>[] = [];
 		for (let i = 0; i < list.length; i++) {
 			res.push(this.load(list[i]));

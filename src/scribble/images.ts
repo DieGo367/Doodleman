@@ -1,22 +1,31 @@
 import { ResourceManager } from "./resource.js";
 import { HiddenCanvas } from "./util.js";
-import * as Collision from "./collision.js";
 import * as Shape from "./shape.js";
+import { Engine } from "./engine.js";
 
-export class ImageManager extends ResourceManager<any> {
+interface ExtendedImage extends HTMLImageElement {
+	flipped?: HTMLCanvasElement;
+	patterns?: {[scale: number]: CanvasPattern};
+}
+interface ExtendedCanvas extends HTMLCanvasElement {
+	patterns?: {[scale: number]: CanvasPattern};
+}
+type Drawable = ExtendedImage | ExtendedCanvas;
+
+export class ImageManager extends ResourceManager<Drawable> {
 	useFlipped = false;
-	ctx;
-	constructor(engine) {
+	ctx: CanvasRenderingContext2D;
+	constructor(engine: Engine) {
 		super(engine, "Images");
 	}
-	get(name) {
+	get(name: string): Drawable {
 		let img = super.get(name);
-		if (this.useFlipped) return img.flipped;
+		if (img instanceof HTMLImageElement && this.useFlipped) return img.flipped;
 		else return img;
 	}
-	async loadAs(name, src) {
+	async loadAs(name: string, src: string): Promise<Drawable> {
 		this.loadingCount++;
-		let img = await new Promise((resolve, reject) => {
+		let img = await new Promise<HTMLImageElement>((resolve, reject) => {
 			let img = new Image();
 			img.onload = () => resolve(img);
 			img.onerror = (err: Event) => reject(err.type);
@@ -25,54 +34,54 @@ export class ImageManager extends ResourceManager<any> {
 		this.map[name] = img;
 		this.makeFlipped(img);
 		this.loadingCount--;
+		return img;
 	}
-	loadB64 = (name, b64) => this.loadAs(name, `data:image/*;base64, ${b64}`)
-	makeFlipped(img) {
+	async loadB64(name: string, b64: string) { this.loadAs(name, `data:image/*;base64, ${b64}`) }
+	makeFlipped(img: ExtendedImage) {
 		img.flipped = document.createElement("canvas");
 		img.flipped.width = img.width;
 		img.flipped.height = img.height;
-		img.flippedCtx = img.flipped.getContext("2d");
-		img.flippedCtx.save();
-		img.flippedCtx.scale(1,-1);
-		img.flippedCtx.drawImage(img, 0, 0, img.width, -img.height);
-		img.flippedCtx.restore();
+		let ctx = img.flipped.getContext("2d");
+		ctx.save();
+		ctx.scale(1,-1);
+		ctx.drawImage(img, 0, 0, img.width, -img.height);
+		ctx.restore();
 	}
 	flip() {
 		this.useFlipped = !this.useFlipped;
 	}
-	getPattern(img) {
-		if (img.pattern) return img.pattern;
-		else return img.pattern = this.ctx.createPattern(img, "repeat");
-	}
-	draw(name, x, y, width, height, clipX, clipY, clipWidth, clipHeight) {
-		if (clipX==null) clipX = 0;
-		if (clipY==null) clipY = 0;
-		var img = this.get(name);
-		if (img==null) return;
-		if (clipWidth==null) clipWidth = img.width;
-		if (clipHeight==null) clipHeight = img.height;
+	draw(
+		name: string, x: number, y: number, width: number, height: number,
+		clipX = 0, clipY = 0, clipWidth?: number, clipHeight?: number
+	) {
+		let img = this.get(name);
+		if (clipWidth !== undefined) clipWidth = img.width;
+		if (clipHeight !== undefined) clipHeight = img.height;
 		this.ctx.drawImage(img, clipX,clipY,clipWidth,clipHeight, x,y,width,height);
 	}
-	drawOverShape(name, x, y, shape) {
+	drawOverShape(name: string, x: number, y: number, shape: Shape.Shape) {
 		let img = this.get(name);
 		let aabb = Shape.AABB(shape);
 		this.ctx.drawImage(img, x + aabb.x, y + aabb.y, aabb.width, aabb.height);
 	}
 	/**
 	 * Fills a rectangle using an image as a canvas pattern.
-	 * @param {string} name Name of the image to draw
-	 * @param {number} x Starting coordinate x (left)
-	 * @param {number} y Starting coordinate y (top)
-	 * @param {number} width 
-	 * @param {number} height 
-	 * @param {number} scale Image size. Bigger = zoomed in
-	 * @param {number} parallax Level of parallax effect. 1 = standard, higher values = slower scroll
-	 * @param {number} offsetX Amount to additionally scroll x value with parallax effects
-	 * @param {number} offsetY Amount to additionally scroll y value with parallax effects
-	 * @param {number} shiftX Amount to translate the image horizontally before anything else is applied
-	 * @param {number} shiftY Amount to translate the image vertically before anything else is applied
+	 * @param name Name of the image to draw
+	 * @param x Starting coordinate x (left)
+	 * @param y Starting coordinate y (top)
+	 * @param width 
+	 * @param height 
+	 * @param scale Image size. Bigger values -> more zoomed in
+	 * @param parallax Level of parallax effect. 1 = standard, higher values -> slower scroll
+	 * @param offsetX Amount to additionally scroll x value with parallax effects
+	 * @param offsetY Amount to additionally scroll y value with parallax effects
+	 * @param shiftX Amount to translate the image horizontally before anything else is applied
+	 * @param shiftY Amount to translate the image vertically before anything else is applied
 	 */
-	drawPattern(name, x, y, width, height, scale, parallax, offsetX, offsetY, shiftX, shiftY) {
+	drawPattern(
+		name: string, x: number, y: number, width: number, height: number,
+		scale = 1, parallax = 1, offsetX = 0, offsetY = 0, shiftX = 0, shiftY = 0
+	) {
 		let img = this.get(name);
 		if (!img || img.width === 0 || img.height === 0) return;
 		if (!img.patterns) img.patterns = {};
@@ -83,11 +92,6 @@ export class ImageManager extends ResourceManager<any> {
 			img.patterns[scale] = this.ctx.createPattern(offscreen, "repeat");
 		}
 		this.ctx.fillStyle = img.patterns[scale];
-		if (parallax == void(0)) parallax = 1;
-		if (offsetX == void(0)) offsetX = 0;
-		if (offsetY == void(0)) offsetY = 0;
-		if (shiftX == void(0)) shiftX = 0;
-		if (shiftY == void(0)) shiftY = 0;
 		this.ctx.save();
 		this.ctx.translate(shiftX, shiftY);
 		x -= shiftX;
