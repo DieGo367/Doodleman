@@ -91,7 +91,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 		if ("is" in rule) {
 			if (typeof rule.is === "string") {
 				for (let prop of rule.test) {
-					if (!(rule.optional && typeof data[prop] === undefined)) {
+					if (!rule.optional || typeof data[prop] !== "undefined") {
 						if (typeof data[prop] !== rule.is) {
 							fail(`Expected property "${prop}" to have type "${rule.is}", but got "${typeof data[prop]}".`);
 							return false;
@@ -101,7 +101,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 			}
 			else if (rule.is instanceof Array) {
 				for (let prop of rule.test) {
-					if (!(rule.optional && typeof data[prop] === undefined)) {
+					if (!rule.optional || typeof data[prop] !== "undefined") {
 						if (!validate(data[prop], rule.is, warn, `${prefix}.${prop}`))
 							return false;
 					}
@@ -109,7 +109,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 			}
 			else {
 				for (let prop of rule.test) {
-					if (!(rule.optional && typeof data[prop] === undefined)) {
+					if (!rule.optional || typeof data[prop] !== "undefined") {
 						if (!(data[prop] instanceof rule.is)) {
 							fail(`Expected property "${prop}" to be an instance of "${rule.is.name}".`);
 							return false;
@@ -119,7 +119,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 			}
 		}
 		if ("equals" in rule) for (let prop of rule.test) {
-			if (!(rule.optional && typeof data[prop] === undefined)) {
+			if (!rule.optional || typeof data[prop] !== "undefined") {
 				if (data[prop] !== rule.equals) {
 					fail(`Expected property "${prop}" to be (${JSON.stringify(rule.equals)}), but got (${JSON.stringify(data[prop])}).`);
 					return false;
@@ -127,7 +127,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 			}
 		}
 		if ("in" in rule) for (let prop of rule.test) {
-			if (!(rule.optional && typeof data[prop] === undefined)) {
+			if (!rule.optional || typeof data[prop] !== "undefined") {
 				if (!rule.in.includes(data[prop])) {
 					fail(`Expected property "${prop}" to be one of ${JSON.stringify(rule.in)}, but got (${JSON.stringify(data[prop])}).`);
 					return false;
@@ -135,7 +135,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 			}
 		}
 		if ("keyOf" in rule) for (let prop of rule.test) {
-			if (!(rule.optional && typeof data[prop] === undefined)) {
+			if (!rule.optional || typeof data[prop] !== "undefined") {
 				let keys = Object.keys(rule.keyOf);
 				if (!keys.includes(String(data[prop]))) {
 					fail(`Expected property "${prop}" to be one of ${JSON.stringify(keys)}, but got (${JSON.stringify(data[prop])}).`);
@@ -144,7 +144,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 			}
 		}
 		if ("arrayOf" in rule) for (let prop of rule.test) {
-			if (!(rule.optional && typeof data[prop] === undefined)) {
+			if (!rule.optional || typeof data[prop] !== "undefined") {
 				let target: unknown = data[prop];
 				if (target instanceof Array) {
 					if (typeof rule.arrayOf === "string") {
@@ -176,7 +176,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 			}
 		}
 		if ("mapOf" in rule) for (let prop of rule.test) {
-			if (!(rule.optional && typeof data[prop] === undefined)) {
+			if (!rule.optional || typeof data[prop] !== "undefined") {
 				let target: unknown = data[prop];
 				if (typeof target === "object") {
 					if (typeof rule.mapOf === "string") {
@@ -212,7 +212,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 			}
 		}
 		if ("either" in rule) for (let prop of rule.test) {
-			if (!(rule.optional && typeof data[prop] === undefined)) {
+			if (!rule.optional || typeof data[prop] !== "undefined") {
 				let passed = false;
 				for (let subTest of rule.either) {
 					if (typeof subTest === "string") {
@@ -232,7 +232,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 			}
 		}
 		if ("then" in rule) for (let prop of rule.test) {
-			if (typeof data[prop] !== undefined) {
+			if (typeof data[prop] !== "undefined") {
 				if (!validate(data, rule.then, warn, `${prefix}#`))
 					return false;
 			}
