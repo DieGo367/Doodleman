@@ -3,9 +3,8 @@ import * as Shape from "./shape.js";
 import { Engine } from "./engine.js";
 import { AnimationComponent, AnimationManager } from "./animations.js";
 import { ImageManager } from "./images.js";
-import { LEFT, RIGHT, CENTER, COLOR, validate, never } from "./util.js";
+import { LEFT, RIGHT, CENTER, DIR, COLOR, validate, never } from "./util.js";
 type CollisionComponent = Collision.CollisionComponent;
-type DIR = (typeof LEFT | typeof CENTER | typeof RIGHT);
 
 type JSONValue = string | number | boolean | JSONValue[] | {[key: string]: JSONValue} | null;
 interface ActorDef {
@@ -37,7 +36,7 @@ export function isActorDefArg(data: unknown): data is ActorDefArg {
 	], false);
 }
 export type ObjectClass = {
-	new (...args: any[]): any
+	new (...args: any[]): InstanceType<typeof GameObject>
 	proto?(): void;
 };
 
@@ -125,7 +124,7 @@ export class ObjectManager {
 			}
 		}
 	}
-	forAllOfClass(classRef: ObjectClass, func: (object: InstanceType<ObjectClass>, id: number) => boolean | void) {
+	forAllOfClass(classRef: ObjectClass, func: (object: InstanceType<typeof classRef>, id: number) => boolean | void) {
 		this.forAll((obj, id) => {
 			if (obj instanceof classRef) {
 				return func(obj, id);
@@ -150,6 +149,7 @@ type GraphicsComponent = Shape.Shape & {
 export class GameObject {
 	id: number;
 	objectManager: ObjectManager;
+	isActor = false;
 	velX = 0;
 	velY = 0;
 	lastX: number;
@@ -292,8 +292,9 @@ export class GameObject {
 	}
 }
 
-export const Objects: {[className: string]: ObjectClass} = {};
-Objects.Point = class Point extends GameObject {
+class Point extends GameObject {
+	declare graphic: GraphicsComponent & Shape.Shaped<Shape.Point>;
+	declare collision: Collision.CollisionComponent & Shape.Shaped<Shape.Point>;
 	constructor(x: number, y: number, gfx: string) {
 		super(x, y);
 		if (gfx.slice(-5) === ".json") {
@@ -312,7 +313,9 @@ Objects.Point = class Point extends GameObject {
 	}
 };
 
-Objects.Arc = class Arc extends GameObject {
+class Arc extends GameObject {
+	declare graphic: GraphicsComponent & Shape.Shaped<Shape.Arc>;
+	declare collision: Collision.CollisionComponent & Shape.Shaped<Shape.Arc>;
 	constructor(x: number, y: number, radius: number, start: number, end: number, gfx: string) {
 		super(x, y);
 		if (gfx.slice(-5) === ".json") {
@@ -335,7 +338,9 @@ Objects.Arc = class Arc extends GameObject {
 	}
 };
 
-Objects.Box = class Box extends GameObject {
+class Box extends GameObject {
+	declare graphic: GraphicsComponent & Shape.Shaped<Shape.Box>;
+	declare collision: Collision.CollisionComponent & Shape.Shaped<Shape.Box>;
 	constructor(x: number, y: number, width: number, height: number, gfx: string) {
 		super(x, y);
 		if (gfx.slice(-5) === ".json") {
@@ -357,7 +362,9 @@ Objects.Box = class Box extends GameObject {
 	}
 };
 
-Objects.Line = class Line extends GameObject {
+class Line extends GameObject {
+	declare graphic: GraphicsComponent & Shape.Shaped<Shape.Line>;
+	declare collision: Collision.CollisionComponent & Shape.Shaped<Shape.Line>;
 	constructor(x: number, y: number, x2: number, y2: number, gfx: string) {
 		super(x, y);
 		let dx = x2 - x;
@@ -380,7 +387,9 @@ Objects.Line = class Line extends GameObject {
 	}
 };
 
-Objects.Circle = class Circle extends GameObject {
+class Circle extends GameObject {
+	declare graphic: GraphicsComponent & Shape.Shaped<Shape.Circle>;
+	declare collision: Collision.CollisionComponent & Shape.Shaped<Shape.Circle>;
 	constructor(x: number, y: number, radius: number, gfx: string) {
 		super(x, y);
 		if (gfx.slice(-5) === ".json") {
@@ -400,7 +409,9 @@ Objects.Circle = class Circle extends GameObject {
 	}
 };
 
-Objects.Polygon = class Polygon extends GameObject {
+class Polygon extends GameObject {
+	declare graphic: GraphicsComponent & Shape.Shaped<Shape.Polygon>;
+	declare collision: Collision.CollisionComponent & Shape.Shaped<Shape.Polygon>;
 	constructor(x: number, y: number, vertices: Shape.Point[], gfx: string) {
 		super(x, y);
 		let aabb = Shape.polygonAABB({x: 0, y: 0, vertices: vertices});
@@ -448,7 +459,7 @@ function isHitboxData(data: any): data is HitboxData {
 		&& Shape.isShape(data.shape);
 }
 
-Objects.Entity = class Entity extends GameObject {
+class Entity extends GameObject {
 	health: number;
 	maxHealth: number;
 	moved = false;
@@ -614,7 +625,7 @@ Objects.Entity = class Entity extends GameObject {
 			let hitbox = this.hitboxes[hitboxName];
 			if (!hitbox.updated) delete this.hitboxes[hitboxName];
 			else {
-				engine.objects.forAllOfClass(Objects.Entity, (obj, id) => {
+				engine.objects.forAllOfClass(Entity, (obj: Entity, id: number) => {
 					if (id === this.id && !hitbox.selfDamaging) return;
 					// check this object isn't excluded
 					if (hitbox.hits.indexOf(id) === -1) {
@@ -658,4 +669,14 @@ Objects.Entity = class Entity extends GameObject {
 			}
 		}
 	}
+};
+
+export const Objects = {
+	Point: Point,
+	Arc: Arc,
+	Box: Box,
+	Line: Line,
+	Circle: Circle,
+	Polygon: Polygon,
+	Entity: Entity
 };

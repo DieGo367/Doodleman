@@ -1,6 +1,7 @@
 export const RIGHT = 1;
 export const LEFT = -1;
 export const CENTER = 0;
+export type DIR = (typeof LEFT | typeof RIGHT | typeof CENTER);
 export const COLOR = {
 	BACKDROP: "gray",
 	LEVEL: "lightGray",

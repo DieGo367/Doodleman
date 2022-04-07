@@ -1,13 +1,13 @@
 import * as Scribble from './scribble.js';
 declare global {
-	var collisionLevel;
+	var collisionLevel: number;
 }
 
 class DoodlemanGame extends Scribble.Game {
 	mode = null;
-	follow;
-	mouseX;
-	mouseY;
+	follow: Scribble.GameObject;
+	mouseX: number;
+	mouseY: number;
 	init() {
 		// called when first loaded
 		this.engine.setSpeed(1000/60);
@@ -66,7 +66,7 @@ class DoodlemanGame extends Scribble.Game {
 	
 			let focus = {x: 0, y: 0};
 			let playerCount = 0;
-			this.engine.objects.forAllOfClass(DMOs.Doodleman, player => {
+			this.engine.objects.forAllOfClass(Doodleman, player => {
 				playerCount++;
 				focus.x += player.x;
 				focus.y += player.y;
@@ -84,7 +84,7 @@ class DoodlemanGame extends Scribble.Game {
 			}
 		}
 	}
-	onRenderUI(ctx) {
+	onRenderUI(ctx: CanvasRenderingContext2D) {
 		// graphics drawn every window animation frame
 		super.onRenderUI(ctx);
 		ctx.fillStyle = "gray";
@@ -95,30 +95,34 @@ class DoodlemanGame extends Scribble.Game {
 		ctx.globalAlpha = 1;
 	}
 	onLevelLoad() {
-		this.engine.objects.forAllOfClass(DMOs.SpawnPoint, spawn => {
+		this.engine.objects.forAllOfClass(SpawnPoint, (spawn: SpawnPoint) => {
 			if (spawn.slot === 0) {
-				let p = DMOs.Doodleman.fromSpawnPoint(spawn);
+				let p = Doodleman.fromSpawnPoint(spawn);
 				this.engine.objects.add(p);
 				return false;
 			}
 		});
 	}
-	onmousemove(event) {
+	onmousemove(event: MouseEvent) {
 		let rect = this.engine.canvas.getBoundingClientRect();
 		this.mouseX = event.pageX - rect.left;
 		this.mouseY = event.pageY - rect.top;
 		this.mouseX *= this.engine.width/rect.width;
 		this.mouseY *= this.engine.height/rect.height;
 	}
-	onclick(event) {
+	onclick(event: MouseEvent) {
 		let rect = this.engine.canvas.getBoundingClientRect();
-		if (this.follow && this.follow instanceof Scribble.Objects.Line) {
+		if (this.follow && this.follow.collision.type === Scribble.Shape.LINE) {
 			let x2 = event.pageX - rect.left;
 			let y2 = this.engine.canvas.height - (event.pageY - rect.top);
 			let dx = x2 - this.follow.x;
 			let dy = y2 - this.follow.y;
-			this.follow.dx = this.follow.collision.dx = dx;
-			this.follow.dy = this.follow.collision.dy = dy;
+			this.follow.collision.dx = dx;
+			this.follow.collision.dy = dy;
+			if (this.follow.graphic.type === Scribble.Shape.LINE) {
+				this.follow.graphic.dx = dx;
+				this.follow.graphic.dy = dy;
+			}
 		}
 		if (event.pageX - rect.left < 0) this.engine.levels.openFromFile();
 	}
@@ -128,7 +132,7 @@ class DoodlemanGame extends Scribble.Game {
 		this.engine.objects.add(new Scribble.Objects.Line(10, 250, 300, 290, "black")); 
 		this.engine.objects.add(new Scribble.Objects.Circle(205, 115, 40, "black")); 
 		this.engine.objects.add(new Scribble.Objects.Polygon(350, 90, [
-			[0, 0], [20, 70], [100, 80], [140, 30], [150, 0], [100, -60]
+			{x: 0, y:0}, {x: 20, y:70}, {x: 100, y:80}, {x: 140, y:30}, {x: 150, y:0}, {x: 100, y:-0}
 		], "black"));
 		this.engine.objects.add(new Scribble.Objects.Point(576, 143, "black"));
 		this.engine.objects.add(new Scribble.Objects.Arc(576, 40, 50, Math.PI/2, Math.PI, "black"));
@@ -139,9 +143,9 @@ class DoodlemanGame extends Scribble.Game {
 		else if (as === Scribble.Shape.LINE)
 			this.follow = new Scribble.Objects.Line(0, 0, 40, 40, "blue");
 		else if (as === Scribble.Shape.POLYGON)
-			this.follow = new Scribble.Objects.Polygon(60, 70, [[0, 0], [10, -70], [11, -100], [-15, -150], [-60, -115], [-70, -105], [-75, -97], [-80, -70], [-70, -25], [-60, -20], [-35, -3]], "blue");
+			this.follow = new Scribble.Objects.Polygon(60, 70, [{x:0, y: 0}, {x:10, y: -70}, {x:11, y: -100}, {x:-15, y: -150}, {x:-60, y: -115}, {x:-70, y: -105}, {x:-75, y: -97}, {x:-80, y: -70}, {x:-70, y: -25}, {x:-60, y: -20}, {x:-35, y: -3}], "blue");
 		else if (as === Scribble.Shape.POINT)
-			this.follow = new Scribble.Objects.Point(0, 0);
+			this.follow = new Scribble.Objects.Point(0, 0, "blue");
 		else if (as === Scribble.Shape.ARC)
 			this.follow = new Scribble.Objects.Arc(0, 0, 50, 0, Math.PI/2, "blue");
 		window.collisionLevel = 0;
@@ -150,9 +154,17 @@ class DoodlemanGame extends Scribble.Game {
 }
 
 
-const DMOs = {} as any;
-
-DMOs.Doodleman = class extends Scribble.Objects.Entity {
+class Doodleman extends Scribble.Objects.Entity {
+	normalMoveSpeed: number;
+	slowMoveSpeed: number;
+	jumpCancelTime: number;
+	jumpCancelAccel: number;
+	knockBack: Scribble.Shape.Point;
+	jumpFrame: number;
+	kickDiving: boolean;
+	airAttacks: number;
+	crouching: boolean;
+	keys: { left: boolean; right: boolean; up: boolean; down: boolean; };
 	constructor(x, y, public slot, public direction) {
 		super(x, y);
 		this.collision = {
@@ -190,7 +202,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 		this.maxHealth = 4;
 		this.knockBack = {x: 7, y: 5};
 	}
-	update(engine) {
+	update(engine: Scribble.Engine) {
 		if (this.jumpFrame > 0) {
 			this.jumpFrame++;
 		}
@@ -207,11 +219,11 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 		super.update(engine);
 		engine.debug.print("X: " + Math.round(this.x) + ", Y: " + Math.round(this.y));
 	}
-	finish(engine) {
+	finish(engine: Scribble.Engine) {
 		this.chooseAnimation();
 		super.finish(engine);
 	}
-	controls(engine) {
+	controls(engine: Scribble.Engine) {
 		// left/right movement
 		if (engine.input.key("KeyD")) this.move(1);
 		if (engine.input.key("KeyA")) this.move(-1);
@@ -262,7 +274,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 		this.velY += -currentJumpVel + this.jumpCancelAccel;
 		this.jumpFrame = 0;
 	}
-	static fromSpawnPoint(spawn) {
+	static fromSpawnPoint(spawn: SpawnPoint) {
 		return new this(spawn.x, spawn.y, spawn.slot, spawn.direction);
 	}
 
@@ -313,7 +325,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 		// horizontal pressed
 		else {
 			this.moveSpeed = 0;
-			let dir = keys.right? Scribble.RIGHT : Scribble.LEFT;
+			let dir: Scribble.DIR = keys.right? Scribble.RIGHT : Scribble.LEFT;
 			// horizontal axis only
 			if (keys.up === keys.down) {
 				this.feelsGravity = false;
@@ -352,7 +364,7 @@ DMOs.Doodleman = class extends Scribble.Objects.Entity {
 	}
 };
 
-DMOs.SpawnPoint = class extends Scribble.GameObject {
+class SpawnPoint extends Scribble.GameObject {
 	constructor(x, y, public slot, public direction) {
 		super(x, y);
 		let color = ["Blue", "Red", "Green", "Yellow"][slot % 4];
@@ -379,7 +391,7 @@ DMOs.SpawnPoint = class extends Scribble.GameObject {
 };
 
 
-DMOs.Marker = class extends Scribble.GameObject {
+class Marker extends Scribble.GameObject {
 	constructor(x, y, public name) {
 		super(x, y);
 	}
@@ -397,7 +409,7 @@ DMOs.Marker = class extends Scribble.GameObject {
 	}
 };
 
-DMOs.PaintMan = class extends Scribble.Objects.Entity {
+class PaintMan extends Scribble.Objects.Entity {
 	constructor(x, y) {
 		super(x, y);
 		this.collision = {
@@ -419,8 +431,8 @@ DMOs.PaintMan = class extends Scribble.Objects.Entity {
 	}
 };
 
-DMOs.HelloPlatform = class extends Scribble.GameObject {
-	declare collision: Scribble.Collision.CollisionComponent & Scribble.Shape.Box;
+class HelloPlatform extends Scribble.GameObject {
+	declare collision: Scribble.Collision.CollisionComponent & Scribble.Shape.Shaped<Scribble.Shape.Box>;
 	constructor(x, y, width, height, graphic, xVel, yVel) {
 		super(x, y);
 		this.collision = {
@@ -447,7 +459,7 @@ DMOs.HelloPlatform = class extends Scribble.GameObject {
 	}
 };
 
-DMOs.Door = class extends Scribble.GameObject {
+class Door extends Scribble.GameObject {
 	constructor(x, y, entranceID, destID, preventEnter, preventExit, destLevel) {
 		super(x, y);
 		this.animator = {name: "animations/Door.json", x: 0, y: 0};
@@ -458,7 +470,7 @@ DMOs.Door = class extends Scribble.GameObject {
 	}
 };
 
-DMOs.Box201 = class extends Scribble.GameObject {
+class Box201 extends Scribble.GameObject {
 	constructor(x, y) {
 		super(x, y);
 		this.collision = {
@@ -480,5 +492,15 @@ DMOs.Box201 = class extends Scribble.GameObject {
 		this.feelsGravity = true;
 	}
 };
+
+export const DMOs = {
+	Doodleman: Doodleman,
+	SpawnPoint: SpawnPoint,
+	Marker: Marker,
+	PaintMan: PaintMan,
+	HelloPlatform: HelloPlatform,
+	Door: Door,
+	Box201: Box201
+}
 
 export default DoodlemanGame;

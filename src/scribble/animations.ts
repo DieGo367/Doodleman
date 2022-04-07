@@ -1,6 +1,5 @@
 import { ResourceManager } from "./resource.js";
-import { LEFT, RIGHT, CENTER, never } from "./util.js";
-type DIR = typeof LEFT | typeof RIGHT | typeof CENTER;
+import { LEFT, RIGHT, CENTER, DIR, never } from "./util.js";
 
 
 interface Animation {
