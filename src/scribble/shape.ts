@@ -1,5 +1,5 @@
 import { scale, mag, sum, diff, dot } from "./point_math.js";
-import { Angle, never } from "./util.js";
+import { Angle, isIndexable, never } from "./util.js";
 
 export const POINT = "point";
 export const CIRCLE = "circle";
@@ -66,8 +66,8 @@ export function isShape(obj: any): obj is Shape {
 				return (
 					obj.vertices instanceof Array
 					&& obj.vertices.length > 0
-					&& obj.vertices.every(item => {
-						typeof item === "object"
+					&& obj.vertices.every((item: unknown) => {
+						isIndexable(item)
 						&& typeof item.x === "number"
 						&& typeof item.y === "number"
 					})
@@ -117,15 +117,16 @@ export function Polygon(...points: Point[]): Polygon;
 export function Polygon(x: number | Point[] | Point, y?: number | Point, points?: PolygonVertices | Point, ...restPoints: Point[]): Polygon {
 	// standard definition: x, y, and relative vertices
 	if (typeof x === "number") {
-		if (points[0].x !== 0 || points[1].x != 0) throw new Error("Bad PolygonVertices. First vertex MUST be (0,0)");
-		else return {x: x, y: y as number, vertices: points as PolygonVertices};
+		let verts = points as PolygonVertices;
+		if (verts[0].x !== 0 || verts[0].y !== 0) throw new Error("Bad PolygonVertices. First vertex MUST be (0,0)");
+		else return {x: x, y: y as number, vertices: verts};
 	}
 	// array of absolute points
 	else if (x instanceof Array)
 		return {
 			x: x[0].x,
 			y: x[0].y,
-			vertices: x.map(pt => diff(pt, x[0]))
+			vertices: x.map(pt => diff(pt, x[0])) // convert to relative
 		};
 	// params as absolute points
 	else if (typeof x === "object") {
@@ -133,8 +134,7 @@ export function Polygon(x: number | Point[] | Point, y?: number | Point, points?
 		if (typeof y === "object") {
 			verts.push(y);
 			if (typeof points === "object") {
-				verts.push(points as Point);
-				verts.push(...restPoints);
+				verts.push(points as Point, ...restPoints);
 			}
 		}
 		return {
@@ -356,7 +356,7 @@ export function flipY(shape: Shape) {
 export function access<Owner extends Point>(owner: Owner, propName: keyof Owner): Shape {
 	let og = owner[propName];
 	if (isShape(og)) {
-		let result = Object.assign({}, og);
+		let result = {...og};
 		result.x += owner.x;
 		result.y += owner.y;
 		return result;

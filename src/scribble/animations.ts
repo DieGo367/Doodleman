@@ -1,5 +1,6 @@
+import { Engine } from "./engine.js";
 import { ResourceManager } from "./resource.js";
-import { LEFT, RIGHT, CENTER, DIR, never } from "./util.js";
+import { LEFT, RIGHT, CENTER, DIR, never, isIndexable, isKeyOf } from "./util.js";
 
 
 interface Animation {
@@ -42,7 +43,7 @@ export interface AnimationComponent {
 }
 
 export class AnimationManager extends ResourceManager<AnimationSheet> {
-	constructor(engine) {
+	constructor(engine: Engine) {
 		super(engine, "Animations");
 	}
 	async _request(src: string): Promise<AnimationSheet> {
@@ -161,7 +162,12 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 		let chain = key.split(".");
 		if (!anim.data) throw new Error("Frame data not provided!");
 		let value = anim.data as JSONValue;
-		while (chain.length > 0) value = value[chain.shift()];
+		while (chain.length > 0) {
+			if (isIndexable(value))
+				value = value[chain.shift()];
+			else
+				throw new Error(`Couldn't reach ${chain.shift()} after getting value ${value}`);
+		}
 		return this.resolveDataValue(frameIndex, value);
 	}
 	resolveDataValue(frameIndex: number, value: AnimationFrameData): unknown {
@@ -191,7 +197,7 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 				return;
 			
 			case "data":
-				let resolved = {};
+				let resolved: {[key: string]: unknown} = {};
 				for (let key in response) {
 					if (key === "response") continue;
 					resolved[key] = this.resolveDataValue(frameIndex, response[key]);
@@ -224,15 +230,16 @@ export class AnimationSheet {
 	drawOffset?: {x: number, y: number};
 	animations?: {[actionName: string]: Animation};
 	defaultAnimation?: string;
-	constructor(public name, data) {
+	[key: string]: unknown;
+	constructor(public name: string, data: unknown) {
 		Object.assign(this, data);
 	}
 	extend(map: {[name: string]: AnimationSheet}) {
 		let source = map[this.extends];
 		if (source) {
 			if (source.extends && !source.extended) source.extend(map);
-			for (let property in source) {
-				if (typeof this[property] === "undefined") {
+			for (let property of Object.keys(source)) {
+				if (this[property] === undefined) {
 					this[property] = source[property];
 				}
 			}

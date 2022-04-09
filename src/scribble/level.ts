@@ -1,7 +1,9 @@
+import { Engine } from "./engine.js";
 import { ResourceManager } from "./resource.js";
-import { isActorDefArg, Objects } from "./object.js";
+import { GameObject, isActorDefArg, Objects } from "./object.js";
 import { BackgroundData } from "./backgrounds.js";
 import { never, validate, ValidationRule } from "./util.js";
+import { Pt } from "./shape.js";
 
 export enum EDGE { NONE, SOLID, WRAP, KILL };
 export enum TERRAIN { BOX, LINE, CIRCLE, POLYGON };
@@ -11,11 +13,28 @@ interface ActorData extends Array<unknown> {
 	1: number;
 	2: number;
 }
-interface TerrainData {
-	type: TERRAIN;
-	properties: unknown[];
-	pieces: unknown[][];
-}
+type TerrainData = (
+	{
+		type: TERRAIN.BOX;
+		properties: [string, ...unknown[]];
+		pieces: [number, number, number, number][];
+	}
+	| {
+		type: TERRAIN.LINE;
+		properties: [string, ...unknown[]];
+		pieces: [number, number, number, number][];
+	}
+	| {
+		type: TERRAIN.CIRCLE;
+		properties: [string, ...unknown[]];
+		pieces: [number, number, number][];
+	}
+	| {
+		type: TERRAIN.POLYGON;
+		properties: [string, ...unknown[]];
+		pieces: [number, number, [number,number][] ][];
+	}
+);
 
 export interface Level {
 	_version_: number;
@@ -74,7 +93,7 @@ const LevelValidation: ValidationRule[] = [
 ];
 
 export class LevelManager extends ResourceManager<Level> {
-	constructor(engine) {
+	constructor(engine: Engine) {
 		super(engine, "Levels");
 	}
 	async _request(src: string): Promise<Level> {
@@ -127,19 +146,26 @@ export class LevelManager extends ResourceManager<Level> {
 	_loadTerrain(list: TerrainData[]) {
 		for (let terrainDataEntry of list) {
 			let terrain = {...terrainDataEntry};
-
-			let objectClass;
-			if (terrain.type === TERRAIN.BOX) objectClass = Objects.Box;
-			else if (terrain.type === TERRAIN.LINE) objectClass = Objects.Line;
-			else if (terrain.type === TERRAIN.CIRCLE) objectClass = Objects.Circle;
-			else if (terrain.type === TERRAIN.POLYGON) objectClass = Objects.Polygon;
-			else never(terrain.type);
-			
 			for (let pieceData of terrain.pieces) {
-				let piece = pieceData.slice();
-				let args = [...piece, ...terrain.properties];
+				let obj: GameObject;
+				let gfx = terrain.properties[0];
+				if (terrain.type === TERRAIN.BOX)
+					obj = new Objects.Box(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3], gfx);
+				else if (terrain.type === TERRAIN.LINE)
+					obj = new Objects.Line(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3], gfx);
+				else if (terrain.type === TERRAIN.CIRCLE)
+					obj = new Objects.Circle(pieceData[0], pieceData[1], pieceData[2] as number, gfx);
+				else if (terrain.type === TERRAIN.POLYGON)
+					obj = new Objects.Polygon(
+						pieceData[0],
+						pieceData[1],
+						(pieceData[2] as ([number, number][])).map(
+							(item: [number,number]) => Pt(item)
+						),
+						gfx
+					);
+				else never(terrain);
 				
-				let obj = new objectClass(...args);
 				obj.collision.weight = Infinity;
 				this.engine.objects.add(obj);
 			}

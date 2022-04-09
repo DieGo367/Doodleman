@@ -60,25 +60,32 @@ export const Angle = {
 	}
 }
 
-type primitiveName = "undefined" | "boolean" | "number" | "bigint" | "string" | "symbol" | "function" | "object";
+export function isIndexable(data: unknown): data is {[key: string|number|symbol]: unknown} {
+	return typeof data === "object" && data !== null;
+}
+export function isKeyOf<Type>(obj: Type, key: string|number|symbol): key is keyof Type {
+	return isIndexable(obj) && typeof obj[key] !== "undefined";
+}
+
+export type PrimitiveName = "undefined" | "boolean" | "number" | "bigint" | "string" | "symbol" | "function" | "object";
 export interface ValidationRule {
 	test: (string | number)[] | "*";
 	optional?: boolean;
 	then?: ValidationRule[];
-	is?: primitiveName | ValidationRule[] | {new(...args: any[]): any};
+	is?: PrimitiveName | ValidationRule[] | {new(): void};
 	equals?: any;
 	in?: any[];
 	keyOf?: any;
-	arrayOf?: primitiveName | ValidationRule[] | {new(...args: any[]): any};
-	mapOf?: primitiveName | ValidationRule[] | {new(...args: any[]): any};
-	either?: (primitiveName | ValidationRule[] | {new(...args: any[]): any})[];
+	arrayOf?: PrimitiveName | ValidationRule[] | {new(): void};
+	mapOf?: PrimitiveName | ValidationRule[] | {new(): void};
+	either?: (PrimitiveName | ValidationRule[] | {new(): void})[];
 }
 export function validate(data: unknown, format: ValidationRule[], warn = true, prefix = "{}"): boolean {
 	let fail = (msg: string) => {
 		if (warn) console.warn(`${prefix} > ${msg}`);
 	}
-	if (typeof data !== "object") {
-		fail(`Root value "${data}" was not an object.`);
+	if (!isIndexable(data)) {
+		fail(`Root value "${data}" was not an indexable object.`);
 		return false;
 	}
 	for (let rule of format) {
@@ -179,10 +186,10 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 		if ("mapOf" in rule) for (let prop of rule.test) {
 			if (!rule.optional || typeof data[prop] !== "undefined") {
 				let target: unknown = data[prop];
-				if (typeof target === "object") {
+				if (isIndexable(target)) {
 					if (typeof rule.mapOf === "string") {
 						for (let key in target) {
-							let item: unknown = target[key];
+							let item = target[key];
 							if (typeof item !== rule.mapOf) {
 								fail(`Not all items of object "${prop}" were of type "${rule.mapOf}". (Found "${typeof item}")`);
 								return false;
@@ -191,14 +198,14 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 					}
 					else if (rule.mapOf instanceof Array) {
 						for (let key in target) {
-							let item: unknown = target[key];
+							let item = target[key];
 							if (!validate(item, rule.mapOf, warn, `${prefix}.${prop}`))
 								return false;
 						}
 					}
 					else {
 						for (let key in target) {
-							let item: unknown = target[key];
+							let item = target[key];
 							if (!(item instanceof rule.mapOf)) {
 								fail(`Not all items of object "${prop}" were instances of ${rule.mapOf.name}.`);
 								return false;
@@ -207,7 +214,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 					}
 				}
 				else {
-					fail(`Property "${prop}" was not an object.`);
+					fail(`Property "${prop}" was not an indexable object.`);
 					return false;
 				}
 			}

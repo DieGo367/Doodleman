@@ -3,7 +3,7 @@ import * as Shape from "./shape.js";
 import { Engine } from "./engine.js";
 import { AnimationComponent, AnimationManager } from "./animations.js";
 import { ImageManager } from "./images.js";
-import { LEFT, RIGHT, CENTER, DIR, COLOR, validate, never } from "./util.js";
+import { LEFT, RIGHT, CENTER, DIR, COLOR, validate, never, isKeyOf, PrimitiveName } from "./util.js";
 type CollisionComponent = Collision.CollisionComponent;
 
 type JSONValue = string | number | boolean | JSONValue[] | {[key: string]: JSONValue} | null;
@@ -37,8 +37,15 @@ export function isActorDefArg(data: unknown): data is ActorDefArg {
 }
 export type ObjectClass = {
 	new (...args: any[]): InstanceType<typeof GameObject>
-	proto?(): void;
+	proto?(proto: typeof GameObject.prototype): void;
 };
+type GameObjectTriggers = {
+	[Property in keyof GameObject as 
+		GameObject[Property] extends (e: Engine) => void ?
+		Property :
+		never
+	]: GameObject[Property];
+}
 
 export class ObjectManager {
 	map = {} as {[id: number]: GameObject};
@@ -79,16 +86,14 @@ export class ObjectManager {
 		}
 		else never(target);
 	}
-	triggerAll(method: string) {
+	triggerAll(method: keyof GameObjectTriggers) {
 		for (let id in this.map) {
 			let obj = this.map[id];
 			if (obj instanceof GameObject) {
-				if (method in obj && typeof obj[method] === "function") {
 					obj[method](this.engine);
 				}
 			}
 		}
-	}
 	removeAll() {
 		this.triggerAll("remove");
 		this.minLayer = this.maxLayer = 0;
@@ -137,7 +142,7 @@ export class ObjectManager {
 		}
 	}
 	registerClass(className: string, classDecl: ObjectClass) {
-		classDecl.proto.call(classDecl.prototype);
+		classDecl.proto(classDecl.prototype);
 		this.registeredClasses[className] = classDecl;
 	}
 }
@@ -172,10 +177,10 @@ export class GameObject {
 		delete this.gravityScale;
 		delete this.terminalVel;
 	}
-	static proto(this) {
-		this.drawLayer = 0;
-		this.gravityScale = 1;
-		this.terminalVel = null;
+	static proto(proto: typeof this.prototype) {
+		proto.drawLayer = 0;
+		proto.gravityScale = 1;
+		proto.terminalVel = null;
 	}
 	remove() {
 		this.objectManager.remove(this.id);
@@ -248,7 +253,7 @@ export class GameObject {
 	}
 	drawElements() {}
 	drawUI() {}
-	drawDebug(ctx, _images, _animations) {
+	drawDebug(ctx: CanvasRenderingContext2D, _images: ImageManager, _animations: AnimationManager) {
 		ctx.fillStyle = "gray";
 		ctx.globalAlpha = 0.5;
 		ctx.beginPath();
@@ -486,13 +491,13 @@ class Entity extends GameObject {
 		delete this.jumpAccel;
 		this.health = this.maxHealth;
 	}
-	static proto(this) {
-		super.proto();
-		this.drawLayer = 1;
-		this.targetMoveSpeed = 5;
-		this.moveAccel = 1;
-		this.jumpAccel = 10;
-		this.maxHealth = 10;
+	static proto(proto: typeof this.prototype) {
+		super.proto(proto);
+		proto.drawLayer = 1;
+		proto.targetMoveSpeed = 5;
+		proto.moveAccel = 1;
+		proto.jumpAccel = 10;
+		proto.maxHealth = 10;
 	}
 	move(sign: number) {
 		if (!this.lockMovement) {
@@ -566,10 +571,10 @@ class Entity extends GameObject {
 		this.actionLock = cooldown;
 		init();
 	}
-	getActionProperty(property: string) {
+	getActionProperty(property: string): unknown {
 		let fullName = `${this.currentAction}${property}`;
-		let prop = this[fullName];
-		if (prop !== undefined) return prop;
+		if (isKeyOf(this, fullName))
+			return this[fullName];
 		else throw new Error(`${fullName} is undefined.`);
 	}
 	cancelAction(e: Engine) {
@@ -600,7 +605,7 @@ class Entity extends GameObject {
 		if (this.actionLock > 0) this.actionLock--;
 	}
 
-	updateHitboxes(e) {
+	updateHitboxes(e: Engine) {
 		let hitboxesData = this.getFrameData(e, "hitboxes");
 		if (typeof hitboxesData == "object") for (let hitboxName in hitboxesData) {
 			let hitboxData = this.getFrameData(e, `hitboxes.${hitboxName}`);
@@ -632,7 +637,12 @@ class Entity extends GameObject {
 						// check the hitbox intersects the object
 						if (Collision.intersect(Shape.access(hitbox, "shape"), Shape.access(obj, "collision"))) {
 							obj.hurt(hitbox.damage, hitbox.knockback, this);
-							if (hitbox.onHit) this[hitbox.onHit](obj, hitbox.damage, hitbox.knockback);
+							let methodName = hitbox.onHit;
+							if (isKeyOf(this, methodName)) {
+								let method = this[methodName];
+								if (typeof method === "function")
+									method(obj, hitbox.damage, hitbox.knockback);
+							}
 							hitbox.hits.push(id);
 						}
 					}

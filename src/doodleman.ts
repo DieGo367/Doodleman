@@ -4,7 +4,6 @@ declare global {
 }
 
 class DoodlemanGame extends Scribble.Game {
-	mode = null;
 	follow: Scribble.GameObject;
 	mouseX: number;
 	mouseY: number;
@@ -165,7 +164,7 @@ class Doodleman extends Scribble.Objects.Entity {
 	airAttacks: number;
 	crouching: boolean;
 	keys: { left: boolean; right: boolean; up: boolean; down: boolean; };
-	constructor(x, y, public slot, public direction) {
+	constructor(x: number, y: number, public slot: number, public direction: Scribble.DIR) {
 		super(x, y);
 		this.collision = {
 			type: Scribble.Shape.BOX,
@@ -187,20 +186,20 @@ class Doodleman extends Scribble.Objects.Entity {
 		delete this.maxHealth;
 		delete this.knockBack;
 	}
-	static proto(this) {
-		super.proto();
-		this.drawLayer = 2;
-		this.feelsGravity = true;
-		this.terminalVel = 10;
-		this.normalMoveSpeed = 6;
-		this.slowMoveSpeed = 3;
-		this.targetMoveSpeed = this.normalMoveSpeed;
-		this.moveAccel = 0.5;
-		this.jumpAccel = 11;
-		this.jumpCancelTime = 10;
-		this.jumpCancelAccel = 3;
-		this.maxHealth = 4;
-		this.knockBack = {x: 7, y: 5};
+	static proto(proto: typeof this.prototype) {
+		super.proto(proto);
+		proto.drawLayer = 2;
+		proto.feelsGravity = true;
+		proto.terminalVel = 10;
+		proto.normalMoveSpeed = 6;
+		proto.slowMoveSpeed = 3;
+		proto.targetMoveSpeed = proto.normalMoveSpeed;
+		proto.moveAccel = 0.5;
+		proto.jumpAccel = 11;
+		proto.jumpCancelTime = 10;
+		proto.jumpCancelAccel = 3;
+		proto.maxHealth = 4;
+		proto.knockBack = {x: 7, y: 5};
 	}
 	update(engine: Scribble.Engine) {
 		if (this.jumpFrame > 0) {
@@ -365,7 +364,7 @@ class Doodleman extends Scribble.Objects.Entity {
 };
 
 class SpawnPoint extends Scribble.GameObject {
-	constructor(x, y, public slot, public direction) {
+	constructor(x: number, y: number, public slot: number, public direction: Scribble.DIR) {
 		super(x, y);
 		let color = ["Blue", "Red", "Green", "Yellow"][slot % 4];
 		let sheet = "animations/" + color + "man.json";
@@ -373,7 +372,7 @@ class SpawnPoint extends Scribble.GameObject {
 		this.animator.direction = direction;
 	}
 	draw() {}
-	drawDebug(ctx, images, animations) {
+	drawDebug(ctx: CanvasRenderingContext2D, images: Scribble.ImageManager, animations: Scribble.AnimationManager) {
 		ctx.globalAlpha = 0.25;
 		super.draw(ctx, images, animations);
 		ctx.globalAlpha = 1;
@@ -385,17 +384,17 @@ class SpawnPoint extends Scribble.GameObject {
 		ctx.translate(this.x, this.y);
 		ctx.scale(1, -1);
 		ctx.translate(-this.x, -this.y);
-		ctx.fillText(this.slot, this.x, this.y);
+		ctx.fillText(String(this.slot), this.x, this.y);
 		ctx.restore();
 	}
 };
 
 
 class Marker extends Scribble.GameObject {
-	constructor(x, y, public name) {
+	constructor(x: number, y: number, public name: string) {
 		super(x, y);
 	}
-	drawDebug(ctx, i, a) {
+	drawDebug(ctx: CanvasRenderingContext2D, i: Scribble.ImageManager, a: Scribble.AnimationManager) {
 		super.drawDebug(ctx, i, a);
 		ctx.fillStyle = "yellow";
 		ctx.font = "10px Consolas";
@@ -410,7 +409,7 @@ class Marker extends Scribble.GameObject {
 };
 
 class PaintMan extends Scribble.Objects.Entity {
-	constructor(x, y) {
+	constructor(x: number, y: number) {
 		super(x, y);
 		this.collision = {
 			type: Scribble.Shape.BOX,
@@ -423,17 +422,17 @@ class PaintMan extends Scribble.Objects.Entity {
 		delete this.terminalVel;
 		delete this.maxHealth;
 	}
-	static proto(this) {
-		super.proto();
-		this.feelsGravity = true;
-		this.terminalVel = 10;
-		this.maxHealth = 2;
+	static proto(proto: typeof this.prototype) {
+		super.proto(proto);
+		proto.feelsGravity = true;
+		proto.terminalVel = 10;
+		proto.maxHealth = 2;
 	}
 };
 
 class HelloPlatform extends Scribble.GameObject {
 	declare collision: Scribble.Collision.CollisionComponent & Scribble.Shape.Shaped<Scribble.Shape.Box>;
-	constructor(x, y, width, height, graphic, xVel, yVel) {
+	constructor(x: number, y: number, width: number, height: number, graphic: string, xVel: number, yVel: number) {
 		super(x, y);
 		this.collision = {
 			type: Scribble.Shape.BOX,
@@ -450,7 +449,7 @@ class HelloPlatform extends Scribble.GameObject {
 		this.velX = xVel;
 		this.velY = yVel;
 	}
-	update(engine) {
+	update(engine: Scribble.Engine) {
 		super.update(engine);
 		if (this.x < -this.collision.width/2)
 			this.x = engine.level.width + this.collision.width/2;
@@ -460,18 +459,18 @@ class HelloPlatform extends Scribble.GameObject {
 };
 
 class Door extends Scribble.GameObject {
-	constructor(x, y, entranceID, destID, preventEnter, preventExit, destLevel) {
+	constructor(x: number, y: number, entranceID: number, destID: number, preventEnter: boolean, preventExit: boolean, destLevel: string) {
 		super(x, y);
 		this.animator = {name: "animations/Door.json", x: 0, y: 0};
 		delete this.drawLayer;
 	}
-	static proto(this) {
-		this.drawLayer = -1;
+	static proto(proto: typeof this.prototype) {
+		proto.drawLayer = -1;
 	}
 };
 
 class Box201 extends Scribble.GameObject {
-	constructor(x, y) {
+	constructor(x: number, y: number) {
 		super(x, y);
 		this.collision = {
 			type: Scribble.Shape.BOX,
@@ -487,9 +486,9 @@ class Box201 extends Scribble.GameObject {
 		};
 		delete this.feelsGravity;
 	}
-	static proto(this) {
-		super.proto();
-		this.feelsGravity = true;
+	static proto(proto: typeof this.prototype) {
+		super.proto(proto);
+		proto.feelsGravity = true;
 	}
 };
 

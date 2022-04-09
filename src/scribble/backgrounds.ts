@@ -1,3 +1,4 @@
+import { Engine } from "./engine.js";
 import { never } from "./util.js";
 
 interface Background {
@@ -22,7 +23,7 @@ export class Backgrounds {
 	minLayer = 0;
 	maxLayer = 0;
 	rawBGs = 0;
-	constructor(public engine) {}
+	constructor(public engine: Engine) {}
 	async load(background: BackgroundData) {
 		let bg = Object.assign({tick: 0}, background) as Background;
 		this.bgs.push(bg);

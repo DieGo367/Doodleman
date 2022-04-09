@@ -1,5 +1,5 @@
 import { GameObject } from "./object.js";
-import { EDGE } from "./level.js";
+import { EDGE, Level } from "./level.js";
 import { never, Angle } from "./util.js";
 import { diff, dist, dot, mag, project, scale, sum, unit } from "./point_math.js";
 import {
@@ -51,7 +51,7 @@ export function isCollider(obj: any): obj is Collider<Shape> {
 			&& typeof obj.pushVector.x === "number"
 			&& typeof obj.pushVector.y === "number"
 			&& typeof obj.pushVector.count === "number"
-		&& (typeof obj.sweep === "undefined" || (obj.sweep instanceof Array && obj.sweep.every(item => isShape(item))))
+		&& (typeof obj.sweep === "undefined" || (obj.sweep instanceof Array && obj.sweep.every((item: unknown) => isShape(item))))
 		&& isShape(obj);
 }
 
@@ -70,7 +70,7 @@ export const SLOPE_THRESH = 0.8;
  * @param gravity Vector describing the x and y force of gravity.
  * @param level The data for the currently loaded level, used for its collision bounds.
  */
-export function run(objectMap: {[id: number]: GameObject}, gravity: Point, level) {
+export function run(objectMap: {[id: number]: GameObject}, gravity: Point, level: Level) {
 	// create a map of buckets for objects of different collision weight levels
 	let bucketMap = {} as {[weight: number]: Collider<Shape>[]};
 	// list of the weight levels we have made buckets for
@@ -478,12 +478,12 @@ export function getShapeBottoms(shape: Shape, gravity: Point): Shape[] {
 			let results = [] as Point[];
 			if (startDist <= endDist) results.push(arcStart);
 			if (endDist <= startDist) results.push(arcEnd);
-			return results.map(pt => Object.assign(pt, {type: POINT} as Shaped<Point>))
+			return results.map(pt => { return {...pt, type: POINT}; });
 		}
 	}
 	else if (shape.type === BOX) {
 		let bottoms = [];
-		let sides = [
+		let sides: Shaped<Line>[] = [
 			{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: LINE},
 			{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: LINE},
 			{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: LINE},
@@ -575,7 +575,7 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 	}
 	else if (shape.type === BOX) {
 		let tops = [];
-		let sides = [
+		let sides: Shaped<Line>[] = [
 			{x: shape.x, y: shape.y, dx: 0, dy: shape.height, type: LINE},
 			{x: shape.x, y: shape.y+shape.height, dx: shape.width, dy: 0, type: LINE},
 			{x: shape.x+shape.width, y: shape.y+shape.height, dx: 0, dy: -shape.height, type: LINE},
@@ -607,7 +607,7 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 	else if (shape.type === LINE) {
 		let normal = {x: -shape.dy, y: shape.dx};
 		if (dot(normal, gravity) < 0) {
-			let list = [];
+			let list: Shape[] = [];
 			// get topmost endpoint, or both
 			let dp = dot({x: shape.dx, y: shape.dy}, gravity);
 			if (dp < -EPS) list.push({x: shape.x+shape.dx, y: shape.y+shape.dy, type: POINT});
@@ -628,8 +628,7 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 		for (let i = 0; i < shape.vertices.length; i++) {
 			let v1 = sum(shape, shape.vertices[i]);
 			let v2 = sum(shape, shape.vertices[(i + 1) % shape.vertices.length]);
-			let edge = Line(v1, v2) as Shaped<Line>;
-			edge.type = LINE;
+			let edge: Shaped<Line> = {...Line(v1, v2), type: LINE};
 			let normal = {x: -edge.dy, y: edge.dx};
 			if (dot(normal, gravity) < 0) {
 				let dp = dot(unit({x: edge.dx, y: edge.dy}), unit(gravity));
@@ -640,7 +639,7 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 	}
 	else never(shape);
 }
-export function levelBoundCheck(shape, owner, level, gravity) {
+export function levelBoundCheck(shape: Collider<Shape>, owner: GameObject, level: Level, gravity: Point) {
 	let l = left(shape);
 	let r = right(shape);
 	let b = bottom(shape);
@@ -735,7 +734,7 @@ export function lineSidePassCheck(line: Collider<Line>, shape: Collider<Shape>):
 		return sideTest <= 0;
 	// }
 }
-export function arcPassCheck(arc, shape): boolean {
+export function arcPassCheck(arc: Collider<Arc>, shape: Collider<Shape>): boolean {
 	// return result from last collision, if it exists
 	let prevResult = arc.lastCollisions[shape.id];
 	if (typeof prevResult === "boolean") return prevResult;
@@ -1407,21 +1406,19 @@ export const Resolve = {
 		}
 		// corner checks
 		else {
-			let corner;
+			let corner: Shaped<Circle>;
 			if (circle.x < box.x && circle.y < box.y)
-				corner = {x: box.x, y: box.y};
+				corner = {type: CIRCLE, radius: 0, x: box.x, y: box.y};
 			else if (circle.x < box.x && circle.y > box.y + box.height)
-				corner = {x: box.x, y: box.y + box.height};
+				corner = {type: CIRCLE, radius: 0, x: box.x, y: box.y + box.height};
 			else if (circle.x > box.x + box.width && circle.y < box.y)
-				corner = {x: box.x + box.width, y: box.y};
+				corner = {type: CIRCLE, radius: 0, x: box.x + box.width, y: box.y};
 			else if (circle.x > box.x + box.width && circle.y > box.y + box.height)
-				corner = {x: box.x + box.width, y: box.y + box.height};
-			
-			corner.radius = 0;
-			return Resolve.circleCircle(circle, corner);
+				corner = {type: CIRCLE, radius: 0, x: box.x + box.width, y: box.y + box.height};
+			return Resolve.circleCircle(circle, corner as Collider<Circle>);
 		}
 	},
-	circleLine(circle: Collider<Circle>, line: Collider<Line>, skipCheck?): Resolution {
+	circleLine(circle: Collider<Circle>, line: Collider<Line>, skipCheck?: boolean): Resolution {
 		if (skipCheck || lineSidePassCheck(line, circle)) {
 			let target = project(circle, line);
 			let [u, v] = lineEnds(line);
@@ -1463,8 +1460,7 @@ export const Resolve = {
 
 		// since the center did not project onto any edges, this is a vertex collision
 		if (minVert) {
-			minVert.radius = 0;
-			return Resolve.circleCircle(circle, minVert);
+			return Resolve.circleCircle(circle, {x: minVert.x, y: minVert.y, radius: 0, type: CIRCLE} as Collider<Circle>);
 		}
 	},
 	boxBox(a: Collider<Box>, b: Collider<Box>): Resolution {

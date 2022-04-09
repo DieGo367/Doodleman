@@ -71,7 +71,7 @@ export class InputManager {
 	mouseRelease(number = 0): boolean {
 		return !this.cursor.buttons[number] && this.cursor.buttonsPrevGame[number];
 	}
-	_handle_click(event: MouseEvent, state) {
+	_handle_click(event: MouseEvent, state: boolean) {
 		this.cursor.buttons[event.button] = state;
 	}
 	

@@ -12,6 +12,7 @@ import { FileLoader } from "./file.js";
 import { Debug } from "./debug.js";
 import { COLOR } from "./util.js";
 
+type Resources = "images" | "sounds" | "animations" | "levels";
 
 export class Engine {
 	// resource managers
@@ -46,7 +47,7 @@ export class Engine {
 	game: Game;
 	tickSpeed: number;
 	interval: number;
-	constructor(divID, canvasWidth, canvasHeight, resources) {
+	constructor(divID: string, canvasWidth: number, canvasHeight: number, resources: {[resourceName in Resources]: string}) {
 		// resource managers
 		this.images = new ImageManager(this);
 		this.sounds = new SoundManager(this);
@@ -88,10 +89,10 @@ export class Engine {
 	}
 	request(url: string) { return fetch(url); }
 	requestData(url: string): Promise<unknown> { return this.request(url).then(response => response.json()); }
-	async _collectResources(resources) {
+	async _collectResources(resources: {[resourceName: string]: string}) {
 		if (resources) {
 			let lists = [];
-			let batches = [];
+			let batches = [] as Promise<unknown>[];
 			for (let listType in resources) {
 				let listName = resources[listType]; 
 				lists.push(this.requestData(listName).then(list => {
