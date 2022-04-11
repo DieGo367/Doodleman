@@ -2,15 +2,11 @@ export class FileLoader {
 	input: HTMLInputElement;
 	asking = false;
 	changeFired = false;
-	onLostFocus: () => void;
+	onLostFocus = () => {};
 	constructor() {
 		this.input = document.createElement("input");
 		this.input.type = "file";
-		window.addEventListener("focus", () => {
-			if (typeof this.onLostFocus === "function") {
-				this.onLostFocus();
-			}
-		});
+		window.addEventListener("focus", () => this.onLostFocus());
 	}
 	async ask(extensions: string[]): Promise<FileList> {
 		// make sure another request isn't already happening
@@ -26,9 +22,11 @@ export class FileLoader {
 		let fileList: FileList = await new Promise((resolve, reject) => {
 			this.input.onchange = event => {
 				this.changeFired = true;
-				resolve((event.target as HTMLInputElement).files);
+				let files = this.input.files;
+				if (files) resolve(files);
+				else reject("No file selected.");
 			};
-			this.input.onerror = (err: Event) => reject(err.type);
+			this.input.onerror = (err: string|Event) => reject(typeof err === "string"? err : err.type);
 			this.onLostFocus = () => setTimeout(() => {
 				if (this.asking && !this.changeFired) reject("No file selected.");
 			}, 1000);
@@ -45,14 +43,7 @@ export class FileLoader {
 	async askText(extensions: string[]): Promise<string[]> {
 		let fileList = await this.ask(extensions);
 		let texts: Promise<string>[] = [];
-		for (let file of fileList) {
-			let reader = new FileReader;
-			texts.push(new Promise((resolve, reject) => {
-				reader.onload = event => resolve(event.target.result as string);
-				reader.onerror = err => reject(err.type);
-			}));
-			reader.readAsText(file);
-		}
+		for (let file of fileList) texts.push(file.text());
 		return await Promise.all(texts);
 	}
 	async askData(extensions: string[]): Promise<unknown[]> {

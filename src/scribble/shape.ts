@@ -32,7 +32,7 @@ export interface Polygon extends Point {
 }
 
 export interface PolygonVertices extends Array<Point> {
-	0?: {x: 0, y: 0};
+	0: {x: 0, y: 0};
 	localCenter?: Point,
 	localAABB?: Box
 }
@@ -88,7 +88,7 @@ export function Pt(x: number | number[] | Point, y?: number): Point {
 	else if (typeof x === "object")
 		return {x: x.x, y: x.y};
 	else
-		return {x: x, y: y};
+		return {x: x, y: y as number};
 }
 
 export function Circle(x: number, y: number, radius: number): Circle {
@@ -105,7 +105,7 @@ export function Line(x: number, y: number, dx: number, dy: number): Line;
 export function Line(a: Point, b: Point): Line;
 export function Line(x: number | Point, y: number | Point, dx?: number, dy?: number): Line {
 	if (typeof x === "number")
-		return {x: x, y: y as number, dx: dx, dy: dy};
+		return {x: x, y: y as number, dx: dx as number, dy: dy as number};
 	else if (typeof x === "object")
 		return {x: x.x, y: x.y, dx: (y as Point).x - x.x, dy: (y as Point).y - x.y};
 	else never(x);
@@ -126,11 +126,11 @@ export function Polygon(x: number | Point[] | Point, y?: number | Point, points?
 		return {
 			x: x[0].x,
 			y: x[0].y,
-			vertices: x.map(pt => diff(pt, x[0])) // convert to relative
+			vertices: x.map(pt => diff(pt, x[0])) as PolygonVertices // convert to relative
 		};
 	// params as absolute points
 	else if (typeof x === "object") {
-		let verts: Point[] = [];
+		let verts: Point[] = [x];
 		if (typeof y === "object") {
 			verts.push(y);
 			if (typeof points === "object") {
@@ -140,7 +140,7 @@ export function Polygon(x: number | Point[] | Point, y?: number | Point, points?
 		return {
 			x: x.x,
 			y: x.y,
-			vertices: verts.map(pt => diff(pt, x))
+			vertices: verts.map(pt => diff(pt, x)) as PolygonVertices
 		};
 	}
 	else never(x);
@@ -217,7 +217,7 @@ export function extrema(shape: Shape, direction: Point): Point {
 	else never(shape);
 
 	let max = 0;
-	let extrema: Point = null;
+	let extrema: Point = {x: 0, y: 0};
 	for (let pt of pts) {
 		let outward = diff(pt, mid);
 		let dp = dot(outward, direction);
@@ -316,7 +316,7 @@ export function flipX(shape: Shape) {
 			shape.dx *= -1;
 			break;
 		case POLYGON:
-			shape.vertices = shape.vertices.map(pt => Pt(pt.x * -1, pt.y));
+			shape.vertices = shape.vertices.map(pt => Pt(pt.x * -1, pt.y)) as PolygonVertices;
 		case POINT:
 		case CIRCLE:
 			break;
@@ -337,7 +337,7 @@ export function flipY(shape: Shape) {
 			shape.dy *= -1;
 			break;
 		case POLYGON:
-			shape.vertices = shape.vertices.map(pt => Pt(pt.x, pt.y * -1));
+			shape.vertices = shape.vertices.map(pt => Pt(pt.x, pt.y * -1)) as PolygonVertices;
 		case POINT:
 		case CIRCLE:
 			break;

@@ -44,12 +44,23 @@ export class Engine {
 	// game loading
 	readyFunc = () => {};
 	loadingCompleted = false;
-	game: Game;
-	tickSpeed: number;
-	interval: number;
+	game: Game | null = null;
+	tickSpeed = 0;
+	interval: number | null = null;
 	constructor(divID: string, canvasWidth: number, canvasHeight: number, resources: {[resourceName in Resources]: string}) {
+		// page setup
+		let div = document.getElementById(divID);
+		if (!div) throw new Error(`Could not find element with ID: ${divID}`);
+		this.div = div;
+		this.canvas = document.createElement("canvas");
+		this.canvas.width = this.width = canvasWidth;
+		this.canvas.height = this.height = canvasHeight;
+		this.canvas.style.width = canvasWidth + "px";
+		this.canvas.style.height = canvasHeight + "px";
+		this.div.appendChild(this.canvas);
+		this.ctx = this.canvas.getContext("2d")!;
 		// resource managers
-		this.images = new ImageManager(this);
+		this.images = new ImageManager(this, this.ctx);
 		this.sounds = new SoundManager(this);
 		this.animations = new AnimationManager(this);
 		this.levels = new LevelManager(this);
@@ -61,15 +72,6 @@ export class Engine {
 		this.backgrounds = new Backgrounds(this);
 		this.file = new FileLoader();
 		this.debug = new Debug(this);
-		// page setup
-		this.div = document.getElementById(divID);
-		this.canvas = document.createElement("canvas");
-		this.canvas.width = this.width = canvasWidth;
-		this.canvas.height = this.height = canvasHeight;
-		this.canvas.style.width = canvasWidth + "px";
-		this.canvas.style.height = canvasHeight + "px";
-		this.div.appendChild(this.canvas);
-		this.ctx = this.images.ctx = this.canvas.getContext("2d");
 		// state
 		this.levelReady = true;
 		this.paused = false;
@@ -142,7 +144,7 @@ export class Engine {
 		}
 	}
 	_resetInterval() {
-		if (this.interval !== undefined) window.clearInterval(this.interval);
+		if (this.interval !== null) window.clearInterval(this.interval);
 		this.interval = window.setInterval(() => {
 			this._run();
 		}, this.tickSpeed);
@@ -152,7 +154,7 @@ export class Engine {
 	}
 	_run() {
 		this.debug.update();
-		this.game.tick();
+		if (this.game) this.game.tick();
 		if (this.canUpdate()) {
 			this.objects.start();
 			this.objects.update();
@@ -217,7 +219,7 @@ export class Engine {
 		if (this.debug.enabled) this.objects.renderDebug();
 	}
 	_renderUI() {
-		this.game.onRenderUI(this.ctx);
+		if (this.game) this.game.onRenderUI(this.ctx);
 		if (this.debug.enabled) this.debug.render(this.ctx);
 	}
 	async loadActorData(url: string) {

@@ -3,8 +3,8 @@ import { never } from "./util.js";
 
 interface Background {
 	type: "name" | "raw";
-	name?: string;
-	raw?: string;
+	name: string;
+	raw: string;
 	layer: number;
 	scale: number;
 	parallax: number;
@@ -59,7 +59,7 @@ export class Backgrounds {
 		let cam = this.engine.camera;
 		this.forAll(bg => {
 			if (this.engine.images.has(bg.name) && bg.layer == layer) {
-				let img = this.engine.images.get(bg.name);
+				let img = this.engine.images.img(bg.name);
 				let x = Math.max(0, cam.left());
 				let y = Math.max(0, cam.bottom());
 				let width = Math.min(level.width, cam.right()) - x;

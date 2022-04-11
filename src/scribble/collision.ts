@@ -13,7 +13,8 @@ import {
 	left, right, top, bottom, center,
 	polygonCenter, polygonAABB,
 	access,
-	isShape
+	isShape,
+	PolygonVertices
 } from "./shape.js";
 
 type IDBoolMap = {[objectID: number]: boolean};
@@ -155,10 +156,10 @@ export function run(objectMap: {[id: number]: GameObject}, gravity: Point, level
 export function getCollider(obj: GameObject): Collider<Shape> {
 	// make a copy of the collider shape, with helper structures for the collision process
 	let shape: Partial<Collider<Shape>> = access(obj, "collision");
-	shape.id = obj.id;
-	shape.lastX = shape.x;
+	shape.id = obj.id!;
+	shape.lastX = shape.x!;
 	if (typeof obj.lastX === "number") shape.lastX += obj.lastX - obj.x;
-	shape.lastY = shape.y;
+	shape.lastY = shape.y!;
 	if (typeof obj.lastY === "number") shape.lastY += obj.lastY - obj.y;
 	shape.collided = false;
 	shape.isGrounded = false;
@@ -298,8 +299,8 @@ export function getSweepingShapes(shape: Collider<Shape>): Shape[] {
 	else if (shape.type === POLYGON) {
 		shape.sweep = [
 			// current and last
-			{type: POLYGON, x: shape.x, y: shape.y, vertices: shape.vertices.slice()},
-			{type: POLYGON, x: shape.lastX, y: shape.lastY, vertices: shape.vertices.slice()}
+			{type: POLYGON, x: shape.x, y: shape.y, vertices: shape.vertices.slice() as PolygonVertices},
+			{type: POLYGON, x: shape.lastX, y: shape.lastY, vertices: shape.vertices.slice() as PolygonVertices}
 		];
 		// lines from last to current vertices
 		for (let i = 0; i < shape.vertices.length; i++) {
@@ -323,7 +324,7 @@ export function bisectionMethod(a: Collider<Shape>, b: Collider<Shape>): SweepRe
 	let granularity = Math.max(mag(velA), mag(velB));
 	let scalar = 0.5;
 	let offset = 0;
-	let collisionScalar: number = null;
+	let collisionScalar: number | null = null;
 	// simple check for collision at final position
 	if (intersect(a, b)) collisionScalar = 1;
 	// the loop
@@ -362,7 +363,7 @@ export function bisectionMethod(a: Collider<Shape>, b: Collider<Shape>): SweepRe
 		}
 	}
 	// no collision detected, must've been an initial collision
-	if (collisionScalar === null) return null;
+	if (collisionScalar === null) return false;
 	// determine how much a and b need to be adjusted back to reach point of collision
 	let correctionA = scale(velA, collisionScalar - 1);
 	let correctionB = scale(velB, collisionScalar - 1);
@@ -696,6 +697,7 @@ export function reshapeCollider(collider: Collider<Shape>, modify: object): Coll
 	};
 	Object.assign(copy, modify);
 	if (isCollider(copy)) return copy;
+	else throw new Error("Failed to reshape collider");
 }
 export function boxAsPolygon(box: Collider<Box>): Collider<Polygon> {
 	return reshapeCollider(box, {
@@ -1366,6 +1368,7 @@ export const Resolve = {
 			if (hits > 0) {
 				return scale(correction, -1);
 			}
+			return ZERO();
 		}
 		else return false;
 	},
@@ -1406,7 +1409,7 @@ export const Resolve = {
 		}
 		// corner checks
 		else {
-			let corner: Shaped<Circle>;
+			let corner: Shaped<Circle> | null = null;
 			if (circle.x < box.x && circle.y < box.y)
 				corner = {type: CIRCLE, radius: 0, x: box.x, y: box.y};
 			else if (circle.x < box.x && circle.y > box.y + box.height)
@@ -1415,7 +1418,9 @@ export const Resolve = {
 				corner = {type: CIRCLE, radius: 0, x: box.x + box.width, y: box.y};
 			else if (circle.x > box.x + box.width && circle.y > box.y + box.height)
 				corner = {type: CIRCLE, radius: 0, x: box.x + box.width, y: box.y + box.height};
-			return Resolve.circleCircle(circle, corner as Collider<Circle>);
+			if (corner)
+				return Resolve.circleCircle(circle, corner as Collider<Circle>);
+			else return ZERO();
 		}
 	},
 	circleLine(circle: Collider<Circle>, line: Collider<Line>, skipCheck?: boolean): Resolution {
@@ -1462,6 +1467,7 @@ export const Resolve = {
 		if (minVert) {
 			return Resolve.circleCircle(circle, {x: minVert.x, y: minVert.y, radius: 0, type: CIRCLE} as Collider<Circle>);
 		}
+		return ZERO();
 	},
 	boxBox(a: Collider<Box>, b: Collider<Box>): Resolution {
 		let correctionA = {x: 0, y: 0};
@@ -1680,6 +1686,7 @@ export const Resolve = {
 			if (hits > 0) {
 				return scale(correction, -1);
 			}
+			return ZERO();
 		}
 		else return false;
 	},
@@ -1725,5 +1732,6 @@ export const Resolve = {
 			correction.y /= hits;
 			return correction;
 		}
+		return ZERO();
 	}
 };

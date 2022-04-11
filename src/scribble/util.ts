@@ -60,10 +60,11 @@ export const Angle = {
 	}
 }
 
-export function isIndexable(data: unknown): data is {[key: string|number|symbol]: unknown} {
+export interface indexable { [key: string|number|symbol]: unknown }
+export function isIndexable(data: unknown): data is indexable {
 	return typeof data === "object" && data !== null;
 }
-export function isKeyOf<Type>(obj: Type, key: string|number|symbol): key is keyof Type {
+export function isKeyOf<Type>(obj: Type, key: keyof indexable): key is keyof Type {
 	return isIndexable(obj) && typeof obj[key] !== "undefined";
 }
 
@@ -96,7 +97,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 				return false;
 			}
 		}
-		if ("is" in rule) {
+		if ("is" in rule && rule.is !== undefined) {
 			if (typeof rule.is === "string") {
 				for (let prop of rule.test) {
 					if (!rule.optional || typeof data[prop] !== "undefined") {
@@ -134,7 +135,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 				}
 			}
 		}
-		if ("in" in rule) for (let prop of rule.test) {
+		if ("in" in rule && rule.in !== undefined) for (let prop of rule.test) {
 			if (!rule.optional || typeof data[prop] !== "undefined") {
 				if (!rule.in.includes(data[prop])) {
 					fail(`Expected property "${prop}" to be one of ${JSON.stringify(rule.in)}, but got (${JSON.stringify(data[prop])}).`);
@@ -151,7 +152,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 				}
 			}
 		}
-		if ("arrayOf" in rule) for (let prop of rule.test) {
+		if ("arrayOf" in rule && rule.arrayOf !== undefined) for (let prop of rule.test) {
 			if (!rule.optional || typeof data[prop] !== "undefined") {
 				let target: unknown = data[prop];
 				if (target instanceof Array) {
@@ -183,7 +184,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 				}
 			}
 		}
-		if ("mapOf" in rule) for (let prop of rule.test) {
+		if ("mapOf" in rule && rule.mapOf !== undefined) for (let prop of rule.test) {
 			if (!rule.optional || typeof data[prop] !== "undefined") {
 				let target: unknown = data[prop];
 				if (isIndexable(target)) {
@@ -219,7 +220,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 				}
 			}
 		}
-		if ("either" in rule) for (let prop of rule.test) {
+		if ("either" in rule && rule.either !== undefined) for (let prop of rule.test) {
 			if (!rule.optional || typeof data[prop] !== "undefined") {
 				let passed = false;
 				for (let subTest of rule.either) {
@@ -239,7 +240,7 @@ export function validate(data: unknown, format: ValidationRule[], warn = true, p
 				}
 			}
 		}
-		if ("then" in rule) for (let prop of rule.test) {
+		if ("then" in rule && rule.then !== undefined) for (let prop of rule.test) {
 			if (typeof data[prop] !== "undefined") {
 				if (!validate(data, rule.then, warn, `${prefix}#`))
 					return false;

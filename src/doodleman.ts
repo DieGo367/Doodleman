@@ -4,9 +4,9 @@ declare global {
 }
 
 class DoodlemanGame extends Scribble.Game {
-	follow: Scribble.GameObject;
-	mouseX: number;
-	mouseY: number;
+	follow: Scribble.GameObject | null = null;
+	mouseX = 0;
+	mouseY = 0;
 	init() {
 		// called when first loaded
 		this.engine.setSpeed(1000/60);
@@ -45,21 +45,27 @@ class DoodlemanGame extends Scribble.Game {
 		// logic performed when unpaused
 		if (this.engine.canUpdate()) {
 			if (this.follow) {
-				if (this.follow.collided) this.follow.graphic.style = "red";
-				else this.follow.graphic.style = "blue";
+				if (this.follow.graphic) {
+					if (this.follow.collided) this.follow.graphic.style = "red";
+					else this.follow.graphic.style = "blue";
+				}
 				// this.follow.x = this.followX;
 				// this.follow.y = this.followY;
 				if (this.engine.input.key("KeyW")) this.follow.y += 5;
 				if (this.engine.input.key("KeyA")) this.follow.x -= 5;
 				if (this.engine.input.key("KeyS")) this.follow.y -= 5;
 				if (this.engine.input.key("KeyD")) this.follow.x += 5;
-				this.follow.collision.weight = window.collisionLevel;
-				let coll = Scribble.Collision.getCollider(this.follow);
-				let ss = Scribble.Collision.getShapeTops(coll, this.engine.gravity);
-				for (let i = 0; i < ss.length; i++) {
-					const shape = ss[i];
-					if (Scribble.Collision.Intersect.shapePt(shape, this.engine.input.cursorPos()))
-						this.follow.graphic.style = "green";
+				if (this.follow.collision) {
+					this.follow.collision.weight = window.collisionLevel;
+					if (this.follow.graphic) {
+						let coll = Scribble.Collision.getCollider(this.follow);
+						let ss = Scribble.Collision.getShapeTops(coll, this.engine.gravity);
+						for (let i = 0; i < ss.length; i++) {
+							const shape = ss[i];
+							if (Scribble.Collision.Intersect.shapePt(shape, this.engine.input.cursorPos()))
+								this.follow.graphic.style = "green";
+						}
+					}
 				}
 			}
 	
@@ -111,14 +117,14 @@ class DoodlemanGame extends Scribble.Game {
 	}
 	onclick(event: MouseEvent) {
 		let rect = this.engine.canvas.getBoundingClientRect();
-		if (this.follow && this.follow.collision.type === Scribble.Shape.LINE) {
+		if (this.follow && this.follow.collision && this.follow.collision.type === Scribble.Shape.LINE) {
 			let x2 = event.pageX - rect.left;
 			let y2 = this.engine.canvas.height - (event.pageY - rect.top);
 			let dx = x2 - this.follow.x;
 			let dy = y2 - this.follow.y;
 			this.follow.collision.dx = dx;
 			this.follow.collision.dy = dy;
-			if (this.follow.graphic.type === Scribble.Shape.LINE) {
+			if (this.follow.graphic && this.follow.graphic.type === Scribble.Shape.LINE) {
 				this.follow.graphic.dx = dx;
 				this.follow.graphic.dy = dy;
 			}
@@ -148,22 +154,30 @@ class DoodlemanGame extends Scribble.Game {
 		else if (as === Scribble.Shape.ARC)
 			this.follow = new Scribble.Objects.Arc(0, 0, 50, 0, Math.PI/2, "blue");
 		window.collisionLevel = 0;
-		this.engine.objects.add(this.follow);
+		if (this.follow)
+			this.engine.objects.add(this.follow);
 	}
 }
 
 
 class Doodleman extends Scribble.Objects.Entity {
-	normalMoveSpeed: number;
-	slowMoveSpeed: number;
-	jumpCancelTime: number;
-	jumpCancelAccel: number;
-	knockBack: Scribble.Shape.Point;
-	jumpFrame: number;
-	kickDiving: boolean;
-	airAttacks: number;
-	crouching: boolean;
-	keys: { left: boolean; right: boolean; up: boolean; down: boolean; };
+	drawLayer = 2;
+	feelsGravity = true;
+	terminalVel = 10;
+	normalMoveSpeed = 6;
+	slowMoveSpeed = 3;
+	targetMoveSpeed = this.normalMoveSpeed;
+	moveAccel = 0.5;
+	jumpAccel = 11;
+	jumpCancelTime = 10;
+	jumpCancelAccel = 3;
+	maxHealth = 4;
+	knockBack = {x: 7, y: 5};
+	jumpFrame = 0;
+	kickDiving = false;
+	airAttacks = 2;
+	crouching = false;
+	keys = { left: false, right: false, up: false, down: false };
 	constructor(x: number, y: number, public slot: number, public direction: Scribble.DIR) {
 		super(x, y);
 		this.collision = {
@@ -173,33 +187,6 @@ class Doodleman extends Scribble.Objects.Entity {
 			width: 19, height: 44
 		};
 		this.animator = {name: "animations/Doodleman.json", x: 0, y: 0};
-		delete this.drawLayer;
-		delete this.feelsGravity;
-		delete this.terminalVel;
-		delete this.normalMoveSpeed;
-		delete this.slowMoveSpeed;
-		delete this.targetMoveSpeed;
-		delete this.moveAccel;
-		delete this.jumpAccel;
-		delete this.jumpCancelTime;
-		delete this.jumpCancelAccel;
-		delete this.maxHealth;
-		delete this.knockBack;
-	}
-	static proto(proto: typeof this.prototype) {
-		super.proto(proto);
-		proto.drawLayer = 2;
-		proto.feelsGravity = true;
-		proto.terminalVel = 10;
-		proto.normalMoveSpeed = 6;
-		proto.slowMoveSpeed = 3;
-		proto.targetMoveSpeed = proto.normalMoveSpeed;
-		proto.moveAccel = 0.5;
-		proto.jumpAccel = 11;
-		proto.jumpCancelTime = 10;
-		proto.jumpCancelAccel = 3;
-		proto.maxHealth = 4;
-		proto.knockBack = {x: 7, y: 5};
 	}
 	update(engine: Scribble.Engine) {
 		if (this.jumpFrame > 0) {
@@ -253,6 +240,8 @@ class Doodleman extends Scribble.Objects.Entity {
 		}
 	}
 	chooseAnimation() {
+		if (!this.animator) return;
+		if (this.animator.lock === undefined) this.animator.lock = 0;
 		if (this.animator.lock > 0 || this.animator.lock === "full") return;
 		if (this.kickDiving) this.animate("kick-dive-fall", this.direction);
 		else if (!this.isGrounded) this.animate("jump", this.direction);
@@ -268,7 +257,8 @@ class Doodleman extends Scribble.Objects.Entity {
 		return this.isGrounded;
 	}
 	cancelJump() {
-		let currentJumpVel = this.jumpAccel + this.objectManager.engine.gravity.y * (this.jumpFrame);
+		let gravity = this.objectManager? this.objectManager.engine.gravity : {x: 0, y: 0};
+		let currentJumpVel = this.jumpAccel + gravity.y * (this.jumpFrame);
 		// cancel the remaining velocity of the current jump and add some final compensation
 		this.velY += -currentJumpVel + this.jumpCancelAccel;
 		this.jumpFrame = 0;
@@ -280,7 +270,7 @@ class Doodleman extends Scribble.Objects.Entity {
 	// Standard attack
 	attackDuration = 20
 	attackCooldown = 30
-	attackInit = () => this.animate("attack", null, "full");
+	attackInit = () => this.animate("attack", undefined, "full");
 	attackTick = () => {}
 	attackFinish = () => {}
 
@@ -409,6 +399,9 @@ class Marker extends Scribble.GameObject {
 };
 
 class PaintMan extends Scribble.Objects.Entity {
+	feelsGravity = true;
+	terminalVel = 10;
+	maxHealth = 2;
 	constructor(x: number, y: number) {
 		super(x, y);
 		this.collision = {
@@ -418,15 +411,6 @@ class PaintMan extends Scribble.Objects.Entity {
 			width: 19, height: 44
 		};
 		this.animator = {name: "animations/PaintMinion.json", x: 0, y: 0};
-		delete this.feelsGravity;
-		delete this.terminalVel;
-		delete this.maxHealth;
-	}
-	static proto(proto: typeof this.prototype) {
-		super.proto(proto);
-		proto.feelsGravity = true;
-		proto.terminalVel = 10;
-		proto.maxHealth = 2;
 	}
 };
 
@@ -459,17 +443,15 @@ class HelloPlatform extends Scribble.GameObject {
 };
 
 class Door extends Scribble.GameObject {
+	drawLayer = -1;
 	constructor(x: number, y: number, entranceID: number, destID: number, preventEnter: boolean, preventExit: boolean, destLevel: string) {
 		super(x, y);
 		this.animator = {name: "animations/Door.json", x: 0, y: 0};
-		delete this.drawLayer;
-	}
-	static proto(proto: typeof this.prototype) {
-		proto.drawLayer = -1;
 	}
 };
 
 class Box201 extends Scribble.GameObject {
+	feelsGravity = true;
 	constructor(x: number, y: number) {
 		super(x, y);
 		this.collision = {
@@ -484,11 +466,6 @@ class Box201 extends Scribble.GameObject {
 			width: 50, height: 40,
 			style: "res/Box201.png"
 		};
-		delete this.feelsGravity;
-	}
-	static proto(proto: typeof this.prototype) {
-		super.proto(proto);
-		proto.feelsGravity = true;
 	}
 };
 

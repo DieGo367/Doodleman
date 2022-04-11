@@ -3,49 +3,58 @@ import { HiddenCanvas } from "./util.js";
 import * as Shape from "./shape.js";
 import { Engine } from "./engine.js";
 
-interface ExtendedImage extends HTMLImageElement {
-	flipped?: HTMLCanvasElement;
-	patterns?: {[scale: number]: CanvasPattern};
+type Drawable = Exclude<CanvasImageSource, SVGImageElement>;
+interface ImageResource {
+	default: {
+		img: Drawable;
+		patterns: {[scale: number]: CanvasPattern};
+	};
+	flipped: {
+		img: Drawable;
+		patterns: {[scale: number]: CanvasPattern};
+	};
 }
-interface ExtendedCanvas extends HTMLCanvasElement {
-	patterns?: {[scale: number]: CanvasPattern};
-}
-type Drawable = ExtendedImage | ExtendedCanvas;
 
-export class ImageManager extends ResourceManager<Drawable> {
+export class ImageManager extends ResourceManager<ImageResource> {
 	useFlipped = false;
-	ctx: CanvasRenderingContext2D;
-	constructor(engine: Engine) {
+	constructor(engine: Engine, public ctx: CanvasRenderingContext2D) {
 		super(engine, "Images");
 	}
-	get(name: string): Drawable {
-		let img = super.get(name);
-		if (img instanceof HTMLImageElement && this.useFlipped) return img.flipped;
-		else return img;
+	img(name: string): Drawable {
+		let imgRes = this.map[name];
+		if (this.useFlipped) return imgRes.flipped.img;
+		else return imgRes.default.img;
 	}
-	async loadAs(name: string, src: string): Promise<Drawable> {
+	async loadAs(name: string, src: string): Promise<ImageResource> {
 		this.loadingCount++;
 		let img = await new Promise<HTMLImageElement>((resolve, reject) => {
 			let img = new Image();
 			img.onload = () => resolve(img);
-			img.onerror = (err: Event) => reject(err.type);
+			img.onerror = (err: string|Event) => reject(typeof err === "string"? err : err.type);
 			img.src = src;
 		});
-		this.map[name] = img;
-		this.makeFlipped(img);
+		let resource = this.map[name] = {
+			default: {
+				img: img,
+				patterns: {}
+			},
+			flipped: {
+				img: this.makeFlipped(img),
+				patterns: {}
+			}
+		}
 		this.loadingCount--;
-		return img;
+		return resource;
 	}
 	async loadB64(name: string, b64: string) { this.loadAs(name, `data:image/*;base64, ${b64}`) }
-	makeFlipped(img: ExtendedImage) {
-		img.flipped = document.createElement("canvas");
-		img.flipped.width = img.width;
-		img.flipped.height = img.height;
-		let ctx = img.flipped.getContext("2d");
+	makeFlipped(img: HTMLImageElement): HTMLCanvasElement {
+		let canvas = HiddenCanvas(img.width, img.height);
+		let ctx = canvas.getContext("2d")!;
 		ctx.save();
 		ctx.scale(1,-1);
 		ctx.drawImage(img, 0, 0, img.width, -img.height);
 		ctx.restore();
+		return canvas;
 	}
 	flip() {
 		this.useFlipped = !this.useFlipped;
@@ -54,13 +63,13 @@ export class ImageManager extends ResourceManager<Drawable> {
 		name: string, x: number, y: number, width: number, height: number,
 		clipX = 0, clipY = 0, clipWidth?: number, clipHeight?: number
 	) {
-		let img = this.get(name);
-		if (clipWidth !== undefined) clipWidth = img.width;
-		if (clipHeight !== undefined) clipHeight = img.height;
+		let img = this.img(name);
+		if (clipWidth === undefined) clipWidth = img.width;
+		if (clipHeight === undefined) clipHeight = img.height;
 		this.ctx.drawImage(img, clipX,clipY,clipWidth,clipHeight, x,y,width,height);
 	}
 	drawOverShape(name: string, x: number, y: number, shape: Shape.Shape) {
-		let img = this.get(name);
+		let img = this.img(name);
 		let aabb = Shape.AABB(shape);
 		this.ctx.drawImage(img, x + aabb.x, y + aabb.y, aabb.width, aabb.height);
 	}
@@ -82,16 +91,18 @@ export class ImageManager extends ResourceManager<Drawable> {
 		name: string, x: number, y: number, width: number, height: number,
 		scale = 1, parallax = 1, offsetX = 0, offsetY = 0, shiftX = 0, shiftY = 0
 	) {
-		let img = this.get(name);
+		let resource = this.get(name);
+		let current = this.useFlipped? resource.flipped : resource.default;
+		let img = current.img;
+		let patterns = current.patterns;
 		if (!img || img.width === 0 || img.height === 0) return;
-		if (!img.patterns) img.patterns = {};
-		if (!img.patterns[scale]) {
+		if (!patterns[scale]) {
 			let offscreen = HiddenCanvas(img.width*scale, img.height*scale);
-			let ctx = offscreen.getContext("2d");
+			let ctx = offscreen.getContext("2d")!;
 			ctx.drawImage(img, 0, 0, img.width*scale, img.height*scale);
-			img.patterns[scale] = this.ctx.createPattern(offscreen, "repeat");
+			patterns[scale] = this.ctx.createPattern(offscreen, "repeat")!;
 		}
-		this.ctx.fillStyle = img.patterns[scale];
+		this.ctx.fillStyle = patterns[scale];
 		this.ctx.save();
 		this.ctx.translate(shiftX, shiftY);
 		x -= shiftX;

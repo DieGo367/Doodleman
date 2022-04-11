@@ -84,7 +84,7 @@ const LevelValidation: ValidationRule[] = [
 	]},
 	{test: ["bg"], arrayOf: [
 		{test: ["type"], in: ["name", "raw"]},
-		{test: ["name", "raw"], is: "string", optional: true},
+		{test: ["name", "raw"], is: "string"},
 		{test: ["layer", "scale", "parallax", "velX", "velY"], is: "number"},
 		{test: ["anchorFlip"], is: [
 			{test: ["x", "y"], is: "boolean"}
@@ -124,7 +124,7 @@ export class LevelManager extends ResourceManager<Level> {
 		await this._loadBackgrounds(data.bg);
 		this.engine.camera.reset();
 		this.engine.levelReady = true;
-		this.engine.game.onLevelLoad();
+		if (this.engine.game) this.engine.game.onLevelLoad();
 		console.log(`Loaded Level ${data.name || level}`);
 	}
 	async openFromData(data: unknown) {
@@ -150,9 +150,9 @@ export class LevelManager extends ResourceManager<Level> {
 				let obj: GameObject;
 				let gfx = terrain.properties[0];
 				if (terrain.type === TERRAIN.BOX)
-					obj = new Objects.Box(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3], gfx);
+					obj = new Objects.Box(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3] as number, gfx);
 				else if (terrain.type === TERRAIN.LINE)
-					obj = new Objects.Line(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3], gfx);
+					obj = new Objects.Line(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3] as number, gfx);
 				else if (terrain.type === TERRAIN.CIRCLE)
 					obj = new Objects.Circle(pieceData[0], pieceData[1], pieceData[2] as number, gfx);
 				else if (terrain.type === TERRAIN.POLYGON)
@@ -166,7 +166,8 @@ export class LevelManager extends ResourceManager<Level> {
 					);
 				else never(terrain);
 				
-				obj.collision.weight = Infinity;
+				if (obj.collision)
+					obj.collision.weight = Infinity;
 				this.engine.objects.add(obj);
 			}
 		}
@@ -320,7 +321,7 @@ export class LevelManager extends ResourceManager<Level> {
 }
 
 export const BlankLevel: Level = {
-	name: null,
+	name: "",
 	width: 640,
 	height: 360,
 	edge: {
