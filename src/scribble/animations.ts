@@ -45,21 +45,17 @@ interface AnimationSheetData {
 	defaultAnimation?: string;
 }
 function isAnimationSheetData(data: unknown): data is AnimationSheetData {
-	return validate(data, [
-		{test: ["pages"], arrayOf: "string", is: [{test: [0]}]},
-		{test: ["spriteWidth", "spriteHeight"], is: "number"},
-		{test: ["hasDirection"], is: "boolean", optional: true},
-		{test: ["sheetOffsets"], is: [
-			{test: ["left", "right", "center"], is: [
-				{test: ["x", "y"], is: "number"}
-			]}
-		], optional: true},
-		{test: ["drawOffset"], is: [
-			{test: ["x", "y"], is: "number"}
-		], optional: true},
-		{test: ["animations"], mapOf: "object"},
-		{test: ["defaultAnimation"], is: "string", optional: true}
-	]);
+	return validate(data, {
+		pages: {"[]": "string"},
+		"spriteWidth,spriteHeight": "number",
+		"hasDirection?": "boolean",
+		"sheetOffsets?": {
+			"left,center,right": {"x,y": "number"}
+		},
+		"drawOffset?": {"x,y": "number"},
+		animations: {"*": "object"},
+		"defaultAnimation?": "string"
+	}, console.warn);
 }
 
 export interface AnimationComponent {

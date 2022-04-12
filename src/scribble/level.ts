@@ -2,7 +2,7 @@ import { Engine } from "./engine.js";
 import { ResourceManager } from "./resource.js";
 import { GameObject, isActorDefArg, Objects } from "./object.js";
 import { BackgroundData } from "./backgrounds.js";
-import { never, validate, ValidationRule } from "./util.js";
+import { never, validate, Validation } from "./util.js";
 import { Pt } from "./shape.js";
 
 export enum EDGE { NONE, SOLID, WRAP, KILL };
@@ -60,37 +60,53 @@ export interface Level {
 	terrain: TerrainData[];
 	bg: BackgroundData[];
 }
-const LevelValidation: ValidationRule[] = [
-	{test: ["name"], is: "string"},
-	{test: [
-		"_version_", "width", "height",
-		"horScrollBuffer", "vertScrollBuffer",
-		"zoomScale", "minZoom", "maxZoom"
-	], is: "number"},
-	{test: ["edge"], is: [
-		{test: ["top", "bottom", "left", "right"], is: "number", keyOf: EDGE},
-	]},
-	{test: ["camStart"], is: [
-		{test: ["x", "y"], is: "number"}
-	]},
-	{test: ["actors"], arrayOf: Array},
-	{test: ["actors"], arrayOf: [
-		{test: ["0", "1", "2"], is: "number"}
-	]},
-	{test: ["terrain"], arrayOf: [
-		{test: ["type"], is: "number", keyOf: TERRAIN},
-		{test: ["properties"], is: Array},
-		{test: ["pieces"], arrayOf: Array}
-	]},
-	{test: ["bg"], arrayOf: [
-		{test: ["type"], in: ["name", "raw"]},
-		{test: ["name", "raw"], is: "string"},
-		{test: ["layer", "scale", "parallax", "velX", "velY"], is: "number"},
-		{test: ["anchorFlip"], is: [
-			{test: ["x", "y"], is: "boolean"}
-		]}
-	]}
-];
+const LevelValidation: Validation = {
+	"_version_,width,height,horScrollBuffer,vertScrollBuffer,zoomScale,minZoom,maxZoom": "number",
+	name: "string",
+	edge: {
+		"top,bottom,left,right": {"@": EDGE}
+	},
+	camStart: {"x,y": "number"},
+	actors: {"[]": {"&": [Array, {
+		"0,1,2": "number"
+	}]}},
+	terrain: {"[]": {"|": [
+		{
+			type: {"=": TERRAIN.BOX},
+			properties: {"&": [Array, {
+				0: "string"
+			}]},
+			pieces: {"[]": ["number", "number", "number", "number"]}
+		},
+		{
+			type: {"=": TERRAIN.LINE},
+			properties: {"&": [Array, {
+				0: "string"
+			}]},
+			pieces: {"[]": ["number", "number", "number", "number"]}
+		},
+		{
+			type: {"=": TERRAIN.CIRCLE},
+			properties: {"&": [Array, {
+				0: "string"
+			}]},
+			pieces: {"[]": ["number", "number", "number"]}
+		},
+		{
+			type: {"=": TERRAIN.POLYGON},
+			properties: {"&": [Array, {
+				0: "string"
+			}]},
+			pieces: {"[]":[ "number", "number", {"[]": ["number", "number"]} ]}
+		}
+	]}},
+	bg: {"[]": {
+		type: {"@": ["name", "raw"]},
+		"name,raw": "string",
+		"layer,scale,parallax,velX,velY": "number",
+		anchorFlip: {"x,y": "boolean"}
+	}}
+};
 
 export class LevelManager extends ResourceManager<Level> {
 	constructor(engine: Engine) {
@@ -212,7 +228,7 @@ export class LevelManager extends ResourceManager<Level> {
 		await Promise.all(promises);
 	}
 	isLevel(data: unknown): data is Level {
-		return validate(data, LevelValidation);
+		return validate(data, LevelValidation, console.warn);
 	}
 	updateLevel(data: any): Level {
 		switch(data._version_) {

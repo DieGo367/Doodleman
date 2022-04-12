@@ -3,7 +3,7 @@ import * as Shape from "./shape.js";
 import { Engine } from "./engine.js";
 import { AnimationComponent, AnimationManager } from "./animations.js";
 import { ImageManager } from "./images.js";
-import { LEFT, RIGHT, CENTER, DIR, COLOR, validate, never, isKeyOf, PrimitiveName } from "./util.js";
+import { LEFT, RIGHT, CENTER, DIR, COLOR, validate, never, isKeyOf } from "./util.js";
 type CollisionComponent = Collision.CollisionComponent;
 
 type JSONValue = string | number | boolean | JSONValue[] | {[key: string]: JSONValue} | null;
@@ -13,11 +13,11 @@ interface ActorDef {
 	arguments?: (ActorDefArg | unknown)[]
 }
 function isActorDef(data: unknown): data is ActorDef {
-	return validate(data, [
-		{test: ["id"], is: "number"},
-		{test: ["class"], is: "string"},
-		{test: ["arguments"], is: Array, optional: true}
-	]);
+	return validate(data, {
+		id: "number",
+		class: "string",
+		"arguments?": Array
+	}, console.warn);
 }
 interface ActorDefArg {
 	name: string;
@@ -27,13 +27,13 @@ interface ActorDefArg {
 	remap?: unknown[]
 }
 export function isActorDefArg(data: unknown): data is ActorDefArg {
-	return validate(data, [
-		{test: ["name"], is: "string"},
-		{test: ["input"], is: "number"},
-		{test: ["type"], in: ["number", "boolean", "string", "option"], optional: true},
-		{test: ["options"], is: "object", optional: true},
-		{test: ["remap"], is: Array, optional: true},
-	], false);
+	return validate(data, {
+		name: "string",
+		input: "number",
+		"type?": {"@": ["number", "boolean", "string", "option"]},
+		"options?": {"*": ""},
+		"remap?": Array
+	});
 }
 export type ObjectClass = {
 	new (...args: any[]): GameObject;

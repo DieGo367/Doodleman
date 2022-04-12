@@ -11,16 +11,6 @@ export const COLOR = {
 	}
 };
 
-class NeverError extends Error {
-	name = "NeverError";
-	constructor(value: never) {
-		super(`Value ${value} was not never.`);
-	}
-}
-export function never(value: never): never {
-	throw new NeverError(value);
-}
-
 declare global {
 	var OffscreenCanvas: {
 		new (width: number, height: number): HTMLCanvasElement
@@ -60,6 +50,16 @@ export const Angle = {
 	}
 }
 
+class NeverError extends Error {
+	name = "NeverError";
+	constructor(value: never) {
+		super(`Value ${value} was not never.`);
+	}
+}
+export function never(value: never): never {
+	throw new NeverError(value);
+}
+
 export interface indexable { [key: string|number|symbol]: unknown }
 export function isIndexable(data: unknown): data is indexable {
 	return typeof data === "object" && data !== null;
@@ -68,184 +68,174 @@ export function isKeyOf<Type>(obj: Type, key: keyof indexable): key is keyof Typ
 	return isIndexable(obj) && typeof obj[key] !== "undefined";
 }
 
-export type PrimitiveName = "undefined" | "boolean" | "number" | "bigint" | "string" | "symbol" | "function" | "object";
-export interface ValidationRule {
-	test: (string | number)[] | "*";
-	optional?: boolean;
-	then?: ValidationRule[];
-	is?: PrimitiveName | ValidationRule[] | {new(): void};
-	equals?: any;
-	in?: any[];
-	keyOf?: any;
-	arrayOf?: PrimitiveName | ValidationRule[] | {new(): void};
-	mapOf?: PrimitiveName | ValidationRule[] | {new(): void};
-	either?: (PrimitiveName | ValidationRule[] | {new(): void})[];
+type SpecialValidationObject = (
+	// tests
+	{"=": unknown}							// equality
+	| {"@": unknown[] | indexable}			// contained in array or keys of object
+	| {"=>": (target: unknown) => boolean}	// passes a function test
+
+	// containers
+	| {"[]": Validation}					// is an Array instance, and each item passes Validation
+	| {"*": Validation}						// is indexable, and each item passes Validation
+
+	// logic
+	| {"&": Validation[]}					// passes all Validations
+	| {"|": Validation[]}					// passes at least one Validation
+	| {"!": Validation}						// does not pass this Validation
+)
+type ValidationObject = SpecialValidationObject | {
+	[propNames: string]: Validation			// standard property tests
 }
-export function validate(data: unknown, format: ValidationRule[], warn = true, prefix = "{}"): boolean {
-	let fail = (msg: string) => {
-		if (warn) console.warn(`${prefix} > ${msg}`);
+function validationObjectIsSpecial(obj: ValidationObject): obj is SpecialValidationObject {
+	let keys = Object.keys(obj);
+	return keys.length === 1 && ["=","@","=>","[]","*","&","|","!"].includes(keys[0]);
+}
+export type Validation = string | Validation[] | {new(...args: any[]): any} | ValidationObject;
+export function validate(data: unknown, validation: Validation, log = (msg: string) => {}, prefix = "{}"): boolean {
+	if (typeof validation === "string") {
+		// primitive typeof checks
+		if (validation === "") return true;
+		let types = validation.split("|");
+		if (types.includes(typeof data)) return true;
+		else {
+			log(`${prefix} > expected ${validation}, but got ${typeof data}.`);
+			return false;
+		}
 	}
-	if (!isIndexable(data)) {
-		fail(`Root value "${data}" was not an indexable object.`);
-		return false;
-	}
-	for (let rule of format) {
-		if (rule.test === "*") rule.test = Object.keys(data);
-		for (let prop of rule.test) {
-			if (!(prop in data) && !rule.optional) {
-				fail(`Missing property "${prop}".`);
+	else if (validation instanceof Array) {
+		// tuple check
+		if (data instanceof Array) {
+			if (data.length != validation.length) {
+				log(`${prefix} > expected tuple of length ${validation.length}, but got ${data.length}.`);
 				return false;
 			}
+			for (let i = 0; i < data.length; i++) {
+				if (!validate(data[i], validation[i] as Validation, log, `${prefix}[${i}]`))
+					return false;
+			}
+			return true;
 		}
-		if ("is" in rule && rule.is !== undefined) {
-			if (typeof rule.is === "string") {
-				for (let prop of rule.test) {
-					if (!rule.optional || typeof data[prop] !== "undefined") {
-						if (typeof data[prop] !== rule.is) {
-							fail(`Expected property "${prop}" to have type "${rule.is}", but got "${typeof data[prop]}".`);
-							return false;
-						}
-					}
+		else {
+			log(`${prefix} > expected a tuple, but it was not an Array instance. Got (${data}).`);
+			return false;
+		}
+	}
+	else if (typeof validation === "function") {
+		// instanceof check
+		if (data instanceof validation) return true;
+		else {
+			log(`${prefix} > expected an instance of ${validation.name}, but got (${data}).`);
+			return false;
+		}
+	}
+	else if (typeof validation === "object") {
+		// validation object
+		if (validationObjectIsSpecial(validation)) {
+			// special validation rules object
+			if ("=" in validation) {
+				if (data === validation["="]) return true;
+				else {
+					log(`${prefix} > expected value ${JSON.stringify(validation["="])}, but got (${data}).`);
+					return false;
 				}
 			}
-			else if (rule.is instanceof Array) {
-				for (let prop of rule.test) {
-					if (!rule.optional || typeof data[prop] !== "undefined") {
-						if (!validate(data[prop], rule.is, warn, `${prefix}.${prop}`))
+			if ("@" in validation) {
+				let options = validation["@"];
+				if (options instanceof Array) {
+					if (options.includes(data)) return true;
+					else {
+						log(`${prefix} > expected value to be one of ${JSON.stringify(options)}, but got (${data}).`);
+						return false;
+					}
+				}
+				else {
+					if (typeof data === "number" || typeof data === "string" || typeof data === "symbol") {
+						if (isKeyOf(options, data)) return true;
+					}
+					let keys = Object.keys(options);
+					keys = keys.filter(key => typeof (options as indexable)[key] !== undefined);
+					log(`${prefix} > expected value to be one of ${JSON.stringify(keys)}, but got (${data}).`);
+					return false;
+				}
+			}
+			else if ("=>" in validation) {
+				if (validation["=>"](data)) return true;
+				else {
+					log(`${prefix} > did not pass test function ${validation["=>"].name}.`);
+					return false;
+				}
+			}
+			else if ("[]" in validation) {
+				if (data instanceof Array) {
+					for (let i = 0; i < data.length; i++) {
+						if (!validate(data[i], validation["[]"], log, `${prefix}[${i}]`))
+							return false;
+					}
+					return true;
+				}
+				else {
+					log(`${prefix} > expected an Array instance, but got (${data}).`);
+					return false;
+				}
+			}
+			else if ("*" in validation) {
+				if (isIndexable(data)) {
+					for (let property of Object.keys(data)) {
+						if (!validate(data[property], validation["*"], log, `${prefix}.${property}`))
+							return false;
+					}
+					return true;
+				}
+				else {
+					log(`${prefix} > expected an object, but got (${data}).`);
+					return false;
+				}
+			}
+			else if ("&" in validation) {
+				for (let v of validation["&"]) {
+					if (!validate(data, v, log, prefix))
+						return false;
+				}
+				return true;
+			}
+			else if ("|" in validation) {
+				for (let v of validation["|"]) {
+					if (validate(data, v))
+						return true;
+				}
+				log(`${prefix} > did not pass any of the Validation options in the list.`);
+				return false;
+			}
+			else if ("!" in validation) {
+				if (!validate(data, validation["!"])) return true;
+				else {
+					log(`${prefix} > passed a Validation rule that was expected to fail.`);
+					return false;
+				}
+			}
+			else never(validation);
+		}
+		else if (Object.keys(validation).length > 0) {
+			// standard property rules object
+			if (isIndexable(data)) {
+				for (let propNames of Object.keys(validation)) {
+					for (let property of propNames.split(",")) {
+						if (property.endsWith("?")) {
+							property = property.slice(0, property.length-1);
+							if (typeof data[property] === "undefined") continue;
+						}
+						if (!validate(data[property], validation[propNames], log, `${prefix}.${property}`))
 							return false;
 					}
 				}
 			}
 			else {
-				for (let prop of rule.test) {
-					if (!rule.optional || typeof data[prop] !== "undefined") {
-						if (!(data[prop] instanceof rule.is)) {
-							fail(`Expected property "${prop}" to be an instance of "${rule.is.name}".`);
-							return false;
-						}
-					}
-				}
+				log(`${prefix} > expected an object, but got (${data}).`);
+				return false;
 			}
 		}
-		if ("equals" in rule) for (let prop of rule.test) {
-			if (!rule.optional || typeof data[prop] !== "undefined") {
-				if (data[prop] !== rule.equals) {
-					fail(`Expected property "${prop}" to be (${JSON.stringify(rule.equals)}), but got (${JSON.stringify(data[prop])}).`);
-					return false;
-				}
-			}
-		}
-		if ("in" in rule && rule.in !== undefined) for (let prop of rule.test) {
-			if (!rule.optional || typeof data[prop] !== "undefined") {
-				if (!rule.in.includes(data[prop])) {
-					fail(`Expected property "${prop}" to be one of ${JSON.stringify(rule.in)}, but got (${JSON.stringify(data[prop])}).`);
-					return false;
-				}
-			}
-		}
-		if ("keyOf" in rule) for (let prop of rule.test) {
-			if (!rule.optional || typeof data[prop] !== "undefined") {
-				let keys = Object.keys(rule.keyOf);
-				if (!keys.includes(String(data[prop]))) {
-					fail(`Expected property "${prop}" to be one of ${JSON.stringify(keys)}, but got (${JSON.stringify(data[prop])}).`);
-					return false;
-				}
-			}
-		}
-		if ("arrayOf" in rule && rule.arrayOf !== undefined) for (let prop of rule.test) {
-			if (!rule.optional || typeof data[prop] !== "undefined") {
-				let target: unknown = data[prop];
-				if (target instanceof Array) {
-					if (typeof rule.arrayOf === "string") {
-						for (let item of target as unknown[]) {
-							if (typeof item !== rule.arrayOf) {
-								fail(`Not all items of array "${prop}" were of type "${rule.arrayOf}". (Found "${typeof item}")`);
-								return false;
-							}
-						}
-					}
-					else if (rule.arrayOf instanceof Array){
-						let rules = rule.arrayOf;
-						if (!target.every((item: unknown, i) => validate(item, rules, warn, `${prefix}.${prop}.${i}`)))
-							return false;
-					}
-					else {
-						for (let item of target as unknown[]) {
-							if (!(item instanceof rule.arrayOf)) {
-								fail(`Not all items of array "${prop}" were instances of ${rule.arrayOf.name}.`);
-								return false;
-							}
-						}
-					}
-				}
-				else {
-					fail(`Property ${prop} was not an array.`);
-					return false;
-				}
-			}
-		}
-		if ("mapOf" in rule && rule.mapOf !== undefined) for (let prop of rule.test) {
-			if (!rule.optional || typeof data[prop] !== "undefined") {
-				let target: unknown = data[prop];
-				if (isIndexable(target)) {
-					if (typeof rule.mapOf === "string") {
-						for (let key in target) {
-							let item = target[key];
-							if (typeof item !== rule.mapOf) {
-								fail(`Not all items of object "${prop}" were of type "${rule.mapOf}". (Found "${typeof item}")`);
-								return false;
-							}
-						}
-					}
-					else if (rule.mapOf instanceof Array) {
-						for (let key in target) {
-							let item = target[key];
-							if (!validate(item, rule.mapOf, warn, `${prefix}.${prop}`))
-								return false;
-						}
-					}
-					else {
-						for (let key in target) {
-							let item = target[key];
-							if (!(item instanceof rule.mapOf)) {
-								fail(`Not all items of object "${prop}" were instances of ${rule.mapOf.name}.`);
-								return false;
-							}
-						}
-					}
-				}
-				else {
-					fail(`Property "${prop}" was not an indexable object.`);
-					return false;
-				}
-			}
-		}
-		if ("either" in rule && rule.either !== undefined) for (let prop of rule.test) {
-			if (!rule.optional || typeof data[prop] !== "undefined") {
-				let passed = false;
-				for (let subTest of rule.either) {
-					if (typeof subTest === "string") {
-						if (typeof data[prop] === subTest) passed = true;
-					}
-					else if (subTest instanceof Array) {
-						if (validate(data[prop], subTest, warn, `${prefix}.${prop}`)) passed = true;
-					}
-					else {
-						if (data[prop] instanceof subTest) passed = true;
-					}
-				}
-				if (!passed) {
-					fail(`Property "${prop}" did not match any of its given "either" tests.`);
-					return false;
-				}
-			}
-		}
-		if ("then" in rule && rule.then !== undefined) for (let prop of rule.test) {
-			if (typeof data[prop] !== "undefined") {
-				if (!validate(data, rule.then, warn, `${prefix}#`))
-					return false;
-			}
-		}
+		// empty object
+		return true;
 	}
-	return true;
+	else never(validation);
 }
