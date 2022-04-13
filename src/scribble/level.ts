@@ -149,8 +149,9 @@ export class LevelManager extends ResourceManager<Level> {
 		await this.open("data:");
 	}
 	async openFromFile() {
-		await this.loadFileInput();
-		await this.open("file:0");
+		let levels = await this.loadFileInput();
+		if (levels.length > 0) await this.open("file:0");
+		else console.log("No files selected.");
 	}
 	clear() {
 		this.engine.objects.removeAll();

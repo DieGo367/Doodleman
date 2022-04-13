@@ -8,7 +8,7 @@ export class FileLoader {
 		this.input.type = "file";
 		window.addEventListener("focus", () => this.onLostFocus());
 	}
-	async ask(extensions: string[]): Promise<FileList> {
+	async ask(extensions: string[]): Promise<FileList|null> {
 		// make sure another request isn't already happening
 		if (this.asking) {
 			throw new Error("Already asking for a File");
@@ -19,16 +19,16 @@ export class FileLoader {
 			this.input.accept = '.' + extensions.join(",.");
 		}
 		// promisified FileList getter
-		let fileList: FileList = await new Promise((resolve, reject) => {
+		let fileList: FileList|null = await new Promise((resolve, reject) => {
 			this.input.onchange = event => {
 				this.changeFired = true;
 				let files = this.input.files;
 				if (files) resolve(files);
-				else reject("No file selected.");
+				else reject("FileList not found.");
 			};
 			this.input.onerror = (err: string|Event) => reject(typeof err === "string"? err : err.type);
 			this.onLostFocus = () => setTimeout(() => {
-				if (this.asking && !this.changeFired) reject("No file selected.");
+				if (this.asking && !this.changeFired) resolve(null);
 			}, 1000);
 			this.input.click();
 		});
@@ -42,6 +42,7 @@ export class FileLoader {
 	}
 	async askText(extensions: string[]): Promise<string[]> {
 		let fileList = await this.ask(extensions);
+		if (!fileList) return [];
 		let texts: Promise<string>[] = [];
 		for (let file of fileList) texts.push(file.text());
 		return await Promise.all(texts);
