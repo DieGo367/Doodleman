@@ -44,3 +44,23 @@ export function project(pt: Point, line: Line): Point {
 		y: end1.y + (dp * (end2.y - end1.y))
 	};
 }
+
+const TAU = 2*Math.PI;
+export function anglePos(angle: number, scale = 1) {
+	return {x: Math.cos(angle) * scale, y: Math.sin(angle) * scale};
+}
+export function angleBound(angle: number): number {
+	while (angle < 0) angle += TAU;
+	while (angle >= TAU) angle -= TAU;
+	return angle;
+}
+export function angleWithinArc(angle: number, arc: {start: number, end: number}): boolean {
+	let dAngle = arc.end - arc.start;
+	if (dAngle >= TAU) return true;
+	let start = angleBound(arc.start);
+	let end = angleBound(arc.end);
+	if (end > start)
+		return start <= angle && angle <= end;
+	else
+		return angle <= end || start <= angle;
+}

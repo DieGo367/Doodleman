@@ -14,4 +14,4 @@ export * from "./scribble/file.js";
 export * from "./scribble/debug.js";
 export * as Collision from "./scribble/collision.js";
 export * as Shape from "./scribble/shape.js";
-export * as PointMath from "./scribble/point_math.js";
+export * as Geometry from "./scribble/geometry.js";

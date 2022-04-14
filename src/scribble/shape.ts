@@ -1,5 +1,5 @@
-import { scale, mag, sum, diff, dot } from "./point_math.js";
-import { Angle, isIndexable, never } from "./util.js";
+import { scale, mag, sum, diff, dot, anglePos, angleWithinArc } from "./geometry.js";
+import { isIndexable, never } from "./util.js";
 
 export const POINT = "point";
 export const CIRCLE = "circle";
@@ -65,15 +65,15 @@ export function isShape(obj: any): obj is Shape {
 			else if (obj.type === POLYGON)
 				return (
 					obj.vertices instanceof Array
-					&& obj.vertices.length > 0
-					&& obj.vertices.every((item: unknown) => {
-						isIndexable(item)
-						&& typeof item.x === "number"
-						&& typeof item.y === "number"
-					})
+				&& obj.vertices.length > 0
+				&& obj.vertices.every((item: unknown) => {
+					isIndexable(item)
+					&& typeof item.x === "number"
+					&& typeof item.y === "number"
+				})
 					&& obj.vertices[0].x === 0
 					&& obj.vertices[0].y === 0
-				);
+	);
 		}
 	}
 	return false;
@@ -152,7 +152,7 @@ export function boxCenter(box: Box): Point {
 export function arcCenter(arc: Arc): Point {
 	let dAngle = arc.end - arc.start;
 	let angle = arc.start + dAngle/2;
-	return sum(arc, scale(Angle.position(angle), arc.radius));
+	return sum(arc, scale(anglePos(angle), arc.radius));
 }
 export function lineCenter(line: Line): Point {
 	return {x: line.x + line.dx/2, y: line.y + line.dy/2};
@@ -181,15 +181,15 @@ export function extrema(shape: Shape, direction: Point): Point {
 	}
 	else if (shape.type === ARC) {
 		let angle = Math.atan2(direction.y, direction.x);
-		if (Angle.withinArc(angle, shape))
+		if (angleWithinArc(angle, shape))
 			return scale(direction, shape.radius / mag(direction));
 		else {
 			pts = [
-				scale(Angle.position(shape.start), shape.radius),
-				scale(Angle.position(shape.end), shape.radius)
+				scale(anglePos(shape.start), shape.radius),
+				scale(anglePos(shape.end), shape.radius)
 			];
 			let dAngle = shape.end - shape.start;
-			mid = scale(Angle.position(shape.start + dAngle/2), shape.radius);
+			mid = scale(anglePos(shape.start + dAngle/2), shape.radius);
 		}
 	}
 	else if (shape.type === BOX) {

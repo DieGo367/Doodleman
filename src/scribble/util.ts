@@ -28,28 +28,6 @@ export function HiddenCanvas(width: number, height: number): HTMLCanvasElement {
 	}
 }
 
-const TAU = 2*Math.PI;
-export const Angle = {
-	position(angle: number, scale = 1) {
-		return {x: Math.cos(angle) * scale, y: Math.sin(angle) * scale};
-	},
-	bound(angle: number): number {
-		while (angle < 0) angle += TAU;
-		while (angle >= TAU) angle -= TAU;
-		return angle;
-	},
-	withinArc(angle: number, arc: {start: number, end: number}): boolean {
-		let dAngle = arc.end - arc.start;
-		if (dAngle >= TAU) return true;
-		let start = Angle.bound(arc.start);
-		let end = Angle.bound(arc.end);
-		if (end > start)
-			return start <= angle && angle <= end;
-		else
-			return angle <= end || start <= angle;
-	}
-}
-
 class NeverError extends Error {
 	name = "NeverError";
 	constructor(value: never) {

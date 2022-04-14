@@ -1,7 +1,7 @@
 import { GameObject } from "./object.js";
 import { EDGE, Level } from "./level.js";
-import { never, Angle } from "./util.js";
-import { diff, dist, dot, mag, project, scale, sum, unit } from "./point_math.js";
+import { anglePos, angleWithinArc, diff, dist, dot, mag, project, scale, sum, unit } from "./geometry.js";
+import { never } from "./util.js";
 import {
 	type Shape, type Shaped, type Basic,
 	POINT, type Point,
@@ -248,8 +248,8 @@ export function getSweepingShapes(shape: Collider<Shape>): Shape[] {
 		return shape.sweep = [{type: LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy}];
 	}
 	else if (shape.type === ARC) {
-		let start = Angle.position(shape.start, shape.radius);
-		let end = Angle.position(shape.end, shape.radius);
+		let start = anglePos(shape.start, shape.radius);
+		let end = anglePos(shape.end, shape.radius);
 		return shape.sweep = [
 			// current and last
 			{type: ARC, x: shape.x, y: shape.y, radius: shape.radius, start: shape.start, end: shape.end},
@@ -464,15 +464,15 @@ export function getShapeBottoms(shape: Shape, gravity: Point): Shape[] {
 		let end = gravAngle + theta;
 		if (end >= 2*Math.PI) end -= 2*Math.PI;
 
-		if (Angle.withinArc(start, shape) && Angle.withinArc(end, shape))
+		if (angleWithinArc(start, shape) && angleWithinArc(end, shape))
 			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: ARC}];
-		else if (Angle.withinArc(start, shape))
+		else if (angleWithinArc(start, shape))
 			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: shape.end, type: ARC}];
-		else if (Angle.withinArc(end, shape))
+		else if (angleWithinArc(end, shape))
 			return [{x: shape.x, y: shape.y, radius: shape.radius, start: shape.start, end: end, type: ARC}];
 		else {
-			let arcStart = Angle.position(shape.start, shape.radius);
-			let arcEnd = Angle.position(shape.start, shape.radius);
+			let arcStart = anglePos(shape.start, shape.radius);
+			let arcEnd = anglePos(shape.start, shape.radius);
 			let gravityPoint = scale(gravity, shape.radius/mag(gravity));
 			let startDist = dist(arcStart, gravityPoint);
 			let endDist = dist(arcEnd, gravityPoint);
@@ -556,15 +556,15 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 		let end = gravAngle + theta;
 		if (end >= 2*Math.PI) end -= 2*Math.PI;
 
-		if (Angle.withinArc(start, shape) && Angle.withinArc(end, shape))
+		if (angleWithinArc(start, shape) && angleWithinArc(end, shape))
 			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: end, type: ARC}];
-		else if (Angle.withinArc(start, shape))
+		else if (angleWithinArc(start, shape))
 			return [{x: shape.x, y: shape.y, radius: shape.radius, start: start, end: shape.end, type: ARC}];
-		else if (Angle.withinArc(end, shape))
+		else if (angleWithinArc(end, shape))
 			return [{x: shape.x, y: shape.y, radius: shape.radius, start: shape.start, end: end, type: ARC}];
 		else {
-			let arcStart = Angle.position(shape.start, shape.radius);
-			let arcEnd = Angle.position(shape.start, shape.radius);
+			let arcStart = anglePos(shape.start, shape.radius);
+			let arcEnd = anglePos(shape.start, shape.radius);
 			let gravityPoint = scale(gravity, shape.radius/mag(gravity));
 			let startDist = dist(arcStart, gravityPoint);
 			let endDist = dist(arcEnd, gravityPoint);
@@ -1223,7 +1223,7 @@ export const Resolve = {
 			let d = diff(b, a);
 			let angleFromA = Math.atan2(d.y, d.x);
 			let angleFromB = Math.atan2(-d.y, -d.x);
-			if (Angle.withinArc(angleFromA, a) && Angle.withinArc(angleFromB, b))
+			if (angleWithinArc(angleFromA, a) && angleWithinArc(angleFromB, b))
 				return Resolve.circleCircle(a as unknown as Collider<Circle>, b as unknown as Collider<Circle>);
 			else
 				throw new Error("Unimplemented case! I haven't figured this out yet!")
@@ -1234,13 +1234,13 @@ export const Resolve = {
 		if (!arcPassCheck(arc, circle)) return false;
 		let d = diff(circle, arc);
 		let angle = Math.atan2(d.y, d.x);
-		if (Angle.withinArc(angle, arc)) {
+		if (angleWithinArc(angle, arc)) {
 			return Resolve.circleCircle(arc as unknown as Collider<Circle>, circle);
 		}
 		else {
 			// try with arc endpoints
-			let start = Angle.position(arc.start, arc.radius);
-			let end = Angle.position(arc.end, arc.radius);
+			let start = anglePos(arc.start, arc.radius);
+			let end = anglePos(arc.end, arc.radius);
 			let startDist = diff(circle, start);
 			let endDist = diff(circle, end);
 			if (startDist !== endDist) {
@@ -1253,10 +1253,10 @@ export const Resolve = {
 			else {
 				// weird even case
 				let midAngle = arc.start + (arc.start - arc.end)/2;
-				let unitPos = Angle.position(midAngle);
+				let unitPos = anglePos(midAngle);
 				let bisector = Line(circle.x, circle.y, unitPos.x, unitPos.y);
 				let crossing = project(start, bisector);
-				let arcCenter = sum(arc, Angle.position(midAngle, arc.radius));
+				let arcCenter = sum(arc, anglePos(midAngle, arc.radius));
 				let almostAtChordMid = scale(crossing, circle.radius / mag(crossing));
 				let smidge = diff(arcCenter, crossing);
 				let chordMid = diff(almostAtChordMid, smidge);
@@ -1275,7 +1275,7 @@ export const Resolve = {
 
 			// if the arc faces the line, resolve with simple circle-line collision
 			let angleToProjection = Math.atan2(difference.y, difference.x);
-			if (Angle.withinArc(angleToProjection, arc)) {
+			if (angleWithinArc(angleToProjection, arc)) {
 				return Resolve.circleLine(arc as unknown as Collider<Circle>, line);
 			}
 
@@ -1301,8 +1301,8 @@ export const Resolve = {
 				// get furthest distance inward of an arc endpoint and push it out
 				// project the ends against the normal
 				let lineNormal = {x: line.x, y: line.y, dx: -line.dy, dy: line.dx};
-				let dist1 = dist(lineNormal, project(Angle.position(arc.start, arc.radius), lineNormal));
-				let dist2 = dist(lineNormal, project(Angle.position(arc.end, arc.radius), lineNormal));
+				let dist1 = dist(lineNormal, project(anglePos(arc.start, arc.radius), lineNormal));
+				let dist2 = dist(lineNormal, project(anglePos(arc.end, arc.radius), lineNormal));
 				// furthest dist
 				let overlap = Math.min(dist1, dist2);
 				return scale(lineNormal, overlap / mag(lineNormal));
@@ -1313,8 +1313,8 @@ export const Resolve = {
 	arcPolygon(arc: Collider<Arc>, poly: Collider<Polygon>): Resolution {
 		if (arcPassCheck(arc, poly)) {
 			// setup flags and storage to check if endpoints should trigger
-			let start = Angle.position(arc.start, arc.radius);
-			let end = Angle.position(arc.end, arc.radius);
+			let start = anglePos(arc.start, arc.radius);
+			let end = anglePos(arc.end, arc.radius);
 			let startCollides = Intersect.ptPolygon(start, poly);
 			let endCollides = Intersect.ptPolygon(end, poly);
 			let startMinDist = Infinity, starttarget = null;
