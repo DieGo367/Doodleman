@@ -137,7 +137,7 @@ class DoodlemanGame extends Scribble.Game {
 		this.engine.objects.add(new Scribble.Objects.Line(10, 250, 300, 290, "black")); 
 		this.engine.objects.add(new Scribble.Objects.Circle(205, 115, 40, "black")); 
 		this.engine.objects.add(new Scribble.Objects.Polygon(350, 90, [
-			{x: 0, y:0}, {x: 20, y:70}, {x: 100, y:80}, {x: 140, y:30}, {x: 150, y:0}, {x: 100, y:-0}
+			{x: 20, y:70}, {x: 100, y:80}, {x: 140, y:30}, {x: 150, y:0}, {x: 100, y:-60}
 		], "black"));
 		this.engine.objects.add(new Scribble.Objects.Point(576, 143, "black"));
 		this.engine.objects.add(new Scribble.Objects.Arc(576, 40, 50, Math.PI/2, Math.PI, "black"));
@@ -148,7 +148,7 @@ class DoodlemanGame extends Scribble.Game {
 		else if (as === Scribble.Shape.LINE)
 			this.follow = new Scribble.Objects.Line(0, 0, 40, 40, "blue");
 		else if (as === Scribble.Shape.POLYGON)
-			this.follow = new Scribble.Objects.Polygon(60, 70, [{x:0, y: 0}, {x:10, y: -70}, {x:11, y: -100}, {x:-15, y: -150}, {x:-60, y: -115}, {x:-70, y: -105}, {x:-75, y: -97}, {x:-80, y: -70}, {x:-70, y: -25}, {x:-60, y: -20}, {x:-35, y: -3}], "blue");
+			this.follow = new Scribble.Objects.Polygon(60, 70, [{x:10, y: -70}, {x:11, y: -100}, {x:-15, y: -150}, {x:-60, y: -115}, {x:-70, y: -105}, {x:-75, y: -97}, {x:-80, y: -70}, {x:-70, y: -25}, {x:-60, y: -20}, {x:-35, y: -3}], "blue");
 		else if (as === Scribble.Shape.POINT)
 			this.follow = new Scribble.Objects.Point(0, 0, "blue");
 		else if (as === Scribble.Shape.ARC)

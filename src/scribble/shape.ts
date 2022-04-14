@@ -32,7 +32,6 @@ export interface Polygon extends Point {
 }
 
 export interface PolygonVertices extends Array<Point> {
-	0: {x: 0, y: 0};
 	localCenter?: Point,
 	localAABB?: Box
 }
@@ -50,33 +49,36 @@ export type Shaped<Type extends Basic> = (
 export type Shape = Shaped<Basic>;
 
 export function isShape(obj: any): obj is Shape {
-	if (typeof obj.type === "string") {
-		if (typeof obj.x === "number" && typeof obj.y === "number") {
-			if (obj.type === POINT)
-				return true;
-			else if (obj.type === CIRCLE)
-				return typeof obj.radius === "number";
-			else if (obj.type === BOX)
-				return typeof obj.width === "number" && typeof obj.height === "number";
-			else if (obj.type === ARC)
-				return typeof obj.radius === "number" && typeof obj.start === "number" && typeof obj.end === "number";
-			else if (obj.type === LINE)
-				return typeof obj.dx === "number" && typeof obj.dy === "number";
-			else if (obj.type === POLYGON)
-				return (
-					obj.vertices instanceof Array
-				&& obj.vertices.length > 0
-				&& obj.vertices.every((item: unknown) => {
+	return (typeof obj.type === "string"
+		&& typeof obj.x === "number"
+		&& typeof obj.y === "number"
+		&& (obj.type === POINT
+			|| (obj.type === CIRCLE
+				&& typeof obj.radius === "number"
+			)
+			|| (obj.type === BOX
+				&& typeof obj.width === "number"
+				&& typeof obj.height === "number"
+			)
+			|| (obj.type === ARC
+				&& typeof obj.radius === "number"
+				&& typeof obj.start === "number"
+				&& typeof obj.end === "number"
+			)
+			|| (obj.type === LINE
+				&& typeof obj.dx === "number"
+				&& typeof obj.dy === "number"
+			)
+			|| (obj.type === POLYGON
+				&& obj.vertices instanceof Array
+				&& obj.vertices.every((item: unknown) => (
 					isIndexable(item)
 					&& typeof item.x === "number"
 					&& typeof item.y === "number"
-				})
-					&& obj.vertices[0].x === 0
-					&& obj.vertices[0].y === 0
+				))
+			)
+		)
 	);
-		}
-	}
-	return false;
 }
 
 export function Pt(x: number, y: number): Point;
@@ -117,20 +119,18 @@ export function Polygon(...points: Point[]): Polygon;
 export function Polygon(x: number | Point[] | Point, y?: number | Point, points?: PolygonVertices | Point, ...restPoints: Point[]): Polygon {
 	// standard definition: x, y, and relative vertices
 	if (typeof x === "number") {
-		let verts = points as PolygonVertices;
-		if (verts[0].x !== 0 || verts[0].y !== 0) throw new Error("Bad PolygonVertices. First vertex MUST be (0,0)");
-		else return {x: x, y: y as number, vertices: verts};
+		return {x: x, y: y as number, vertices: points as PolygonVertices};
 	}
 	// array of absolute points
 	else if (x instanceof Array)
 		return {
 			x: x[0].x,
 			y: x[0].y,
-			vertices: x.map(pt => diff(pt, x[0])) as PolygonVertices // convert to relative
+			vertices: x.slice(1).map(pt => diff(pt, x[0]))  // convert to relative
 		};
 	// params as absolute points
 	else if (typeof x === "object") {
-		let verts: Point[] = [x];
+		let verts: Point[] = [];
 		if (typeof y === "object") {
 			verts.push(y);
 			if (typeof points === "object") {
@@ -140,7 +140,7 @@ export function Polygon(x: number | Point[] | Point, y?: number | Point, points?
 		return {
 			x: x.x,
 			y: x.y,
-			vertices: verts.map(pt => diff(pt, x)) as PolygonVertices
+			vertices: verts.map(pt => diff(pt, x))
 		};
 	}
 	else never(x);
@@ -159,7 +159,7 @@ export function lineCenter(line: Line): Point {
 }
 export function polygonCenter(poly: Polygon): Point {
 	if (!poly.vertices.localCenter)
-		poly.vertices.localCenter = scale(sum(...poly.vertices), 1/poly.vertices.length)
+		poly.vertices.localCenter = scale(sum(...poly.vertices), 1/(poly.vertices.length+1));
 	return sum(poly, poly.vertices.localCenter);
 }
 export function center(shape: Shape): Point {
@@ -211,7 +211,7 @@ export function extrema(shape: Shape, direction: Point): Point {
 	else if (shape.type === POLYGON) {
 		pts = shape.vertices;
 		if (!shape.vertices.localCenter)
-			shape.vertices.localCenter = scale(sum(...shape.vertices), 1/shape.vertices.length);
+			shape.vertices.localCenter = scale(sum(...shape.vertices), 1/(shape.vertices.length+1));
 		mid = shape.vertices.localCenter;
 	}
 	else never(shape);
@@ -316,7 +316,7 @@ export function flipX(shape: Shape) {
 			shape.dx *= -1;
 			break;
 		case POLYGON:
-			shape.vertices = shape.vertices.map(pt => Pt(pt.x * -1, pt.y)) as PolygonVertices;
+			shape.vertices = shape.vertices.map(pt => Pt(pt.x * -1, pt.y));
 		case POINT:
 		case CIRCLE:
 			break;
@@ -337,13 +337,28 @@ export function flipY(shape: Shape) {
 			shape.dy *= -1;
 			break;
 		case POLYGON:
-			shape.vertices = shape.vertices.map(pt => Pt(pt.x, pt.y * -1)) as PolygonVertices;
+			shape.vertices = shape.vertices.map(pt => Pt(pt.x, pt.y * -1));
 		case POINT:
 		case CIRCLE:
 			break;
 		default:
 			never(shape);
 	}
+}
+
+export function polygonPoints(poly: Polygon): Point[] {
+	return [{x: poly.x, y: poly.y}, ...poly.vertices.map(vert => sum(poly, vert))];
+}
+export function polygonEdges(poly: Polygon): Line[] {
+	let edges: Line[] = [];
+	let previous = {x: poly.x, y: poly.y};
+	for (let vertex of poly.vertices) {
+		let current = sum(poly, vertex);
+		edges.push(Line(previous, current));
+		previous = current;
+	}
+	edges.push(Line(previous, {x: poly.x, y: poly.y}));
+	return edges;
 }
 
 /**
@@ -361,7 +376,10 @@ export function access<Owner extends Point>(owner: Owner, propName: keyof Owner)
 		result.y += owner.y;
 		return result;
 	}
-	else throw Error(`Property ${propName} of object was not a Shape.`);
+	else {
+		console.log(og)
+		throw Error(`Property ${propName} of object was not a Shape.`);
+	}
 }
 
 export function fill(ctx: CanvasRenderingContext2D, x: number, y: number, shape: Shape) {
@@ -395,10 +413,10 @@ export function fill(ctx: CanvasRenderingContext2D, x: number, y: number, shape:
 	else if (shape.type === POLYGON) {
 		ctx.beginPath();
 		ctx.moveTo(x + shape.x, y + shape.y);
-		for (let i = 0; i < shape.vertices.length; i++) {
-			let next = shape.vertices[(i + 1) % shape.vertices.length];
-			ctx.lineTo(x + shape.x + next.x, y + shape.y + next.y);
+		for (let vertex of shape.vertices) {
+			ctx.lineTo(x + shape.x + vertex.x, y + shape.y + vertex.y);
 		}
+		ctx.lineTo(x + shape.x, y + shape.y);
 		ctx.fill();
 	}
 	else never(shape);
@@ -431,10 +449,10 @@ export function stroke(ctx: CanvasRenderingContext2D, x: number, y: number, shap
 	else if (shape.type === POLYGON) {
 		ctx.beginPath();
 		ctx.moveTo(x + shape.x, y + shape.y);
-		for (let i = 0; i < shape.vertices.length; i++) {
-			let next = shape.vertices[(i + 1) % shape.vertices.length];
-			ctx.lineTo(x + shape.x + next.x, y + shape.y + next.y);
+		for (let vertex of shape.vertices) {
+			ctx.lineTo(x + shape.x + vertex.x, y + shape.y + vertex.y);
 		}
+		ctx.lineTo(x + shape.x, y + shape.y);
 		ctx.stroke();
 	}
 	else never(shape);

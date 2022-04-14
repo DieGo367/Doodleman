@@ -429,7 +429,7 @@ class Polygon extends GameObject {
 	declare collision: Collision.CollisionComponent & Shape.Shaped<Shape.Polygon>;
 	constructor(x: number, y: number, vertices: Shape.Point[], gfx: string) {
 		super(x, y);
-		let aabb = Shape.polygonAABB({x: 0, y: 0, vertices: vertices as Shape.PolygonVertices});
+		let aabb = Shape.polygonAABB({x: 0, y: 0, vertices: vertices});
 		if (typeof gfx === "string" && gfx.slice(-5) === ".json") {
 			this.animator = {name: gfx, x: aabb.x + aabb.width/2, y: aabb.y};
 		}
@@ -437,13 +437,13 @@ class Polygon extends GameObject {
 			type: Shape.POLYGON,
 			style: gfx,
 			x: 0, y: 0,
-			vertices: vertices as Shape.PolygonVertices
+			vertices: vertices
 		};
 		this.collision = {
 			type: Shape.POLYGON,
 			weight: 0,
 			x: 0, y: 0,
-			vertices: vertices as Shape.PolygonVertices
+			vertices: vertices
 		};
 	}
 };
