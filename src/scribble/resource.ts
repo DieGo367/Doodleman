@@ -6,7 +6,6 @@ interface MapOf<Type> {
 
 export class ResourceManager<StoredType> {
 	map = {} as MapOf<StoredType>;
-	loadingCount = 0;
 	constructor(public engine: Engine, public name = "Unknown Resource Manager") {}
 
 	get(name: string): StoredType {
@@ -17,10 +16,8 @@ export class ResourceManager<StoredType> {
 	
 	_request(src: string): Promise<StoredType> { return this.engine.request(src) as unknown as Promise<StoredType>; }
 	async loadAs(name: string, src: string): Promise<StoredType> {
-		this.loadingCount++;
 		let response = await this._request(src);
 		this.map[name] = response;
-		this.loadingCount--;
 		return response;
 	}
 	load(name: string): Promise<StoredType> { return this.loadAs(name, name); }

@@ -26,7 +26,6 @@ export class ImageManager extends ResourceManager<ImageResource> {
 		else return imgRes.default.img;
 	}
 	async loadAs(name: string, src: string): Promise<ImageResource> {
-		this.loadingCount++;
 		let img = await new Promise<HTMLImageElement>((resolve, reject) => {
 			let img = new Image();
 			img.onload = () => resolve(img);
@@ -43,7 +42,6 @@ export class ImageManager extends ResourceManager<ImageResource> {
 				patterns: {}
 			}
 		}
-		this.loadingCount--;
 		return resource;
 	}
 	async loadB64(name: string, b64: string) { this.loadAs(name, `data:image/*;base64, ${b64}`) }
