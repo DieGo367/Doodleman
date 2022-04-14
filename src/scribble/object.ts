@@ -35,9 +35,22 @@ export function isActorDefArg(data: unknown): data is ActorDefArg {
 		"remap?": Array
 	});
 }
+
+type ActionPropTypes = "boolean"|"number"|"bigint"|"string"|"symbol"|"function"|"object";
+type RealType<TypeName> = (
+	TypeName extends "boolean"? boolean :
+	TypeName extends "number"? number :
+	TypeName extends "bigint"? bigint :
+	TypeName extends "string"? string :
+	TypeName extends "symbol"? symbol :
+	TypeName extends "function"? (...args: any[]) => void :
+	TypeName extends "object"? object :
+	TypeName extends "undefined"? undefined :
+	never
+);
+
 export type ObjectClass = {
 	new (...args: any[]): GameObject;
-	proto?(proto: typeof GameObject.prototype): void;
 };
 type GameObjectTriggers = {
 	[Property in keyof GameObject as 
@@ -139,12 +152,10 @@ export class ObjectManager {
 	}
 	registerClasses(classGroup: {[className: string]: ObjectClass}) {
 		for (let name in classGroup) {
-			this.registerClass(name, classGroup[name]);
+			this.registeredClasses[name] = classGroup[name];
 		}
 	}
 	registerClass(className: string, classDecl: ObjectClass) {
-		if (classDecl.proto)
-			classDecl.proto(classDecl.prototype);
 		this.registeredClasses[className] = classDecl;
 	}
 }
@@ -547,42 +558,33 @@ class Entity extends GameObject {
 		if (this.actionLock > 0) return false;
 		
 		this.currentAction = name;
-		let cooldown = this.getActionProperty("Cooldown");
-		if (typeof cooldown !== "number")
-			throw new Error(`${name}Cooldown was not a number or "full"!`);
-		let init = this.getActionProperty("Init");
-		if (typeof init !== "function")
-			throw new Error(`${name}Cooldown was not a function!`);
-			
+		let cooldown = this.getActionProperty("Cooldown", "number");
+		let init = this.getActionProperty("Init", "function");
+
 		this.actionFrame = 0;
 		this.actionLock = cooldown;
 		init();
 	}
-	getActionProperty(property: string): unknown {
+	getActionProperty<TypeName extends ActionPropTypes>(property: string, type: TypeName): RealType<TypeName> {
 		let fullName = `${this.currentAction}${property}`;
-		if (isKeyOf(this, fullName))
-			return this[fullName];
-		else throw new Error(`${fullName} is undefined.`);
+		if (isKeyOf(this, fullName)) {
+			if (typeof this[fullName] === type) return this[fullName] as unknown as RealType<TypeName>;
+			else throw new TypeError(`${fullName} is not a ${type}`);
+		}
+		else throw new TypeError(`${fullName} is undefined.`);
 	}
 	cancelAction(e: Engine) {
 		if (this.currentAction != null) {
-			let finish = this.getActionProperty("Finish");
-			if (typeof finish === "function") finish(e);
 			this.actionLock = 0;
+			this.getActionProperty("Finish", "function")(e);
 		}
 	}
 	actionsUpdate(e: Engine) {
 		if (this.currentAction != null) {
-			let tick = this.getActionProperty("Tick");
-			if (typeof tick !== "function")
-				throw new Error(`${this.currentAction}Tick was not a function!`);
-			let finish = this.getActionProperty("Finish");
-			if (typeof finish !== "function")
-				throw new Error(`${this.currentAction}Finish was not a function!`);
-			let duration = this.getActionProperty("Duration");
-			if (typeof duration !== "number")
-				throw new Error(`${this.currentAction}Tick was not a number!`);
-				
+			let tick = this.getActionProperty("Tick", "function");
+			let finish = this.getActionProperty("Finish", "function");
+			let duration = this.getActionProperty("Duration", "number");
+			
 			let result: unknown = tick(e, this.actionFrame);
 			if (++this.actionFrame >= duration || result === false) {
 				this.currentAction = null;
