@@ -3,7 +3,7 @@ import { ImageManager } from "./images.js";
 import { SoundManager } from "./sounds.js";
 import { AnimationManager } from "./animations.js";
 import { LevelManager, BlankLevel, Level } from "./level.js";
-import { ObjectClass, ObjectManager } from "./object.js";
+import { ObjectClass, ObjectMap } from "./object.js";
 import * as Collision from "./collision.js";
 import { Camera } from "./camera.js";
 import { InputManager } from "./input.js";
@@ -21,7 +21,7 @@ export class Engine {
 	animations: AnimationManager;
 	levels: LevelManager;
 	// engine components
-	objects: ObjectManager;
+	objects: ObjectMap;
 	camera: Camera;
 	input: InputManager;
 	backgrounds: Backgrounds;
@@ -66,7 +66,7 @@ export class Engine {
 		this.levels = new LevelManager(this);
 		// sub parts
 		this.level = Object.assign({}, BlankLevel);
-		this.objects = new ObjectManager(this);
+		this.objects = new ObjectMap(this);
 		this.camera = new Camera(this, canvasWidth/2, canvasHeight/2, canvasWidth, canvasHeight);
 		this.input = new InputManager(this);
 		this.backgrounds = new Backgrounds(this);

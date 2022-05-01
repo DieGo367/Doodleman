@@ -1,6 +1,6 @@
 import { Engine } from "./engine.js";
 import { ResourceManager } from "./resource.js";
-import { GameObject, isActorDefArg, Objects } from "./object.js";
+import { GameObject, isActorDefArg, ShapeObjects } from "./object.js";
 import { BackgroundData } from "./backgrounds.js";
 import { never, validate, Validation } from "./util.js";
 import { Pt } from "./shape.js";
@@ -165,13 +165,13 @@ export class LevelManager extends ResourceManager<Level> {
 				let obj: GameObject;
 				let gfx = terrain.properties[0];
 				if (terrain.type === TERRAIN.BOX)
-					obj = new Objects.Box(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3] as number, gfx);
+					obj = new ShapeObjects.Box(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3] as number, gfx);
 				else if (terrain.type === TERRAIN.LINE)
-					obj = new Objects.Line(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3] as number, gfx);
+					obj = new ShapeObjects.Line(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3] as number, gfx);
 				else if (terrain.type === TERRAIN.CIRCLE)
-					obj = new Objects.Circle(pieceData[0], pieceData[1], pieceData[2] as number, gfx);
+					obj = new ShapeObjects.Circle(pieceData[0], pieceData[1], pieceData[2] as number, gfx);
 				else if (terrain.type === TERRAIN.POLYGON)
-					obj = new Objects.Polygon(
+					obj = new ShapeObjects.Polygon(
 						pieceData[0],
 						pieceData[1],
 						(pieceData[2] as ([number, number][])).map(

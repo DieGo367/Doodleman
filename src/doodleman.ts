@@ -133,26 +133,26 @@ class DoodlemanGame extends Scribble.Game {
 	}
 	tempTestBlocks(as = Scribble.Shape.CIRCLE) {
 		this.engine.levels.clear();
-		this.engine.objects.add(new Scribble.Objects.Box(400, 200, 100, 150, "black"));
-		this.engine.objects.add(new Scribble.Objects.Line(10, 250, 300, 290, "black")); 
-		this.engine.objects.add(new Scribble.Objects.Circle(205, 115, 40, "black")); 
-		this.engine.objects.add(new Scribble.Objects.Polygon(350, 90, [
+		this.engine.objects.add(new Scribble.ShapeObjects.Box(400, 200, 100, 150, "black"));
+		this.engine.objects.add(new Scribble.ShapeObjects.Line(10, 250, 300, 290, "black")); 
+		this.engine.objects.add(new Scribble.ShapeObjects.Circle(205, 115, 40, "black")); 
+		this.engine.objects.add(new Scribble.ShapeObjects.Polygon(350, 90, [
 			{x: 20, y:70}, {x: 100, y:80}, {x: 140, y:30}, {x: 150, y:0}, {x: 100, y:-60}
 		], "black"));
-		this.engine.objects.add(new Scribble.Objects.Point(576, 143, "black"));
-		this.engine.objects.add(new Scribble.Objects.Arc(576, 40, 50, Math.PI/2, Math.PI, "black"));
+		this.engine.objects.add(new Scribble.ShapeObjects.Point(576, 143, "black"));
+		this.engine.objects.add(new Scribble.ShapeObjects.Arc(576, 40, 50, Math.PI/2, Math.PI, "black"));
 		if (as === Scribble.Shape.CIRCLE)
-			this.follow = new Scribble.Objects.Circle(0, 0, 40, "blue");
+			this.follow = new Scribble.ShapeObjects.Circle(0, 0, 40, "blue");
 		else if (as === Scribble.Shape.BOX)
-			this.follow = new Scribble.Objects.Box(0, 0, 40, 50, "blue");
+			this.follow = new Scribble.ShapeObjects.Box(0, 0, 40, 50, "blue");
 		else if (as === Scribble.Shape.LINE)
-			this.follow = new Scribble.Objects.Line(0, 0, 40, 40, "blue");
+			this.follow = new Scribble.ShapeObjects.Line(0, 0, 40, 40, "blue");
 		else if (as === Scribble.Shape.POLYGON)
-			this.follow = new Scribble.Objects.Polygon(60, 70, [{x:10, y: -70}, {x:11, y: -100}, {x:-15, y: -150}, {x:-60, y: -115}, {x:-70, y: -105}, {x:-75, y: -97}, {x:-80, y: -70}, {x:-70, y: -25}, {x:-60, y: -20}, {x:-35, y: -3}], "blue");
+			this.follow = new Scribble.ShapeObjects.Polygon(60, 70, [{x:10, y: -70}, {x:11, y: -100}, {x:-15, y: -150}, {x:-60, y: -115}, {x:-70, y: -105}, {x:-75, y: -97}, {x:-80, y: -70}, {x:-70, y: -25}, {x:-60, y: -20}, {x:-35, y: -3}], "blue");
 		else if (as === Scribble.Shape.POINT)
-			this.follow = new Scribble.Objects.Point(0, 0, "blue");
+			this.follow = new Scribble.ShapeObjects.Point(0, 0, "blue");
 		else if (as === Scribble.Shape.ARC)
-			this.follow = new Scribble.Objects.Arc(0, 0, 50, 0, Math.PI/2, "blue");
+			this.follow = new Scribble.ShapeObjects.Arc(0, 0, 50, 0, Math.PI/2, "blue");
 		window.collisionLevel = 0;
 		if (this.follow)
 			this.engine.objects.add(this.follow);
@@ -160,7 +160,7 @@ class DoodlemanGame extends Scribble.Game {
 }
 
 
-class Doodleman extends Scribble.Objects.Entity {
+class Doodleman extends Scribble.Entity {
 	drawLayer = 2;
 	feelsGravity = true;
 	terminalVel = 10;
@@ -186,7 +186,7 @@ class Doodleman extends Scribble.Objects.Entity {
 			x: -19/2, y: 0,
 			width: 19, height: 44
 		};
-		this.animator = {name: "animations/Doodleman.json", x: 0, y: 0};
+		this.animator = Scribble.Components.animator({x: 0, y: 0}, "animations/Doodleman.json");
 	}
 	update(engine: Scribble.Engine) {
 		if (this.jumpFrame > 0) {
@@ -358,7 +358,7 @@ class SpawnPoint extends Scribble.GameObject {
 		super(x, y);
 		let color = ["Blue", "Red", "Green", "Yellow"][slot % 4];
 		let sheet = "animations/" + color + "man.json";
-		this.animator = {name: sheet, x: 0, y: 0};
+		this.animator = Scribble.Components.animator({x: 0, y: 0}, sheet);
 		this.animator.direction = direction;
 	}
 	draw() {}
@@ -398,7 +398,7 @@ class Marker extends Scribble.GameObject {
 	}
 };
 
-class PaintMan extends Scribble.Objects.Entity {
+class PaintMan extends Scribble.Entity {
 	feelsGravity = true;
 	terminalVel = 10;
 	static health = 2;
@@ -410,12 +410,12 @@ class PaintMan extends Scribble.Objects.Entity {
 			x: -19/2, y: 0,
 			width: 19, height: 44
 		};
-		this.animator = {name: "animations/PaintMinion.json", x: 0, y: 0};
+		this.animator = Scribble.Components.animator({x: 0, y: 0}, "animations/PaintMinion.json");
 	}
 };
 
 class HelloPlatform extends Scribble.GameObject {
-	declare collision: Scribble.Collision.CollisionComponent & Scribble.Shape.Shaped<Scribble.Shape.Box>;
+	declare collision: Scribble.Components.Collider & Scribble.Shape.Box;
 	constructor(x: number, y: number, width: number, height: number, graphic: string, xVel: number, yVel: number) {
 		super(x, y);
 		this.collision = {
@@ -446,7 +446,7 @@ class Door extends Scribble.GameObject {
 	drawLayer = -1;
 	constructor(x: number, y: number, entranceID: number, destID: number, preventEnter: boolean, preventExit: boolean, destLevel: string) {
 		super(x, y);
-		this.animator = {name: "animations/Door.json", x: 0, y: 0};
+		this.animator = Scribble.Components.animator({x: 0, y: 0}, "animations/Door.json");
 	}
 };
 
