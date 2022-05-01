@@ -2,6 +2,9 @@ import { Engine } from "./engine.js";
 import { ResourceManager } from "./resource.js";
 import { LEFT, RIGHT, CENTER, DIR, never, isIndexable, isKeyOf, validate } from "./util.js";
 
+import { Components } from "./object/mod.js";
+type Animator = Components.Animator;
+
 
 interface Animation {
 	row: number;
@@ -58,18 +61,6 @@ function isAnimationSheetData(data: unknown): data is AnimationSheetData {
 	}, console.warn);
 }
 
-export interface AnimationComponent {
-	name: string;
-	x: number;
-	y: number;
-	page?: number;
-	current?: string;
-	direction?: DIR;
-	tick?: number;
-	lock?: number | "full";
-	previous?: string;
-}
-
 export class AnimationManager extends ResourceManager<AnimationSheet> {
 	constructor(engine: Engine) {
 		super(engine, "Animations");
@@ -96,7 +87,7 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 			if (target.extends && !target.extended) target.extend(this.map);
 		}
 	}
-	render(ctx: CanvasRenderingContext2D, x: number, y: number, component: AnimationComponent) {
+	render(ctx: CanvasRenderingContext2D, x: number, y: number, component: Animator) {
 		// get animation sheet
 		let sheet = this.map[component.name];
 		if (sheet) {
@@ -107,8 +98,8 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 				let img = this.engine.images.img(imgName);
 				if (img) {
 					// find the current animation
-					if (!component.current) {
-						component.current = sheetData.defaultAnimation || Object.keys(sheetData.animations)[0];
+					if (component.current === "") {
+						component.current = sheetData.defaultAnimation ?? Object.keys(sheetData.animations)[0] ?? "";
 					}
 					let anim = sheet.get(component.current);
 					if (anim) {
@@ -133,7 +124,7 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 						frameY += sheetData.spriteHeight * anim.row;
 	
 						// move corresponding amount of frames forward in the animation
-						let frameIndex = Math.floor((component.tick||0) * anim.frameRate);
+						let frameIndex = Math.floor(component.tick * anim.frameRate);
 						let frame = this.getFrameData(frameIndex, anim, "frame");
 						if (typeof frame === "number")
 							frameX += frame * sheetData.spriteWidth;
@@ -162,8 +153,7 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 		}
 		else console.warn("Unknown animation file " + component.name);
 	}
-	set(component: AnimationComponent, animationName: string, direction?: DIR, lockTime?: number | "full"): boolean {
-		if (component.lock === undefined) component.lock = 0;
+	set(component: Animator, animationName: string, direction?: DIR, lockTime?: number | "full"): boolean {
 		if (component.lock > 0 || component.lock === "full") return false;
 		if (direction !== undefined) component.direction = direction;
 		if (component.current === animationName) return true;
@@ -175,11 +165,11 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 		}
 		return true;
 	}
-	getAnimation(component: AnimationComponent): Animation | null {
+	getAnimation(component: Animator): Animation | null {
 		let sheet = this.map[component.name];
 		if (sheet) {
 			if (sheet.data) {
-				if (!component.current) {
+				if (component.current === "") {
 					component.current = sheet.data.defaultAnimation || Object.keys(sheet.data.animations)[0];
 				}
 				let anim = sheet.get(component.current);
@@ -191,13 +181,11 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 		else console.error("Unknown animation file " + component.name);
 		return null;
 	}
-	tick(component: AnimationComponent) {
+	tick(component: Animator) {
 		let anim = this.getAnimation(component);
 		if (anim) {
-			if (component.tick === undefined) component.tick = 1;
-			else component.tick++;
-			if (component.lock === undefined) component.lock = 0;
-			else if (component.lock === "full") component.lock = anim.frameCount / anim.frameRate;
+			component.tick++;
+			if (component.lock === "full") component.lock = anim.frameCount / anim.frameRate;
 			if (component.lock > 0) component.lock--;
 			if (Math.floor(component.tick * anim.frameRate) >= anim.frameCount) {
 				component.tick = 0;
@@ -255,10 +243,10 @@ export class AnimationManager extends ResourceManager<AnimationSheet> {
 				never(response);
 		}
 	}
-	getFrameDataFromComponent(component: AnimationComponent, key: string): unknown {
+	getFrameDataFromComponent(component: Animator, key: string): unknown {
 		let anim = this.getAnimation(component);
 		if (anim) {
-			let frameIndex = Math.floor((component.tick||0) * anim.frameRate);
+			let frameIndex = Math.floor(component.tick * anim.frameRate);
 			return this.getFrameData(frameIndex, anim, key);
 		}
 		return null;

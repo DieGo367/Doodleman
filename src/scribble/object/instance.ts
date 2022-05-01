@@ -127,7 +127,6 @@ export default class Obj {
 	animate(animName: string, direction?: DIR, lockTime?: number | "full") {
 		let component = this.animator;
 		if (!component) return false;
-		if (component.lock === undefined) component.lock = 0;
 		if (component.lock > 0 || component.lock === "full") return false;
 		if (direction != undefined) component.direction = direction;
 		if (component.current === animName) return true;
