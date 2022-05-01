@@ -4,12 +4,12 @@ import { AnimationManager } from "../animations.js";
 import * as Shape from "../shape.js";
 import { COLOR, DIR } from "../util.js";
 
-import ObjectMap from "./map.js";
+import ObjMap from "./map.js";
 import { Graphic, Animator, Collider } from "./component.js";
 
-export default class GameObject {
+export default class Obj {
 	id: number | null = null;
-	objectManager: ObjectMap | null = null;
+	objectManager: ObjMap | null = null;
 	isActor = false;
 	velX = 0;
 	velY = 0;

@@ -1,10 +1,10 @@
 import * as Shape from "../shape.js";
 
-import GameObject from "./instance.js";
+import Obj from "./instance.js";
 import { graphic, collider, animator } from "./component.js"
 
 
-export class Point extends GameObject {
+export class Point extends Obj {
 	constructor(x: number, y: number, gfx: string) {
 		super(x, y);
 		if (gfx.slice(-5) === ".json") {
@@ -19,9 +19,9 @@ export class Point extends GameObject {
 			x: 0, y: 0
 		}, 0);
 	}
-};
+}
 
-export class Arc extends GameObject {
+export class Arc extends Obj {
 	constructor(x: number, y: number, radius: number, start: number, end: number, gfx: string) {
 		super(x, y);
 		if (gfx.slice(-5) === ".json") {
@@ -42,9 +42,9 @@ export class Arc extends GameObject {
 			start: start, end: end
 		};
 	}
-};
+}
 
-export class Box extends GameObject {
+export class Box extends Obj {
 	constructor(x: number, y: number, width: number, height: number, gfx: string) {
 		super(x, y);
 		if (gfx.slice(-5) === ".json") {
@@ -64,9 +64,9 @@ export class Box extends GameObject {
 			width: width, height: height
 		};
 	}
-};
+}
 
-export class Line extends GameObject {
+export class Line extends Obj {
 	constructor(x: number, y: number, x2: number, y2: number, gfx: string) {
 		super(x, y);
 		let dx = x2 - x;
@@ -87,9 +87,9 @@ export class Line extends GameObject {
 			dx: dx, dy: dy
 		};
 	}
-};
+}
 
-export class Circle extends GameObject {
+export class Circle extends Obj {
 	constructor(x: number, y: number, radius: number, gfx: string) {
 		super(x, y);
 		if (gfx.slice(-5) === ".json") {
@@ -107,9 +107,9 @@ export class Circle extends GameObject {
 			x: 0, y: 0, radius: radius
 		};
 	}
-};
+}
 
-export class Polygon extends GameObject {
+export class Polygon extends Obj {
 	constructor(x: number, y: number, vertices: Shape.Point[], gfx: string) {
 		super(x, y);
 		let aabb = Shape.polygonAABB({x: 0, y: 0, vertices: vertices});
@@ -129,4 +129,4 @@ export class Polygon extends GameObject {
 			vertices: vertices
 		};
 	}
-};
+}

@@ -4,7 +4,7 @@ declare global {
 }
 
 class DoodlemanGame extends Scribble.Game {
-	follow: Scribble.GameObject | null = null;
+	follow: Scribble.Obj | null = null;
 	mouseX = 0;
 	mouseY = 0;
 	init() {
@@ -353,7 +353,7 @@ class Doodleman extends Scribble.Entity {
 	}
 };
 
-class SpawnPoint extends Scribble.GameObject {
+class SpawnPoint extends Scribble.Obj {
 	constructor(x: number, y: number, public slot: number, public direction: Scribble.DIR) {
 		super(x, y);
 		let color = ["Blue", "Red", "Green", "Yellow"][slot % 4];
@@ -380,7 +380,7 @@ class SpawnPoint extends Scribble.GameObject {
 };
 
 
-class Marker extends Scribble.GameObject {
+class Marker extends Scribble.Obj {
 	constructor(x: number, y: number, public name: string) {
 		super(x, y);
 	}
@@ -414,7 +414,7 @@ class PaintMan extends Scribble.Entity {
 	}
 };
 
-class HelloPlatform extends Scribble.GameObject {
+class HelloPlatform extends Scribble.Obj {
 	declare collision: Scribble.Components.Collider & Scribble.Shape.Box;
 	constructor(x: number, y: number, width: number, height: number, graphic: string, xVel: number, yVel: number) {
 		super(x, y);
@@ -442,7 +442,7 @@ class HelloPlatform extends Scribble.GameObject {
 	}
 };
 
-class Door extends Scribble.GameObject {
+class Door extends Scribble.Obj {
 	drawLayer = -1;
 	constructor(x: number, y: number, entranceID: number, destID: number, preventEnter: boolean, preventExit: boolean, destLevel: string) {
 		super(x, y);
@@ -450,7 +450,7 @@ class Door extends Scribble.GameObject {
 	}
 };
 
-class Box201 extends Scribble.GameObject {
+class Box201 extends Scribble.Obj {
 	feelsGravity = true;
 	constructor(x: number, y: number) {
 		super(x, y);

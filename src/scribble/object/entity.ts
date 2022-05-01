@@ -5,7 +5,7 @@ import * as Shape from "../shape.js";
 import * as Collision from "../collision.js";
 import { DIR, LEFT, CENTER, RIGHT, COLOR, isKeyOf } from "../util.js";
 
-import GameObject from "./instance.js";
+import Obj from "./instance.js";
 
 type ActionPropTypes = "boolean"|"number"|"bigint"|"string"|"symbol"|"function"|"object";
 type RealType<TypeName> = (
@@ -46,7 +46,7 @@ function isHitboxData(data: any): data is HitboxData {
 		&& Shape.isShape(data.shape);
 }
 
-export default class Entity extends GameObject {
+export default class Entity extends Obj {
 	drawLayer = 1;
 	health: number;
 	maxHealth: number;

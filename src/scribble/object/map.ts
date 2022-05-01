@@ -1,31 +1,31 @@
 import { Engine } from "../engine.js";
 import { never } from "../util.js";
 
-import GameObject from "./instance.js";
+import Obj from "./instance.js";
 import Entity from "./entity.js";
-import * as ShapeObjects from "./shapes.js";
+import * as ShapeObjs from "./shapes.js";
 import { ActorDef, isActorDef } from "./actor.js";
 
-export type ObjectClass = {
-	new (...args: any[]): GameObject;
-};
-type GameObjectTriggers = {
-	[Property in keyof GameObject as 
-		GameObject[Property] extends (e: Engine) => void ?
+export type ObjClass = {
+	new (...args: any[]): Obj;
+}
+type ObjTriggers = {
+	[Property in keyof Obj as 
+		Obj[Property] extends (e: Engine) => void ?
 		Property :
 		never
-	]: GameObject[Property];
+	]: Obj[Property];
 }
 
-export default class ObjectMap {
-	map = {} as {[id: number]: GameObject};
+export default class ObjMap {
+	map = {} as {[id: number]: Obj};
 	nextID = 0;
 	actorData = {} as ActorDef[];
-	registeredClasses = {} as {[className: string]: ObjectClass};
+	registeredClasses = {} as {[className: string]: ObjClass};
 	minLayer = 0;
 	maxLayer = 0;
 	constructor(public engine: Engine) {
-		this.registerClasses(ShapeObjects);
+		this.registerClasses(ShapeObjs);
 		this.registerClass("Entity", Entity);
 	}
 	async loadActorData(url: string) {
@@ -41,27 +41,27 @@ export default class ObjectMap {
 		}
 		else throw new Error("Actor data was not an array.");
 	}
-	add(object: GameObject) {
+	add(object: Obj) {
 		object.id = this.nextID++;
 		object.objectManager = this;
 		this.map[object.id] = object;
 		this.minLayer = Math.min(this.minLayer, object.drawLayer);
 		this.maxLayer = Math.max(this.maxLayer, object.drawLayer);
 	}
-	remove(target: number | GameObject) {
+	remove(target: number | Obj) {
 		if (typeof target == "number") {
 			delete this.map[target];
 		}
-		else if (target instanceof GameObject) {
+		else if (target instanceof Obj) {
 			if (target.id !== null)
 				delete this.map[target.id];
 		}
 		else never(target);
 	}
-	triggerAll(method: keyof GameObjectTriggers) {
+	triggerAll(method: keyof ObjTriggers) {
 		for (let id in this.map) {
 			let obj = this.map[id];
-			if (obj instanceof GameObject) {
+			if (obj instanceof Obj) {
 				obj[method](this.engine);
 			}
 		}
@@ -93,7 +93,7 @@ export default class ObjectMap {
 			object.drawDebug(this.engine.ctx, this.engine.images, this.engine.animations);
 		});
 	}
-	forAll(func: (object: GameObject, id: number) => boolean | void) {
+	forAll(func: (object: Obj, id: number) => boolean | void) {
 		for (let id in this.map) {
 			if (this.map[id]) {
 				let response = func(this.map[id], parseInt(id));
@@ -101,19 +101,19 @@ export default class ObjectMap {
 			}
 		}
 	}
-	forAllOfClass<Class extends ObjectClass>(classRef: Class, func: (object: InstanceType<Class>, id: number) => boolean | void) {
+	forAllOfClass<Class extends ObjClass>(classRef: Class, func: (object: InstanceType<Class>, id: number) => boolean | void) {
 		this.forAll((obj, id) => {
 			if (obj instanceof classRef) {
 				return func(obj as InstanceType<Class>, id);
 			}
 		});
 	}
-	registerClasses(classGroup: {[className: string]: ObjectClass}) {
+	registerClasses(classGroup: {[className: string]: ObjClass}) {
 		for (let name in classGroup) {
 			this.registeredClasses[name] = classGroup[name];
 		}
 	}
-	registerClass(className: string, classDecl: ObjectClass) {
+	registerClass(className: string, classDecl: ObjClass) {
 		this.registeredClasses[className] = classDecl;
 	}
 }

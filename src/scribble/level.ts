@@ -1,6 +1,6 @@
 import { Engine } from "./engine.js";
 import { ResourceManager } from "./resource.js";
-import { GameObject, isActorDefArg, ShapeObjects } from "./object.js";
+import { Obj, isActorDefArg, ShapeObjects } from "./object/mod.js";
 import { BackgroundData } from "./backgrounds.js";
 import { never, validate, Validation } from "./util.js";
 import { Pt } from "./shape.js";
@@ -162,7 +162,7 @@ export class LevelManager extends ResourceManager<Level> {
 		for (let terrainDataEntry of list) {
 			let terrain = {...terrainDataEntry};
 			for (let pieceData of terrain.pieces) {
-				let obj: GameObject;
+				let obj: Obj;
 				let gfx = terrain.properties[0];
 				if (terrain.type === TERRAIN.BOX)
 					obj = new ShapeObjects.Box(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3] as number, gfx);

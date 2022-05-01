@@ -1,4 +1,4 @@
-import { GameObject } from "./object.js";
+import { Obj } from "./object/mod.js";
 import { EDGE, Level } from "./level.js";
 import { anglePos, angleWithinArc, diff, dist, dot, mag, project, scale, sum, unit } from "./geometry.js";
 import { never } from "./util.js";
@@ -72,7 +72,7 @@ export const SLOPE_THRESH = 0.8;
  * @param gravity Vector describing the x and y force of gravity.
  * @param level The data for the currently loaded level, used for its collision bounds.
  */
-export function run(objectMap: {[id: number]: GameObject}, gravity: Point, level: Level) {
+export function run(objectMap: {[id: number]: Obj}, gravity: Point, level: Level) {
 	// create a map of buckets for objects of different collision weight levels
 	let bucketMap = {} as {[weight: number]: Collider<Shape>[]};
 	// list of the weight levels we have made buckets for
@@ -154,7 +154,7 @@ export function run(objectMap: {[id: number]: GameObject}, gravity: Point, level
 		}
 	}
 }
-export function getCollider(obj: GameObject): Collider<Shape> {
+export function getCollider(obj: Obj): Collider<Shape> {
 	// make a copy of the collider shape, with helper structures for the collision process
 	let shape: Partial<Collider<Shape>> = access(obj, "collision");
 	shape.id = obj.id!;
@@ -634,7 +634,7 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 	}
 	else never(shape);
 }
-export function levelBoundCheck(shape: Collider<Shape>, owner: GameObject, level: Level, gravity: Point) {
+export function levelBoundCheck(shape: Collider<Shape>, owner: Obj, level: Level, gravity: Point) {
 	let l = left(shape);
 	let r = right(shape);
 	let b = bottom(shape);
@@ -645,7 +645,7 @@ export function levelBoundCheck(shape: Collider<Shape>, owner: GameObject, level
 	resolveBound(shape, owner, 'y', t, b, 1, level.edge.top, level.height, 0, gravity);
 }
 export function resolveBound(
-	shape: Collider<Shape>, owner: GameObject, axis: "x" | "y",
+	shape: Collider<Shape>, owner: Obj, axis: "x" | "y",
 	shapeFront: number, shapeBack: number, direction: number,
 	borderType: EDGE, borderPos: number,
 	warpPos: number, gravity: Point
