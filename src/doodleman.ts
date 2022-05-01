@@ -171,7 +171,7 @@ class Doodleman extends Scribble.Objects.Entity {
 	jumpAccel = 11;
 	jumpCancelTime = 10;
 	jumpCancelAccel = 3;
-	maxHealth = 4;
+	static health = 4;
 	knockBack = {x: 7, y: 5};
 	jumpFrame = 0;
 	kickDiving = false;
@@ -401,7 +401,7 @@ class Marker extends Scribble.GameObject {
 class PaintMan extends Scribble.Objects.Entity {
 	feelsGravity = true;
 	terminalVel = 10;
-	maxHealth = 2;
+	static health = 2;
 	constructor(x: number, y: number) {
 		super(x, y);
 		this.collision = {

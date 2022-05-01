@@ -477,7 +477,8 @@ function isHitboxData(data: any): data is HitboxData {
 class Entity extends GameObject {
 	drawLayer = 1;
 	health: number;
-	maxHealth = 10;
+	maxHealth: number;
+	static health = 10;
 	moved = false;
 	moveDir: DIR = RIGHT;
 	lastMoveDir: DIR = RIGHT;
@@ -495,7 +496,7 @@ class Entity extends GameObject {
 
 	constructor(x: number, y: number) {
 		super(x, y);
-		this.health = this.maxHealth;
+		this.health = this.maxHealth = (this.constructor as typeof Entity).health;
 	}
 	move(sign: number) {
 		if (!this.lockMovement) {
