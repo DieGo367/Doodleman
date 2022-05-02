@@ -2,10 +2,10 @@ import { Engine } from "../engine.js";
 import { ImageManager } from "../images.js";
 import { AnimationManager } from "../animations.js";
 import * as Shape from "../shape.js";
-import { COLOR, DIR } from "../util.js";
+import { CENTER, COLOR, DIR } from "../util.js";
 
 import ObjMap from "./map.js";
-import { Graphic, Animator, Collider } from "./component.js";
+import { Graphic, Animator, Collider, collider, graphic, animator } from "./component.js";
 
 export default class Obj {
 	id: number | null = null;
@@ -23,11 +23,7 @@ export default class Obj {
 	terminalVel: number = Infinity;
 	graphic?: Graphic;
 	animator?: Animator;
-	collision?: Collider;
-	collided = false;
-	collisions: {[objectID: number]: boolean} = {};
-	isGrounded = false;
-	grounds: {[objectID: number]: boolean} = {};
+	collider?: Collider;
 	constructor(public x: number, public y: number) {
 		this.lastX = x;
 		this.lastY = y;
@@ -50,7 +46,7 @@ export default class Obj {
 	 * Handles intended object behavior this tick. Runs before attacks and collision.
 	 */
 	update(engine: Engine) {
-		if (this.feelsGravity && !this.isGrounded) {
+		if (this.feelsGravity && !this.collider?.grounded) {
 			this.velX += engine.gravity.x * this.gravityScale;
 			this.velY += engine.gravity.y * this.gravityScale;
 			if (this.velX > this.terminalVel) this.velX = this.terminalVel;
@@ -74,7 +70,7 @@ export default class Obj {
 	 * Final update step. Runs after collision. Track necessary values for next tick.
 	 */
 	finish(engine: Engine) {
-		if (this.feelsGravity && this.isGrounded) {
+		if (this.feelsGravity && this.collider?.grounded) {
 			this.velX *= engine.friction;
 			this.velY *= engine.friction;
 			if (Math.abs(this.velX) < engine.frictionSnap) this.velX = 0;
@@ -111,9 +107,9 @@ export default class Obj {
 		ctx.arc(this.x, this.y, 2.5, 0, 2 * Math.PI);
 		ctx.fill();
 		ctx.globalAlpha = 1;
-		if (this.collision) {
+		if (this.collider) {
 			ctx.strokeStyle = COLOR.DEBUG.COLLISION;
-			Shape.stroke(ctx, this.x, this.y, this.collision);
+			Shape.stroke(ctx, 0, 0, this.collider);
 		}
 	}
 	drawHighlight() {}
@@ -146,5 +142,15 @@ export default class Obj {
 	getFrameData(engine: Engine, key: string): unknown {
 		if (this.animator) return engine.animations.getFrameDataFromComponent(this.animator, key);
 		else console.error("No AnimationComponent found. Can't get frame data.")
+	}
+
+	setGraphic(style: string, shape: Shape.Shape) {
+		this.graphic = graphic(style, shape);
+	}
+	setAnimator(x: number, y: number, name: string, direction: DIR = CENTER) {
+		this.animator = animator(x, y, name, direction);
+	}
+	setCollider(weight: number, shape: Shape.Shape) {
+		this.collider = collider(weight, shape);
 	}
 }

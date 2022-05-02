@@ -1,4 +1,4 @@
-import { Obj } from "./object/mod.js";
+import { Obj, Components } from "./object/mod.js";
 import { EDGE, Level } from "./level.js";
 import { anglePos, angleWithinArc, diff, dist, dot, mag, project, scale, sum, unit } from "./geometry.js";
 import { never } from "./util.js";
@@ -12,53 +12,13 @@ import {
 	POLYGON, type Polygon,
 	left, right, top, bottom, center,
 	polygonCenter, polygonAABB,
-	access,
-	isShape,
 	polygonEdges,
 	polygonPoints
 } from "./shape.js";
 
-type IDBoolMap = {[objectID: number]: boolean};
-type Collider<Type extends Basic> = Shaped<Type> & {
-	id: number;
-	weight: number;
-	lastX: number;
-	lastY: number;
-	collided: boolean;
-	collisions: IDBoolMap;
-	lastCollisions: IDBoolMap;
-	isGrounded: boolean;
-	grounds: IDBoolMap;
-	lastGrounds: IDBoolMap;
-	pushVector: {x: number, y: number, count: number};
-	sweep?: Shape[];
-}
-export type CollisionComponent = Shape & {weight: number};
-// type helpers
-function isIDBoolMap(obj: any): obj is IDBoolMap {
-	return typeof obj === "object" && Object.keys(obj).every(key => typeof obj[key] === "boolean")
-}
-export function isCollider(obj: any): obj is Collider<Shape> {
-	return typeof obj.id === "number"
-		&& typeof obj.weight === "number"
-		&& typeof obj.lastX === "number"
-		&& typeof obj.lastY === "number"
-		&& typeof obj.collided === "boolean"
-		&& isIDBoolMap(obj.collisions)
-		&& isIDBoolMap(obj.lastCollisions)
-		&& typeof obj.isGrounded === "boolean"
-		&& isIDBoolMap(obj.grounds)
-		&& isIDBoolMap(obj.lastGrounds)
-		&& typeof obj.pushVector === "object"
-			&& typeof obj.pushVector.x === "number"
-			&& typeof obj.pushVector.y === "number"
-			&& typeof obj.pushVector.count === "number"
-		&& (typeof obj.sweep === "undefined" || (obj.sweep instanceof Array && obj.sweep.every((item: unknown) => isShape(item))))
-		&& isShape(obj);
-}
-
+type Collider = Components.Collider;
 type Resolution = Point | false;
-type SweepResolution = {a: Collider<Shape>, b: Collider<Shape>} | false;
+type SweepResolution = {a: Collider, b: Collider} | false;
 
 // TODO: projection push cancel?
 // TODO: chain pushing on lower levels?
@@ -74,74 +34,86 @@ export const SLOPE_THRESH = 0.8;
  */
 export function run(objectMap: {[id: number]: Obj}, gravity: Point, level: Level) {
 	// create a map of buckets for objects of different collision weight levels
-	let bucketMap = {} as {[weight: number]: Collider<Shape>[]};
+	let bucketMap = {} as {[weight: number]: Collider[]};
 	// list of the weight levels we have made buckets for
 	let mapLevels = [] as number[];
 
 	for (let id in objectMap) {
 		let obj = objectMap[id];
 		// check that the object provides a collider
-		if (obj.collision) {
-			let shape = getCollider(obj);
-			// add the shape to the bucket for its collision weight level
-			if (!bucketMap[shape.weight]) {
-				bucketMap[shape.weight] = [];
-				mapLevels.push(shape.weight);
+		if (obj.collider) {
+			let collider = obj.collider;
+			// update collider
+			collider.id = obj.id!;
+			collider.prevX = obj.lastX + collider.relX;
+			collider.prevY = obj.lastY + collider.relY;
+			collider.prevCollided = collider.collided;
+			collider.prevCollisions = collider.collisions;
+			collider.prevGrounded = collider.grounded;
+			collider.prevGrounds = collider.grounds;
+			collider.x = obj.x + collider.relX;
+			collider.y = obj.y + collider.relY;
+			collider.collided = false;
+			collider.collisions = {};
+			collider.grounded = false;
+			collider.grounds = {};
+			delete collider.sweep;
+			// add the collider to the bucket for its collision weight level
+			if (!bucketMap[collider.weight]) {
+				bucketMap[collider.weight] = [];
+				mapLevels.push(collider.weight);
 			}
-			bucketMap[shape.weight].push(shape);
+			bucketMap[collider.weight].push(collider);
 		}
 	}
 
-	let processedShapes = [] as Collider<Shape>[];
+	let processedColliders = [] as Collider[];
 	// sort the weight levels in ascending order
 	mapLevels.sort();
 	for (let level of mapLevels) {
 		let bucket = bucketMap[level];
-		// for each shape in the current bucket
+		// for each collider in the current bucket
 		for (let i = 0; i < bucket.length; i++) {
-			let shape = bucket[i];
-			// collide with shapes from lower collision levels
-			for (let lowerShape of processedShapes) {
-				collisionCheck(shape, lowerShape, gravity);
+			let collider = bucket[i];
+			// collide with colliders from lower collision levels
+			for (let lowerShape of processedColliders) {
+				collisionCheck(collider, lowerShape, gravity);
 			}
-			// collide with shapes from the same collision level (same bucket)
+			// collide with collider from the same collision level (same bucket)
 			if (level !== Infinity) for (let j = i+1; j < bucket.length; j++) {
-				collisionCheck(shape, bucket[j], gravity);
+				collisionCheck(collider, bucket[j], gravity);
 			}
 		}
-		// add the shapes from this bucket to the processed shapes list
-		processedShapes = processedShapes.concat(bucket);
-		// for all processed shapes, resolve the current push vector
-		for (let i = 0; i < processedShapes.length; i++) {
-			let shape = processedShapes[i];
-			let owner = objectMap[shape.id];
+		// add the colliders from this bucket to the processed colliders list
+		processedColliders = processedColliders.concat(bucket);
+		// for all processed colliders, resolve the current push vector
+		for (let i = 0; i < processedColliders.length; i++) {
+			let collider = processedColliders[i];
+			let owner = objectMap[collider.id];
 			if (owner) {
-				if (shape.pushVector.count === 0) continue;
-				owner.x += shape.pushVector.x;
-				owner.y += shape.pushVector.y;
-				shape.x += shape.pushVector.x / shape.pushVector.count;
-				shape.y += shape.pushVector.y / shape.pushVector.count;
-				shape.pushVector = {x: 0, y: 0, count: 0};
+				if (collider.pushVector.count === 0) continue;
+				owner.x += collider.pushVector.x;
+				owner.y += collider.pushVector.y;
+				// collider.x = owner.x + collider.relX;
+				// collider.y = owner.y + collider.relY;
+				collider.x += collider.pushVector.x / collider.pushVector.count;
+				collider.y += collider.pushVector.y / collider.pushVector.count;
+				collider.pushVector = {x: 0, y: 0, count: 0};
 			}
 			else {
-				processedShapes.splice(i, 1);
+				processedColliders.splice(i, 1);
 				i--;
 			}
 		}
 	}
 	
-	// resolve each shape's other variables
-	for (let i = 0; i < processedShapes.length; i++) {
-		let shape = processedShapes[i];
-		let owner = objectMap[shape.id];
+	// resolve each collider's other variables
+	for (let i = 0; i < processedColliders.length; i++) {
+		let collider = processedColliders[i];
+		let owner = objectMap[collider.id];
 		if (owner) {
-			levelBoundCheck(shape, owner, level, gravity);
-			owner.collided = shape.collided;
-			owner.isGrounded = shape.isGrounded;
-			owner.collisions = shape.collisions;
-			owner.grounds = shape.grounds;
-			if (shape.isGrounded) {
-				// TODO move this to once per owner, not once for each shape collider
+			levelBoundCheck(collider, owner, level, gravity);
+			if (collider.grounded) {
 				let gravityLine = {x: 0, y: 0, dx: gravity.x, dy: gravity.y};
 				let proj = project({x: owner.velX, y: owner.velY}, gravityLine);
 				owner.velX -= proj.x;
@@ -149,39 +121,18 @@ export function run(objectMap: {[id: number]: Obj}, gravity: Point, level: Level
 			}
 		}
 		else {
-			processedShapes.splice(i, 1);
+			processedColliders.splice(i, 1);
 			i--;
 		}
 	}
 }
-export function getCollider(obj: Obj): Collider<Shape> {
-	// make a copy of the collider shape, with helper structures for the collision process
-	let shape: Partial<Collider<Shape>> = access(obj, "collision");
-	shape.id = obj.id!;
-	shape.lastX = shape.x!;
-	if (typeof obj.lastX === "number") shape.lastX += obj.lastX - obj.x;
-	shape.lastY = shape.y!;
-	if (typeof obj.lastY === "number") shape.lastY += obj.lastY - obj.y;
-	shape.collided = false;
-	shape.isGrounded = false;
-	shape.collisions = {};
-	shape.grounds = {};
-	shape.lastCollisions = obj.collisions || {};
-	shape.lastGrounds = obj.grounds || {};
-	shape.pushVector = {x: 0, y: 0, count: 0};
-	if (isCollider(shape)) return shape;
-	else {
-		console.log(shape);
-		throw new Error("Improper collider!");
-	}
-}
 // the entire collision check process, including detection, push vector creation, and ground detection
-export function collisionCheck(a: Collider<Shape>, b: Collider<Shape>, gravity: Point) {
+export function collisionCheck(a: Collider, b: Collider, gravity: Point) {
 	if (a.weight === Infinity && b.weight === Infinity) return;
 	// discreteCollision(a, b, gravity);
 	continuousCollision(a, b, gravity);
 }
-export function discreteCollision(a: Collider<Shape>, b: Collider<Shape>, gravity: Point) {
+export function discreteCollision(a: Collider, b: Collider, gravity: Point) {
 	if (intersect(a, b)) {
 		let push = resolve(a, b);
 		if (push) {
@@ -199,9 +150,9 @@ export function discreteCollision(a: Collider<Shape>, b: Collider<Shape>, gravit
 		else console.error("No proper resolution given!");
 	}
 }
-export function continuousCollision(a: Collider<Shape>, b: Collider<Shape>, gravity: Point) {
+export function continuousCollision(a: Collider, b: Collider, gravity: Point) {
 	// if collided last frame, just use discrete collision
-	if (a.lastCollisions[b.id] || b.lastCollisions[a.id]) {
+	if (a.prevCollisions[b.id] || b.prevCollisions[a.id]) {
 		discreteCollision(a, b, gravity);
 	}
 	else if (sweepCheck(a, b)) {
@@ -221,12 +172,12 @@ export function continuousCollision(a: Collider<Shape>, b: Collider<Shape>, grav
 		else console.error("No proper resolution given!");
 	}
 }
-export function sweepCheck(a: Collider<Shape>, b: Collider<Shape>): boolean {
+export function sweepCheck(a: Collider, b: Collider): boolean {
 	// motion check
-	let ax = a.x - a.lastX;
-	let ay = a.y - a.lastY;
-	let bx = b.x - b.lastX;
-	let by = b.y - b.lastY;
+	let ax = a.x - a.prevX;
+	let ay = a.y - a.prevY;
+	let bx = b.x - b.prevX;
+	let by = b.y - b.prevY;
 	let motion = {x: ax - bx, y: ay - by};
 	if (motion.x === 0 && motion.y === 0) return intersect(a, b);
 	// actual sweep check
@@ -241,12 +192,12 @@ export function sweepCheck(a: Collider<Shape>, b: Collider<Shape>): boolean {
 	}
 	return false;
 }
-export function getSweepingShapes(shape: Collider<Shape>): Shape[] {
+export function getSweepingShapes(shape: Collider): Shape[] {
 	if (shape.sweep) return shape.sweep;
-	let dx = shape.x - shape.lastX;
-	let dy = shape.y - shape.lastY;
+	let dx = shape.x - shape.prevX;
+	let dy = shape.y - shape.prevY;
 	if (shape.type === POINT) {
-		return shape.sweep = [{type: LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy}];
+		return shape.sweep = [{type: LINE, x: shape.prevX, y: shape.prevY, dx: dx, dy: dy}];
 	}
 	else if (shape.type === ARC) {
 		let start = anglePos(shape.start, shape.radius);
@@ -254,22 +205,22 @@ export function getSweepingShapes(shape: Collider<Shape>): Shape[] {
 		return shape.sweep = [
 			// current and last
 			{type: ARC, x: shape.x, y: shape.y, radius: shape.radius, start: shape.start, end: shape.end},
-			{type: ARC, x: shape.lastX, y: shape.lastY, radius: shape.radius, start: shape.start, end: shape.end},
+			{type: ARC, x: shape.prevX, y: shape.prevY, radius: shape.radius, start: shape.start, end: shape.end},
 			// lines from last to current endpoints
-			{type: LINE, x: shape.lastX + start.x, y: shape.lastY + start.y, dx: dx, dy: dy},
-			{type: LINE, x: shape.lastX + end.x, y: shape.lastY + end.y, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX + start.x, y: shape.prevY + start.y, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX + end.x, y: shape.prevY + end.y, dx: dx, dy: dy},
 		];
 	}
 	else if (shape.type === BOX) {
 		return shape.sweep = [
 			// current and last
 			{type: BOX, x: shape.x, y: shape.y, width: shape.width, height: shape.height},
-			{type: BOX, x: shape.lastX, y: shape.lastY, width: shape.width, height: shape.height},
+			{type: BOX, x: shape.prevX, y: shape.prevY, width: shape.width, height: shape.height},
 			// draw lines from last to current corner positions
-			{type: LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
-			{type: LINE, x: shape.lastX + shape.width, y: shape.lastY, dx: dx, dy: dy},
-			{type: LINE, x: shape.lastX, y: shape.lastY + shape.height, dx: dx, dy: dy},
-			{type: LINE, x: shape.lastX + shape.width, y: shape.lastY + shape.height, dx: dx, dy: dy}
+			{type: LINE, x: shape.prevX, y: shape.prevY, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX + shape.width, y: shape.prevY, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX, y: shape.prevY + shape.height, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX + shape.width, y: shape.prevY + shape.height, dx: dx, dy: dy}
 		];
 	}
 	else if (shape.type === CIRCLE) {
@@ -279,45 +230,45 @@ export function getSweepingShapes(shape: Collider<Shape>): Shape[] {
 		return shape.sweep = [
 			// current and last
 			{type: CIRCLE, x: shape.x, y: shape.y, radius: shape.radius},
-			{type: CIRCLE, x: shape.lastX, y: shape.lastY, radius: shape.radius},
+			{type: CIRCLE, x: shape.prevX, y: shape.prevY, radius: shape.radius},
 			// line from last to current center
-			{type: LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX, y: shape.prevY, dx: dx, dy: dy},
 			// lines that form a "cylinder" shape with the two end circles
-			{type: LINE, x: shape.lastX + shiftY, y: shape.lastY - shiftX, dx: dx, dy: dy},
-			{type: LINE, x: shape.lastX - shiftY, y: shape.lastY + shiftX, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX + shiftY, y: shape.prevY - shiftX, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX - shiftY, y: shape.prevY + shiftX, dx: dx, dy: dy},
 		];
 	}
 	else if (shape.type === LINE) {
 		return shape.sweep = [
 			// current and last
 			{type: LINE, x: shape.x, y: shape.y, dx: shape.dx, dy: shape.dy},
-			{type: LINE, x: shape.lastX, y: shape.lastY, dx: shape.dx, dy: shape.dy},
+			{type: LINE, x: shape.prevX, y: shape.prevY, dx: shape.dx, dy: shape.dy},
 			// lines from last to current endpoints
-			{type: LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy},
-			{type: LINE, x: shape.lastX + shape.dx, y: shape.lastY + shape.dy, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX, y: shape.prevY, dx: dx, dy: dy},
+			{type: LINE, x: shape.prevX + shape.dx, y: shape.prevY + shape.dy, dx: dx, dy: dy},
 		];
 	}
 	else if (shape.type === POLYGON) {
 		shape.sweep = [
 			// current and last
 			{type: POLYGON, x: shape.x, y: shape.y, vertices: shape.vertices},
-			{type: POLYGON, x: shape.lastX, y: shape.lastY, vertices: shape.vertices}
+			{type: POLYGON, x: shape.prevX, y: shape.prevY, vertices: shape.vertices}
 		];
 		// lines from last to current vertices
-		shape.sweep.push({type: LINE, x: shape.lastX, y: shape.lastY, dx: dx, dy: dy});
+		shape.sweep.push({type: LINE, x: shape.prevX, y: shape.prevY, dx: dx, dy: dy});
 		for (let vertex of shape.vertices) {
 			shape.sweep.push({
-				type: LINE, x: shape.lastX + vertex.x, y: shape.lastY + vertex.y, dx: dx, dy: dy
+				type: LINE, x: shape.prevX + vertex.x, y: shape.prevY + vertex.y, dx: dx, dy: dy
 			});
 		}
 		return shape.sweep;
 	}
 	else never(shape);
 }
-export function bisectionMethod(a: Collider<Shape>, b: Collider<Shape>): SweepResolution {
+export function bisectionMethod(a: Collider, b: Collider): SweepResolution {
 	// velocities
-	let velA = {x: a.x - a.lastX, y: a.y - a.lastY};
-	let velB = {x: b.x - b.lastX, y: b.y - b.lastY};
+	let velA = {x: a.x - a.prevX, y: a.y - a.prevY};
+	let velB = {x: b.x - b.prevX, y: b.y - b.prevY};
 	// testing objects
 	let testA = Object.assign({}, a);
 	let testB = Object.assign({}, b);
@@ -333,10 +284,10 @@ export function bisectionMethod(a: Collider<Shape>, b: Collider<Shape>): SweepRe
 		// move testing objs to test position
 		let testVelA = scale(velA, offset+scalar);
 		let testVelB = scale(velB, offset+scalar);
-		testA.x = a.lastX + testVelA.x;
-		testA.y = a.lastY + testVelA.y;
-		testB.x = b.lastX + testVelB.x;
-		testB.y = b.lastY + testVelB.y;
+		testA.x = a.prevX + testVelA.x;
+		testA.y = a.prevY + testVelA.y;
+		testB.x = b.prevX + testVelB.x;
+		testB.y = b.prevY + testVelB.y;
 		// if we intersect, mark the collision, then move half a step back in time
 		if (intersect(testA, testB)) {
 			collisionScalar = offset+scalar;
@@ -394,7 +345,7 @@ export function bisectionMethod(a: Collider<Shape>, b: Collider<Shape>): SweepRe
 	}
 	return resolved;
 }
-export function resolvePush(a: Collider<Shape>, b: Collider<Shape>, force: Point): Exclude<SweepResolution, false> {
+export function resolvePush(a: Collider, b: Collider, force: Point): Exclude<SweepResolution, false> {
 	// resolved copies
 	let resA = Object.assign({}, a);
 	let resB = Object.assign({}, b);
@@ -427,24 +378,24 @@ export function resolvePush(a: Collider<Shape>, b: Collider<Shape>, force: Point
 	}
 	return {a: resA, b: resB};
 }
-export function collisionBasedGrounding(a: Collider<Shape>, b: Collider<Shape>, resolution: Exclude<SweepResolution, false>, gravity: Point) {
+export function collisionBasedGrounding(a: Collider, b: Collider, resolution: Exclude<SweepResolution, false>, gravity: Point) {
 	if (gravity.x === 0 && gravity.y === 0) return;
 	if (shapeGroundedOn(resolution.a, resolution.b, gravity)) {
 		a.grounds[b.id] = true;
-		a.isGrounded = true;
+		a.grounded = true;
 	}
 	if (shapeGroundedOn(resolution.b, resolution.a, gravity)) {
 		b.grounds[a.id] = true;
-		b.isGrounded = true;
+		b.grounded = true;
 	}
 }
-export function shapeGroundedOn(a: Collider<Shape>, b: Collider<Shape>, gravity: Point): boolean {
+export function shapeGroundedOn(a: Collider, b: Collider, gravity: Point): boolean {
 	let bottoms = getShapeBottoms(a, gravity);
 	let tops = getShapeTops(b, gravity);
 	for (let bottom of bottoms) {
 		for (let top of tops) {
 			if (intersect(bottom, top)) return true;
-			else if (a.lastGrounds[b.id] && b.type === LINE) return true;
+			else if (a.prevGrounds[b.id] && b.type === LINE) return true;
 		}
 	}
 	return false;
@@ -634,7 +585,7 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 	}
 	else never(shape);
 }
-export function levelBoundCheck(shape: Collider<Shape>, owner: Obj, level: Level, gravity: Point) {
+export function levelBoundCheck(shape: Collider, owner: Obj, level: Level, gravity: Point) {
 	let l = left(shape);
 	let r = right(shape);
 	let b = bottom(shape);
@@ -645,7 +596,7 @@ export function levelBoundCheck(shape: Collider<Shape>, owner: Obj, level: Level
 	resolveBound(shape, owner, 'y', t, b, 1, level.edge.top, level.height, 0, gravity);
 }
 export function resolveBound(
-	shape: Collider<Shape>, owner: Obj, axis: "x" | "y",
+	shape: Collider, owner: Obj, axis: "x" | "y",
 	shapeFront: number, shapeBack: number, direction: number,
 	borderType: EDGE, borderPos: number,
 	warpPos: number, gravity: Point
@@ -662,7 +613,7 @@ export function resolveBound(
 				if (dot(normal, gravity) < 0) {
 					let segment = {x: normal.y, y: -normal.x};
 					let dp = dot(unit(segment), unit(gravity));
-					if (Math.abs(dp) <= SLOPE_THRESH) shape.isGrounded = true;
+					if (Math.abs(dp) <= SLOPE_THRESH) shape.grounded = true;
 				}
 			}
 		}
@@ -675,46 +626,29 @@ export function resolveBound(
 	}
 }
 // small helpers
-export function reshapeCollider(collider: Collider<Shape>, modify: object): Collider<Shape> {
-	let copy: Partial<Collider<Shape>> = {
-		id: collider.id,
-		weight: collider.weight,
-		x: collider.x, y: collider.y,
-		lastX: collider.lastX, lastY: collider.lastY,
-		collided: collider.collided,
-		collisions: collider.collisions,
-		lastCollisions: collider.lastCollisions,
-		isGrounded: collider.isGrounded,
-		grounds: collider.grounds,
-		lastGrounds: collider.lastGrounds,
-		pushVector: collider.pushVector
-	};
-	Object.assign(copy, modify);
-	if (isCollider(copy)) return copy;
-	else throw new Error("Failed to reshape collider");
-}
-export function boxAsPolygon(box: Collider<Box>): Collider<Polygon> {
-	return reshapeCollider(box, {
+export function boxAsPolygon(box: Collider & Box): Collider & Polygon {
+	return {
+		...box,
 		type: POLYGON,
 		vertices: [
 			{x: 0, y: box.height},
 			{x: box.width, y: box.height},
 			{x: box.width, y: 0}
 		]
-	}) as Collider<Polygon>;
+	};
 }
 export function lineEnds(line: Line): [Point, Point] {
 	return [{x: line.x, y: line.y}, {x: line.x + line.dx, y: line.y + line.dy}];
 }
-export function lineSidePassCheck(line: Collider<Line>, shape: Collider<Shape>): boolean {
+export function lineSidePassCheck(line: Collider & Line, shape: Collider): boolean {
 	// return result from last collision, if it exists
-	let prevResult = line.lastCollisions[shape.id];
+	let prevResult = line.prevCollisions[shape.id];
 	if (typeof prevResult === "boolean") return prevResult;
 
 	// // find the net movement between the shape and line
 	// let movement = diff(
-	// 	{x: shape.x - shape.lastX, y: shape.y - shape.lastY},
-	// 	{x: line.x - line.lastX, y: line.y - line.lastY}
+	// 	{x: shape.x - shape.prevX, y: shape.y - shape.prevY},
+	// 	{x: line.x - line.prevX, y: line.y - line.prevY}
 	// );
 	// // dot it against the line's normal vector
 	// let normal = {x: -line.dy, y: line.dx};
@@ -724,18 +658,18 @@ export function lineSidePassCheck(line: Collider<Line>, shape: Collider<Shape>):
 	// if (dp <= 0) {
 		// check whether the object was on the correct side last frame
 		let mid = center(shape);
-		let lastMid = sum(diff(mid, shape), {x: shape.lastX, y: shape.lastY});
-		let sideTest = (lastMid.x - line.lastX)*line.dy - (lastMid.y - line.lastY)*line.dx;
+		let lastMid = sum(diff(mid, shape), {x: shape.prevX, y: shape.prevY});
+		let sideTest = (lastMid.x - line.prevX)*line.dy - (lastMid.y - line.prevY)*line.dx;
 		return sideTest <= 0;
 	// }
 }
-export function arcPassCheck(arc: Collider<Arc>, shape: Collider<Shape>): boolean {
+export function arcPassCheck(arc: Collider & Arc, shape: Collider): boolean {
 	// return result from last collision, if it exists
-	let prevResult = arc.lastCollisions[shape.id];
+	let prevResult = arc.prevCollisions[shape.id];
 	if (typeof prevResult === "boolean") return prevResult;
 	// check whether the object was on the correct side last frame
 	let mid = center(shape);
-	let lastMid = sum(diff(mid, shape), {x: shape.lastX, y: shape.lastY});
+	let lastMid = sum(diff(mid, shape), {x: shape.prevX, y: shape.prevY});
 	return dist(arc, lastMid) >= arc.radius;
 }
 export function reverse(resolution: Resolution) {
@@ -1033,11 +967,11 @@ export const Intersect = {
 		else return false;
 	}
 };
-export function resolve(a: Collider<Shape>, b: Collider<Shape>): Resolution {
+export function resolve(a: Collider, b: Collider): Resolution {
 	return Resolve.shapeShape(a, b);
 }
 export const Resolve = {
-	shapeShape(a: Collider<Shape>, b: Collider<Shape>): Resolution {
+	shapeShape(a: Collider, b: Collider): Resolution {
 		if (b.type === POINT) return Resolve.shapePt(a, b);
 		else if (b.type === ARC) return Resolve.shapeArc(a, b);
 		else if (b.type === CIRCLE) return Resolve.shapeCircle(a, b);
@@ -1046,7 +980,7 @@ export const Resolve = {
 		else if (b.type === POLYGON) return Resolve.shapePolygon(a, b);
 		else never(b);
 	},
-	shapePt(shape: Collider<Shape>, pt: Collider<Point>): Resolution {
+	shapePt(shape: Collider, pt: Collider & Point): Resolution {
 		if (shape.type === POINT) return Resolve.ptPt(shape, pt);
 		else if (shape.type === ARC) return reverse(Resolve.ptArc(pt, shape));
 		else if (shape.type === CIRCLE) return reverse(Resolve.ptCircle(pt, shape));
@@ -1055,7 +989,7 @@ export const Resolve = {
 		else if (shape.type === POLYGON) return reverse(Resolve.ptPolygon(pt, shape));
 		else never(shape);
 	},
-	shapeArc(shape: Collider<Shape>, arc: Collider<Arc>): Resolution {
+	shapeArc(shape: Collider, arc: Collider & Arc): Resolution {
 		if (shape.type === POINT) return Resolve.ptArc(shape, arc);
 		else if (shape.type === ARC) return Resolve.arcArc(shape, arc);
 		else if (shape.type === CIRCLE) return reverse(Resolve.arcCircle(arc, shape));
@@ -1064,7 +998,7 @@ export const Resolve = {
 		else if (shape.type === POLYGON) return reverse(Resolve.arcPolygon(arc, shape));
 		else never(shape);
 	},
-	shapeCircle(shape: Collider<Shape>, circle: Collider<Circle>): Resolution {
+	shapeCircle(shape: Collider, circle: Collider & Circle): Resolution {
 		if (shape.type === POINT) return Resolve.ptCircle(shape, circle);
 		else if (shape.type === ARC) return Resolve.arcCircle(shape, circle);
 		else if (shape.type === CIRCLE) return Resolve.circleCircle(shape, circle);
@@ -1073,7 +1007,7 @@ export const Resolve = {
 		else if (shape.type === POLYGON) return reverse(Resolve.circlePolygon(circle, shape));
 		else never(shape);
 	},
-	shapeBox(shape: Collider<Shape>, box: Collider<Box>): Resolution {
+	shapeBox(shape: Collider, box: Collider & Box): Resolution {
 		if (shape.type === POINT) return Resolve.ptBox(shape, box);
 		else if (shape.type === ARC) return Resolve.arcBox(shape, box);
 		else if (shape.type === CIRCLE) return Resolve.circleBox(shape, box);
@@ -1082,7 +1016,7 @@ export const Resolve = {
 		else if (shape.type === POLYGON) return reverse(Resolve.boxPolygon(box, shape));
 		else never(shape);
 	},
-	shapeLine(shape: Collider<Shape>, line: Collider<Line>): Resolution {
+	shapeLine(shape: Collider, line: Collider & Line): Resolution {
 		if (shape.type === POINT) return Resolve.ptLine(shape, line);
 		else if (shape.type === ARC) return Resolve.arcLine(shape, line);
 		else if (shape.type === CIRCLE) return Resolve.circleLine(shape, line);
@@ -1091,7 +1025,7 @@ export const Resolve = {
 		else if (shape.type === POLYGON) return reverse(Resolve.linePolygon(line, shape));
 		else never(shape);
 	},
-	shapePolygon(shape: Collider<Shape>, poly: Collider<Polygon>): Resolution {
+	shapePolygon(shape: Collider, poly: Collider & Polygon): Resolution {
 		if (shape.type === POINT) return Resolve.ptPolygon(shape, poly);
 		else if (shape.type === ARC) return Resolve.arcPolygon(shape, poly);
 		else if (shape.type === CIRCLE) return Resolve.circlePolygon(shape, poly);
@@ -1100,19 +1034,19 @@ export const Resolve = {
 		else if (shape.type === POLYGON) return Resolve.polygonPolygon(shape, poly);
 		else never(shape);
 	},
-	ptPt(_a: Collider<Point>, _b: Collider<Point>): Resolution {
+	ptPt(_a: Collider & Point, _b: Collider & Point): Resolution {
 		return ZERO();
 	},
-	ptArc(_pt: Collider<Point>, _arc: Collider<Arc>): Resolution {
+	ptArc(_pt: Collider & Point, _arc: Collider & Arc): Resolution {
 		return ZERO();
 	},
-	ptCircle(pt: Collider<Point>, circle: Collider<Circle>): Resolution {
+	ptCircle(pt: Collider & Point, circle: Collider & Circle): Resolution {
 		let difference = diff(pt, circle);
 		let distance = mag(difference);
 		let proj = scale(difference, circle.radius/distance);
 		return diff(proj, pt);
 	},
-	ptBox(pt: Collider<Point>, box: Collider<Box>): Resolution {
+	ptBox(pt: Collider & Point, box: Collider & Box): Resolution {
 		let xInBox = pt.x - box.x;
 		let yInBox = pt.y - box.y;
 		let diagSlope = box.height / box.width;
@@ -1153,10 +1087,10 @@ export const Resolve = {
 			y: (inTopLeftHalf || inTopRightHalf ? box.height : 0) - yInBox
 		}
 	},
-	ptLine(_pt: Collider<Point>, _line: Collider<Line>): Resolution {
+	ptLine(_pt: Collider & Point, _line: Collider & Line): Resolution {
 		return ZERO();
 	},
-	ptPolygon(pt: Collider<Point>, poly: Collider<Polygon>): Resolution {
+	ptPolygon(pt: Collider & Point, poly: Collider & Polygon): Resolution {
 		let minVert;
 		let minVertDist = Infinity;
 
@@ -1198,24 +1132,24 @@ export const Resolve = {
 		// assumed to be in the dead center of the polygon
 		else return ZERO();
 	},
-	arcArc(a: Collider<Arc>, b: Collider<Arc>): Resolution {
+	arcArc(a: Collider & Arc, b: Collider & Arc): Resolution {
 		if (arcPassCheck(a, b) || arcPassCheck(b, a)) {
 			let d = diff(b, a);
 			let angleFromA = Math.atan2(d.y, d.x);
 			let angleFromB = Math.atan2(-d.y, -d.x);
 			if (angleWithinArc(angleFromA, a) && angleWithinArc(angleFromB, b))
-				return Resolve.circleCircle(a as unknown as Collider<Circle>, b as unknown as Collider<Circle>);
+				return Resolve.circleCircle(a as unknown as Collider & Circle, b as unknown as Collider & Circle);
 			else
 				throw new Error("Unimplemented case! I haven't figured this out yet!")
 		}
 		else return false;
 	},
-	arcCircle(arc: Collider<Arc>, circle: Collider<Circle>): Resolution {
+	arcCircle(arc: Collider & Arc, circle: Collider & Circle): Resolution {
 		if (!arcPassCheck(arc, circle)) return false;
 		let d = diff(circle, arc);
 		let angle = Math.atan2(d.y, d.x);
 		if (angleWithinArc(angle, arc)) {
-			return Resolve.circleCircle(arc as unknown as Collider<Circle>, circle);
+			return Resolve.circleCircle(arc as unknown as Collider & Circle, circle);
 		}
 		else {
 			// try with arc endpoints
@@ -1244,10 +1178,10 @@ export const Resolve = {
 			}
 		}
 	},
-	arcBox(arc: Collider<Arc>, box: Collider<Box>): Resolution {
+	arcBox(arc: Collider & Arc, box: Collider & Box): Resolution {
 		return Resolve.arcPolygon(arc, boxAsPolygon(box));
 	},
-	arcLine(arc: Collider<Arc>, line: Collider<Line>): Resolution {
+	arcLine(arc: Collider & Arc, line: Collider & Line): Resolution {
 		if (arcPassCheck(arc, line) || lineSidePassCheck(line, arc)) {
 			// project arc center onto line
 			let ppt = project(arc, line);
@@ -1256,7 +1190,7 @@ export const Resolve = {
 			// if the arc faces the line, resolve with simple circle-line collision
 			let angleToProjection = Math.atan2(difference.y, difference.x);
 			if (angleWithinArc(angleToProjection, arc)) {
-				return Resolve.circleLine(arc as unknown as Collider<Circle>, line);
+				return Resolve.circleLine(arc as unknown as Collider & Circle, line);
 			}
 
 			// continue to find the intersection points
@@ -1290,7 +1224,7 @@ export const Resolve = {
 		}
 		return false;
 	},
-	arcPolygon(arc: Collider<Arc>, poly: Collider<Polygon>): Resolution {
+	arcPolygon(arc: Collider & Arc, poly: Collider & Polygon): Resolution {
 		if (arcPassCheck(arc, poly)) {
 			// setup flags and storage to check if endpoints should trigger
 			let start = anglePos(arc.start, arc.radius);
@@ -1353,13 +1287,13 @@ export const Resolve = {
 		}
 		else return false;
 	},
-	circleCircle(a: Collider<Circle>, b: Collider<Circle>): Resolution {
+	circleCircle(a: Collider & Circle, b: Collider & Circle): Resolution {
 		let distance = dist(a, b);
 		let overlap = a.radius + b.radius - distance;
 		let push = scale(diff(a, b), overlap / distance);
 		return push;
 	},
-	circleBox(circle: Collider<Circle>, box: Collider<Box>): Resolution {
+	circleBox(circle: Collider & Circle, box: Collider & Box): Resolution {
 		// y axis projection check
 		if (circle.y >= box.y && circle.y <= box.y + box.height) {
 			let boxmid = box.x + box.width/2;
@@ -1400,11 +1334,11 @@ export const Resolve = {
 			else if (circle.x > box.x + box.width && circle.y > box.y + box.height)
 				corner = {type: CIRCLE, radius: 0, x: box.x + box.width, y: box.y + box.height};
 			if (corner)
-				return Resolve.circleCircle(circle, corner as Collider<Circle>);
+				return Resolve.circleCircle(circle, corner as Collider & Circle);
 			else return ZERO();
 		}
 	},
-	circleLine(circle: Collider<Circle>, line: Collider<Line>, skipCheck?: boolean): Resolution {
+	circleLine(circle: Collider & Circle, line: Collider & Line, skipCheck?: boolean): Resolution {
 		if (skipCheck || lineSidePassCheck(line, circle)) {
 			let target = project(circle, line);
 			let [u, v] = lineEnds(line);
@@ -1413,11 +1347,11 @@ export const Resolve = {
 				else if (Intersect.ptCircle(v, circle)) target = v;
 			}
 			(target as Circle).radius = 0;
-			return Resolve.circleCircle(circle, target as Collider<Circle>);
+			return Resolve.circleCircle(circle, target as Collider & Circle);
 		}
 		else return false;
 	},
-	circlePolygon(circle: Collider<Circle>, poly: Collider<Polygon>): Resolution {
+	circlePolygon(circle: Collider & Circle, poly: Collider & Polygon): Resolution {
 		let minVert;
 		let minVertDist = Infinity;
 
@@ -1433,7 +1367,7 @@ export const Resolve = {
 
 				// collide with the line if the circle center projects onto the line
 				if (Intersect.ptLine(target, edge)) {
-					return Resolve.circleLine(circle, edge as Collider<Line>, true);
+					return Resolve.circleLine(circle, edge as Collider & Line, true);
 				}
 
 				// record distance from vertex to find the closest
@@ -1447,11 +1381,11 @@ export const Resolve = {
 
 		// since the center did not project onto any edges, this is a vertex collision
 		if (minVert) {
-			return Resolve.circleCircle(circle, {x: minVert.x, y: minVert.y, radius: 0, type: CIRCLE} as Collider<Circle>);
+			return Resolve.circleCircle(circle, {x: minVert.x, y: minVert.y, radius: 0, type: CIRCLE} as Collider & Circle);
 		}
 		return ZERO();
 	},
-	boxBox(a: Collider<Box>, b: Collider<Box>): Resolution {
+	boxBox(a: Collider & Box, b: Collider & Box): Resolution {
 		let correctionA = {x: 0, y: 0};
 		let solved = false;
 
@@ -1463,22 +1397,22 @@ export const Resolve = {
 
 		// for each side of b, check if crossed over this time step
 		// left side
-		if (a.x + a.width > b.x && a.lastX + a.width < b.lastX) {
+		if (a.x + a.width > b.x && a.prevX + a.width < b.prevX) {
 			correctionA.x = -overlapL;
 			solved = true;
 		}
 		// right side
-		else if (a.x < b.x + b.width && a.lastX > b.lastX + b.width) {
+		else if (a.x < b.x + b.width && a.prevX > b.prevX + b.width) {
 			correctionA.x = overlapR;
 			solved = true;
 		}
 		// bottom side
-		if (a.y + a.height > b.y && a.lastY + a.height < b.lastY) {
+		if (a.y + a.height > b.y && a.prevY + a.height < b.prevY) {
 			correctionA.y = -overlapB;
 			solved = true;
 		}
 		// top side
-		else if (a.y < b.y + b.height && a.lastY > b.lastY + b.height) {
+		else if (a.y < b.y + b.height && a.prevY > b.prevY + b.height) {
 			correctionA.y = overlapT;
 			solved = true;
 		}
@@ -1493,7 +1427,7 @@ export const Resolve = {
 
 		return correctionA;
 	},
-	boxLine(box: Collider<Box>, line: Collider<Line>): Resolution {
+	boxLine(box: Collider & Box, line: Collider & Line): Resolution {
 		if (lineSidePassCheck(line, box)) {
 			let overlap = {x: 0, y: 0};
 			let oDist = 0;
@@ -1551,11 +1485,11 @@ export const Resolve = {
 		}
 		else return false;
 	},
-	boxPolygon(box: Collider<Box>, poly: Collider<Polygon>): Resolution {
+	boxPolygon(box: Collider & Box, poly: Collider & Polygon): Resolution {
 		// just turn the box into a polygon and let that handle it
 		return Resolve.polygonPolygon(boxAsPolygon(box), poly);
 	},
-	lineLine(a: Collider<Line>, b: Collider<Line>): Resolution {
+	lineLine(a: Collider & Line, b: Collider & Line): Resolution {
 		if (lineSidePassCheck(a, b) || lineSidePassCheck(b, a)) {
 			// find intersection point
 			let ma = a.dy / a.dx;
@@ -1612,7 +1546,7 @@ export const Resolve = {
 		}
 		else return false;
 	},
-	linePolygon(line: Collider<Line>, poly: Collider<Polygon>): Resolution {
+	linePolygon(line: Collider & Line, poly: Collider & Polygon): Resolution {
 		if (lineSidePassCheck(line, poly)) {
 			// setup flags and storage to check if endpoints should trigger
 			let end1 = {x: line.x, y: line.y};
@@ -1673,7 +1607,7 @@ export const Resolve = {
 		}
 		else return false;
 	},
-	polygonPolygon(a: Collider<Polygon>, b: Collider<Polygon>): Resolution {
+	polygonPolygon(a: Collider & Polygon, b: Collider & Polygon): Resolution {
 		// find polygon midpoints
 		let midA = polygonCenter(a);
 		let midB = polygonCenter(b);

@@ -93,11 +93,11 @@ export default class Entity extends Obj {
 		// use movement speed
 		if (!this.moved) this.moveDir = this.lastMoveDir;
 		this.x += this.moveSpeed * this.moveDir;
-		for (let id in this.grounds) {
-			if (!this.grounds[id]) continue;
+		if (this.collider?.grounds) for (let id in this.collider.grounds) {
+			if (!this.collider.grounds[id]) continue;
 			let ground = engine.objects.map[id];
-			if (ground && ground.collision && ground.collision.type === Shape.LINE) {
-				let angle = Math.atan(ground.collision.dy / ground.collision.dx);
+			if (ground.collider?.type === Shape.LINE) {
+				let angle = Math.atan(ground.collider.dy / ground.collider.dx);
 				// engine.debug.print(angle);
 				// if moving down the slope
 				if (angle * this.moveDir < 0) {
@@ -117,7 +117,7 @@ export default class Entity extends Obj {
 	}
 	finish(engine: Engine) {
 		if (this.feelsGravity && !this.moved) {
-			if (this.isGrounded) this.moveSpeed *= engine.friction;
+			if (this.collider?.grounded) this.moveSpeed *= engine.friction;
 			else this.moveSpeed *= engine.airResistance;
 			if (this.moveSpeed < engine.frictionSnap) this.moveSpeed = 0;
 		}
@@ -203,7 +203,7 @@ export default class Entity extends Obj {
 					// check this object isn't excluded
 					if (hitbox.hits.indexOf(id) === -1) {
 						// check the hitbox intersects the object
-						if (Collision.intersect(Shape.access(hitbox, "shape"), Shape.access(obj, "collision"))) {
+						if (Collision.intersect(Shape.access(hitbox, "shape"), Shape.access(obj, "collider"))) {
 							obj.hurt(hitbox.damage, hitbox.knockback, this);
 							let methodName = hitbox.onHit;
 							if (typeof methodName == "string" && isKeyOf(this, methodName)) {

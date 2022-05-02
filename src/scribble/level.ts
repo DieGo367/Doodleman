@@ -181,8 +181,8 @@ export class LevelManager extends ResourceManager<Level> {
 					);
 				else never(terrain);
 				
-				if (obj.collision)
-					obj.collision.weight = Infinity;
+				if (obj.collider)
+					obj.collider.weight = Infinity;
 				this.engine.objects.add(obj);
 			}
 		}
