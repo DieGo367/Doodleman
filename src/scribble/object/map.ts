@@ -39,7 +39,7 @@ export default class ObjMap {
 	}
 	add(object: Obj) {
 		object.id = this.nextID++;
-		object.objectManager = this;
+		object.objMap = this;
 		this.map[object.id] = object;
 		this.minLayer = Math.min(this.minLayer, object.drawLayer);
 		this.maxLayer = Math.max(this.maxLayer, object.drawLayer);
@@ -65,6 +65,7 @@ export default class ObjMap {
 	removeAll() {
 		this.triggerAll("remove");
 		this.minLayer = this.maxLayer = 0;
+		this.nextID = 0;
 	}
 	start() {
 		this.triggerAll("start");

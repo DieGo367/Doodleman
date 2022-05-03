@@ -45,8 +45,8 @@ export function run(objectMap: {[id: number]: Obj}, gravity: Point, level: Level
 			let collider = obj.collider;
 			// update collider
 			collider.id = obj.id!;
-			collider.prevX = obj.lastX + collider.relX;
-			collider.prevY = obj.lastY + collider.relY;
+			collider.prevX = obj.prevX + collider.relX;
+			collider.prevY = obj.prevY + collider.relY;
 			collider.prevCollided = collider.collided;
 			collider.prevCollisions = collider.collisions;
 			collider.prevGrounded = collider.grounded;

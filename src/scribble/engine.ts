@@ -94,7 +94,7 @@ export class Engine {
 	async _collectResources(resources: {[resourceName: string]: string}) {
 		if (resources) {
 			let lists = [];
-			let batches: Promise<unknown>[] = [];
+			let batches = [] as Promise<unknown>[];
 			for (let listType in resources) {
 				let listName = resources[listType]; 
 				lists.push(this.requestData(listName).then(list => {

@@ -255,7 +255,7 @@ class Doodleman extends Scribble.Entity {
 		return this.collider?.grounded;
 	}
 	cancelJump() {
-		let gravity = this.objectManager? this.objectManager.engine.gravity : {x: 0, y: 0};
+		let gravity = this.objMap?.engine.gravity ?? {x: 0, y: 0};
 		let currentJumpVel = this.jumpAccel + gravity.y * (this.jumpFrame);
 		// cancel the remaining velocity of the current jump and add some final compensation
 		this.velY += -currentJumpVel + this.jumpCancelAccel;

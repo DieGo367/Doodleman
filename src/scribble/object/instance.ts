@@ -9,14 +9,14 @@ import { Graphic, Animator, Collider, collider, graphic, animator } from "./comp
 
 export default class Obj {
 	id: number | null = null;
-	objectManager: ObjMap | null = null;
+	objMap: ObjMap | null = null;
 	isActor = false;
 	velX = 0;
 	velY = 0;
-	lastX: number;
-	lastY: number;
-	lastVelX = 0;
-	lastVelY = 0;
+	prevX: number;
+	prevY: number;
+	prevVelX = 0;
+	prevVelY = 0;
 	drawLayer = 0;
 	feelsGravity = false;
 	gravityScale = 1;
@@ -25,13 +25,13 @@ export default class Obj {
 	animator?: Animator;
 	collider?: Collider;
 	constructor(public x: number, public y: number) {
-		this.lastX = x;
-		this.lastY = y;
+		this.prevX = x;
+		this.prevY = y;
 	}
 	remove() {
-		if (this.objectManager && this.id !== null) {
-			this.objectManager.remove(this.id);
-			this.id = this.objectManager = null;
+		if (this.objMap && this.id !== null) {
+			this.objMap.remove(this.id);
+			this.id = this.objMap = null;
 		}
 	}
 	static onlineProperties = ["x", "y", "id", "drawLayer"];
@@ -76,10 +76,10 @@ export default class Obj {
 			if (Math.abs(this.velX) < engine.frictionSnap) this.velX = 0;
 			if (Math.abs(this.velY) < engine.frictionSnap) this.velY = 0;
 		}
-		this.lastX = this.x;
-		this.lastY = this.y;
-		this.lastVelX = this.velX;
-		this.lastVelY = this.velY;
+		this.prevX = this.x;
+		this.prevY = this.y;
+		this.prevVelX = this.velX;
+		this.prevVelY = this.velY;
 	}
 
 	drawTint() {}
