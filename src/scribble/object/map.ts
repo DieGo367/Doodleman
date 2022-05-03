@@ -10,18 +10,14 @@ export type ObjClass = {
 	new (...args: any[]): Obj;
 }
 type ObjTriggers = {
-	[Property in keyof Obj as 
-		Obj[Property] extends (e: Engine) => void ?
-		Property :
-		never
-	]: Obj[Property];
+	[Property in keyof Obj as Obj[Property] extends (e: Engine) => void ? Property : never]: Obj[Property];
 }
 
 export default class ObjMap {
-	map = {} as {[id: number]: Obj};
+	map: {[id: number]: Obj} = {};
 	nextID = 0;
-	actorData = {} as ActorDef[];
-	registeredClasses = {} as {[className: string]: ObjClass};
+	actorData: ActorDef[] = [];
+	registeredClasses: {[className: string]: ObjClass} = {};
 	minLayer = 0;
 	maxLayer = 0;
 	constructor(public engine: Engine) {

@@ -64,7 +64,7 @@ export default class Entity extends Obj {
 	currentAction: string | null = null;
 	actionLock = 0;
 	actionFrame = 0;
-	hitboxes = {} as {[name: string]: Hitbox};
+	hitboxes: {[name: string]: Hitbox} = {};
 
 	constructor(x: number, y: number) {
 		super(x, y);

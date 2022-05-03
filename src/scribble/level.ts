@@ -117,8 +117,8 @@ export class LevelManager extends ResourceManager<Level> {
 		return this.updateLevel(data);
 	}
 	async loadFileInput(): Promise<Level[]> {
-		let levels = [] as Level[];
-		let dataList = await this.engine.file.askData(["json"]) as unknown[];
+		let levels: Level[] = [];
+		let dataList = await this.engine.file.askData(["json"]);
 		for (let i = 0; i < dataList.length; i++) {
 			let data = this.updateLevel(dataList[i]);
 			this.map[`file:${i}`] = data;

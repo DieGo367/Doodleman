@@ -19,13 +19,13 @@ interface Background {
 export type BackgroundData = Omit<Background, "tick">;
 
 export class Backgrounds {
-	bgs = [] as Background[];
+	bgs: Background[] = [];
 	minLayer = 0;
 	maxLayer = 0;
 	rawBGs = 0;
 	constructor(public engine: Engine) {}
 	async load(background: BackgroundData) {
-		let bg = Object.assign({tick: 0}, background) as Background;
+		let bg = Object.assign({tick: 0}, background);
 		this.bgs.push(bg);
 		this.minLayer = Math.min(this.minLayer, bg.layer);
 		this.maxLayer = Math.max(this.maxLayer, bg.layer);

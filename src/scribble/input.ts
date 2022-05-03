@@ -9,9 +9,9 @@ interface Buttons {
 }
 
 export class InputManager {
-	keys = {} as Keys;
-	keyPrev = {} as Keys;
-	keyPrevGame = {} as Keys;
+	keys: Keys = {};
+	keyPrev: Keys = {};
+	keyPrevGame: Keys = {};
 	cursor = {
 		x: 0, y: 0,
 		buttons: {} as Buttons,

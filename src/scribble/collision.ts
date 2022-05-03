@@ -34,9 +34,9 @@ export const SLOPE_THRESH = 0.8;
  */
 export function run(objectMap: {[id: number]: Obj}, gravity: Point, level: Level) {
 	// create a map of buckets for objects of different collision weight levels
-	let bucketMap = {} as {[weight: number]: Collider[]};
+	let bucketMap: {[weight: number]: Collider[]} = {};
 	// list of the weight levels we have made buckets for
-	let mapLevels = [] as number[];
+	let mapLevels: number[] = [];
 
 	for (let id in objectMap) {
 		let obj = objectMap[id];
@@ -67,7 +67,7 @@ export function run(objectMap: {[id: number]: Obj}, gravity: Point, level: Level
 		}
 	}
 
-	let processedColliders = [] as Collider[];
+	let processedColliders: Collider[] = [];
 	// sort the weight levels in ascending order
 	mapLevels.sort();
 	for (let level of mapLevels) {
@@ -428,7 +428,7 @@ export function getShapeBottoms(shape: Shape, gravity: Point): Shape[] {
 			let gravityPoint = scale(gravity, shape.radius/mag(gravity));
 			let startDist = dist(arcStart, gravityPoint);
 			let endDist = dist(arcEnd, gravityPoint);
-			let results = [] as Point[];
+			let results: Point[] = [];
 			if (startDist <= endDist) results.push(arcStart);
 			if (endDist <= startDist) results.push(arcEnd);
 			return results.map(pt => { return {...pt, type: POINT}; });
@@ -516,10 +516,10 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 			let gravityPoint = scale(gravity, shape.radius/mag(gravity));
 			let startDist = dist(arcStart, gravityPoint);
 			let endDist = dist(arcEnd, gravityPoint);
-			let results = [] as Point[];
+			let results: Point[] = [];
 			if (startDist <= endDist) results.push(arcStart);
 			if (endDist <= startDist) results.push(arcEnd);
-			return results.map(pt => Object.assign(pt, {type: POINT} as Shaped<Point>))
+			return results.map(pt => Object.assign(pt, {type: POINT as typeof POINT}));
 		}
 	}
 	else if (shape.type === BOX) {
@@ -1138,7 +1138,7 @@ export const Resolve = {
 			let angleFromA = Math.atan2(d.y, d.x);
 			let angleFromB = Math.atan2(-d.y, -d.x);
 			if (angleWithinArc(angleFromA, a) && angleWithinArc(angleFromB, b))
-				return Resolve.circleCircle(a as unknown as Collider & Circle, b as unknown as Collider & Circle);
+				return Resolve.circleCircle(a, b);
 			else
 				throw new Error("Unimplemented case! I haven't figured this out yet!")
 		}
@@ -1149,7 +1149,7 @@ export const Resolve = {
 		let d = diff(circle, arc);
 		let angle = Math.atan2(d.y, d.x);
 		if (angleWithinArc(angle, arc)) {
-			return Resolve.circleCircle(arc as unknown as Collider & Circle, circle);
+			return Resolve.circleCircle(arc, circle);
 		}
 		else {
 			// try with arc endpoints
@@ -1190,7 +1190,7 @@ export const Resolve = {
 			// if the arc faces the line, resolve with simple circle-line collision
 			let angleToProjection = Math.atan2(difference.y, difference.x);
 			if (angleWithinArc(angleToProjection, arc)) {
-				return Resolve.circleLine(arc as unknown as Collider & Circle, line);
+				return Resolve.circleLine(arc, line);
 			}
 
 			// continue to find the intersection points
@@ -1494,7 +1494,7 @@ export const Resolve = {
 			// find intersection point
 			let ma = a.dy / a.dx;
 			let mb = b.dy / b.dx;
-			let intersect = {} as Point;
+			let intersect = {x: 0, y:0};
 			if (ma === Infinity) {
 				if (mb === Infinity) return false;
 				else {

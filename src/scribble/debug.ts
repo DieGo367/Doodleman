@@ -4,8 +4,8 @@ type DebugData = string | object;
 
 export class Debug {
 	enabled = false;
-	lines = [] as string[];
-	dict = {} as {[key: string]: string};
+	lines: string[] = [];
+	dict: {[key: string]: string} = {};
 	frameStepper = true;
 	frameCanStep = false;
 	constructor(public engine: Engine) {}
