@@ -21,17 +21,17 @@ type TerrainData = (
 	}
 	| {
 		type: TERRAIN.LINE;
-		properties: [string, ...unknown[]];
+		properties: [string|null, ...unknown[]];
 		pieces: [number, number, number, number][];
 	}
 	| {
 		type: TERRAIN.CIRCLE;
-		properties: [string, ...unknown[]];
+		properties: [string|null, ...unknown[]];
 		pieces: [number, number, number][];
 	}
 	| {
 		type: TERRAIN.POLYGON;
-		properties: [string, ...unknown[]];
+		properties: [string|null, ...unknown[]];
 		pieces: [number, number, [number,number][] ][];
 	}
 );
@@ -74,28 +74,28 @@ const LevelValidation: Validation = {
 		{
 			type: {"=": TERRAIN.BOX},
 			properties: {"&": [Array, {
-				0: "string"
+				0: {"|": ["string", null]}
 			}]},
 			pieces: {"[]": ["number", "number", "number", "number"]}
 		},
 		{
 			type: {"=": TERRAIN.LINE},
 			properties: {"&": [Array, {
-				0: "string"
+				0: {"|": ["string", null]}
 			}]},
 			pieces: {"[]": ["number", "number", "number", "number"]}
 		},
 		{
 			type: {"=": TERRAIN.CIRCLE},
 			properties: {"&": [Array, {
-				0: "string"
+				0: {"|": ["string", null]}
 			}]},
 			pieces: {"[]": ["number", "number", "number"]}
 		},
 		{
 			type: {"=": TERRAIN.POLYGON},
 			properties: {"&": [Array, {
-				0: "string"
+				0: {"|": ["string", null]}
 			}]},
 			pieces: {"[]":[ "number", "number", {"[]": ["number", "number"]} ]}
 		}
@@ -163,7 +163,7 @@ export class LevelManager extends ResourceManager<Level> {
 			let terrain = {...terrainDataEntry};
 			for (let pieceData of terrain.pieces) {
 				let obj: Obj;
-				let gfx = terrain.properties[0];
+				let gfx = terrain.properties[0] ?? "";
 				if (terrain.type === TERRAIN.BOX)
 					obj = new ShapeObjects.Box(pieceData[0], pieceData[1], pieceData[2] as number, pieceData[3] as number, gfx);
 				else if (terrain.type === TERRAIN.LINE)

@@ -68,9 +68,10 @@ function validationObjectIsSpecial(obj: ValidationObject): obj is SpecialValidat
 	let keys = Object.keys(obj);
 	return keys.length === 1 && ["=","@","=>","[]","*","&","|","!"].includes(keys[0]);
 }
-export type Validation = string | Validation[] | {new(...args: any[]): any} | ValidationObject;
+export type Validation = null | string | Validation[] | {new(...args: any[]): any} | ValidationObject;
 export function validate(data: unknown, validation: Validation, log = (msg: string) => {}, prefix = "{}"): boolean {
-	if (typeof validation === "string") {
+	if (validation === null) return data === null;
+	else if (typeof validation === "string") {
 		// primitive typeof checks
 		if (validation === "") return true;
 		let types = validation.split("|");
