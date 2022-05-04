@@ -1,5 +1,5 @@
-import { Engine } from "./engine.js";
-import { ResourceManager } from "./resource.js";
+import Engine from "./engine.js";
+import ResourceManager from "./resource.js";
 import { LEFT, RIGHT, CENTER, DIR, never, isIndexable, isKeyOf, validate } from "./util.js";
 
 import { Components } from "./object/mod.js";
@@ -61,7 +61,7 @@ function isAnimationSheetData(data: unknown): data is AnimationSheetData {
 	}, console.warn);
 }
 
-export class AnimationManager extends ResourceManager<AnimationSheet> {
+export default class AnimationManager extends ResourceManager<AnimationSheet> {
 	constructor(engine: Engine) {
 		super(engine, "Animations");
 	}

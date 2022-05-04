@@ -1,4 +1,4 @@
-import { Engine } from "./engine";
+import Engine from "./engine";
 import { Point } from "./shape";
 
 interface Keys {
@@ -8,7 +8,7 @@ interface Buttons {
 	[key: number]: boolean;
 }
 
-export class InputManager {
+export default class InputManager {
 	keys: Keys = {};
 	keyPrev: Keys = {};
 	keyPrevGame: Keys = {};

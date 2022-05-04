@@ -1,4 +1,4 @@
-import { Engine } from "./engine.js";
+import Engine from "./engine.js";
 import { never } from "./util.js";
 
 interface Background {
@@ -18,7 +18,7 @@ interface Background {
 }
 export type BackgroundData = Omit<Background, "tick">;
 
-export class Backgrounds {
+export default class Backgrounds {
 	bgs: Background[] = [];
 	minLayer = 0;
 	maxLayer = 0;

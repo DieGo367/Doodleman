@@ -1,7 +1,7 @@
-import { Engine } from "./engine";
+import Engine from "./engine";
 import { Point } from "./shape";
 
-export class Camera {
+export default class Camera {
 	zoom = 1;
 	snapDistance = 1;
 	constructor(public engine: Engine, public x: number, public y: number, public width: number, public height: number) {}

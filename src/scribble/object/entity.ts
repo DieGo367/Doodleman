@@ -1,6 +1,6 @@
-import { Engine } from "../engine.js";
-import { ImageManager } from "../images.js";
-import { AnimationManager } from "../animations.js";
+import Engine from "../engine.js";
+import ImageManager from "../images.js";
+import AnimationManager from "../animations.js";
 import * as Shape from "../shape.js";
 import * as Collision from "../collision.js";
 import { DIR, LEFT, CENTER, RIGHT, COLOR, isKeyOf } from "../util.js";

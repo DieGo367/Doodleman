@@ -1,4 +1,4 @@
-export class FileLoader {
+export default class FileLoader {
 	input: HTMLInputElement;
 	asking = false;
 	changeFired = false;

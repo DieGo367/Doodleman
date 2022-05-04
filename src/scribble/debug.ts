@@ -1,8 +1,8 @@
-import { Engine } from "./engine";
+import Engine from "./engine";
 
 type DebugData = string | object;
 
-export class Debug {
+export default class Debug {
 	enabled = false;
 	lines: string[] = [];
 	dict: {[key: string]: string} = {};

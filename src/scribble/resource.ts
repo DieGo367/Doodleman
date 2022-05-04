@@ -1,11 +1,7 @@
-import { Engine } from "./engine";
+import Engine from "./engine";
 
-interface MapOf<Type> {
-	[key: string]: Type
-}
-
-export class ResourceManager<StoredType> {
-	map = {} as MapOf<StoredType>;
+export default class ResourceManager<StoredType> {
+	map: {[key: string]: StoredType} = {};
 	constructor(public engine: Engine, public name = "Unknown Resource Manager") {}
 
 	get(name: string): StoredType {

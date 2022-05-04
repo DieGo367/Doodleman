@@ -1,20 +1,21 @@
-import { Game } from "./game.js";
-import { ImageManager } from "./images.js";
-import { SoundManager } from "./sounds.js";
-import { AnimationManager } from "./animations.js";
-import { LevelManager, BlankLevel, Level } from "./level.js";
+import Game from "./game.js";
+import ImageManager from "./images.js";
+import SoundManager from "./sounds.js";
+import AnimationManager from "./animations.js";
+import LevelManager from "./level.js";
+import { BlankLevel, Level } from "./level.js";
 import { ObjClass, ObjMap } from "./object/mod.js";
 import * as Collision from "./collision.js";
-import { Camera } from "./camera.js";
-import { InputManager } from "./input.js";
-import { Backgrounds } from "./backgrounds.js";
-import { FileLoader } from "./file.js";
-import { Debug } from "./debug.js";
+import Camera from "./camera.js";
+import InputManager from "./input.js";
+import Backgrounds from "./backgrounds.js";
+import FileLoader from "./file.js";
+import Debug from "./debug.js";
 import { COLOR } from "./util.js";
 
 type Resources = "images" | "sounds" | "animations" | "levels";
 
-export class Engine {
+export default class Engine {
 	// resource managers
 	images: ImageManager;
 	sounds: SoundManager;

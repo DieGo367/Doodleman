@@ -1,6 +1,6 @@
-import { Engine } from "./engine";
+import Engine from "./engine";
 
-export class Game {
+export default class Game {
 	constructor(public engine: Engine) {}
 	init() {}
 	tick() {}

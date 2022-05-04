@@ -1,7 +1,7 @@
-import { ResourceManager } from "./resource.js";
+import ResourceManager from "./resource.js";
 import { HiddenCanvas } from "./util.js";
 import * as Shape from "./shape.js";
-import { Engine } from "./engine.js";
+import Engine from "./engine.js";
 
 type Drawable = Exclude<CanvasImageSource, SVGImageElement>;
 interface ImageResource {
@@ -15,7 +15,7 @@ interface ImageResource {
 	};
 }
 
-export class ImageManager extends ResourceManager<ImageResource> {
+export default class ImageManager extends ResourceManager<ImageResource> {
 	useFlipped = false;
 	constructor(engine: Engine, public ctx: CanvasRenderingContext2D) {
 		super(engine, "Images");

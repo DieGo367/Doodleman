@@ -1,5 +1,5 @@
-import { Engine } from "./engine.js";
-import { ResourceManager } from "./resource.js";
+import Engine from "./engine.js";
+import ResourceManager from "./resource.js";
 import { Obj, isActorDefArg, ShapeObjects } from "./object/mod.js";
 import { BackgroundData } from "./backgrounds.js";
 import { never, validate, Validation } from "./util.js";
@@ -108,7 +108,7 @@ const LevelValidation: Validation = {
 	}}
 };
 
-export class LevelManager extends ResourceManager<Level> {
+export default class LevelManager extends ResourceManager<Level> {
 	constructor(engine: Engine) {
 		super(engine, "Levels");
 	}
