@@ -127,12 +127,12 @@ export function run(objectMap: {[id: number]: Obj}, gravity: Point, level: Level
 	}
 }
 // the entire collision check process, including detection, push vector creation, and ground detection
-export function collisionCheck(a: Collider, b: Collider, gravity: Point) {
+function collisionCheck(a: Collider, b: Collider, gravity: Point) {
 	if (a.weight === Infinity && b.weight === Infinity) return;
 	// discreteCollision(a, b, gravity);
 	continuousCollision(a, b, gravity);
 }
-export function discreteCollision(a: Collider, b: Collider, gravity: Point) {
+function discreteCollision(a: Collider, b: Collider, gravity: Point) {
 	if (intersect(a, b)) {
 		let push = resolve(a, b);
 		if (push) {
@@ -150,7 +150,7 @@ export function discreteCollision(a: Collider, b: Collider, gravity: Point) {
 		else console.error("No proper resolution given!");
 	}
 }
-export function continuousCollision(a: Collider, b: Collider, gravity: Point) {
+function continuousCollision(a: Collider, b: Collider, gravity: Point) {
 	// if collided last frame, just use discrete collision
 	if (a.prevCollisions[b.id] || b.prevCollisions[a.id]) {
 		discreteCollision(a, b, gravity);
@@ -172,7 +172,7 @@ export function continuousCollision(a: Collider, b: Collider, gravity: Point) {
 		else console.error("No proper resolution given!");
 	}
 }
-export function sweepCheck(a: Collider, b: Collider): boolean {
+function sweepCheck(a: Collider, b: Collider): boolean {
 	// motion check
 	let ax = a.x - a.prevX;
 	let ay = a.y - a.prevY;
@@ -192,7 +192,7 @@ export function sweepCheck(a: Collider, b: Collider): boolean {
 	}
 	return false;
 }
-export function getSweepingShapes(shape: Collider): Shape[] {
+function getSweepingShapes(shape: Collider): Shape[] {
 	if (shape.sweep) return shape.sweep;
 	let dx = shape.x - shape.prevX;
 	let dy = shape.y - shape.prevY;
@@ -265,7 +265,7 @@ export function getSweepingShapes(shape: Collider): Shape[] {
 	}
 	else never(shape);
 }
-export function bisectionMethod(a: Collider, b: Collider): SweepResolution {
+function bisectionMethod(a: Collider, b: Collider): SweepResolution {
 	// velocities
 	let velA = {x: a.x - a.prevX, y: a.y - a.prevY};
 	let velB = {x: b.x - b.prevX, y: b.y - b.prevY};
@@ -345,7 +345,7 @@ export function bisectionMethod(a: Collider, b: Collider): SweepResolution {
 	}
 	return resolved;
 }
-export function resolvePush(a: Collider, b: Collider, force: Point): Exclude<SweepResolution, false> {
+function resolvePush(a: Collider, b: Collider, force: Point): Exclude<SweepResolution, false> {
 	// resolved copies
 	let resA = Object.assign({}, a);
 	let resB = Object.assign({}, b);
@@ -378,7 +378,7 @@ export function resolvePush(a: Collider, b: Collider, force: Point): Exclude<Swe
 	}
 	return {a: resA, b: resB};
 }
-export function collisionBasedGrounding(a: Collider, b: Collider, resolution: Exclude<SweepResolution, false>, gravity: Point) {
+function collisionBasedGrounding(a: Collider, b: Collider, resolution: Exclude<SweepResolution, false>, gravity: Point) {
 	if (gravity.x === 0 && gravity.y === 0) return;
 	if (shapeGroundedOn(resolution.a, resolution.b, gravity)) {
 		a.grounds[b.id] = true;
@@ -389,7 +389,7 @@ export function collisionBasedGrounding(a: Collider, b: Collider, resolution: Ex
 		b.grounded = true;
 	}
 }
-export function shapeGroundedOn(a: Collider, b: Collider, gravity: Point): boolean {
+function shapeGroundedOn(a: Collider, b: Collider, gravity: Point): boolean {
 	let bottoms = getShapeBottoms(a, gravity);
 	let tops = getShapeTops(b, gravity);
 	for (let bottom of bottoms) {
@@ -585,7 +585,7 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 	}
 	else never(shape);
 }
-export function levelBoundCheck(shape: Collider, owner: Obj, level: Level, gravity: Point) {
+function levelBoundCheck(shape: Collider, owner: Obj, level: Level, gravity: Point) {
 	let l = left(shape);
 	let r = right(shape);
 	let b = bottom(shape);
@@ -595,7 +595,7 @@ export function levelBoundCheck(shape: Collider, owner: Obj, level: Level, gravi
 	resolveBound(shape, owner, 'y', b, t, -1, level.edge.bottom, 0, level.height, gravity);
 	resolveBound(shape, owner, 'y', t, b, 1, level.edge.top, level.height, 0, gravity);
 }
-export function resolveBound(
+function resolveBound(
 	shape: Collider, owner: Obj, axis: "x" | "y",
 	shapeFront: number, shapeBack: number, direction: number,
 	borderType: EDGE, borderPos: number,
@@ -628,7 +628,7 @@ export function resolveBound(
 	}
 }
 // small helpers
-export function boxAsPolygon(box: Collider & Box): Collider & Polygon {
+function boxAsPolygon(box: Collider & Box): Collider & Polygon {
 	return {
 		...box,
 		type: POLYGON,
@@ -639,10 +639,10 @@ export function boxAsPolygon(box: Collider & Box): Collider & Polygon {
 		]
 	};
 }
-export function lineEnds(line: Line): [Point, Point] {
+function lineEnds(line: Line): [Point, Point] {
 	return [{x: line.x, y: line.y}, {x: line.x + line.dx, y: line.y + line.dy}];
 }
-export function lineSidePassCheck(line: Collider & Line, shape: Collider): boolean {
+function lineSidePassCheck(line: Collider & Line, shape: Collider): boolean {
 	// return result from last collision, if it exists
 	let prevResult = line.prevCollisions[shape.id];
 	if (typeof prevResult === "boolean") return prevResult;
@@ -665,7 +665,7 @@ export function lineSidePassCheck(line: Collider & Line, shape: Collider): boole
 		return sideTest <= 0;
 	// }
 }
-export function arcPassCheck(arc: Collider & Arc, shape: Collider): boolean {
+function arcPassCheck(arc: Collider & Arc, shape: Collider): boolean {
 	// return result from last collision, if it exists
 	let prevResult = arc.prevCollisions[shape.id];
 	if (typeof prevResult === "boolean") return prevResult;
@@ -674,11 +674,11 @@ export function arcPassCheck(arc: Collider & Arc, shape: Collider): boolean {
 	let lastMid = sum(diff(mid, shape), {x: shape.prevX, y: shape.prevY});
 	return dist(arc, lastMid) >= arc.radius;
 }
-export function reverse(resolution: Resolution) {
+function reverse(resolution: Resolution) {
 	if (resolution) return scale(resolution, -1);
 	else return resolution;
 }
-export function ZERO(): {x: 0, y: 0} { return {x: 0, y: 0}; }
+function ZERO(): {x: 0, y: 0} { return {x: 0, y: 0}; }
 
 // detection and resolution
 export function intersect(a: Shape, b: Shape): boolean {
