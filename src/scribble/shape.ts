@@ -385,7 +385,7 @@ export function access<Owner extends Point>(owner: Owner, propName: keyof Owner)
 export function fill(ctx: CanvasRenderingContext2D, x: number, y: number, shape: Shape) {
 	if (shape.type === POINT) {
 		ctx.beginPath();
-		ctx.arc(x + shape.x, y + shape.y, ctx.lineWidth, 0, Math.PI * 2);
+		ctx.arc(x + shape.x, y + shape.y, ctx.lineWidth/2, 0, Math.PI * 2);
 		ctx.fill();
 	}
 	else if (shape.type === CIRCLE) {
@@ -397,9 +397,12 @@ export function fill(ctx: CanvasRenderingContext2D, x: number, y: number, shape:
 		ctx.fillRect(x + shape.x, y + shape.y, shape.width, shape.height);
 	}
 	else if (shape.type === ARC) {
+		let ss = ctx.strokeStyle;
+		ctx.strokeStyle = ctx.fillStyle;
 		ctx.beginPath();
 		ctx.arc(x + shape.x, y + shape.y, shape.radius, shape.start, shape.end);
-		ctx.fill();
+		ctx.stroke();
+		ctx.strokeStyle = ss;
 	}
 	else if (shape.type === LINE) {
 		let ss = ctx.strokeStyle;
@@ -424,7 +427,7 @@ export function fill(ctx: CanvasRenderingContext2D, x: number, y: number, shape:
 export function stroke(ctx: CanvasRenderingContext2D, x: number, y: number, shape: Shape) {
 	if (shape.type === POINT) {
 		ctx.beginPath();
-		ctx.arc(x + shape.x, y + shape.y, ctx.lineWidth, 0, Math.PI * 2);
+		ctx.arc(x + shape.x, y + shape.y, ctx.lineWidth/2, 0, Math.PI * 2);
 		ctx.stroke();
 	}
 	else if (shape.type === CIRCLE) {
