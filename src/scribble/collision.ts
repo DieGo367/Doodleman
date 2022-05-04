@@ -605,6 +605,7 @@ export function resolveBound(
 		if (shapeFront * direction >= borderPos * direction) {
 			let dp = borderPos - shapeFront;
 			owner[axis] += dp;
+			shape[axis] += dp;
 			shape.collided = true;
 			// check grounding
 			if (gravity.x !== 0 || gravity.y !== 0) {
@@ -622,6 +623,7 @@ export function resolveBound(
 		if (shapeBack * direction >= borderPos * direction) {
 			let dp = warpPos - shapeFront;
 			owner[axis] += dp;
+			shape[axis] += dp;
 		}
 	}
 }
