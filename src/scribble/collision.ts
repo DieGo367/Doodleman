@@ -1,6 +1,6 @@
 import { Obj, Components } from "./object/mod.js";
 import { EDGE, Level } from "./level.js";
-import { anglePos, angleWithinArc, diff, dist, dot, mag, project, scale, sum, unit } from "./geometry.js";
+import { anglePos, angleWithinArc, diff, dist, dot, mag, project, rescale, scale, sum, unit } from "./geometry.js";
 import { never } from "./util.js";
 import {
 	type Shape, type Shaped, type Basic,
@@ -425,7 +425,7 @@ export function getShapeBottoms(shape: Shape, gravity: Point): Shape[] {
 		else {
 			let arcStart = anglePos(shape.start, shape.radius);
 			let arcEnd = anglePos(shape.start, shape.radius);
-			let gravityPoint = scale(gravity, shape.radius/mag(gravity));
+			let gravityPoint = rescale(gravity, shape.radius);
 			let startDist = dist(arcStart, gravityPoint);
 			let endDist = dist(arcEnd, gravityPoint);
 			let results: Point[] = [];
@@ -513,7 +513,7 @@ export function getShapeTops(shape: Shape, gravity: Point): Shape[] {
 		else {
 			let arcStart = anglePos(shape.start, shape.radius);
 			let arcEnd = anglePos(shape.start, shape.radius);
-			let gravityPoint = scale(gravity, shape.radius/mag(gravity));
+			let gravityPoint = rescale(gravity, shape.radius);
 			let startDist = dist(arcStart, gravityPoint);
 			let endDist = dist(arcEnd, gravityPoint);
 			let results: Point[] = [];
@@ -601,6 +601,7 @@ function resolveBound(
 	borderType: EDGE, borderPos: number,
 	warpPos: number, gravity: Point
 ) {
+	if (shape.type === "arc") return;
 	if (borderType === EDGE.SOLID) {
 		if (shapeFront * direction >= borderPos * direction) {
 			let dp = borderPos - shapeFront;
@@ -678,7 +679,7 @@ function reverse(resolution: Resolution) {
 	if (resolution) return scale(resolution, -1);
 	else return resolution;
 }
-function ZERO(): {x: 0, y: 0} { return {x: 0, y: 0}; }
+function ZERO() { return {x: 0, y: 0} as const; }
 
 // detection and resolution
 export function intersect(a: Shape, b: Shape): boolean {
@@ -755,12 +756,7 @@ export const Intersect = {
 		let distance = dist(pt, arc);
 		if (arc.radius - EPS <= distance && distance <= arc.radius) {
 			let angle = Math.atan2(pt.y - arc.y, pt.x - arc.x);
-			if (angle < 0) angle += 2*Math.PI;
-			let end = arc.end - arc.start;
-			if (end < 0) end += 2*Math.PI;
-			angle -= arc.start;
-			if (angle < 0) angle += 2*Math.PI;
-			return angle < end;
+			return angleWithinArc(angle, arc);
 		}
 		return false;
 	},
@@ -801,35 +797,29 @@ export const Intersect = {
 	},
 	arcArc(a: Arc, b: Arc): boolean {
 		if (!Intersect.circleCircle(a, b)) return false;
-		let difference = diff(b, a);
-		let diffNormal = {x: -difference.y, y: difference.x};
-		let d = mag(difference);
-		if (d === 0) {
-			if (Math.abs(a.radius-b.radius) > EPS) return false;
-			if (a.start < b.start) return b.start <= a.end;
-			return a.start <= b.end; 
-		}
-		else {
-			// angle using law of cosines
-			let cosTheta = (d*d + a.radius*a.radius - b.radius*b.radius) / 2*d*a.radius;
-			let theta = Math.acos(cosTheta);
-			let sinTheta = Math.sin(theta)
-			// the point between both intersection points of the two circles, and between the two circle centers
-			let center = scale(difference, a.radius*cosTheta/d);
-			// the "height" of the intersection points above and below the diff line
-			let height = scale(diffNormal, a.radius*sinTheta/d);
-			// the intersection points
-			let p1 = sum(center, height);
-			if (Intersect.ptArc(p1, a) && Intersect.ptArc(p1, b)) return true;
-			let p2 = diff(center, height);
-			return Intersect.ptArc(p2, a) && Intersect.ptArc(p2, b);
-		}
+		let differ = diff(b, a);
+		let overlap = a.radius + b.radius - mag(differ);
+		let d = a.radius - overlap/2;
+		let chordCenter = sum(a, rescale(differ, d));
+		let sMag = Math.sqrt(a.radius**2 - d*d);
+		let s = rescale({x: -differ.y, y: differ.x}, sMag);
+
+		let pt1 = {x: chordCenter.x + s.x, y: chordCenter.y + s.y, radius: EPS};
+		let pt2 = {x: chordCenter.x - s.x, y: chordCenter.y - s.y, radius: EPS};
+
+		return Intersect.arcCircle(a, pt1) && Intersect.arcCircle(b, pt1)
+			|| Intersect.arcCircle(a, pt2) && Intersect.arcCircle(b, pt2);
 	},
 	arcCircle(arc: Arc, circle: Circle): boolean {
-		return Intersect.arcArc(
-			arc,
-			{x: circle.x, y: circle.y, radius: circle.radius, start: 0, end: 2*Math.PI}
-		);
+		if (!Intersect.circleCircle(arc, circle)) return false;
+		let start = sum(arc, anglePos(arc.start, arc.radius));
+		let end = sum(arc, anglePos(arc.end, arc.radius));
+		if (Intersect.ptCircle(start, circle) || Intersect.ptCircle(end, circle)) return true;
+
+		let d = diff(circle, arc);
+		let crossAngle = Math.atan2(d.y, d.x);
+		return (angleWithinArc(crossAngle, arc)
+			&& dist(circle, arc) + circle.radius >= arc.radius);
 	},
 	arcBox(arc: Arc, box: Box): boolean {
 		if (!Intersect.circleBox(arc, box)) return false;
@@ -845,25 +835,16 @@ export const Intersect = {
 			|| Intersect.ptBox(arcStart, box));
 	},
 	arcLine(arc: Arc, line: Line): boolean {
-		if (!Intersect.circleLine(arc, line)) return false;
-		// project arc center onto line
 		let ppt = project(arc, line);
-		let difference = diff(ppt, arc);
-		let diffNormal = {x: -difference.y, y: difference.x};
-		let d = mag(difference);
-		let height;
-		if (d === 0) {
-			let segment = {x: line.dx, y: line.dy};
-			height = scale(segment, arc.radius / mag(segment));
-		}
-		else {
-			let sinTheta = Math.sqrt(arc.radius*arc.radius - d*d) / arc.radius;
-			height = scale(diffNormal, arc.radius*sinTheta/d);
-		}
-		let p1 = sum(ppt, height);
-		if (Intersect.ptArc(p1, arc) && Intersect.ptLine(p1, line)) return true;
-		let p2 = diff(ppt, height);
-		return Intersect.ptArc(p2, arc) && Intersect.ptLine(p2, line);
+		let d = dist(ppt, arc);
+		let sMag = Math.sqrt(arc.radius**2 - d*d);
+		let s = rescale({x: line.dx, y: line.dy}, sMag);
+
+		let pt1 = {x: ppt.x + s.x, y: ppt.y + s.y, radius: EPS};
+		let pt2 = {x: ppt.x - s.x, y: ppt.y - s.y, radius: EPS};
+
+		return Intersect.arcCircle(arc, pt1) && Intersect.circleLine(pt1, line)
+			|| Intersect.arcCircle(arc, pt2) && Intersect.circleLine(pt2, line);
 	},
 	arcPolygon(arc: Arc, poly: Polygon): boolean {
 		for (let edge of polygonEdges(poly)) {
@@ -1043,9 +1024,7 @@ export const Resolve = {
 		return ZERO();
 	},
 	ptCircle(pt: Collider & Point, circle: Collider & Circle): Resolution {
-		let difference = diff(pt, circle);
-		let distance = mag(difference);
-		let proj = scale(difference, circle.radius/distance);
+		let proj = sum(circle, rescale(diff(pt, circle), circle.radius));
 		return diff(proj, pt);
 	},
 	ptBox(pt: Collider & Point, box: Collider & Box): Resolution {
@@ -1135,6 +1114,7 @@ export const Resolve = {
 		else return ZERO();
 	},
 	arcArc(a: Collider & Arc, b: Collider & Arc): Resolution {
+		return ZERO();
 		if (arcPassCheck(a, b) || arcPassCheck(b, a)) {
 			let d = diff(b, a);
 			let angleFromA = Math.atan2(d.y, d.x);
@@ -1148,85 +1128,80 @@ export const Resolve = {
 	},
 	arcCircle(arc: Collider & Arc, circle: Collider & Circle): Resolution {
 		if (!arcPassCheck(arc, circle)) return false;
-		let d = diff(circle, arc);
-		let angle = Math.atan2(d.y, d.x);
-		if (angleWithinArc(angle, arc)) {
-			return Resolve.circleCircle(arc, circle);
+
+		let differ = diff(circle, arc);
+		let overlap = arc.radius + circle.radius - mag(differ);
+		let d = arc.radius - overlap/2;
+		let chordCenter = sum(arc, rescale(differ, d));
+		
+		let chordAngle = Math.atan2(chordCenter.y - arc.y, chordCenter.x - arc.x);
+		if (angleWithinArc(chordAngle, arc)) return Resolve.circleCircle(arc, circle);
+		// todo: extend above case to be more specific, there's some jumpy case
+		
+		let start = sum(arc, anglePos(arc.start, arc.radius));
+		let startCol = Intersect.ptCircle(start, circle);
+		let end = sum(arc, anglePos(arc.end, arc.radius));
+		let endCol = Intersect.ptCircle(end, circle);
+		
+		if (startCol && endCol) {
+			return scale(sum(
+				Resolve.ptCircle({...arc, ...start}, circle) || ZERO(),
+				Resolve.ptCircle({...arc, ...end}, circle) || ZERO()
+			), 1/2);
 		}
-		else {
-			// try with arc endpoints
-			let start = anglePos(arc.start, arc.radius);
-			let end = anglePos(arc.end, arc.radius);
-			let startDist = diff(circle, start);
-			let endDist = diff(circle, end);
-			if (startDist !== endDist) {
-				let target = startDist < endDist? start : end;
-				let difference = diff(target, circle);
-				let distance = mag(difference);
-				let proj = scale(difference, circle.radius/distance);
-				return diff(proj, target);
-			}
-			else {
-				// weird even case
-				let midAngle = arc.start + (arc.start - arc.end)/2;
-				let unitPos = anglePos(midAngle);
-				let bisector = Line(circle.x, circle.y, unitPos.x, unitPos.y);
-				let crossing = project(start, bisector);
-				let arcCenter = sum(arc, anglePos(midAngle, arc.radius));
-				let almostAtChordMid = scale(crossing, circle.radius / mag(crossing));
-				let smidge = diff(arcCenter, crossing);
-				let chordMid = diff(almostAtChordMid, smidge);
-				return chordMid;
-			}
-		}
+		else if (startCol) return Resolve.ptCircle({...arc, ...start}, circle);
+		else if (endCol) return Resolve.ptCircle({...arc, ...end}, circle);
+		throw new Error("Shouldn't happen?");
 	},
 	arcBox(arc: Collider & Arc, box: Collider & Box): Resolution {
+		return ZERO();
 		return Resolve.arcPolygon(arc, boxAsPolygon(box));
 	},
 	arcLine(arc: Collider & Arc, line: Collider & Line): Resolution {
-		if (arcPassCheck(arc, line) || lineSidePassCheck(line, arc)) {
-			// project arc center onto line
-			let ppt = project(arc, line);
-			let difference = diff(ppt, arc);
+		if (!arcPassCheck(arc, line) && !lineSidePassCheck(line, arc)) return false;
 
-			// if the arc faces the line, resolve with simple circle-line collision
-			let angleToProjection = Math.atan2(difference.y, difference.x);
-			if (angleWithinArc(angleToProjection, arc)) {
-				return Resolve.circleLine(arc, line);
-			}
+		let ppt = project(arc, line);
+		let d = dist(ppt, arc);
+		let sMag = Math.sqrt(arc.radius**2 - d*d);
+		let s = rescale({x: line.dx, y: line.dy}, sMag);
 
-			// continue to find the intersection points
-			// let diffNormal = {x: -difference.y, y: difference.x};
-			// let d = mag(difference);
-			// let height;
-			// if (d === 0) {
-			// 	let segment = {x: line.dx, y: line.dy};
-			// 	height = scale(segment, arc.radius / mag(segment));
-			// }
-			// else {
-			// 	let sinTheta = Math.sqrt(arc.radius*arc.radius - d*d) / arc.radius;
-			// 	height = scale(diffNormal, arc.radius*sinTheta/d);
-			// }
-			// let p1 = sum(ppt, height);
-			// let p1Hits = Intersect.ptArc(p1, arc) && Intersect.ptLine(p1, line);
-			// let p2 = diff(ppt, height);
-			// let p2Hits = Intersect.ptArc(p2, arc) && Intersect.ptLine(p2, line);
+		let pt1 = {x: ppt.x + s.x, y: ppt.y + s.y, radius: EPS};
+		let pt2 = {x: ppt.x - s.x, y: ppt.y - s.y, radius: EPS};
 
-			// if two intersections
-			// if (p1Hits && p2Hits) {
-				// get furthest distance inward of an arc endpoint and push it out
-				// project the ends against the normal
-				let lineNormal = {x: line.x, y: line.y, dx: -line.dy, dy: line.dx};
-				let dist1 = dist(lineNormal, project(anglePos(arc.start, arc.radius), lineNormal));
-				let dist2 = dist(lineNormal, project(anglePos(arc.end, arc.radius), lineNormal));
-				// furthest dist
-				let overlap = Math.min(dist1, dist2);
-				return scale(lineNormal, overlap / mag(lineNormal));
-			// }
+		let pt1Col = Intersect.arcCircle(arc, pt1) && Intersect.circleLine(pt1, line);
+		let pt2Col = Intersect.arcCircle(arc, pt2) && Intersect.circleLine(pt2, line);
+
+		if (pt1Col && pt2Col) {
+			let pptAngle = Math.atan2(ppt.y - arc.y, ppt.x - arc.x);
+			if (angleWithinArc(pptAngle, arc)) return Resolve.circleLine(arc, line);
+
+			let start = sum(arc, anglePos(arc.start, arc.radius));
+			let end = sum(arc, anglePos(arc.end, arc.radius));
+			let startProj = project(start, line);
+			let endProj = project(end, line);
+			let distStart = dist(start, startProj);
+			let distEnd = dist(end, endProj);
+			if (distStart < distEnd) return diff(startProj, start);
+			else return diff(endProj, end);
 		}
-		return false;
+		else if (pt1Col) {
+			let [e1, e2] = lineEnds(line);
+			let e1Dist = dist(e1, pt1);
+			let e2Dist = dist(e2, pt1);
+			if (e1Dist < e2Dist) return diff(e1, pt1);
+			else return diff(e2, pt1);
+		}
+		else if (pt2Col) {
+			let [e1, e2] = lineEnds(line);
+			let e1Dist = dist(e1, pt2);
+			let e2Dist = dist(e2, pt2);
+			if (e1Dist < e2Dist) return diff(e1, pt2);
+			else return diff(e2, pt2);
+		}
+		else throw new Error("Shouldn't happen?");
 	},
 	arcPolygon(arc: Collider & Arc, poly: Collider & Polygon): Resolution {
+		return ZERO();
 		if (arcPassCheck(arc, poly)) {
 			// setup flags and storage to check if endpoints should trigger
 			let start = anglePos(arc.start, arc.radius);
@@ -1290,10 +1265,8 @@ export const Resolve = {
 		else return false;
 	},
 	circleCircle(a: Collider & Circle, b: Collider & Circle): Resolution {
-		let distance = dist(a, b);
-		let overlap = a.radius + b.radius - distance;
-		let push = scale(diff(a, b), overlap / distance);
-		return push;
+		let overlap = a.radius + b.radius - dist(a, b);
+		return rescale(diff(a, b), overlap);
 	},
 	circleBox(circle: Collider & Circle, box: Collider & Box): Resolution {
 		// y axis projection check

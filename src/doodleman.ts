@@ -138,8 +138,8 @@ class DoodlemanGame extends Scribble.Game {
 		this.engine.objects.add(new Scribble.ShapeObjects.Polygon(350, 90, [
 			{x: 20, y:70}, {x: 100, y:80}, {x: 140, y:30}, {x: 150, y:0}, {x: 100, y:-60}
 		], "black"));
-		this.engine.objects.add(new Scribble.ShapeObjects.Point(576, 143, "black"));
-		this.engine.objects.add(new Scribble.ShapeObjects.Arc(576, 40, 50, Math.PI/2, Math.PI, "black"));
+		this.engine.objects.add(new Scribble.ShapeObjects.Point(54, 309, "black"));
+		this.engine.objects.add(new Scribble.ShapeObjects.Arc(576, 140, 50, Math.PI/2, Math.PI, "black"));
 		if (as === Scribble.Shape.CIRCLE)
 			this.follow = new Scribble.ShapeObjects.Circle(0, 0, 40, "blue");
 		else if (as === Scribble.Shape.BOX)

@@ -25,14 +25,18 @@ export function dot(a: Point, b: Point): number {
 	return (a.x * b.x) + (a.y * b.y);
 }
 export function scale (pt: Point, n: number): Point {
-	if (!pt) return pt;
 	return {x: pt.x * n, y: pt.y * n}
 }
 export function mag(pt: Point): number {
 	return Math.sqrt(pt.x*pt.x + pt.y*pt.y);
 }
 export function unit(pt: Point): Point {
-	return scale(pt, 1/mag(pt));
+	let n = 1 / Math.sqrt(pt.x*pt.x + pt.y*pt.y);
+	return {x: pt.x * n, y: pt.y * n}
+}
+export function rescale(pt: Point, n: number): Point {
+	let n2 = n / Math.sqrt(pt.x*pt.x + pt.y*pt.y);
+	return {x: pt.x * n2, y: pt.y * n2};
 }
 export function project(pt: Point, line: Line): Point {
 	let end1 = {x: line.x, y: line.y};
@@ -51,16 +55,17 @@ export function anglePos(angle: number, scale = 1) {
 }
 export function angleBound(angle: number): number {
 	while (angle < 0) angle += TAU;
-	while (angle >= TAU) angle -= TAU;
-	return angle;
+	return angle % TAU;
 }
 export function angleWithinArc(angle: number, arc: {start: number, end: number}): boolean {
 	let dAngle = arc.end - arc.start;
 	if (dAngle >= TAU) return true;
+	if (dAngle === 0) return angleBound(angle) === angleBound(arc.start);
+	let test = angleBound(angle);
 	let start = angleBound(arc.start);
 	let end = angleBound(arc.end);
 	if (end > start)
-		return start <= angle && angle <= end;
+		return start <= test && test <= end;
 	else
-		return angle <= end || start <= angle;
+		return test <= end || start <= test;
 }
