@@ -1,5 +1,5 @@
 {
-  "pages": ["res/PaintBlob.png"],
+  "pages": ["PaintBlob.png"],
   "spriteWidth": 46,
   "spriteHeight": 44,
   "errorColor": "purple",
@@ -10,94 +10,76 @@
     "right": { "x": 0, "y": 0 }
   },
   "drawOffset": { "x": -23, "y": 0 },
-  "animations": {
-    "stand": {
+  "animations": [
+    {
+      "action": "stand",
       "row": 0,
       "col": 0,
-      "frameCount": 15,
-      "frameRate": 0.2,
-      "data": {
-        "frame": [ 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0 ],
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0 ],
+      "alphas": [ 1 ]
     },
-    "invisible": {
+    {
+      "action": "invisible",
       "row": 0,
       "col": 0,
-      "frameCount": 1,
-      "frameRate": 0.2,
-      "data": {
-        "frame": 0,
-        "alpha": 0
-      }
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 0 ]
     },
-    "hop": {
+    {
+      "action": "hop",
       "row": 1,
       "col": 0,
-      "frameCount": 4,
-      "frameRate": 0.2,
-      "data": {
-        "frame": [ 0, 1, 2, 3 ],
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ]
     },
-    "fall": {
+    {
+      "action": "fall",
       "row": 1,
       "col": 3,
-      "frameCount": 1,
-      "frameRate": 0.2,
-      "data": {
-        "frame": 0,
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
     },
-    "land": {
+    {
+      "action": "land",
       "row": 0,
       "col": 2,
-      "frameCount": 2,
-      "frameRate": 0.2,
-      "data": {
-        "frame": [ 1, 0 ],
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 1, 0 ],
+      "alphas": [ 1 ]
     },
-    "emerge": {
+    {
+      "action": "emerge",
       "row": 0,
       "col": 0,
-      "frameCount": 6,
-      "frameRate": 0.2,
-      "data": {
-        "frame": [ 3, 3, 3, 2, 1, 0 ],
-        "alpha": [ 0.25, 0.5, 1, 1, 1, 1 ]
-      }
+      "framerate": 0.2,
+      "frames": [ 3, 3, 3, 2, 1, 0 ],
+      "alphas": [ 0.25, 0.5, 1, 1, 1, 1 ]
     },
-    "attack": {
+    {
+      "action": "attack",
       "row": 2,
       "col": 0,
-      "frameCount": 16,
-      "frameRate": 0.2,
-      "data": {
-        "frames": [ 0, 1, 2, 3, 4, 5, 4, 4, 4, 4, 4, 4, 4, 1, 2, 0 ],
-        "attack": {
-          "shape": {
-            "type": "box",
-            "x": 0,
-            "y": 0,
-            "width": [ "NaN", "NaN", "NaN", 35, 50, 50, 50, 50 ],
-            "height": [ "NaN", "NaN", "NaN", 50, 45, 45, 45, 45 ]
-          }
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3, 4, 5, 4, 4, 4, 4, 4, 4, 4, 1, 2, 0 ],
+      "attacks": [
+        {
+          "x": [ 0 ],
+          "y": [ 0 ],
+          "width": [ "NaN", "NaN", "NaN", 35, 50, 50, 50, 50 ],
+          "height": [ "NaN", "NaN", "NaN", 50, 45, 45, 45, 45 ]
         },
-        "attack2": {
-          "shape": {
-            "type": "box",
-            "x": 0,
-            "y": 0,
-            "width": [ "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", 30, 40 ],
-            "height": [ "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", 30, 15 ]
-          }
-      }
-      }
+        {
+          "x": [ 0 ],
+          "y": [ 0 ],
+          "width": [ "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", 30, 40 ],
+          "height": [ "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", "NaN", 30, 15 ]
+        }
+      ]
     }
-  },
+  ],
   "defaultAnimation": "stand"
 }

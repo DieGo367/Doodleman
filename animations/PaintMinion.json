@@ -1,5 +1,5 @@
 {
-  "pages": ["res/PaintMinion.png"],
+  "pages": ["PaintMinion.png"],
   "spriteWidth": 57,
   "spriteHeight": 44,
   "errorColor": "purple",
@@ -22,86 +22,71 @@
     "x": -28,
     "y": 0
   },
-  "animations": {
-    "stand": {
+  "animations": [
+    {
+      "action": "stand",
       "row": 0,
       "col": 0,
-      "frameCount": 1,
-      "frameRate": 0.2,
-      "data": {
-        "frame": 0,
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
     },
-    "crouch": {
+    {
+      "action": "crouch",
       "row": 0,
       "col": 1,
-      "frameCount": 1,
-      "frameRate": 0.2,
-      "data": {
-        "frame": 0,
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
     },
-    "jump": {
+    {
+      "action": "jump",
       "row": 0,
       "col": 2,
-      "frameCount": 1,
-      "frameRate": 0.2,
-      "data": {
-        "frame": 0,
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 1 ]
     },
-    "run": {
+    {
+      "action": "run",
       "row": 1,
       "col": 0,
-      "frameCount": 4,
-      "frameRate": 0.2,
-      "data": {
-        "frame": [ 0, 1, 2, 3 ],
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ]
     },
-    "attack": {
+    {
+      "action": "attack",
       "row": 2,
       "col": 0,
-      "frameCount": 4,
-      "frameRate": 0.2,
-      "data": {
-        "frame": [ 0, 1, 2, 3 ],
-        "alpha": 1,
-        "attack": {
-          "shape": {
-            "type": "box",
-            "x": 26,
-            "y": -12,
-            "width": 33,
-            "height": 10
-          }
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1 ],
+      "attacks": [
+        {
+          "x": [ 26 ],
+          "y": [ -12 ],
+          "width": [ 33 ],
+          "height": [ 10 ]
         }
-      }
+      ]
     },
-    "invisible": {
+    {
+      "action": "invisible",
       "row": 0,
       "col": 0,
-      "frameCount": 1,
-      "frameRate": 0.2,
-      "data": {
-        "frame": 0,
-        "alpha": 0
-      }
+      "framerate": 0.2,
+      "frames": [ 0 ],
+      "alphas": [ 0 ]
     },
-    "emerge": {
+    {
+      "action": "emerge",
       "row": 3,
       "col": 0,
-      "frameCount": 5,
-      "frameRate": 0.2,
-      "data": {
-        "frame": [ 0, 1, 2, 3, 4 ],
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3, 4 ],
+      "alphas": [ 1 ]
     }
-  },
+  ],
   "defaultAnimation": "stand"
 }

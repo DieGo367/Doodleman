@@ -1,9 +1,7 @@
 # Doodleman
-A web-based action platformer starring a little stick guy with a sword.
+A JavaScript browser game hosted on Google Cloud. It's an action-platformer starring a little stick guy with a sword. Current main gamemode is Survival in which you defeat incoming waves of evil paint-glob enemies.
 
-- **Note!** This project is currently undergoing a large rewrite and move to TypeScript. The current commit will not be reflective of what was finished before, and neither will the description and screenshots below be reflective of the game in its current state. I will update this once the new version has caught up with or surpassed the previous version.
-
-Anyway, everything below applies to the older version of the game ([Commit 6d8ce6d](https://github.com/DieGo367/Doodleman/commit/6d8ce6d398f37c8f4158ca6837221627b09b99b5)).
+This is a passion project done mostly for fun, but also has served as a way to practice my coding skills and learn things as I go.
 
 [Play the game!](https://doodle-man.appspot.com)
 ## Screenshots

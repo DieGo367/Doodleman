@@ -22,17 +22,15 @@
     "x": 0,
     "y": 0
   },
-  "animations": {
-    "name": {
+  "animations": [
+    {
+      "action": "name",
       "row": 0,
       "col": 0,
-      "frameCount": 4,
-      "frameRate": 0.2,
-      "data": {
-        "frame": [ 0, 1, 2, 3 ],
-        "alpha": 1
-      }
+      "framerate": 0.2,
+      "frames": [ 0, 1, 2, 3 ],
+      "alphas": [ 1, 1, 1, 1 ]
     }
-  },
+  ],
   "defaultAnimation": "name"
 }

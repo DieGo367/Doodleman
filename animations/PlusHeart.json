@@ -1,29 +1,25 @@
 {
-  "pages": ["res/PlusHeart.png"],
+  "pages": ["PlusHeart.png"],
   "spriteWidth": 18,
   "spriteHeight": 18,
   "errorColor": "red",
   "hasDirection": false,
   "drawOffset": {"x": -9, "y": 0},
-  "animations": {
-    "static": {
+  "animations": [
+    {
+      "action": "static",
       "row": 0,
       "col": 0,
-      "frameCount": 1,
-      "frameRate": 1,
-      "data": {
-        "frame": [ 0 ]
-      }
+      "framerate": 1,
+      "frames": [ 0 ]
     },
-    "heartbeat": {
+    {
+      "action": "heartbeat",
       "row": 0,
       "col": 0,
-      "frameCount": 5,
-      "frameRate": 0.2,
-      "data": {
-        "frame": [ 1, 2, 3, 2, 1]
-      }
+      "framerate": 0.2,
+      "frames": [ 1, 2, 3, 2, 1 ]
     }
-  },
+  ],
   "defaultAnimation": "static"
 }

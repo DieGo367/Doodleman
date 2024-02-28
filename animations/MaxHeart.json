@@ -1,5 +1,5 @@
 {
-  "extends": "animations/PlusHeart.json",
+  "extends": "PlusHeart.json",
   "pages": ["MaxHeart.png"],
   "spriteWidth": 36,
   "spriteHeight": 36,

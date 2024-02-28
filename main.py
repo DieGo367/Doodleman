@@ -8,7 +8,10 @@ from oauth2client.client import GoogleCredentials
 from threading import Thread
 from flask import Flask
 from flask import jsonify
+from flask import make_response
+from flask import render_template
 from flask import request
+from flask import Response
 from flask import send_file
 from flask import send_from_directory
 from flask_cors import CORS
@@ -16,23 +19,91 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 cors = CORS(app, resources={"/net/*":{"origins": "*"}})
 
+scripts = [
+  "lib/simplepeer.min.js",
+  "lib/lz-string.min.js",
+  "game.js",
+  "project scribble.js",
+  "resource.js",
+  "level.js",
+  "animation.js",
+  "controls.js",
+  "collision.js",
+  "classes.js",
+  "gui.js",
+  "devTools.js",
+  "editorTools.js"
+]
+gamemodes = [
+  "title.js",
+  "editor.js",
+  "sandbox.js",
+  "survival.js",
+  "online-lobby.js"
+]
 static_folders = [
   "animations",
   "data",
   "levels",
   "res",
-  "js"
+  "scripts"
 ]
 
+def render_main(launch_mode,literals={},strings={}):
+	scs = []
+	for script in scripts:
+		scs.append(f"scripts/{script}")
+	for script in gamemodes:
+		scs.append(f"scripts/gamemodes/{script}")
+	lits = {"GAME_LAUNCH": launch_mode, "ALLOW_SW": "true"}
+	strs = {"NET_URL": net_url}
+	for key, item in literals.items():
+		lits[key] = item
+	for key, item in strings.items():
+		strs[key] = item
+	return render_template("main.html",scripts=scs,literals=lits,strings=strs)
+
+def get_content_type(ext):
+	types = {
+		"css": "text/css",
+		"js": "text/javascript",
+		"json": "application/json",
+		"ogg": "audio/ogg",
+		"png": "image/png"
+	}
+	if ext in types.keys():
+		return types[ext]
+	else:
+		return "text/html"
+
 def send404(msg=""):
-	return msg, 404
+	return render_template("404.html",msg=msg), 404
 @app.errorhandler(404)
 def default404(e):
 	return send404("Page not found")
 
 @app.route("/")
 def game():
-	return send_file("index.html")
+	return render_main(0)
+
+@app.route("/index.html")
+def compiled_game():
+	return render_main(0,strings={"NET_URL":"https://doodle-man.appspot.com/net/"},literals={"ALLOW_SW":"false"})
+
+@app.route("/edit")
+def editor():
+	return render_main(1)
+
+@app.route("/online")
+def online_lobby():
+	return render_main(4)
+
+@app.route("/join")
+def join():
+	id = request.args.get("id")
+	if id:
+		return render_main(4,strings={"NET_INVITE": id})
+	return render_main(0)
 
 @app.route("/<folder>/<path:subpath>")
 def get_static(folder,subpath):
@@ -41,28 +112,30 @@ def get_static(folder,subpath):
 	else:
 		return send404("Directory does not exist")
 
-@app.route("/list/<folder>.json")
-def get_static_list_new(folder):
+@app.route("/list/<path:folderpath>.json")
+def get_static_list(folderpath):
+	folder = folderpath.split("/").pop(0)
+	if folder in static_folders:
+		paths = []
+		for dirpath, _dirnames, filenames in os.walk(folderpath):
+			for filename in filenames:
+				path = os.path.join(dirpath,filename).replace('\\','/').replace(folderpath+"/","")
+				paths.append(path)
+		return jsonify(paths)
+	else:
+		return send404()
+
+@app.route("/imagelist.json")
+def get_preload_images():
 	paths = []
-	if folder == "images":
-		for filename in os.listdir("res"):
-			ext = filename.split(".").pop()
-			if ext == "png":
-				paths.append("res/"+filename)
-		for filename in os.listdir("res/GUI"):
-			ext = filename.split(".").pop()
-			if ext == "png":
-				paths.append("res/GUI/"+filename)
-	elif folder == "sounds":
-		for dirpath, _dirnames, filenames in os.walk("res/sounds"):
-			for filename in filenames:
-				path = os.path.join(dirpath,filename).replace('\\','/')
-				paths.append(path)
-	elif folder in ["animations", "levels"]:
-		for dirpath, _dirnames, filenames in os.walk(folder):
-			for filename in filenames:
-				path = os.path.join(dirpath,filename).replace('\\','/')
-				paths.append(path)
+	for filename in os.listdir("res"):
+		ext = filename.split(".").pop()
+		if ext == "png":
+			paths.append(filename)
+	for filename in os.listdir("res/GUI"):
+		ext = filename.split(".").pop()
+		if ext == "png":
+			paths.append("GUI/"+filename)
 	return jsonify(paths)
 
 @app.route("/favicon.ico")
@@ -75,7 +148,7 @@ def get_manifest():
 
 @app.route("/sw.js")
 def build_service_worker():
-	paths = ["/", "/favicon.ico", "/manifest.json"]
+	paths = ["/","/index.html","/edit", "/imagelist.json", "/favicon.ico", "/manifest.json"]
 	for dir in static_folders:
 		paths.append(f"/list/{dir}.json")
 		for dirpath, dirnames, filenames in os.walk(dir):
@@ -83,6 +156,7 @@ def build_service_worker():
 				paths.append(f"/list/{dirpath}/{subpath}.json")
 			for filename in filenames:
 				paths.append("/"+os.path.join(dirpath,filename).replace("\\","/"))
+	str = ""
 	with open("sw.js") as file:
 		str = file.read()
 	str = str.replace('["staticFiles"]',f"{paths}")
@@ -131,7 +205,7 @@ def fire_append(path,value=None):
 		data.append(value)
 		print(data)
 		return fire_put(path,data)
-def fire_pop(path,index=-1):
+def fire_pop(path,value=None,index=-1):
 	data = fire_get(path)
 	if isinstance(data,list):
 		first = data.pop(index)
@@ -140,8 +214,8 @@ def fire_pop(path,index=-1):
 		else:
 			fire_put(path,data)
 		return {"data":first}
-def fire_popleft(path):
-	return fire_pop(path,0)
+def fire_popleft(path,value=None):
+	return fire_pop(path,value,0)
 
 # NET CODE
 
