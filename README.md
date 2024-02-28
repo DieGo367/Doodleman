@@ -1,8 +1,6 @@
 # Doodleman
 A JavaScript browser game hosted on Google Cloud. It's an action-platformer starring a little stick guy with a sword. Current main gamemode is Survival in which you defeat incoming waves of evil paint-glob enemies.
 
-This is a passion project done mostly for fun, but also has served as a way to practice my coding skills and learn things as I go.
-
 [Play the game!](https://doodle-man.appspot.com)
 ## Screenshots
 ![Doodleman Title Screen](https://github.com/DieGo367/Doodleman/blob/master/screenshots/title.png)
@@ -13,14 +11,16 @@ This is a passion project done mostly for fun, but also has served as a way to p
 ![A really cool spooky forest cemetery concept level. Art by my brother.](https://github.com/DieGo367/Doodleman/blob/master/screenshots/sandbox_02.png)
 ## Tech used
  - Pure JavaScript, no game-making libraries used.
- - jQuery for a few of the features that require an HTML element.
  - Python Flask webapp for serving all the files.
  - Google Cloud for hosting.
+ - RTC Peer Connections for online multiplayer
+ - Firestore database for negotiating multiplayer connections
 ## Features
  - Two gamemodes
 	 - Survival - Defeat incoming waves of enemies to progress to the next level.
 	 - Sandbox - Just play around in a few test levels and concepts.
  - Multiplayer (2) for both modes. You can get extra help in Survival, or fight each other in Sandbox.
+ - Online multiplayer mode with shareable lobby codes. Supports more than 2 players, loading custom levels, and playing both gamemodes.
  - Fullscreen mode! Although the aspect ratio never changes.
  - Keyboard/Gamepad/Touch support
 	 - Automatically switches depending on which input is used.
@@ -42,5 +42,6 @@ This is a passion project done mostly for fun, but also has served as a way to p
 	 - More moves listed in the in-game help page
  - (debug mode - press backslash)
 ## Credits
-Quick thanks to my brother for the art in the cemetery demo level and for finding loads of bugs.
-Also shoutouts to anyone who has ever taught me code or done tutorials online.
+- [simple-peer](https://github.com/feross/simple-peer/tree/master) WebRTC library by feross.
+- [lz-string](https://github.com/pieroxy/lz-string?tab=readme-ov-file) LZ compression library by pieroxy.
+- [FLARE145](https://flare145.com/): Art in the Cemetery demo level, and playtesting.
