@@ -160,7 +160,7 @@ def build_service_worker():
 	with open("sw.js") as file:
 		str = file.read()
 	str = str.replace('["staticFiles"]',f"{paths}")
-	return send_file(io.BytesIO(str.encode()),attachment_filename="sw.js")
+	return send_file(io.BytesIO(str.encode()), mimetype="script")
 
 # Firebase - Realtime Database
 database = "https://doodle-man.firebaseio.com/"
